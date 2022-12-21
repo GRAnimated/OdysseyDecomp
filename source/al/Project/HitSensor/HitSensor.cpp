@@ -4,12 +4,12 @@
 namespace al {
     // HitSensor::trySensorSort
 
-    void HitSensor::setFollowPosPtr(const sead::Vector3f *pVec) {
+    void HitSensor::setFollowPosPtr(const sead::Vector3f* pVec) {
         mFollowPosVec = pVec;
         mFollowPosMtx = nullptr;
     }
 
-    void HitSensor::setFollowMtxPtr(const sead::Matrix34f *pMtx) {
+    void HitSensor::setFollowMtxPtr(const sead::Matrix34f* pMtx) {
         mFollowPosVec = nullptr;
         mFollowPosMtx = pMtx;
     }
@@ -70,10 +70,10 @@ namespace al {
 
     // HitSensor::update
 
-    void HitSensor::addHitSensor(HitSensor *pSensor) {
+    void HitSensor::addHitSensor(HitSensor* pSensor) {
         if (mSensorCount < mMaxSensorCount) {
             mSensors[mSensorCount] = pSensor;
             mSensorCount++;
         }
     }
-};
+};    // namespace al

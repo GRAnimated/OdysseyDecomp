@@ -3,5 +3,5 @@
 namespace al {
     class LiveActor;
 
-    bool isDead(const LiveActor *);
-};
+    bool isDead(const LiveActor*);
+};    // namespace al

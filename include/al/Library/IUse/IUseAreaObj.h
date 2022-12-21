@@ -7,4 +7,4 @@ namespace al {
     public:
         virtual AreaObjDirector* getAreaObjDirector() const = 0;
     };
-};
+};    // namespace al
