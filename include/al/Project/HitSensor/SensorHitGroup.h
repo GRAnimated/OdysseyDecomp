@@ -5,10 +5,10 @@ namespace al {
 
     class SensorHitGroup {
     public:
-        SensorHitGroup(int, const char *);
+        SensorHitGroup(int, const char*);
 
-        void add(HitSensor *);
-        void remove(HitSensor *);
+        void add(HitSensor*);
+        void remove(HitSensor*);
         HitSensor* getSensor(int) const;
         void clear() const;
 
@@ -16,4 +16,4 @@ namespace al {
         int mCurrentSensorCount;    // _4
         HitSensor** mHitSensors;    // _8
     };
-};
+};    // namespace al
