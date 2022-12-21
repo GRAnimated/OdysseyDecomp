@@ -28,11 +28,7 @@ namespace al {
         }
     }
 
-<<<<<<< HEAD
     HitSensor *SensorHitGroup::getSensor(int idx) const { return mHitSensors[idx]; }
-=======
-    HitSensor* SensorHitGroup::getSensor(int idx) const { return mHitSensors[idx]; }
->>>>>>> 60112915b1b559e06290092c73b9c070ba03786b
 
     void SensorHitGroup::clear() const {
         for (auto i = 0; i < mCurrentSensorCount; i++) {
