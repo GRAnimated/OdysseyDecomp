@@ -22,7 +22,7 @@ def getModule(sym):
     return ""
 
 if len(sys.argv) < 2:
-    print("python check.py [-no-diff] symbol_name")
+    print("python check.py [-no-diff] <mangled symbol>")
     sys.exit(1)
 
 
@@ -30,7 +30,7 @@ printDiff = True
 
 if "-no-diff" in sys.argv:
     sym = sys.argv[2]
-    printDiff = Fals
+    printDiff = False
 else:
     sym = sys.argv[1]
 

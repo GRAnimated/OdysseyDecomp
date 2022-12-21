@@ -1,15 +1,15 @@
-#include "al/Project/HitSensor/HitSensor.h"
-#include "al/Project/HitSensor/SensorHitGroup.h"
+#include "HitSensor/HitSensor.h"
+#include "HitSensor/SensorHitGroup.h"
 
 namespace al {
     // HitSensor::trySensorSort
 
-    void HitSensor::setFollowPosPtr(const Vector3f *pVec) {
+    void HitSensor::setFollowPosPtr(const sead::Vector3f *pVec) {
         mFollowPosVec = pVec;
         mFollowPosMtx = nullptr;
     }
 
-    void HitSensor::setFollowMtxPtr(const Matrix34f *pMtx) {
+    void HitSensor::setFollowMtxPtr(const sead::Matrix34f *pMtx) {
         mFollowPosVec = nullptr;
         mFollowPosMtx = pMtx;
     }

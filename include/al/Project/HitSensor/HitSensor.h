@@ -1,7 +1,8 @@
 #pragma once
 
-#include <nn/types.h>
-#include <sead/sead.h>
+#include <basis/seadTypes.h>
+#include <math/seadMatrix.h>
+#include <math/seadVector.h>
 
 namespace al {
     class SensorHitGroup;
@@ -9,11 +10,11 @@ namespace al {
 
     class HitSensor {
     public:
-        HitSensor(LiveActor *, const char *, u32, f32, u16, const Vector3f *, const Matrix34f *, const Vector3f &);
+        HitSensor(LiveActor *, const char *, u32, f32, u16, const sead::Vector3f *, const sead::Matrix34f *, const sead::Vector3f &);
 
         bool trySensorSort();
-        void setFollowPosPtr(const Vector3f *);
-        void setFollowMtxPtr(const Matrix34f *);
+        void setFollowPosPtr(const sead::Vector3f *);
+        void setFollowMtxPtr(const sead::Matrix34f *);
         void validate();
         void invalidate();
         void validateBySystem();
@@ -35,8 +36,8 @@ namespace al {
         bool mIsValidBySystem;                  // _39
         u32 _3C;
         LiveActor* mParentActor;                // _40
-        const Vector3f* mFollowPosVec;          // _48
-        const Matrix34f* mFollowPosMtx;         // _50
-        Vector3f _58;
+        const sead::Vector3f* mFollowPosVec;          // _48
+        const sead::Matrix34f* mFollowPosMtx;         // _50
+        sead::Vector3f _58;
     };
 };
