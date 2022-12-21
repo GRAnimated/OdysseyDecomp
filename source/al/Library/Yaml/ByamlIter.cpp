@@ -1,9 +1,7 @@
 #include "al/Library/Yaml/ByamlIter.h"
 
 namespace al {
-    u32 ByamlContainerHeader::getType() const {
-        return mData;
-    }
+    u32 ByamlContainerHeader::getType() const { return mData; }
 
     u32 ByamlContainerHeader::getCount(bool isRev) const {
         if (isRev) {
@@ -12,4 +10,4 @@ namespace al {
 
         return (mData >> 8);
     }
-};
+};    // namespace al

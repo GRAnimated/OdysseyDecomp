@@ -5,6 +5,6 @@ namespace al {
 
     class IUseNerve {
     public:
-        virtual NerveKeeper* getNerveKeeper() const = 0;
+        virtual NerveKeeper *getNerveKeeper() const = 0;
     };
-};
+};    // namespace al

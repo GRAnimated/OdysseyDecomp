@@ -5,6 +5,6 @@ namespace al {
 
     class IUseCamera {
     public:
-        virtual CameraDirector* getCameraDirector() const = 0;
+        virtual CameraDirector *getCameraDirector() const = 0;
     };
-};
+};    // namespace al

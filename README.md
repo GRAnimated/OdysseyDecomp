@@ -8,6 +8,7 @@ A decompilation of Super Mario Odyssey v1.0.0 for the Nintendo Switch
 **This project will not generate a complete binary of the game, and is only meant as a place for research. Game assets are not needed, nor included in this repository.**
 
 *Discord server can be found [here](https://discord.gg/WHbGwKyH8m)*
+
 *In progress functions can be found [here](https://docs.google.com/spreadsheets/d/198vrkkDqktrRDLInSAkK2HsG5hy1Fl8cmCNRMND3nCY/edit?usp=sharing)*
 
 ### Setup
@@ -15,8 +16,9 @@ A decompilation of Super Mario Odyssey v1.0.0 for the Nintendo Switch
 * Super Mario Odyssey 1.0.0 and the `main` file from its exefs. Place this in the project root with the name `odyssey.nso`.
 * Linux or WSL
 * Python 3
+* pip
 * Depending on your setup, you may need these apt packages:
-* - `g++-multilib libc6 libc6-dev`
+* - `libncurses5-dev g++-multilib libc6 libc6-dev`
 
 ***Windows users: cloning inside of a WSL directory will greatly improve build performance***
 Then run this command to clone the repository along with the submodules under `lib`. These include `sead`, `nnheaders`, and `agl` from [open-ead](https://github.com/open-ead/).

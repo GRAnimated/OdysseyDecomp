@@ -5,6 +5,6 @@ namespace al {
 
     class IUseAreaObj {
     public:
-        virtual AreaObjDirector* getAreaObjDirector() const = 0;
+        virtual AreaObjDirector *getAreaObjDirector() const = 0;
     };
 };    // namespace al

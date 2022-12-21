@@ -16,12 +16,12 @@ class Application {
     SEAD_SINGLETON_DISPOSER(Application)
 public:
     Application();
-    void init(int, char**);
+    void init(int, char **);
     void run();
-    RootTask* getRootTask() const;
+    RootTask *getRootTask() const;
 
-    al::SystemKit* mSystemKit;
-    al::GameFrameworkNx* mFramework;
+    al::SystemKit *mSystemKit;
+    al::GameFrameworkNx *mFramework;
     u64 _30;
-    al::AccountHolder* mAccountHolder;
+    al::AccountHolder *mAccountHolder;
 };

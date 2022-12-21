@@ -5,6 +5,6 @@ namespace al {
 
     class IUseSceneObjHolder {
     public:
-        virtual SceneObjHolder* getSceneObjHolder() const = 0;
+        virtual SceneObjHolder *getSceneObjHolder() const = 0;
     };
-};
+};    // namespace al

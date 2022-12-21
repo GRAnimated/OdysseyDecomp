@@ -45,7 +45,7 @@ namespace al {
         bool tryConvertInt64(s64 *, const ByamlData *) const;
         bool tryConvertUInt64ByKey(u64 *, const char *) const;
         bool tryConvertUInt64(u32 *, const ByamlData *) const;
-        bool tryGetDoubleByKey(f64 *, const char * const) const;
+        bool tryGetDoubleByKey(f64 *, const char *const) const;
         bool tryConvertDouble(f64 *, const ByamlData *) const;
         bool tryGetStringByIndex(const char **, int) const;
         bool tryGetBinaryByIndex(const u8 **, int *, int) const;
@@ -59,8 +59,8 @@ namespace al {
         bool tryConvertIter(ByamlIter *, const ByamlData *) const;
         bool isEqualData(const ByamlIter &);
 
-        const u8* mData = nullptr;          // _0
-        const u8* mRootNode = nullptr;      // _8
+        const u8 *mData = nullptr;        // _0
+        const u8 *mRootNode = nullptr;    // _8
     };
 
     class ByamlHeader {
@@ -80,4 +80,4 @@ namespace al {
 
         u32 mData;
     };
-};
+};    // namespace al

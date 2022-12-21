@@ -5,6 +5,5 @@
 namespace al {
     class IUseGridMesh : public HioNode {
     public:
-        
     };
-};
+};    // namespace al

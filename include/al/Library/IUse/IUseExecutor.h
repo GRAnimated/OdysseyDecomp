@@ -6,4 +6,4 @@ namespace al {
         virtual void execute();
         virtual void draw() const;
     };
-};
+};    // namespace al

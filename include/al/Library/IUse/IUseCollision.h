@@ -5,6 +5,6 @@ namespace al {
 
     class IUseCollision {
     public:
-        virtual CollisionDirector* getCollisionDirector() const = 0;
+        virtual CollisionDirector *getCollisionDirector() const = 0;
     };
-};
+};    // namespace al

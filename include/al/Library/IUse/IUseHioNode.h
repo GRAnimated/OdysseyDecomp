@@ -10,4 +10,4 @@ namespace al {
     public:
         // ???
     };
-};
+};    // namespace al
