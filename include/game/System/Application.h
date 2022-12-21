@@ -10,20 +10,18 @@
 namespace al {
     class GameFrameworkNx;
     class AccountHolder;
-}
+}    // namespace al
 
 class Application {
     SEAD_SINGLETON_DISPOSER(Application)
-    public:
-
+public:
     Application();
-    void init(int,char **);
+    void init(int, char**);
     void run();
-    RootTask *getRootTask() const;
-    
-    al::SystemKit *mSystemKit;
-    al::GameFrameworkNx *mFramework;
+    RootTask* getRootTask() const;
+
+    al::SystemKit* mSystemKit;
+    al::GameFrameworkNx* mFramework;
     u64 _30;
-    al::AccountHolder *mAccountHolder;
-    
+    al::AccountHolder* mAccountHolder;
 };

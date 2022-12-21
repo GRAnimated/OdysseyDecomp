@@ -1,19 +1,19 @@
 #include "al/Library/HitSensor/HitSensorKeeper.h"
-#include "al/Project/HitSensor/HitSensor.h"
 #include "al/Library/Base/String.h"
+#include "al/Project/HitSensor/HitSensor.h"
 
 namespace al {
     HitSensorKeeper::HitSensorKeeper(int maxCount) {
         mMaxSensorNum = maxCount;
         mCurSensorNum = 0;
         mSensors = new HitSensor*[maxCount];
-            
+
         for (int i = 0; i < mMaxSensorNum; i++) {
             mSensors[i] = nullptr;
         }
     }
 
-    HitSensor* HitSensorKeeper::addSensor(LiveActor *pActor, const char *pSensorName, u32 maxCount, f32 radius, u16 a5, const sead::Vector3f *a6, const sead::Matrix34f *a7, const sead::Vector3f &a8) {
+    HitSensor* HitSensorKeeper::addSensor(LiveActor* pActor, const char* pSensorName, u32 maxCount, f32 radius, u16 a5, const sead::Vector3f* a6, const sead::Matrix34f* a7, const sead::Vector3f& a8) {
         HitSensor* sensor = new HitSensor(pActor, pSensorName, maxCount, radius, a5, a6, a7, a8);
         mSensors[mCurSensorNum] = sensor;
         mCurSensorNum++;
@@ -27,13 +27,9 @@ namespace al {
         }
     }
 
-    int HitSensorKeeper::getSensorNum() const {
-        return mCurSensorNum;
-    }
+    int HitSensorKeeper::getSensorNum() const { return mCurSensorNum; }
 
-    HitSensor* HitSensorKeeper::getSensor(int idx) const {
-        return mSensors[idx];
-    }
+    HitSensor* HitSensorKeeper::getSensor(int idx) const { return mSensors[idx]; }
 
     // HitSensorKeeper::attackSensor -- needs LiveActor impl
 
@@ -67,7 +63,7 @@ namespace al {
         }
     }
 
-    HitSensor* HitSensorKeeper::getSensor(const char *pSensorName) const {
+    HitSensor* HitSensorKeeper::getSensor(const char* pSensorName) const {
         if (mCurSensorNum == 1) {
             return mSensors[0];
         }
@@ -80,4 +76,4 @@ namespace al {
 
         return nullptr;
     }
-};
+};    // namespace al

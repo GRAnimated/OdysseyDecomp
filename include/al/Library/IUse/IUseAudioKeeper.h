@@ -7,4 +7,4 @@ namespace al {
     public:
         virtual AudioKeeper* getAudioKeeper() const = 0;
     };
-};
+};    // namespace al
