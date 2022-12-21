@@ -6,3 +6,4 @@ build/*
 __pycache__
 splitCSV.py
 map/*
+compile_commands.json

@@ -10,7 +10,12 @@ if "-non-matching" in sys.argv:
     nonmatching_str = "-DNON_MATCHING"
     print("Non-functions matches will be compiled")
 
-COMPILER_CMD = f"-x c++ -O3 -std=gnu++1z --target=aarch64-linux-elf -mcpu=cortex-a57+fp+simd+crypto+crc -fno-exceptions -mno-implicit-float -fno-strict-aliasing -fno-short-enums -fdata-sections -fPIC -g -Wall {nonmatching_str} -I include -c "
+include_dirs = ["include", "include/al/Library", "include/al/Project", "lib/agl/include", "lib/nnheaders/include", "lib/sead/include", "tools/clang/include/c++/v1"]
+incdirs = ""
+for dir in include_dirs:
+    incdirs += f'-I {dir} '
+
+COMPILER_CMD = f"-x c++ -O3 -std=gnu++1z --target=aarch64-linux-elf -mcpu=cortex-a57+fp+simd+crypto+crc -fno-exceptions -fms-extensions -mno-implicit-float -fno-strict-aliasing -fno-short-enums -fdata-sections -fPIC -g -Wall {nonmatching_str} {incdirs} -D NNSDK -c "
 COMPILER_PATH = pathlib.Path("tools/clang/bin/clang")
 OBJDUMP_PATH = pathlib.Path("tools/clang/bin/llvm-objdump")
 

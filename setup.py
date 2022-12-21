@@ -57,22 +57,32 @@ except ModuleNotFoundError:
     print("Module 'colorama' not found. Installing...")
     install("colorama")
 
-# this code isn't tested because I don't want to download clang again, will change if errors arise
+
+
 if not os.path.exists("tools"):
-    print("Downloading Clang 3.9.1...")
+    print("Making tools directory...")
     os.mkdir("tools")
+
+if not os.path.exists("tools/clang"):
+    print("Downloading Clang 3.9.1...")
 
     with urllib.request.urlopen("https://releases.llvm.org/3.9.1/clang+llvm-3.9.1-x86_64-linux-gnu-debian8.tar.xz") as response, open("compiler.tar.xz", "wb") as out:
         data = response.read()
         out.write(data)
 
-    tar_file = tarfile.open("compiler.tar.xz")
-    tar_file.extractall("tools/clang")
-    tar_file.close()
+    print("Extracting files...")
+    ex = tarfile.open("compiler.tar.xz")
+    ex.extractall("tools/")
 
     os.rename("tools/clang+llvm-3.9.1-x86_64-linux-gnu-debian8", "tools/clang")
 else:
-    print("Tools already exist, continuing...")
+    print("Clang already exist, continuing...")
+
+
+
+if os.path.exists("compiler.tar.xz"):
+    print("Deleting temp files...")
+    os.remove("compiler.tar.xz")
 
 print("Done.")
 sys.exit(1)

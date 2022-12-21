@@ -1,5 +1,5 @@
-#include "al/Project/HitSensor/SensorHitGroup.h"
-#include "al/Project/HitSensor/HitSensor.h"
+#include "HitSensor/SensorHitGroup.h"
+#include "HitSensor/HitSensor.h"
 
 namespace al {
     SensorHitGroup::SensorHitGroup(int maxCount, const char *pName) {
