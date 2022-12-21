@@ -10,11 +10,18 @@ AlwaysBreakAfterReturnType: None
 AlwaysBreakTemplateDeclarations: 'Yes'
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Attach
+<<<<<<< HEAD
 ColumnLimit: '200'
 CommentPragmas: '^ (IWYU pragma:|NOLINT)'
 ConstructorInitializerIndentWidth: '4'
 ContinuationIndentWidth: '4'
 DisableFormat: 'false'
+=======
+ColumnLimit: '300'
+CommentPragmas: '^ (IWYU pragma:|NOLINT)'
+ConstructorInitializerIndentWidth: '4'
+ContinuationIndentWidth: '4'
+>>>>>>> 60112915b1b559e06290092c73b9c070ba03786b
 IndentWidth: '4'
 Language: Cpp
 MaxEmptyLinesToKeep: '1'
@@ -26,9 +33,14 @@ PenaltyBreakFirstLessLess: '120'
 PenaltyBreakString: '1000'
 PenaltyExcessCharacter: '1000000'
 PenaltyReturnTypeOnItsOwnLine: '60'
+<<<<<<< HEAD
 PointerAlignment: Right
 ReflowComments: 'true'
 SortIncludes: 'true'
+=======
+PointerAlignment: Left
+ReflowComments: 'true'
+>>>>>>> 60112915b1b559e06290092c73b9c070ba03786b
 SpaceBeforeParens: ControlStatements
 SpacesBeforeTrailingComments: '4'
 TabWidth: '4'
