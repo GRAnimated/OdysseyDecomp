@@ -33,6 +33,7 @@ if "-no-diff" in sys.argv:
     printDiff = False
 else:
     sym = sys.argv[1]
+    
 
 func_sizes = { }
 sym_map = { }
@@ -96,9 +97,9 @@ with open(object_path, "rb") as f:
 orig_length = len(list(original_instrs))
 cust_length = len(list(custom_instructions))
 
-if orig_length != cust_length:
-    print("Custom function does not match the size of the original.")
-    sys.exit(1)
+#if orig_length != cust_length:
+#    print("Custom function does not match the size of the original.")
+#    sys.exit(1)
 
 instr_equal = True
 regs_equal = True
