@@ -33,7 +33,9 @@ Then run this command to clone the repository along with the submodules under `l
 ### Building
 Building has only been tested on WSL2 running Ubuntu 20.04.4.
 
-* `setup.py` - download and install required Python modules and Clang 3.9.1
+* `setup.py [-clang]` - download and install required Python modules and Clang 3.9.1
+* - `-clang` - creates a compile_commands.json used for clangd
+
 * `build.py [-non-matching]` - build the repository and generate `.o` files under the `build` directory
 * - `-non-matching` - also builds non-matching functions enclosed in the `NON_MATCHING` macro
 
@@ -46,8 +48,10 @@ Building has only been tested on WSL2 running Ubuntu 20.04.4.
 If you're using Windows, please use a WSL window for this project. This will ensure the best compatibility with extensions.
 
 The [clangd](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.vscode-clangd) extension is recommended for code formatting, code completion, and errors/warnings.
-* To use this extension properly, please let the extension download Clang and follow these steps:
-* * Create a `compile_commands.json` in your project root. Paste the following into it and adjust your repository path to match the repository location.
+* To use this extension properly, please let the extension download Clang and then run the following command:
+  `python3 setup.py -clang`
+  This will create a `compile_commands.json` in your project root.
+- Alternatively, you can create the file yourself and paste the following into it. Adjust your repository path to match the repository location.
 ```json
 [
     {

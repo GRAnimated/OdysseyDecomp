@@ -5,9 +5,26 @@ import sys
 import subprocess
 import tarfile
 import hashlib
+import json
 
 def install(what):
     subprocess.check_call([sys.executable, '-m', 'pip', 'install', what])
+
+if "-clang" in sys.argv:
+    print("Creating compile_commands.json file")
+    dir = os.getcwd()
+    data = [{
+            "directory": dir,
+            "command": "clang++ -x c++ -O3 -std=gnu++1z --target=aarch64-linux-elf -mcpu=cortex-a57+fp+simd+crypto+crc -fno-exceptions -mno-implicit-float -fno-strict-aliasing -fno-short-enums -fdata-sections -fPIC -g -Wall -I include -I include/al/Library -I include/al/Project -I lib/agl/include -I lib/nnheaders/include -I lib/sead/include -I tools/clang/include/c++/v1 -D NNSDK -c",
+            "file": "required/line.cpp"
+    }]
+    json_data = json.dumps(data, indent=4)
+
+    with open("compile_commands.json", "w") as f:
+        f.write(json_data)
+        f.close()
+    sys.exit(1)
+
 
 if not os.path.exists("odyssey.nso"):
     print("odyssey.nso does not exist. Place a Super Mario Odyssey v1.0.0 NSO named odyssey.nso in the root.")
