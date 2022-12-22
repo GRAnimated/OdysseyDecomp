@@ -8,6 +8,7 @@ A decompilation of Super Mario Odyssey v1.0.0 for the Nintendo Switch
 **This project will not generate a complete binary of the game, and is only meant as a place for research. Game assets are not needed, nor included in this repository.**
 
 *Discord server can be found [here](https://discord.gg/WHbGwKyH8m)*
+
 *In progress functions can be found [here](https://docs.google.com/spreadsheets/d/198vrkkDqktrRDLInSAkK2HsG5hy1Fl8cmCNRMND3nCY/edit?usp=sharing)*
 
 ### Setup
