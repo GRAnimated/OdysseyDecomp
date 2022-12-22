@@ -22,6 +22,7 @@ A decompilation of Super Mario Odyssey v1.0.0 for the Nintendo Switch
 ***Windows users: cloning inside of a WSL directory will greatly improve build performance***
 Then run this command to clone the repository along with the submodules under `lib`. These include `sead`, `nnheaders`, and `agl` from [open-ead](https://github.com/open-ead/).
 `git clone --recurse-submodules https://github.com/shibbo/OdysseyDecomp.git`
+`git submodule update --init --recursive`
 
 
 *The following can be downloaded with the `setup.py` in this repository*
@@ -50,10 +51,10 @@ The [clangd](https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-ex
 [
     {
       "directory": "/home/user/path/to/OdysseyDecomp",
-      "command": "clang++ -x c++ -O3 -std=gnu++1z --target=aarch64-linux-elf -mcpu=cortex-a57+fp+simd+crypto+crc -fno-exceptions -mno-implicit-float -fno-strict-aliasing -fno-short-enums -fdata-sections -fPIC -g -Wall -I include -I lib/agl/include -I lib/nnheaders/include -I lib/sead/include -I tools/clang/include/c++/v1 -D NNSDK -c",
+      "command": "clang++ -x c++ -O3 -std=gnu++1z --target=aarch64-linux-elf -mcpu=cortex-a57+fp+simd+crypto+crc -fno-exceptions -mno-implicit-float -fno-strict-aliasing -fno-short-enums -fdata-sections -fPIC -g -Wall -I include -I include/al/Library -I include/al/Project -I lib/agl/include -I lib/nnheaders/include -I lib/sead/include -I tools/clang/include/c++/v1 -D NNSDK -c",
       "file": "required/line.cpp"
     }
-  ]
+]
 ```
 * * Do `CTRL + SHIFT + P` and search for `Restart Language Server`. This will restart `clangd` and it should find the json now.
 
