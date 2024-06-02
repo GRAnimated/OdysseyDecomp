@@ -37,7 +37,6 @@ void FilterFly::exeWait() {
 
 void FilterFly::exeWaitEnd() {}
 
-// NON_MATCHING
 void FilterFly::exeMove() {
     if (al::isFirstStep(this))
         al::startAction(this, "Loop", 0);
@@ -45,19 +44,21 @@ void FilterFly::exeMove() {
     sead::Vector2f currentPos = {al::getLocalTrans(this).x, al::getLocalTrans(this).y};
     sead::Vector2f direction = mTargetPos - currentPos;
 
-    if (direction.length() <= 15.0f)
+    if (direction.length() > 15.0f) {
+        if (al::tryNormalizeOrZero(&direction)) {
+            mTargetPos2 += direction * 0.9f;
+            currentPos += mTargetPos2;
+            al::setPaneLocalTrans(this, "RootPane", currentPos);
+
+            float angleY = al::calcAngleDegree(direction, sead::Vector2f::ey);
+
+            al::setPaneLocalRotate(
+                this, "RootPane",
+                {0, 0,
+                 al::calcAngleDegree(direction, sead::Vector2f::ex) < 90.0f ? -angleY : angleY});
+        }
+    } else
         return al::setNerve(this, &Wait);
-
-    if (al::tryNormalizeOrZero(&direction)) {
-        mTargetPos2 += direction * 0.9f;
-        al::setPaneLocalTrans(this, "RootPane", {(direction * 0.9f) + mTargetPos2 + currentPos});
-
-        float angleY = al::calcAngleDegree(direction, sead::Vector2f::ey);
-
-        al::setPaneLocalRotate(
-            this, "RootPane",
-            {0, 0, al::calcAngleDegree(direction, sead::Vector2f::ex) < 90.0f ? -angleY : angleY});
-    }
     mTargetPos2 *= 0.98f;
 }
 
