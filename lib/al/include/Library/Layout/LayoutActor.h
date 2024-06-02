@@ -71,6 +71,8 @@ public:
 
     LayoutExecuteInfo* getExecuteInfo() { return mExecuteInfo; }
 
+    bool isAlive() const { return mIsAlive; }
+
 private:
     sead::FixedSafeString<0x80> mName;
     NerveKeeper* mNerveKeeper;
