@@ -9,6 +9,7 @@ namespace al {
 void turnVecToVecDegree(sead::Vector3f*, const sead::Vector3f&, const sead::Vector3f&, f32);
 void turnVecToVecRate(sead::Vector3f*, const sead::Vector3f&, const sead::Vector3f&, f32);
 
+void rotateQuatRadian(sead::Quatf*, const sead::Quatf&, const sead::Vector3f&, float);
 void calcQuatFront(sead::Vector3f*, const sead::Quatf&);
 void calcQuatUp(sead::Vector3f*, const sead::Quatf&);
 void makeQuatFrontUp(sead::Quatf*, const sead::Vector3f&, const sead::Vector3f&);
