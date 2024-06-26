@@ -5,6 +5,7 @@
 namespace al {
 class GamePadSystem;
 class LayoutInitInfo;
+class Scene;
 class SimpleLayoutAppearWaitEnd;
 class WipeSimple;
 }  // namespace al
@@ -17,13 +18,14 @@ public:
                                      const al::LayoutInitInfo&, al::WipeSimple*, al::GamePadSystem*,
                                      FooterParts*);
 
-    void appear();
+    virtual void appear();
+
     void startTreeHouse();
     bool isNeedRequestGraphicsPreset() const;
     bool isDrawViewRenderer() const;
     void exeAppear();
     void exeWait();
-    void getScene();
+    al::Scene* getScene();
     void exeBack();
     void exeFadeOut();
     void exeApplet();
@@ -31,10 +33,10 @@ public:
     void exeWaitDraw();
 
 private:
-    al::GamePadSystem* mGamePadSystem;
-    al::SimpleLayoutAppearWaitEnd* mControllerGuideMulti;
-    al::WipeSimple* mWipeSimple;
-    FooterParts* mFooterParts;
+    al::GamePadSystem* mGamePadSystem = nullptr;
+    al::SimpleLayoutAppearWaitEnd* mControllerGuideMulti = nullptr;
+    al::WipeSimple* mWipeSimple = nullptr;
+    FooterParts* mFooterParts = nullptr;
     u16 field_40 = 0;
     bool field_42 = false;
 };

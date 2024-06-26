@@ -1,10 +1,17 @@
 #include "Scene/StageSceneStateStartSeparatePlay.h"
+#include "Layout/FooterParts.h"
 #include "Library/Layout/LayoutActionFunction.h"
 #include "Library/Layout/LayoutActorUtil.h"
+#include "Library/Message/MessageHolder.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Play/Layout/SimpleLayoutAppearWaitEnd.h"
+#include "Library/Play/Layout/WipeSimple.h"
+#include "Library/Scene/Scene.h"
+#include "Library/Se/SeFunction.h"
+#include "Scene/StageSceneStatePauseMenu.h"
 #include "Util/SpecialBuildUtil.h"
+#include "Util/StageInputFunction.h"
 
 namespace {
 NERVE_IMPL(StageSceneStateStartSeparatePlay, Appear);
@@ -69,16 +76,64 @@ void StageSceneStateStartSeparatePlay::exeAppear() {
         al::setNerve(this, &Wait);
 }
 
-void StageSceneStateStartSeparatePlay::exeWait() {}
+void StageSceneStateStartSeparatePlay::exeWait() {
+    if (rs::isTriggerUiCancel(getScene())) {
+        field_42 = true;
+        al::setNerve(this, &NrvStageSceneStateStartSeparatePlay.Back);
+        return;
+    }
+    if (rs::isTriggerUiDecide(getScene()))
+        al::setNerve(this, &NrvStageSceneStateStartSeparatePlay.FadeOut);
+}
 
-void StageSceneStateStartSeparatePlay::getScene() {}
+al::Scene* StageSceneStateStartSeparatePlay::getScene() {
+    return getHost()->getHost();
+}
 
-void StageSceneStateStartSeparatePlay::exeBack() {}
+void StageSceneStateStartSeparatePlay::exeBack() {
+    if (al::isFirstStep(this)) {
+        mControllerGuideMulti->end();
+        mFooterParts->changeTextFade(
+            al::getSystemMessageString(mFooterParts, "Footer", "MenuMessage_Footer"));
+    }
+    if (!al::isActive(this->mControllerGuideMulti))
+        kill();
+}
 
-void StageSceneStateStartSeparatePlay::exeFadeOut() {}
+void StageSceneStateStartSeparatePlay::exeFadeOut() {
+    if (al::isFirstStep(this)) {
+        mWipeSimple->startClose(60);
+        al::startSe(mControllerGuideMulti, "Decide");
+        al::startAction(mControllerGuideMulti, "Decide", nullptr);
+    }
+    if (mWipeSimple->isCloseEnd())
+        al::setNerve(this, &Applet);
+}
 
-void StageSceneStateStartSeparatePlay::exeApplet() {}
+void StageSceneStateStartSeparatePlay::exeApplet() {
+    if (ControllerAppletFunction::connectControllerSeparatePlay(mGamePadSystem)) {
+        rs::changeSeparatePlayMode(getScene(), true);
+        al::setNerve(this, &NrvStageSceneStateStartSeparatePlay.WaitDraw);
+        return;
+    }
+    mFooterParts->changeTextFade(
+        al::getSystemMessageString(mFooterParts, "Footer", "MenuMessage_Footer"));
+    field_42 = true;
+    al::setNerve(this, &NrvStageSceneStateStartSeparatePlay.FadeIn);
+}
 
-void StageSceneStateStartSeparatePlay::exeFadeIn() {}
+void StageSceneStateStartSeparatePlay::exeFadeIn() {
+    if (al::isFirstStep(this)) {
+        mControllerGuideMulti->kill();
+        mWipeSimple->startOpen(-1);
+    }
+    if (mWipeSimple->isOpenEnd())
+        kill();
+}
 
-void StageSceneStateStartSeparatePlay::exeWaitDraw() {}
+void StageSceneStateStartSeparatePlay::exeWaitDraw() {
+    if (al::isFirstStep(this) && !field_42)
+        getHost()->killPauseMenu();
+    if (al::isGreaterEqualStep(this, 2))
+        al::setNerve(this, &NrvStageSceneStateStartSeparatePlay.FadeIn);
+}
