@@ -1,0 +1,84 @@
+#include "Scene/StageSceneStateStartSeparatePlay.h"
+#include "Library/Layout/LayoutActionFunction.h"
+#include "Library/Layout/LayoutActorUtil.h"
+#include "Library/Nerve/NerveSetupUtil.h"
+#include "Library/Nerve/NerveUtil.h"
+#include "Library/Play/Layout/SimpleLayoutAppearWaitEnd.h"
+#include "Util/SpecialBuildUtil.h"
+
+namespace {
+NERVE_IMPL(StageSceneStateStartSeparatePlay, Appear);
+NERVE_IMPL(StageSceneStateStartSeparatePlay, FadeOut);
+NERVE_IMPL(StageSceneStateStartSeparatePlay, FadeIn);
+NERVE_IMPL(StageSceneStateStartSeparatePlay, Back);
+NERVE_IMPL(StageSceneStateStartSeparatePlay, WaitDraw);
+NERVE_IMPL(StageSceneStateStartSeparatePlay, Wait);
+NERVE_IMPL(StageSceneStateStartSeparatePlay, Applet);
+
+NERVES_MAKE_NOSTRUCT(StageSceneStateStartSeparatePlay, Wait, Applet);
+NERVES_MAKE_STRUCT(StageSceneStateStartSeparatePlay, Appear, FadeOut, FadeIn, Back, WaitDraw);
+}  // namespace
+
+StageSceneStateStartSeparatePlay::StageSceneStateStartSeparatePlay(
+    const char* name, StageSceneStatePauseMenu* host, const al::LayoutInitInfo& info,
+    al::WipeSimple* wipeSimple, al::GamePadSystem* gamePadSystem, FooterParts* footerParts)
+    : al::HostStateBase<StageSceneStatePauseMenu>(name, host), mGamePadSystem(gamePadSystem),
+      mWipeSimple(wipeSimple), mFooterParts(footerParts) {
+    initNerve(&NrvStageSceneStateStartSeparatePlay.Appear, 0);
+
+    mControllerGuideMulti = new al::SimpleLayoutAppearWaitEnd(
+        "おすそ分け開始", "ControllerGuideMulti", info, nullptr, false);
+    al::killLayoutIfActive(mControllerGuideMulti);
+}
+
+void StageSceneStateStartSeparatePlay::appear() {
+    field_40 = 0;
+    field_42 = false;
+    setDead(false);
+    if (rs::isModeE3LiveRom()) {
+        startTreeHouse();
+        return;
+    }
+    al::setNerve(this, &NrvStageSceneStateStartSeparatePlay.Appear);
+}
+
+void StageSceneStateStartSeparatePlay::startTreeHouse() {
+    al::setNerve(this, &NrvStageSceneStateStartSeparatePlay.FadeOut);
+}
+
+bool StageSceneStateStartSeparatePlay::isNeedRequestGraphicsPreset() const {
+    return (field_42 && al::isNerve(this, &NrvStageSceneStateStartSeparatePlay.FadeIn)) ||
+           (al::isNerve(this, &NrvStageSceneStateStartSeparatePlay.Appear) ||
+            al::isNerve(this, &NrvStageSceneStateStartSeparatePlay.Back));
+}
+
+bool StageSceneStateStartSeparatePlay::isDrawViewRenderer() const {
+    if (isDead() || field_42)
+        return false;
+    if (al::isNerve(this, &NrvStageSceneStateStartSeparatePlay.WaitDraw))
+        return true;
+    return al::isNerve(this, &NrvStageSceneStateStartSeparatePlay.FadeIn);
+}
+
+void StageSceneStateStartSeparatePlay::exeAppear() {
+    if (al::isFirstStep(this)) {
+        mControllerGuideMulti->appear();
+        al::startAction(mControllerGuideMulti, "Loop", "Loop");
+    }
+    if (mControllerGuideMulti->isWait())
+        al::setNerve(this, &Wait);
+}
+
+void StageSceneStateStartSeparatePlay::exeWait() {}
+
+void StageSceneStateStartSeparatePlay::getScene() {}
+
+void StageSceneStateStartSeparatePlay::exeBack() {}
+
+void StageSceneStateStartSeparatePlay::exeFadeOut() {}
+
+void StageSceneStateStartSeparatePlay::exeApplet() {}
+
+void StageSceneStateStartSeparatePlay::exeFadeIn() {}
+
+void StageSceneStateStartSeparatePlay::exeWaitDraw() {}
