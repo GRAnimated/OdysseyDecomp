@@ -27,22 +27,19 @@ WindowConfirm::WindowConfirm(const al::LayoutInitInfo& info, const char* name, c
     al::initLayoutActor(this, info, name, nullptr);
 
     s32 paneChildNum = al::getPaneChildNum(this, "All");
-    if (paneChildNum <= 0) {
-        mParListArray.allocBuffer(0, nullptr, 8);
-    } else {
-        s32 v13 = 0;
-        for (s32 i = 0; i < paneChildNum; i++)
-            v13 += al::isExistPane(this, al::StringTmp<64>("ParList%02d", i).cstr());
+    s32 i = 0;
+    s32 v13 = 0;
+    for (i = 0; i < paneChildNum; i++)
+        v13 += al::isExistPane(this, al::StringTmp<64>("ParList%02d", i).cstr());
 
-        mParListArray.allocBuffer(v13, nullptr, 8);
+    mParListArray.allocBuffer(v13, nullptr, 8);
 
-        for (s32 i = 0; i < v13; i++) {
-            LayoutActor* choiceActor = new LayoutActor(al::StringTmp<64>("選択肢%02d", i).cstr());
+    for (i = 0; i < v13; i++) {
+        LayoutActor* choiceActor = new LayoutActor(al::StringTmp<64>("選択肢%02d", i).cstr());
 
-            al::initLayoutPartsActor(choiceActor, this, info,
-                                     al::StringTmp<64>("ParList%02d", i).cstr(), nullptr);
-            mParListArray.pushBack(choiceActor);
-        }
+        al::initLayoutPartsActor(choiceActor, this, info,
+                                 al::StringTmp<64>("ParList%02d", i).cstr(), nullptr);
+        mParListArray.pushBack(choiceActor);
     }
 
     if (al::isExistPane(this, "ParHardKey")) {
