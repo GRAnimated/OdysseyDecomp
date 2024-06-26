@@ -6,7 +6,6 @@ namespace al {
 class NerveStateBase : public NerveExecutor {
 public:
     NerveStateBase(const char* stateName);
-    virtual ~NerveStateBase();
 
     virtual void init();
     virtual void appear();
@@ -34,7 +33,9 @@ private:
 template <class T>
 class HostStateBase : public NerveStateBase {
 public:
-    HostStateBase(const char* name, T* host);
+    HostStateBase(const char* name, T* host) : NerveStateBase(name), mHost(host){};
+
+    T* getHost() { return mHost; }
 
 private:
     T* mHost;
