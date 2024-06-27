@@ -34,13 +34,15 @@ public:
     void exeDecideAfter();
     void exeEnd();
 
+    s32 getField134() { return field_134; }
+
 private:
-    int field_12C = 0;
-    int field_130 = -1;
-    int field_134 = -1;
-    int field_138 = -1;
+    s32 field_12C = 0;
+    s32 field_130 = -1;
+    s32 field_134 = -1;
+    s32 field_138 = -1;
     bool field_13C = false;
-    int field_140 = -1;
+    s32 field_140 = -1;
     sead::PtrArray<al::LayoutActor> mParListArray;
     al::LayoutActor* mCursorActor;
     al::LayoutActor* mButtonActor;

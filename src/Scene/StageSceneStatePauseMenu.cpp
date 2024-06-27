@@ -1,41 +1,54 @@
 #include "Scene/StageSceneStatePauseMenu.h"
-#include "Layout/FooterParts.h"
-#include "Layout/MenuSelectParts.h"
-#include "Layout/StageSceneLayout.h"
+
 #include "Library/Base/StringUtil.h"
 #include "Library/Bgm/BgmLineFunction.h"
 #include "Library/Camera/CameraUtil.h"
 #include "Library/Controller/KeyRepeatCtrl.h"
 #include "Library/Draw/GraphicsFunction.h"
+#include "Library/Effect/EffectSystem.h"
+#include "Library/Layout/LayoutActionFunction.h"
 #include "Library/Layout/LayoutActorUtil.h"
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorFlagFunction.h"
 #include "Library/LiveActor/ActorInitInfo.h"
+#include "Library/LiveActor/ActorMovementFunction.h"
+#include "Library/LiveActor/ActorPoseKeeper.h"
 #include "Library/LiveActor/ActorSceneInfo.h"
 #include "Library/LiveActor/LiveActor.h"
+#include "Library/LiveActor/LiveActorKit.h"
 #include "Library/LiveActor/SubActorKeeper.h"
+#include "Library/Math/MathUtil.h"
+#include "Library/Math/VectorUtil.h"
 #include "Library/Message/MessageHolder.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Obj/PartsModel.h"
 #include "Library/Play/Layout/SimpleLayoutAppearWaitEnd.h"
+#include "Library/Play/Layout/WindowConfirm.h"
 #include "Library/Play/Layout/WipeSimple.h"
 #include "Library/Scene/SceneUtil.h"
+#include "Library/Screen/ScreenFunction.h"
 #include "Library/Se/SeFunction.h"
 #include "Library/System/GameSystemInfo.h"
 #include "Project/Scene/SceneInitInfo.h"
+
+#include "Layout/FooterParts.h"
+#include "Layout/MenuSelectParts.h"
+#include "Layout/StageSceneLayout.h"
 #include "Scene/SceneAudioSystemPauseController.h"
 #include "Scene/StageScene.h"
 #include "Scene/StageSceneStateEndSeparatePlay.h"
 #include "Scene/StageSceneStateOption.h"
 #include "Scene/StageSceneStateStartSeparatePlay.h"
 #include "Sequence/GameSequenceInfo.h"
+#include "System/GameDataHolder.h"
 #include "System/SaveDataAccessFunction.h"
 #include "Util/HelpFunction.h"
 #include "Util/InputInterruptTutorialUtil.h"
 #include "Util/SpecialBuildUtil.h"
 #include "Util/StageInputFunction.h"
-#include "nn/oe.h"
+
+#include <nn/oe.h>
 
 NERVE_IMPL(StageSceneStatePauseMenu, Appear);
 NERVE_IMPL(StageSceneStatePauseMenu, StartSeparatePlay);
@@ -148,11 +161,11 @@ void StageSceneStatePauseMenu::killPauseMenu() {
     mMenuLayout->kill();
     mMenuRight->kill();
     mMenuGuide->kill();
+    al::endCameraPause(mPauseCameraCtrl);
     killMarioModel();
 }
 
 void StageSceneStatePauseMenu::killMarioModel() {
-    al::endCameraPause(mPauseCameraCtrl);
     if (mIsPauseMenu)
         al::setNearClipDistance(getHost(), mPrevNearClipDistance, 0);
     if (al::isAlive(mMarioHigh))
@@ -180,7 +193,7 @@ void StageSceneStatePauseMenu::killAllOptionLayout() {
 }
 
 bool StageSceneStatePauseMenu::isEndToCancel() const {
-    return mSelectParts->isDecideSetting();
+    return !mSelectParts->isDecideSetting();
 }
 
 bool StageSceneStatePauseMenu::isEndToHelp() const {
@@ -210,9 +223,6 @@ bool StageSceneStatePauseMenu::isNewGame() const {
 bool StageSceneStatePauseMenu::isModeSelectEnd() const {
     return mStateOption->isModeSelectEnd();
 }
-
-#include "Library/Effect/EffectSystem.h"
-#include "Library/LiveActor/LiveActorKit.h"
 
 bool StageSceneStatePauseMenu::checkNeedKillByHostAndEnd() {
     if (isNeedKillHost() || isModeSelectEnd()) {
@@ -254,23 +264,176 @@ bool StageSceneStatePauseMenu::isDrawViewRenderer() const {
     return false;
 }
 
-bool StageSceneStatePauseMenu::isDrawChromakey() const {}
+bool StageSceneStatePauseMenu::isDrawChromakey() const {
+    if (al::isNerve(this, &NrvStageSceneStatePauseMenu.Appear) ||
+        al::isNerve(this, &NrvStageSceneStatePauseMenu.Wait) ||
+        al::isNerve(this, &NrvStageSceneStatePauseMenu.StartSeparatePlay) ||
+        al::isNerve(this, &NrvStageSceneStatePauseMenu.EndSeparatePlay))
+        return true;
 
-void StageSceneStatePauseMenu::exeAppear() {}
+    if (!mStateStartSeparatePlay->isDrawViewRenderer()) {
+        if (mStateEndSeparatePlay->isDrawViewRenderer() ||
+            al::isNerve(this, &NrvStageSceneStatePauseMenu.WaitDraw) ||
+            al::isNerve(this, &NrvStageSceneStatePauseMenu.End))
+            return false;
+        if (al::isNerve(this, &NrvStageSceneStatePauseMenu.Appear))
+            return !al::isDead(mMarioHigh);
 
-void StageSceneStatePauseMenu::setNormal() {}
+        return true;
+    }
+    return false;
+}
 
-void StageSceneStatePauseMenu::appearMarioModel() {}
+void StageSceneStatePauseMenu::exeAppear() {
+    if (al::isFirstStep(this))
+        al::startCameraPause(mPauseCameraCtrl);
+    if (al::isStep(this, 1)) {
+        if (mStartType == 1)
+            setNormal();
+        if (mStartType == 2) {
+            mMenuRight->appear();
+            mMenuGuide->appear();
+            al::startAction(mMenuLayout, "SelectTitle", "Select");
+        }
+    }
+    if (al::isStep(this, 2)) {
+        if (!mIsPauseMenu)
+            mPrevNearClipDistance = alCameraFunction::getNearClipDistance(getHost(), 0);
+        al::setNearClipDistance(getHost(), 400.0f, 0);
+        updatePlayerPose();
+        mMarioHigh->appear();
+        mIsPauseMenu = true;
+    }
+    updatePlayerPose();
+    al::updateKitListPrev(getHost());
+    if (al::isGreaterEqualStep(this, 2) || !mIsNormal) {
+        rs::requestGraphicsPresetAndCubeMapPause(getHost());
+        alGraphicsFunction::requestUpdateMaterialInfo(getHost());
+    }
+    al::updateKitList(getHost(), "デモ");
+    al::updateKitList(getHost(), "シャドウマスク");
+    al::updateKitList(getHost(), "グラフィックス要求者");
+    al::updateKitList(getHost(), "２Ｄ（ポーズ無視）");
+    al::updateKitListPost(getHost());
+    if (al::isGreaterEqualStep(this, 3) && mMenuLayout->isWait())
+        al::setNerve(this, &NrvStageSceneStatePauseMenu.Wait);
+}
 
-void StageSceneStatePauseMenu::updatePlayerPose() {}
+void StageSceneStatePauseMenu::setNormal() {
+    mIsNormal = true;
+    if (mMenuLayout->isAlive())
+        mSelectParts->appearWait();
+    else {
+        mMenuLayout->appear();
+        mMenuRight->appear();
+        mMenuGuide->appear();
+    }
+    mSelectParts->appear(5);
 
-void StageSceneStatePauseMenu::exeWait() {}
+    mSelectParts->setSelectMessage(
+        0, al::getSystemMessageString(mMenuLayout, "MenuMessage", "Continue"));
+    mSelectParts->setSelectMessage(1, al::getSystemMessageString(mMenuLayout, "MenuMessage",
+                                                                 rs::isSeparatePlay(getHost()) ?
+                                                                     "EndSeparatePlay" :
+                                                                     "StartSeparatePlay"));
 
-void StageSceneStatePauseMenu::changeNerveAndReturn(const al::Nerve* nerve) {}
+    al::startAction(mMenuLayout, "SelectPause", "Select");
+}
 
-void StageSceneStatePauseMenu::exeFadeBeforeHelp() {}
+void StageSceneStatePauseMenu::appearMarioModel() {
+    if (!mIsPauseMenu)
+        mPrevNearClipDistance = alCameraFunction::getNearClipDistance(getHost(), 0);
+    al::setNearClipDistance(getHost(), 400.0f, 0);
+    updatePlayerPose();
+    mMarioHigh->appear();
+    mIsPauseMenu = true;
+}
 
-#include "System/GameDataHolder.h"
+void StageSceneStatePauseMenu::updatePlayerPose() {
+    sead::Vector3f worldPos = sead::Vector3f::zero;
+    al::calcWorldPosFromLayoutPos(&worldPos, getHost(), {310.0f, -960.0f}, 500.0f);
+    al::setTrans(mMarioHigh, worldPos);
+
+    sead::Quatf quat = sead::Quatf::unit;
+    sead::Vector3f cameraFront = sead::Vector3f::zero;
+    al::calcCameraFront(&cameraFront, getHost(), 0);
+    al::makeQuatFrontUp(&quat, -cameraFront, al::getCameraUp(getHost(), 0));
+    al::rotateQuatYDirDegree(&quat, quat, 360.0f);
+    al::updatePoseQuat(mMarioHigh, quat);
+}
+
+void StageSceneStatePauseMenu::exeWait() {
+    if (mIsNormal)
+        mSelectParts->setSelectMessage(1, al::getSystemMessageString(mMenuLayout, "MenuMessage",
+                                                                     rs::isSeparatePlay(getHost()) ?
+                                                                         "EndSeparatePlay" :
+                                                                         "StartSeparatePlay"));
+    al::updateKitListPrev(getHost());
+    al::updateKitList(getHost(), "カメラ");
+    rs::requestGraphicsPresetAndCubeMapPause(getHost());
+    mSelectParts->update();
+    updatePlayerPose();
+    al::updateKitList(getHost(), "デモ");
+    al::updateKitList(getHost(), "シャドウマスク");
+    al::updateKitList(getHost(), "グラフィックス要求者");
+    al::updateKitList(getHost(), "２Ｄ（ポーズ無視）");
+
+    if (mSelectParts->isDecideSave()) {
+        al::setNerve(this, &NrvStageSceneStatePauseMenu.Save);
+        return;
+    }
+    if (mSelectParts->isDecideContinue()) {
+        killMarioModel();
+        al::endCameraPause(mPauseCameraCtrl);
+        al::setNerve(this, &NrvStageSceneStatePauseMenu.WaitDraw);
+        return;
+    }
+    if (mSelectParts->isDecideSeparatePlay()) {
+        if (rs::isSeparatePlay(getHost()) && !mIsNormal) {
+            al::setNerve(this, &NrvStageSceneStatePauseMenu.WaitDraw);
+            return;
+        }
+        if (rs::isSeparatePlay(getHost()))
+            al::setNerve(this, &NrvStageSceneStatePauseMenu.EndSeparatePlay);
+        else
+            al::setNerve(this, &NrvStageSceneStatePauseMenu.StartSeparatePlay);
+        return;
+    }
+    if (mSelectParts->isDecideNewGame()) {
+        if (mGameDataHolder->tryFindEmptyFileId() & 0x80000000)
+            al::setNerve(this, &NrvStageSceneStatePauseMenu.NotExistEmptyFile);
+        else
+            al::setNerve(this, &NrvStageSceneStatePauseMenu.ConfirmNewGame);
+        return;
+    }
+    if (mSelectParts->isDecideHelp()) {
+        al::setNerve(this, &NrvStageSceneStatePauseMenu.FadeBeforeHelp);
+        return;
+    }
+    if (mSelectParts->isDecideSetting()) {
+        al::setNerve(this, &NrvStageSceneStatePauseMenu.Option);
+        return;
+    }
+    al::updateKitListPost(getHost());
+}
+
+void StageSceneStatePauseMenu::changeNerveAndReturn(const al::Nerve* nerve) {
+    al::setNerve(this, nerve);
+}
+
+void StageSceneStatePauseMenu::exeFadeBeforeHelp() {
+    if (al::isFirstStep(this))
+        mHelpWipe->startClose(-1);
+    al::updateKitListPrev(getHost());
+    al::updateKitList(getHost(), "カメラ");
+    rs::requestGraphicsPresetAndCubeMapPause(getHost());
+    al::updateKitList(getHost(), "シャドウマスク");
+    al::updateKitList(getHost(), "グラフィックス要求者");
+    al::updateKitList(getHost(), "２Ｄ（ポーズ無視）");
+    al::updateKitListPost(getHost());
+    if (mHelpWipe->isCloseEnd())
+        al::setNerve(this, &StartHelp);
+}
 
 // NON_MATCHING: callHelp should take in mGameDataHolder directly
 void StageSceneStatePauseMenu::exeStartHelp() {
@@ -306,17 +469,13 @@ void StageSceneStatePauseMenu::exeStartHelp() {
     }
 }
 
-void helper(al::Scene* scene) {
-    al::updateKitListPrev(scene);
-    al::updateKitList(scene, "カメラ");
-    al::updateKitList(scene, "シャドウマスク");
-    al::updateKitList(scene, "グラフィックス要求者");
-    al::updateKitList(scene, "２Ｄ（ポーズ無視）");
-    al::updateKitListPost(scene);
-}
-
 void StageSceneStatePauseMenu::exeWaitDraw() {
-    helper(getHost());
+    al::updateKitListPrev(getHost());
+    al::updateKitList(getHost(), "カメラ");
+    al::updateKitList(getHost(), "シャドウマスク");
+    al::updateKitList(getHost(), "グラフィックス要求者");
+    al::updateKitList(getHost(), "２Ｄ（ポーズ無視）");
+    al::updateKitListPost(getHost());
     if (al::isFirstStep(this))
         alGraphicsFunction::requestUpdateMaterialInfo(getHost());
     if (al::isGreaterEqualStep(this, 2))
@@ -324,14 +483,19 @@ void StageSceneStatePauseMenu::exeWaitDraw() {
 }
 
 void StageSceneStatePauseMenu::exeEnd() {
-    helper(getHost());
+    al::updateKitListPrev(getHost());
+    al::updateKitList(getHost(), "カメラ");
+    al::updateKitList(getHost(), "シャドウマスク");
+    al::updateKitList(getHost(), "グラフィックス要求者");
+    al::updateKitList(getHost(), "２Ｄ（ポーズ無視）");
+    al::updateKitListPost(getHost());
     if (al::isFirstStep(this)) {
         mMenuLayout->end();
         mMenuRight->end();
         mMenuGuide->end();
     }
     if (al::isDead(mMenuLayout))
-        appear();
+        kill();
 }
 
 void StageSceneStatePauseMenu::exeStartSeparatePlay() {
@@ -418,9 +582,71 @@ void StageSceneStatePauseMenu::exeSave() {
     }
 }
 
-void StageSceneStatePauseMenu::exeConfirmNewGame() {}
+void StageSceneStatePauseMenu::exeConfirmNewGame() {
+    if (al::isFirstStep(this)) {
+        mWindowConfirm->setListNum(2);
+        mWindowConfirm->setTxtMessage(
+            al::getSystemMessageString(mWindowConfirm, "ConfirmMessage", "NewGame"));
+        mWindowConfirm->setTxtList(
+            0, al::getSystemMessageString(mWindowConfirm, "ConfirmMessage", "NewGame_Yes"));
+        mWindowConfirm->setTxtList(
+            1, al::getSystemMessageString(mWindowConfirm, "ConfirmMessage", "NewGame_No"));
+        mWindowConfirm->appear();
+        mKeyRepeatCtrl->reset();
+    }
+    al::updateKitListPrev(getHost());
+    rs::requestGraphicsPresetAndCubeMapPause(getHost());
+    al::updateKitList(getHost(), "２Ｄ（ポーズ無視）");
+    al::updateKitListPost(getHost());
 
-void StageSceneStatePauseMenu::exeNotExistEmptyFile() {}
+    mKeyRepeatCtrl->update(rs::isHoldUiUp(getHost()), rs::isHoldUiDown(getHost()));
+    if (mKeyRepeatCtrl->isUp())
+        mWindowConfirm->tryUp();
+    if (mKeyRepeatCtrl->isDown())
+        mWindowConfirm->tryDown();
+
+    s32 unk = mWindowConfirm->getField134();
+    if (rs::isTriggerUiDecide(getHost())) {
+        if (unk == 0)
+            mWindowConfirm->tryDecideWithoutEnd();
+        if (unk == 1)
+            mWindowConfirm->tryCancel();
+    }
+    if (rs::isTriggerUiCancel(getHost()))
+        mWindowConfirm->tryCancel();
+    if (unk == 0 && mWindowConfirm->isNerveEnd()) {
+        mWindowConfirm->tryDecide();
+        s32 emptyFileId = mGameDataHolder->tryFindEmptyFileId();
+        mGameDataHolder->requestSetPlayingFileId(emptyFileId);
+        mGameDataHolder->setRequireSave();
+        mIsNewGame = true;
+    }
+    if (unk == 1) {
+        if (al::isDead(mWindowConfirm)) {
+            mSelectParts->appearWait();
+            al::setNerve(this, &NrvStageSceneStatePauseMenu.Wait);
+        }
+    }
+}
+
+void StageSceneStatePauseMenu::exeNotExistEmptyFile() {
+    if (al::isFirstStep(this)) {
+        mWindowConfirm->setListNum(1);
+        mWindowConfirm->setTxtMessage(
+            al::getSystemMessageString(mWindowConfirm, "ConfirmMessage", "NotExistEmptyFile"));
+        mWindowConfirm->appear();
+    }
+    al::updateKitListPrev(getHost());
+    rs::requestGraphicsPresetAndCubeMapPause(getHost());
+    al::updateKitList(getHost(), "２Ｄ（ポーズ無視）");
+    al::updateKitListPost(getHost());
+    if (rs::isTriggerUiDecide(getHost()) || rs::isTriggerUiCancel(getHost()))
+        mWindowConfirm->tryDecide();
+    if (al::isDead(mWindowConfirm)) {
+        mSelectParts->appearWait();
+        al::setNerve(this, &NrvStageSceneStatePauseMenu.Wait);
+    }
+}
 
 void StageSceneStatePauseMenu::startPauseCamera() {
     al::startCameraPause(mPauseCameraCtrl);

@@ -28,7 +28,7 @@ public:
     void setField69(bool field) { field_69 = field; };
 
 private:
-    char unknown[69];  // TODO: incomplete
+    char unknown[0x69];  // TODO: incomplete
     bool field_69;
 };
 
