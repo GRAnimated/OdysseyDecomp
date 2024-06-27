@@ -32,6 +32,8 @@ public:
     void exeFadeIn();
     void exeWaitDraw();
 
+    bool getField42() const { return field_42; }
+
 private:
     al::GamePadSystem* mGamePadSystem = nullptr;
     al::SimpleLayoutAppearWaitEnd* mControllerGuideMulti = nullptr;

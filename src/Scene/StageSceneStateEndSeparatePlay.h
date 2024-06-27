@@ -25,6 +25,8 @@ public:
     void exeWaitDraw();
     bool isDrawViewRenderer() const;
 
+    bool getField30() const { return field_30; }
+
 private:
     al::GamePadSystem* mGamePadSystem = nullptr;
     al::WipeSimple* mWipeSimple = nullptr;

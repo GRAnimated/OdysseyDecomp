@@ -1,6 +1,7 @@
 #pragma once
 
 #include <heap/seadHeap.h>
+#include "Library/Thread/FunctorV0M.h"
 
 namespace agl {
 class DrawContext;
@@ -24,9 +25,11 @@ public:
     void setCameraDirector(CameraDirector*);
     void setGraphicsSystemInfo(const GraphicsSystemInfo*);
 
-    // incomplete
+    void setField69(bool field) { field_69 = field; };
+
 private:
-    // missing
+    char unknown[69];  // TODO: incomplete
+    bool field_69;
 };
 
 }  // namespace al
