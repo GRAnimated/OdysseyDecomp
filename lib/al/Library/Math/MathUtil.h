@@ -39,6 +39,8 @@ void calcQuatUp(sead::Vector3f* out, const sead::Quatf& quat);
 void calcQuatGravity(sead::Vector3f* out, const sead::Quatf& quat);
 void calcQuatFront(sead::Vector3f* out, const sead::Quatf& quat);
 
+void rotateQuatYDirDegree(sead::Quatf*, const sead::Quatf&, f32);
+
 void makeMtxRotateTrans(sead::Matrix34f* out, const sead::Vector3f& rotate,
                         const sead::Vector3f& trans);
 void makeMtxFrontUpPos(sead::Matrix34f* out, const sead::Vector3f& front, const sead::Vector3f& up,
