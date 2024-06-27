@@ -54,6 +54,9 @@ public:
     void initScreenCoverCtrl();
     void endInit(const ActorInitInfo&);
 
+    LiveActorKit* getLiveActorKit() const { return mLiveActorKit; }
+    const AudioDirector* getAudioDirector() const { return mAudioDirector; }
+
 private:
     void initLiveActorKitImpl(const SceneInitInfo&, s32, s32, s32);
 

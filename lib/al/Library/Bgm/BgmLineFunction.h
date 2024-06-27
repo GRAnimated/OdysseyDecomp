@@ -1,6 +1,9 @@
 #pragma once
 
+#include <basis/seadTypes.h>
+
 namespace al {
+class IUseAudioKeeper;
 class Resource;
 
 class BgmDataBase {
@@ -9,4 +12,7 @@ public:
 
     BgmDataBase(const Resource*, const Resource*);
 };
+
+void stopAllBgm(const al::IUseAudioKeeper*, s32);
+
 }  // namespace al

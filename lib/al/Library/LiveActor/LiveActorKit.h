@@ -65,6 +65,8 @@ public:
     void updateGraphics();
     void preDrawGraphics();
 
+    EffectSystem* getEffectSystem() const { return mEffectSystem; }
+
 private:
     s32 mMaxActors;
     ActorResourceHolder* mActorResourceHolder = nullptr;

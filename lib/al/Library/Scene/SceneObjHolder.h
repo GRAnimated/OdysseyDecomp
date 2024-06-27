@@ -3,8 +3,11 @@
 #include <basis/seadTypes.h>
 
 namespace al {
-class ISceneObj;
 class ActorInitInfo;
+class ISceneObj;
+class IUseSceneObjHolder;
+class PlayerHolder;
+class Scene;
 
 class SceneObjHolder {
 public:
@@ -21,5 +24,13 @@ private:
     ISceneObj** mSceneObjArray;
     s32 mArraySize;
 };
+
+ISceneObj* createSceneObj(const al::IUseSceneObjHolder*, s32);
+void setSceneObj(const al::IUseSceneObjHolder*, al::ISceneObj*, s32);
+ISceneObj* getSceneObj(const al::IUseSceneObjHolder*, s32);
+ISceneObj* tryGetSceneObj(const al::IUseSceneObjHolder*, s32);
+bool isExistSceneObj(const al::IUseSceneObjHolder*, s32);
+void deleteSceneObj(const al::IUseSceneObjHolder*, s32);
+bool tryDeleteSceneObj(const al::IUseSceneObjHolder*, s32);
 
 }  // namespace al
