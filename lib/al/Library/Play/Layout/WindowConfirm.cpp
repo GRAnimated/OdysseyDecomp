@@ -4,6 +4,7 @@
 #include "Library/Layout/LayoutActionFunction.h"
 #include "Library/Layout/LayoutActorUtil.h"
 #include "Library/Layout/LayoutInitInfo.h"
+#include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 
@@ -63,10 +64,10 @@ void WindowConfirm::setTxtList(s32 index, const char16* message) {
 
 void WindowConfirm::setListNum(s32 num) {
     field_130 = num;
-    if (num == 3)
-        field_130 = 0;
-    else if (num == 2)
+    if (num == 2)
         field_138 = 1;
+    if (num == 3)
+        field_138 = 0;
 }
 
 void WindowConfirm::setCancelIdx(s32 index) {
@@ -135,41 +136,164 @@ bool WindowConfirm::isNerveEnd() {
     return al::isNerve(this, &NrvWindowConfirm.End);
 }
 
-void WindowConfirm::tryEnd() {}
+bool WindowConfirm::tryEnd() {
+    if (isEnableInput()) {
+        field_13C = 0;
+        al::setNerve(this, &NrvWindowConfirm.End);
+        return true;
+    }
+    return false;
+}
 
-bool WindowConfirm::isEnableInput() {}
+bool WindowConfirm::isEnableInput() {
+    if (field_140 <= 0 && al::isNerve(this, &NrvWindowConfirm.Wait) &&
+        al::isGreaterEqualStep(this, 10)) {
+        field_140 = 10;
+        return true;
+    }
+    return false;
+}
 
-void WindowConfirm::tryUp() {}
+bool WindowConfirm::tryUp() {
+    if (isEnableInput()) {
+        field_12C = 1;
+        return true;
+    }
+    return false;
+}
 
-void WindowConfirm::tryDown() {}
+bool WindowConfirm::tryDown() {
+    if (isEnableInput()) {
+        field_12C = 2;
+        return true;
+    }
+    return false;
+}
 
-void WindowConfirm::tryDecide() {}
+bool WindowConfirm::tryDecide() {
+    if (isEnableInput()) {
+        field_13C = 0;
+        al::startHitReaction(this, "決定", nullptr);
+        al::setNerve(this, &NrvWindowConfirm.Decide);
+        return true;
+    }
+    return false;
+}
 
-void WindowConfirm::tryDecideWithoutEnd() {}
+bool WindowConfirm::tryDecideWithoutEnd() {
+    if (isEnableInput()) {
+        field_13C = 0;
+        al::setNerve(this, &NrvWindowConfirm.Decide);
+        return true;
+    }
+    return false;
+}
 
-void WindowConfirm::tryCancel() {}
+bool WindowConfirm::tryCancel() {
+    if (!isEnableInput())
+        return false;
+    if ((field_130 & 0xFFFFFFFE) == 2 && field_134 != field_138) {
+        al::startAction(mParListArray[field_134], "Wait", nullptr);
+        al::startAction(mParListArray[field_138], "Select", nullptr);
+        field_134 = field_138;
+        setCursorToPane();
+    }
+    al::startHitReaction(this, "キャンセル", nullptr);
+    field_13C = 0;
+    al::setNerve(this, &NrvWindowConfirm.Decide);
+    return true;
+}
 
-void WindowConfirm::setCursorToPane() {}
+void WindowConfirm::setCursorToPane() {
+    if (field_130 < 2)
+        return;
+    sead::Vector3f trans = {1.0f, 1.0f, 1.0f};
+    al::calcPaneTrans(&trans, mParListArray[field_134], "Cursor");
+    al::setPaneLocalTrans(this, "ParCursor", trans);
+}
 
-void WindowConfirm::tryCancelWithoutEnd() {}
+bool WindowConfirm::tryCancelWithoutEnd() {
+    if (isEnableInput()) {
+        if ((field_130 & 0xFFFFFFFE) == 2 && field_134 != field_138) {
+            al::startAction(mParListArray[field_134], "Wait", nullptr);
+            al::startAction(mParListArray[field_138], "Select", nullptr);
+            field_134 = field_138;
+            setCursorToPane();
+        }
+        field_13C = 1;
+        al::setNerve(this, &NrvWindowConfirm.Decide);
+        return true;
+    }
+    return false;
+}
 
 void WindowConfirm::exeHide() {}
 
 void WindowConfirm::exeAppear() {
-    if (field_130 == 2 || field_130 == 3) {
-        if (field_130 >= 2) {
-            sead::Vector3f paneTrans = {1.0f, 1.0f, 1.0f};
-            al::calcPaneTrans(&paneTrans, mParListArray[field_130], "Cursor");
-            al::setPaneLocalTrans(this, "Cursor", paneTrans);
-        }
-    }
+    if ((field_130 & 0xFFFFFFFE) == 2)
+        setCursorToPane();
     if (al::isActionEnd(this, nullptr))
         al::setNerve(this, &NrvWindowConfirm.Wait);
 }
 
-void WindowConfirm::exeWait() {}
+void WindowConfirm::exeWait() {
+    if (al::isFirstStep(this)) {
+        al::startAction(this, "Wait", nullptr);
+        field_140 = -1;
+    }
+    if ((field_130 & 0xFFFFFFFE) == 1) {
+        if (al::isActionPlaying(mButtonActor, "Appear", nullptr) &&
+            al::isActionEnd(mButtonActor, nullptr))
+            al::startAction(mCursorActor, "Wait", nullptr);
+    } else {
+        if (al::isActionPlaying(mCursorActor, "Appear", nullptr) &&
+            al::isActionEnd(mCursorActor, nullptr))
+            al::startAction(mCursorActor, "Wait", nullptr);
+    }
 
-void WindowConfirm::exeDecide() {}
+    if (field_12C == 1) {
+        al::startAction(mParListArray[field_134], "Wait", nullptr);
+        field_134--;
+        if (field_134 <= 0)
+            field_134 = field_130 - 1;
+
+        al::startAction(mParListArray[field_134], "Select", nullptr);
+        if (field_130 >= 2)
+            setCursorToPane();
+    }
+    if (field_12C == 2) {
+        al::startAction(mParListArray[field_134], "Wait", nullptr);
+        field_134++;
+        if (field_134 >= field_130)
+            field_134 = 0;
+
+        al::startAction(mParListArray[field_134], "Select", nullptr);
+        if (field_130 >= 2)
+            setCursorToPane();
+    }
+
+    field_12C = 0;
+    if ((field_140 & 0x80000000) == 0)
+        field_140--;
+}
+
+void WindowConfirm::exeDecide() {
+    if (al::isFirstStep(this)) {
+        if ((field_130 & 0xFFFFFFFE) == 2) {
+            al::startAction(mParListArray[field_134], "Decide", nullptr);
+            al::startAction(mCursorActor, "End", nullptr);
+        } else if ((field_130 & 0xFFFFFFFE) == 1) {
+            al::startAction(mButtonActor, "PageEnd", nullptr);
+        } else if ((field_130 & 0xFFFFFFFE) == 0) {
+            al::setNerve(this, &DecideAfter);
+        }
+    }
+    if ((field_130 & 0xFFFFFFFE) == 2) {
+        if (al::isActionEnd(mParListArray[field_134], nullptr))
+            al::setNerve(this, &DecideAfter);
+    } else if (al::isActionEnd(mButtonActor, nullptr))
+        al::setNerve(this, &DecideAfter);
+}
 
 void WindowConfirm::exeDecideAfter() {
     al::setNerveAtGreaterEqualStep(this, &NrvWindowConfirm.End, 0);

@@ -33,8 +33,8 @@ public:
     virtual void kill();
     virtual void movement();
     virtual void control();
-    virtual void drawMain();
-    virtual void drawSub();
+    virtual void drawMain() const;
+    virtual void drawSub() const;
     AudioKeeper* getAudioKeeper() const override;
     SceneObjHolder* getSceneObjHolder() const override;
     CameraDirector* getCameraDirector() const override;
