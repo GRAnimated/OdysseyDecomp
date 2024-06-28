@@ -18,6 +18,8 @@ void startFreezeGaugeAction(IUseLayoutAction* layout, f32 value, f32 minFrame, f
 
 bool tryStartAction(IUseLayoutAction* layout, const char* actionName, const char* paneName);
 
+void startHitReaction(const al::LayoutActor*, const char*, const char*);
+
 f32 getActionFrame(const IUseLayoutAction* layout, const char* paneName);
 f32 getActionFrameRate(const IUseLayoutAction* layout, const char* paneName);
 f32 getActionFrameMax(const IUseLayoutAction* layout, const char* actionName, const char* paneName);

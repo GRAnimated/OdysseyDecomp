@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Library/Nerve/NerveStateBase.h"
+#include "System/GameDataHolderAccessor.h"
 
 namespace al {
 class ActorInitInfo;
@@ -87,7 +88,7 @@ private:
     StageSceneStateOption* mStateOption = nullptr;
     al::LiveActor* mMarioHigh = nullptr;
     char field_0x80[40];
-    GameDataHolder* mGameDataHolder = nullptr;
+    GameDataHolderAccessor mGameDataHolderAccessor;
     al::PauseCameraCtrl* mPauseCameraCtrl = nullptr;
     al::WindowConfirm* mWindowConfirm = nullptr;
     bool mIsNewGame = false;

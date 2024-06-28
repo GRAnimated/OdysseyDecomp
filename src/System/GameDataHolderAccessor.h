@@ -3,17 +3,21 @@
 namespace al {
 class IUseSceneObjHolder;
 class SceneObjHolder;
-class ISceneObj;
 class LiveActor;
 }  // namespace al
+class GameDataHolder;
 
-class GameDataHolderAccessor {  // maybe extends GameDataHolderWriter?
+class GameDataHolderAccessor {
 public:
     GameDataHolderAccessor(const al::IUseSceneObjHolder*);
     GameDataHolderAccessor(const al::SceneObjHolder*);
 
+    GameDataHolderAccessor(GameDataHolder* holder) : mHolder(holder) {}
+
+    GameDataHolder* getHolder() const { return mHolder; }
+
 private:
-    al::ISceneObj* mSceneObj;
+    GameDataHolder* mHolder;
 };
 
 namespace rs {
