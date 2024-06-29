@@ -1,5 +1,9 @@
 #include "Scene/TitleMenuScene.h"
+#include <gfx/seadFrameBuffer.h>
+#include "Library/Draw/GraphicsSystemInfo.h"
+#include "Library/Scene/Scene.h"
 #include "Library/Scene/SceneObjHolder.h"
+#include "Library/Scene/SceneUtil.h"
 #include "Scene/SceneObjFactory.h"
 #include "System/GameDataFunction.h"
 
@@ -14,6 +18,11 @@ void TitleMenuScene::init(al::SceneInitInfo const& info) {
     GameDataHolder* holder = nullptr;
     GameDataFunction::getGameDataHolder(holder);
     al::setSceneObj(this, holder, 18);
+
+    initSceneStopCtrl();
+
+    al::GraphicsInitArg graphicsInitArg(al::getSceneDrawContext(this),
+                                        al::getSceneFrameBufferConsole(this));
 }
 
 void TitleMenuScene::appear() {}

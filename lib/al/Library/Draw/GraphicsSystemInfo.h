@@ -1,17 +1,43 @@
 #pragma once
 
+#include <gfx/seadFrameBuffer.h>
 namespace agl {
 class DrawContext;
 }
 
 namespace al {
-class GraphicsInitArg;
 class AreaObjDirector;
 class ExecuteDirector;
 class EffectSystem;
 class PlayerHolder;
 class SceneCameraInfo;
 class ShaderHolder;
+
+class GraphicsInitArg {
+public:
+    GraphicsInitArg(agl::DrawContext*, sead::FrameBuffer*);
+    bool isUsingCubeMapAtmosScatter() const;
+    u8 getAtmosScatterViewNum() const;
+
+    s32 dword_0;
+    bool field_4;
+    u8 mAtmosScatterViewNum;
+    s32 mDisplayWidth;
+    s32 mDisplayHeight;
+    s32 dword_10;
+    s32 dword_14;
+    s32 dword_18;
+    s32 dword_1c;
+    bool byte_20;
+    s32 dword_24;
+    bool byte_28;
+    s32 dword_2c;
+    s32 dword_30;
+    s32 dword_34;
+    s32 dword_38;
+    s32 dword_3c;
+    agl::DrawContext* field_40;
+};
 
 class GraphicsSystemInfo {
 public:
