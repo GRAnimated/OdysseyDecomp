@@ -43,7 +43,7 @@ public:
     bool isEndToCancel() const;
     bool isEndToHelp() const;
     bool isLoadData() const;
-    void getSelectedFileId() const;
+    s32 getSelectedFileId() const;
     bool isChangeLanguage() const;
     const char* getLanguage() const;
     bool isNewGame() const;

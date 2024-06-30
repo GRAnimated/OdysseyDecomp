@@ -14,6 +14,8 @@ class BootLayout;
 class TitleMenuScene : public al::Scene {
 public:
     TitleMenuScene();
+    ~TitleMenuScene();
+    ;
 
     void init(al::SceneInitInfo const& info);
     void appear();
@@ -21,7 +23,7 @@ public:
     void drawMain() const;
     bool isEnableKill() const;
     bool isChangeLanguage() const;
-    void getLanguage() const;
+    const char* getLanguage() const;
     bool isNewGame() const;
     void startLoadDirect(bool);
     void setScenario();

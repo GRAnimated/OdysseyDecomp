@@ -4,8 +4,9 @@
 
 namespace al {
 
-class PadRumbleKeeper;
+class HitSensor;
 class LiveActor;
+class PadRumbleKeeper;
 
 class PlayerHolder {
 public:
@@ -31,3 +32,12 @@ private:
     s32 mPlayerNum = 0;
 };
 }  // namespace al
+
+namespace alPlayerFunction {
+void registerPlayer(al::LiveActor*, al::PadRumbleKeeper*);
+bool isFullPlayerHolder(al::LiveActor*);
+s32 findPlayerHolderIndex(const al::LiveActor*);
+s32 findPlayerHolderIndex(const al::HitSensor*);
+bool isPlayerActor(const al::LiveActor*);
+bool isPlayerActor(const al::HitSensor*);
+}  // namespace alPlayerFunction

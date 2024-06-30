@@ -39,7 +39,7 @@ public:
     SceneObjHolder* getSceneObjHolder() const override;
     CameraDirector* getCameraDirector() const override;
 
-    LayoutKit* getLayoutKit() const;
+    LayoutKit* getLayoutKit() const { return mLayoutKit; }
     SceneStopCtrl* getSceneStopCtrl() const;
     SceneMsgCtrl* getSceneMsgCtrl() const;
     void initializeAsync(const SceneInitInfo&);
@@ -54,6 +54,7 @@ public:
     void initScreenCoverCtrl();
     void endInit(const ActorInitInfo&);
 
+    DrawSystemInfo* getDrawSystemInfo() const { return mDrawSystemInfo; }
     LiveActorKit* getLiveActorKit() const { return mLiveActorKit; }
     const AudioDirector* getAudioDirector() const { return mAudioDirector; }
 

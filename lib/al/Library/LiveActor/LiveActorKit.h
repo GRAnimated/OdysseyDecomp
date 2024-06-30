@@ -65,6 +65,12 @@ public:
     void updateGraphics();
     void preDrawGraphics();
 
+    DemoDirector* getDemoDirector() { return mDemoDirector; }
+    void setDemoDirector(DemoDirector* director) { mDemoDirector = director; }
+
+    AreaObjDirector* getAreaObjDirector() { return mAreaObjDirector; }
+    PlayerHolder* getPlayerHolder() { return mPlayerHolder; }
+    GraphicsSystemInfo* getGraphicsSystemInfo() { return mGraphicsSystemInfo; }
     EffectSystem* getEffectSystem() const { return mEffectSystem; }
 
 private:
