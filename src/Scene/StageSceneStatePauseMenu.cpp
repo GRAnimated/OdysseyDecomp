@@ -207,7 +207,7 @@ bool StageSceneStatePauseMenu::isLoadData() const {
     return mStateOption->get180();
 }
 
-void StageSceneStatePauseMenu::getSelectedFileId() const {
+s32 StageSceneStatePauseMenu::getSelectedFileId() const {
     return mStateOption->getSelectedFileId();
 }
 

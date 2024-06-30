@@ -29,7 +29,7 @@ public:
     virtual void appear();
     virtual void kill();
     bool isModeSelectEnd() const;
-    void getSelectedFileId() const;
+    s32 getSelectedFileId() const;
     bool isChangeLanguage() const;
     void exeOptionTop();
     void decide(al::Nerve const*, SimpleLayoutMenu*, CommonVerticalList*);

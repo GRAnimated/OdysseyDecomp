@@ -3,10 +3,12 @@
 #include <math/seadVector.h>
 
 namespace al {
-class PlayerHolder;
 class CameraDirector;
+class LiveActor;
+class PadRumbleParam;
+class PadRumbleKeeper;
+class PlayerHolder;
 class WaveVibrationHolder;
-struct PadRumbleParam;
 
 class PadRumbleDirector {
 public:
@@ -41,5 +43,7 @@ public:
 private:
     void* filler[14];
 };
+
+PadRumbleKeeper* createPadRumbleKeeper(const al::LiveActor*, s32);
 
 }  // namespace al
