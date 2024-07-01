@@ -38,7 +38,6 @@ private:
     void* dword10;
     void* qword18;
     void* dword20;
-    void* dword24;
     void* qword28;
     void* qword30;
     void* qword38;

@@ -34,7 +34,7 @@
 #include "Library/Player/PlayerHolder.h"
 #include "Library/Projection/Projection.h"
 #include "Library/Scene/Scene.h"
-#include "Library/Scene/SceneObjHolder.h"
+#include "Library/Scene/SceneObjUtil.h"
 #include "Library/Scene/SceneUtil.h"
 #include "Library/Screen/ScreenFunction.h"
 #include "Library/Se/SeFunction.h"
@@ -77,9 +77,9 @@ void TitleMenuScene::init(al::SceneInitInfo const& info) {
     al::SceneObjHolder* sceneObjHolder = SceneObjFactory::createSceneObjHolder();
     initSceneObjHolder(sceneObjHolder);
 
-    GameDataHolder* holder = nullptr;
-    GameDataFunction::getGameDataHolder(holder);
-    al::setSceneObj(this, holder, SceneObjID_GameDataHolder);
+    al::setSceneObj(
+        this, GameDataFunction::getGameDataHolder((al::GameDataHolderBase*)info.gameDataHolder),
+        SceneObjID_GameDataHolder);
 
     initSceneStopCtrl();
 
@@ -94,10 +94,11 @@ void TitleMenuScene::init(al::SceneInitInfo const& info) {
 
     getLiveActorKit()->getGraphicsSystemInfo()->setField2F4(2);
 
+    getLiveActorKit()->initHitSensorDirector();
+
     getLiveActorKit()->setDemoDirector(new ProjectDemoDirector(
         getLiveActorKit()->getPlayerHolder(), getLiveActorKit()->getGraphicsSystemInfo()));
 
-    // TODO: requires full AudioDirectorInitInfo impl
     al::AudioDirectorInitInfo audioDirectorInitInfo;
     al::initAudioDirector3D(this, info, audioDirectorInitInfo);
 
@@ -109,8 +110,9 @@ void TitleMenuScene::init(al::SceneInitInfo const& info) {
 
     al::setCameraAspect(this, al::getSceneFrameBufferMainAspect(this), -1.0f);
 
+    al::AreaObjDirector* areaObjDirector = getLiveActorKit()->getAreaObjDirector();
     ProjectAreaFactory* projectAreaFactory = new ProjectAreaFactory();
-    getLiveActorKit()->getAreaObjDirector()->init(projectAreaFactory);
+    areaObjDirector->init(projectAreaFactory);
 
     al::initPadRumble(this, info);
 
@@ -124,7 +126,8 @@ void TitleMenuScene::init(al::SceneInitInfo const& info) {
     ProjectActorFactory* projectActorFactory = new ProjectActorFactory();
 
     al::initActorInitInfo(&actorInitInfo, this, &placementInfo, &layoutInitInfo,
-                          projectActorFactory, nullptr, info.gameDataHolder->getHolder());
+                          projectActorFactory, nullptr,
+                          (al::GameDataHolderBase*)info.gameDataHolder);
 
     initNerve(&NrvTitleMenuScene.Appear, 1);
 
@@ -144,18 +147,18 @@ void TitleMenuScene::init(al::SceneInitInfo const& info) {
     mLayoutContinueLoading = new al::SimpleLayoutAppearWaitEnd("ロード", "ContinueLoading",
                                                                layoutInitInfo, nullptr, false);
     mLayoutContinueLoading->kill();
-    mLayoutParBG =
-        new al::SimpleLayoutAppearWaitEnd("ロード[BG]", "ParBG", layoutInitInfo, nullptr, false);
+    mLayoutParBG = new al::SimpleLayoutAppearWaitEnd(mLayoutContinueLoading, "ロード[BG]", "ParBG",
+                                                     layoutInitInfo, nullptr);
 
     mStatePauseMenu = new StageSceneStatePauseMenu(
-        "ポーズメニュー", this, mMenuLayout, info.gameDataHolder->getHolder(), info, actorInitInfo,
-        layoutInitInfo, mWindowConfirm, nullptr, true, nullptr);
+        "ポーズメニュー", this, mMenuLayout, (GameDataHolder*)info.gameDataHolder, info,
+        actorInitInfo, layoutInitInfo, mWindowConfirm, nullptr, true, nullptr);
 
     al::initNerveState(this, mStatePauseMenu, &NrvTitleMenuScene.Menu, "ポーズメニュー");
 
-    al::PadRumbleKeeper* padRumbleKeeper =
-        al::createPadRumbleKeeper(mStatePauseMenu->getMarioActor(), al::getMainControllerPort());
-    alPlayerFunction::registerPlayer(mStatePauseMenu->getMarioActor(), padRumbleKeeper);
+    alPlayerFunction::registerPlayer(
+        mStatePauseMenu->getMarioActor(),
+        al::createPadRumbleKeeper(mStatePauseMenu->getMarioActor(), al::getMainControllerPort()));
 
     mChromakeyDrawer = new al::ChromakeyDrawer(getLiveActorKit()->getGraphicsSystemInfo(),
                                                al::getSceneExecuteDirector(this),
@@ -254,7 +257,7 @@ void TitleMenuScene::setScenario() {
                 return;
         } else {
             if (rs::trySetPaneSystemMessageIfExist(mLayoutContinueLoading, "TxtScenario",
-                                                   str1.cstr(), str2.cstr()))
+                                                   str2.cstr(), str1.cstr()))
                 return;
         }
     }

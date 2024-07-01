@@ -11,6 +11,16 @@
 namespace al {
 class PlacementId;
 }
+class SaveDataAccessSequence;
+class GameConfigData;
+class TempSaveData;
+class CapMessageBossData;
+class AchievementHolder;
+class MapDataHolder;
+class UniqObjInfo;
+class QuestInfoHolder;
+class GameSequenceInfo;
+class TimeBalloonSequenceInfo;
 
 class GameDataHolder : public al::GameDataHolderBase {
 public:
@@ -88,25 +98,71 @@ public:
 
     s32 findUseScenarioNo(const char*);
 
+    GameSequenceInfo* getSequenceInfo() const { return mSequenceInfo; }
+
 private:
-    s32 padding;
-    GameDataFile** mDataFileArr;
-    GameDataFile* mGameDataFile;
-    u64 field_28;
-    u64 field_30;
-    u64* field_38;  // SaveDataAccessSequence*
-    u32 field_40;
-    u32 mRequireSaveFrame;
+    al::MessageSystem* mMessageSystem;
+    GameDataFile** mGameDataFileArray;
+    GameDataFile* mPrimaryGameDataFile;
+    GameDataFile* field_28;
+    s32 mPlayingFileId;
+    SaveDataAccessSequence* mSaveDataAccessSequence;
+    bool mIsRequireSave;
+    s32 mRequireSameFrame;
     bool mIsInvalidSaveForMoonGet;
-    bool unk_changeStageRelated;
-    u8 field_4A;
-    u8 field_4B;
-    u32 field_4C;
-    sead::BufferedSafeString mLanguage;
-    u8 gap_58[0x28];
-    sead::Heap* field_90;
-    u8 gap_98[0x20];
-    u64* field_B8;  // TempSaveData*
-    u8 gap_C0[0xD0];
+    bool mIsInvalidToChangeStage;
+    bool field_4A;
+    s32 field_4C;
+    sead::FixedSafeString<32> mLanguage;
+    void* field_88;
+    sead::Heap* mHeap;
+    void* field_98;
+    GameConfigData* mConfigData;
+    TempSaveData* mTempSaveData;
+    TempSaveData* field_B0;
+    CapMessageBossData* mCapMessageBossData;
+    void* field_C0;
+    s32 field_C8;
+    void* field_D0;
+    bool* field_D8;
+    sead::PtrArrayImpl mStageLockList;
+    sead::PtrArrayImpl mItemList;
+    sead::PtrArrayImpl field_100;
+    sead::PtrArrayImpl field_110;
+    sead::PtrArrayImpl field_120;
+    sead::PtrArrayImpl field_130;
+    sead::PtrArrayImpl field_140;
+    sead::PtrArrayImpl mHackObjList;
+    sead::PtrArrayImpl field_160;
+    s32** field_170;
+    s32 field_178;
+    void* mAchievementInfoReader;
+    AchievementHolder* mAchievementHolder;
     WorldList* mWorldList;
+    sead::PtrArrayImpl mChangeStageList;
+    sead::PtrArrayImpl field_1A8;
+    sead::PtrArrayImpl mInvalidOpenMapList;
+    sead::PtrArrayImpl mTutorialLabels;
+    void* field_1D8;
+    MapDataHolder* mMapDataHolder;
+    sead::PtrArrayImpl mWorldItemTypeList;
+    s32** mCollectCoinNum;
+    s32** mWorldLinkInfo;
+    void* field_208;
+    s32 field_210;
+    UniqObjInfo* mUniqObjInfo;
+    char field_220;
+    s32 field_224;
+    char field_228;
+    s32 field_22C;
+    s32 field_230;
+    s32 field_234;
+    void* field_238;
+    s32 field_240;
+    bool field_244;
+    bool mIsSeparatePlay;
+    QuestInfoHolder* mQuestInfoHolder;
+    char field_250;
+    GameSequenceInfo* mSequenceInfo;
+    TimeBalloonSequenceInfo* mTimeBalloonSequenceInfo;
 };
