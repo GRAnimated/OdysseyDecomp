@@ -107,7 +107,7 @@ public:
 
     static void getGameDataHolder(const al::IUseSceneObjHolder*);
     static void getGameDataHolder(const al::SceneObjHolder*);
-    static void getGameDataHolder(al::GameDataHolderBase*);
+    static al::GameDataHolderBase* getGameDataHolder(al::GameDataHolderBase*);
     static void getGameDataFile(GameDataHolderWriter);
     static void setPlayingFileId(GameDataHolderWriter, s32);
     static void initializeData(GameDataHolderWriter, s32);
