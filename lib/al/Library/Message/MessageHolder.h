@@ -12,7 +12,17 @@ class LayoutSystem;
 class MessageProjectEx;
 class MessageTag;
 class MessageTagDataHolder;
-class ReplaceTimeInfo;
+
+class ReplaceTimeInfo {
+private:
+    s32 mYear;
+    s32 mMonth;
+    s32 mDay;
+    s32 mWeek;
+    s32 mHour;
+    s32 mMinute;
+    s32 mSecond;
+};
 
 class MessageHolder : public HioNode {
 public:

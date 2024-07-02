@@ -27,6 +27,8 @@ f32 getActionFrameMax(const IUseLayoutAction* layout, const char* actionName, co
 void setActionFrameRate(const IUseLayoutAction* layout, f32 frameRate, const char* paneName);
 void setActionFrame(const IUseLayoutAction* layout, f32 frame, const char* paneName);
 
+const char* getActionName(const al::IUseLayoutAction* layout, const char* paneName);
+
 bool isActionOneTime(const IUseLayoutAction* layout, const char* actionName, const char* paneName);
 bool isActionPlaying(const IUseLayoutAction* layout, const char* actionName, const char* paneName);
 bool isAnyActionPlaying(const IUseLayoutAction* layout, const char* paneName);
