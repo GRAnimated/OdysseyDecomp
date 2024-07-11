@@ -11,23 +11,24 @@ class Projection;
 class CameraSubTargetBase;
 class CameraSubTargetTurnParam;
 class LiveActor;
+class CameraTicket;
+class SceneCameraInfo;
+class CameraPoseInfo;
+class ActorInitInfo;
+class PlacementInfo;
+class Resource;
+class ICameraInput;
+class ActorResource;
+class ActorCameraTarget;
+class CameraTarget;
+class CameraTargetBase;
+class CameraInput;
+class CameraDistanceCurve;
+class CameraPoser;
+class PlacementId;
+class CameraFlagCtrl;
 
-Projection getProjection(const IUseCamera* cameraHolder, s32 cameraNum);
-
-const sead::Vector3f& getCameraPos(const IUseCamera* cameraHolder, s32 cameraNum);
-void calcCameraUpDir(sead::Vector3f* out, const IUseCamera* cameraHolder, s32 cameraNum);
-s32 getViewNumMax(const IUseCamera* cameraHolder);
-CameraSubTargetBase* createActorCameraSubTarget(const LiveActor* actor, const sead::Vector3f*);
-void initCameraSubTargetTurnParam(CameraSubTargetBase* cameraSubTarget,
-                                  const CameraSubTargetTurnParam* params);
-void setCameraPlacementSubTarget(IUseCamera* cameraHolder, CameraSubTargetBase* cameraSubTarget);
-void resetCameraPlacementSubTarget(IUseCamera* cameraHolder, CameraSubTargetBase* cameraSubTarget);
-const sead::Matrix34f& getViewMtx(const IUseCamera* cameraHolder, s32 cameraNum);
-void calcCameraFront(sead::Vector3f* out, const IUseCamera* cameraHolder, s32 cameraNum);
-}  // namespace al
-
-namespace al {
-const al::SceneCameraInfo* getSceneCameraInfo(const IUseCamera*);
+const SceneCameraInfo* getSceneCameraInfo(const IUseCamera*);
 s32 getViewNumMax(const IUseCamera*);
 s32 getViewNumMax(const SceneCameraInfo*);
 bool isValidView(const IUseCamera*, s32);
@@ -201,10 +202,10 @@ ActorCameraTarget* createActorCameraTarget(const LiveActor*, f32);
 ActorCameraTarget* createActorCameraTarget(const LiveActor*, const sead::Vector3f*);
 ActorCameraTarget* createActorJointCameraTarget(const LiveActor*, const char*);
 ActorCameraTarget* createActorMatrixCameraTarget(const LiveActor*, const sead::Matrix34f*);
-bool isActiveCameraTarget(CameraTargetBase const*);
+bool isActiveCameraTarget(const CameraTargetBase*);
 void setCameraTarget(IUseCamera*, CameraTargetBase*);
 void resetCameraTarget(IUseCamera*, CameraTargetBase*);
-void createActorCameraSubTarget(const LiveActor*, const sead::Vector3f*);
+CameraSubTargetBase* createActorCameraSubTarget(const LiveActor*, const sead::Vector3f*);
 void createActorBackAroundCameraSubTarget(const LiveActor*, const sead::Vector3f*);
 void createTransCameraSubTarget(const char*, const sead::Vector3f*);
 void initCameraSubTargetTurnParam(CameraSubTargetBase*, const CameraSubTargetTurnParam*);
