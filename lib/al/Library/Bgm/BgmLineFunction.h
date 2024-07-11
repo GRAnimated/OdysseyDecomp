@@ -14,5 +14,6 @@ public:
 };
 
 void stopAllBgm(const al::IUseAudioKeeper*, s32);
+bool isRunningBgm(const al::IUseAudioKeeper*, const char*);
 
 }  // namespace al
