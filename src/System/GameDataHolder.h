@@ -32,6 +32,8 @@ public:
     virtual char* getSceneObjName() const;
     virtual al::MessageSystem* getMessageSystem() const;
 
+    WorldList* getWorldList() const { return mWorldList; }
+
     void setPlayingFileId(s32 file);
     void intitalizeData();
     void initialzeDataCommon();
@@ -88,6 +90,10 @@ public:
     void playScenarioStartCamera(s32);
     bool isPlayAlreadyScenarioStartCamera() const;
 
+    const char* getCoinCollectArchiveName(s32) const;
+    const char* getCoinCollectEmptyArchiveName(s32) const;
+    const char* getCoinCollect2DArchiveName(s32) const;
+    const char* getCoinCollect2DEmptyArchiveName(s32) const;
     s32 getShineAnimFrame(s32) const;
     s32 getCoinCollectNumMax(s32) const;
 
