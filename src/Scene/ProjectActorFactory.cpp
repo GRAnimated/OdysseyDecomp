@@ -7,6 +7,11 @@
 
 #include "MapObj/AnagramAlphabet.h"
 #include "MapObj/FireDrum2D.h"
+#include "MapObj/TrampleBush.h"
+#include "MapObj/TrampleSwitch.h"
+#include "MapObj/TrampleSwitchTimer.h"
+#include "MapObj/TransparentWall.h"
+#include "MapObj/WeightSwitch.h"
 #include "MapObj/WorldMapEarth.h"
 
 static al::NameToCreator<al::ActorCreatorFunction> sProjectActorFactoryEntries[] = {
@@ -500,11 +505,11 @@ static al::NameToCreator<al::ActorCreatorFunction> sProjectActorFactoryEntries[]
     {"Togezo", nullptr},
     {"Togezo2D", nullptr},
     {"TokimekiMayorNpc", nullptr},
-    {"TrampleBush", nullptr},
-    {"TrampleSwitch", nullptr},
-    {"TrampleSwitchSave", nullptr},
-    {"TrampleSwitchTimer", nullptr},
-    {"TransparentWall", nullptr},
+    {"TrampleBush", al::createActorFunction<TrampleBush>},
+    {"TrampleSwitch", al::createActorFunction<TrampleSwitch>},
+    {"TrampleSwitchSave", al::createActorFunction<TrampleSwitch>},
+    {"TrampleSwitchTimer", al::createActorFunction<TrampleSwitchTimer>},
+    {"TransparentWall", al::createActorFunction<TransparentWall>},
     {"TreasureBox", nullptr},
     {"TreasureBoxKey", nullptr},
     {"TreasureBoxSequentialDirector", nullptr},
@@ -530,7 +535,7 @@ static al::NameToCreator<al::ActorCreatorFunction> sProjectActorFactoryEntries[]
     {"WaterfallWorldHomeCage", nullptr},
     {"WaterfallWorldWaterfall", nullptr},
     {"WaterRoad", nullptr},
-    {"WeightSwitch", nullptr},
+    {"WeightSwitch", al::createActorFunction<WeightSwitch>},
     {"WheelWaveSurfParts", nullptr},
     {"WindBlowPuzzle", nullptr},
     {"WorldMapEarth", al::createActorFunction<WorldMapEarth>},

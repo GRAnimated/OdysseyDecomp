@@ -148,7 +148,7 @@ void getModelDrawCategoryFromShaderAssign(bool*, bool*, bool*, bool*, const Live
 void trySetOcclusionQueryBox(LiveActor* actor, f32);
 void trySetOcclusionQueryBox(LiveActor* actor, const sead::BoundBox3f&);
 void trySetOcclusionQueryCenter(LiveActor* actor, const sead::Vector3f*);
-void getModelName(const LiveActor* actor);
+const char* getModelName(const LiveActor* actor);
 void isModelName(const LiveActor* actor, const char*);
 void calcModelBoundingSphereRadius(const LiveActor* actor);
 void getBoundingSphereCenterAndRadius(sead::Vector3f*, f32*, const LiveActor* actor);

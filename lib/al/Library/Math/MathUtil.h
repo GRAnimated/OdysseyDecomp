@@ -38,9 +38,14 @@ bool isNear(const sead::Matrix34f& value, const sead::Matrix34f& target, f32 tol
 void calcQuatSide(sead::Vector3f* out, const sead::Quatf& quat);
 void calcQuatUp(sead::Vector3f* out, const sead::Quatf& quat);
 void calcQuatGravity(sead::Vector3f* out, const sead::Quatf& quat);
+f32 calcQuatUpY(const sead::Quatf& quat);
 void calcQuatFront(sead::Vector3f* out, const sead::Quatf& quat);
 
 void rotateQuatYDirDegree(sead::Quatf*, const sead::Quatf&, f32);
+
+void rotateVectorQuat(sead::Vector3f*, const sead::Quatf&);
+
+void makeQuatUpFront(sead::Quatf* out, const sead::Vector3f& up, const sead::Vector3f& front);
 
 void makeMtxRotateTrans(sead::Matrix34f* out, const sead::Vector3f& rotate,
                         const sead::Vector3f& trans);
