@@ -1,6 +1,7 @@
 #pragma once
 
 #include <basis/seadTypes.h>
+#include <container/seadPtrArray.h>
 
 #include "Library/HostIO/HioNode.h"
 
@@ -15,7 +16,7 @@ public:
     void registerModel(ModelKeeper*);
 
 private:
-    void* filler[2];
+    sead::PtrArray<al::ModelKeeper> mArray;
 };
 
 static_assert(sizeof(ModelGroup) == 0x18);

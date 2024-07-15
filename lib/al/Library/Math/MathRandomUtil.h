@@ -32,4 +32,6 @@ void makeBoxMullerRandomGauss(sead::Vector2f*, f32, f32);
 void addRandomVector(sead::Vector3f*, const sead::Vector3f&, f32);
 void turnRandomVector(sead::Vector3f*, const sead::Vector3f&, f32);
 
+bool isPercentProbability(f32);
+
 }  // namespace al
