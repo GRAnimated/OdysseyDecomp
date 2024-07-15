@@ -369,8 +369,8 @@ public:
     static void getLastUpdateFileTime(const al::LayoutActor*, s32);
     static void makeTextureSaveDataFileName(sead::BufferedSafeStringBase<char>*,
                                             const nn::g3d::ResFile*, const GameDataHolder*, s32);
-    static void getWorldIndexPeach();
-    static void getWorldIndexCity();
+    static s32 getWorldIndexPeach();
+    static s32 getWorldIndexCity();
     static bool isCityWorldCeremonyAll(s32, s32);
     static void getWorldIndexSea();
     static void getUnlockWorldIdForWorldMap(const al::LayoutActor*, s32);
