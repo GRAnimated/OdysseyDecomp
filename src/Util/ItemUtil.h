@@ -13,7 +13,10 @@ class SensorMsg;
 class Shine;
 
 namespace rs {
-SEAD_ENUM(ItemType, Coin, Coin2D, CoinBlow, CoinBlowVeryLittle, CoinPopUp, CoinPopUpWithoutHitReaction, Coin3, Coin5, Coin10, Coin10Auto, Coin5Count, Coin100, LifeUpItem, LifeUpItemBack, LifeUpItem2D, LifeMaxUpItem, LifeMaxUpItem2D, Shine, AirBubble, DotMarioCat, KuriboMini3, KuriboMini8, CoinStackBound, Random);
+SEAD_ENUM(ItemType, Coin, Coin2D, CoinBlow, CoinBlowVeryLittle, CoinPopUp, 
+CoinPopUpWithoutHitReaction, Coin3, Coin5, Coin10, Coin10Auto, Coin5Count, Coin100, LifeUpItem, 
+LifeUpItemBack, LifeUpItem2D, LifeMaxUpItem, LifeMaxUpItem2D, Shine, AirBubble, DotMarioCat, 
+KuriboMini3, KuriboMini8, CoinStackBound, Random);
 
 s32 getItemType(const al::ActorInitInfo& info);
 s32 getItemType(const char* name);

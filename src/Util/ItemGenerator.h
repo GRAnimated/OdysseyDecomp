@@ -3,10 +3,14 @@
 #include <math/seadQuat.h>
 #include <math/seadVector.h>
 
+#include "Util/ItemUtil.h"
+
 namespace al {
-class LiveActor;
 class ActorInitInfo;
+class LiveActor;
 }  // namespace al
+class Shine;
+class KuriboMini;
 
 class ItemGenerator {
 public:
@@ -17,13 +21,13 @@ public:
     void initNoLinkShine(al::LiveActor*, const al::ActorInitInfo&, bool);
     void initHintPhotoShine(al::LiveActor*, const al::ActorInitInfo&);
     void createShineEffectInsideObject(const al::ActorInitInfo&);
-    void tryUpdateHintTransIfExistShine();
-    void tryUpdateHintTransIfExistShine(const sead::Vector3f&);
+    bool tryUpdateHintTransIfExistShine();
+    bool tryUpdateHintTransIfExistShine(const sead::Vector3f&);
     bool isEnableGenerateByCount(s32) const;
     void generate(const sead::Vector3f&, const sead::Quatf&);
     void generate(const sead::Vector3f&, const sead::Vector3f&);
-    void tryGenerate(const sead::Vector3f&, const sead::Quatf&, s32);
-    void tryGenerate(const sead::Vector3f&, const sead::Vector3f&, s32);
+    bool tryGenerate(const sead::Vector3f&, const sead::Quatf&, s32);
+    bool tryGenerate(const sead::Vector3f&, const sead::Vector3f&, s32);
     bool isNone() const;
     bool isShine() const;
     bool isLifeUp() const;
@@ -35,5 +39,10 @@ public:
     bool isKuriboMini8() const;
 
 private:
-    void* filler[5];
+    al::LiveActor* mCreator = nullptr;
+    Shine* mLinkShine = nullptr;
+    KuriboMini** mKuriboMiniArray = nullptr;
+    s32 mKuriboMiniCount = 0;
+    s32 mItemType = -1;  // mismatches as rs::ItemType despite it being that
+    s32 field_20 = 0;
 };
