@@ -20,4 +20,6 @@ void makeMtxUpFrontPos(sead::Matrix34f*, const sead::Vector3f&, const sead::Vect
                        const sead::Vector3f&);
 void makeMtxRotateTrans(sead::Matrix34f*, const sead::Vector3f&, const sead::Vector3f&);
 
+void calcDirVerticalAny(sead::Vector3f*, const sead::Vector3f&);
+
 }  // namespace al

@@ -43,6 +43,8 @@ void calcQuatFront(sead::Vector3f* out, const sead::Quatf& quat);
 
 void rotateQuatYDirDegree(sead::Quatf*, const sead::Quatf&, f32);
 
+void rotateVectorDegree(sead::Vector3f*, const sead::Vector3f&, const sead::Vector3f&, f32);
+
 void rotateVectorQuat(sead::Vector3f*, const sead::Quatf&);
 
 void makeQuatUpFront(sead::Quatf* out, const sead::Vector3f& up, const sead::Vector3f& front);
