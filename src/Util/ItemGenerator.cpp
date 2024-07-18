@@ -65,14 +65,9 @@ void ItemGenerator::createShineEffectInsideObject(const al::ActorInitInfo& info)
     rs::createShineEffectInsideObject(mLinkShine, mCreator, info);
 }
 
-// TODO: calling the other tryUpdateHintTransIfExistShine doesn't inline, make it work
 bool ItemGenerator::tryUpdateHintTransIfExistShine() {
     const sead::Vector3f& trans = al::getTrans(mCreator);
-    if (mLinkShine && field_20 <= 0) {
-        rs::updateHintTrans(mLinkShine, trans);
-        return true;
-    }
-    return false;
+    return tryUpdateHintTransIfExistShine(trans);
 }
 
 bool ItemGenerator::tryUpdateHintTransIfExistShine(const sead::Vector3f& trans) {

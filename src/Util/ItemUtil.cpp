@@ -219,27 +219,26 @@ bool initItem2DByPlacementInfo(al::LiveActor* actor, const al::ActorInitInfo& in
 
 bool tryInitItem2DByPlacementInfo(al::LiveActor* actor, const al::ActorInitInfo& info) {
     const char* itemType = nullptr;
-    if ((!al::tryGetStringArg(&itemType, info, "ItemType") &&
-         !al::tryGetStringArg(&itemType, info, "ItemTypeNoShine") &&
-         !al::tryGetStringArg(&itemType, info, "ItemType2D3D")) ||
-        al::isEqualString(itemType, "None"))
-        return false;
+    if ((al::tryGetStringArg(&itemType, info, "ItemType") ||
+         al::tryGetStringArg(&itemType, info, "ItemTypeNoShine") ||
+         al::tryGetStringArg(&itemType, info, "ItemType2D3D")) &&
+        !al::isEqualString(itemType, "None")) {
+        s32 type = getItemType(itemType);
+        if (type == -1 || type == ItemType::Shine)
+            return false;
 
-    s32 type = getItemType(itemType);
-    if (type == -1 || type == ItemType::Shine)
-        return false;
-
-    if (type == ItemType::Random) {
-        actor->initItemKeeper(2);
-        al::addItem(actor, info, "ライフアップアイテム[飛出し出現]", "ライフアップ", nullptr, -1,
-                    0);
-        al::addItem(actor, info, "コイン2D[自動取得]", "コイン", nullptr, -1, 0);
-        return true;
-    }
-    actor->initItemKeeper(1);
-    if (type < ItemType::LifeMaxUpItem2D && (0x17111 >> type)) {
-        al::addItem(actor, info, sItem2DNames[type], 0);
-        return true;
+        if (type == ItemType::Random) {
+            actor->initItemKeeper(2);
+            al::addItem(actor, info, "ライフアップアイテム[飛出し出現]", "ライフアップ", nullptr,
+                        -1, 0);
+            al::addItem(actor, info, "コイン2D[自動取得]", "コイン", nullptr, -1, 0);
+            return true;
+        }
+        actor->initItemKeeper(1);
+        if (type < ItemType::LifeMaxUpItem2D && (0x17111 >> type)) {
+            al::addItem(actor, info, sItem2DNames[type], 0);
+            return true;
+        }
     }
     return false;
 }
@@ -346,7 +345,7 @@ void appearPopupShine(Shine* shine) {
 
 void appearPopupShine(Shine* shine, const al::LiveActor* actor) {
     sead::Vector3f trans = al::getTrans(actor);
-    shine->appearPopup(trans);
+    appearPopupShine(shine, trans);
 }
 
 void appearPopupShine(Shine* shine, const sead::Vector3f& trans) {
@@ -360,13 +359,12 @@ void appearPopupShineWithoutDemo(Shine* shine) {
 void appearPopupShineWithoutDemo(Shine* shine, const al::LiveActor* actor) {
     sead::Vector3f trans = al::getTrans(actor);
     trans.y += 100.0f;
-    al::resetPosition(shine, trans);
-    shine->appearPopupWithoutDemo();
+    appearPopupShineWithoutDemo(shine, trans);
 }
 
 void appearPopupShineWithoutDemo(Shine* shine, const sead::Vector3f& trans) {
-    al::resetPosition(shine);
-    shine->appearPopupWithoutDemo();
+    al::resetPosition(shine, trans);
+    appearPopupShineWithoutDemo(shine);
 }
 
 void appearPopupShineWithoutWarp(Shine* shine) {
@@ -565,14 +563,14 @@ void syncCoin2DAnimFrame(al::LiveActor* actor, const char* name) {
 
 const char* getStageCoinCollectArchiveName(const al::LiveActor* actor) {
     GameDataHolder* gameDataHolder =
-        (GameDataHolder*)al::getSceneObj(actor, SceneObjID_GameDataHolder);
+        al::getSceneObj<GameDataHolder>(actor, SceneObjID_GameDataHolder);
 
     return gameDataHolder->getCoinCollectArchiveName(GameDataFunction::getCurrentWorldId(actor));
 }
 
 const char* getStageCoinCollectEmptyArchiveName(const al::LiveActor* actor) {
     GameDataHolder* gameDataHolder =
-        (GameDataHolder*)al::getSceneObj(actor, SceneObjID_GameDataHolder);
+        al::getSceneObj<GameDataHolder>(actor, SceneObjID_GameDataHolder);
 
     return gameDataHolder->getCoinCollectEmptyArchiveName(
         GameDataFunction::getCurrentWorldId(actor));
@@ -580,14 +578,14 @@ const char* getStageCoinCollectEmptyArchiveName(const al::LiveActor* actor) {
 
 const char* getStageCoinCollect2DArchiveName(const al::LiveActor* actor) {
     GameDataHolder* gameDataHolder =
-        (GameDataHolder*)al::getSceneObj(actor, SceneObjID_GameDataHolder);
+        al::getSceneObj<GameDataHolder>(actor, SceneObjID_GameDataHolder);
 
     return gameDataHolder->getCoinCollect2DArchiveName(GameDataFunction::getCurrentWorldId(actor));
 }
 
 const char* getStageCoinCollect2DEmptyArchiveName(const al::LiveActor* actor) {
     GameDataHolder* gameDataHolder =
-        (GameDataHolder*)al::getSceneObj(actor, SceneObjID_GameDataHolder);
+        al::getSceneObj<GameDataHolder>(actor, SceneObjID_GameDataHolder);
 
     return gameDataHolder->getCoinCollect2DEmptyArchiveName(
         GameDataFunction::getCurrentWorldId(actor));
@@ -595,41 +593,63 @@ const char* getStageCoinCollect2DEmptyArchiveName(const al::LiveActor* actor) {
 
 s32 getStageShineAnimFrame(const al::LiveActor* actor) {
     GameDataHolder* gameDataHolder =
-        (GameDataHolder*)al::getSceneObj(actor, SceneObjID_GameDataHolder);
+        al::getSceneObj<GameDataHolder>(actor, SceneObjID_GameDataHolder);
 
     return gameDataHolder->getShineAnimFrame(GameDataFunction::getCurrentWorldId(actor));
 }
 
 s32 getStageShineAnimFrame(const al::LiveActor* actor, s32 worldId) {
     GameDataHolder* gameDataHolder =
-        (GameDataHolder*)al::getSceneObj(actor, SceneObjID_GameDataHolder);
+        al::getSceneObj<GameDataHolder>(actor, SceneObjID_GameDataHolder);
 
     return gameDataHolder->getShineAnimFrame(worldId);
 }
 
 s32 getStageShineAnimFrame(const al::LiveActor* actor, const char* stageName) {
     GameDataHolder* gameDataHolder =
-        (GameDataHolder*)al::getSceneObj(actor, SceneObjID_GameDataHolder);
+        al::getSceneObj<GameDataHolder>(actor, SceneObjID_GameDataHolder);
 
     s32 worldId = gameDataHolder->getWorldList()->tryFindWorldIndexByMainStageName(stageName);
+    worldId = sead::Mathi::max(0, worldId);
 
-    return gameDataHolder->getShineAnimFrame(worldId);
+    return al::getSceneObj<GameDataHolder>(actor, SceneObjID_GameDataHolder)
+        ->getShineAnimFrame(worldId);
 }
 
-void setStageShineAnimFrame(al::LiveActor* actor, const char* stageName, s32 a3, bool a4) {}
+void startShineAnimAndSetFrameAndStop(al::LiveActor* actor, const char* animName, s32 frame,
+                                      bool a4) {
+    a4 ? al::startMtpAnimAndSetFrameAndStop(actor, animName, frame) :
+         al::startMclAnimAndSetFrameAndStop(actor, animName, frame);
+}
 
-const char* getStageShineArchiveName(al::LiveActor* actor, const char* stageName) {
+void setStageShineAnimFrame(al::LiveActor* actor, const char* stageName, s32 shineAnimFrame,
+                            bool a4) {
+    if (shineAnimFrame != -1) {
+        if (shineAnimFrame == 99)
+            return;
+        return startShineAnimAndSetFrameAndStop(actor, "Color", shineAnimFrame, a4);
+    }
+    if (stageName) {
+        shineAnimFrame = getStageShineAnimFrame(actor, stageName);
+        return startShineAnimAndSetFrameAndStop(actor, "Color", shineAnimFrame, a4);
+    }
+    shineAnimFrame = getStageShineAnimFrame(actor);
+    if (shineAnimFrame != -1)
+        startShineAnimAndSetFrameAndStop(actor, "Color", shineAnimFrame, a4);
+}
+
+const char* getStageShineArchiveName(const al::LiveActor* actor, const char* stageName) {
     GameDataHolder* gameDataHolder =
-        (GameDataHolder*)al::getSceneObj(actor, SceneObjID_GameDataHolder);
+        al::getSceneObj<GameDataHolder>(actor, SceneObjID_GameDataHolder);
 
     s32 worldId = gameDataHolder->getWorldList()->tryFindWorldIndexByMainStageName(stageName);
 
     return worldId == GameDataFunction::getWorldIndexPeach() ? "PowerStar" : "Shine";
 }
 
-const char* getStageShineEmptyArchiveName(al::LiveActor* actor, const char* stageName) {
+const char* getStageShineEmptyArchiveName(const al::LiveActor* actor, const char* stageName) {
     GameDataHolder* gameDataHolder =
-        (GameDataHolder*)al::getSceneObj(actor, SceneObjID_GameDataHolder);
+        al::getSceneObj<GameDataHolder>(actor, SceneObjID_GameDataHolder);
 
     s32 worldId = gameDataHolder->getWorldList()->tryFindWorldIndexByMainStageName(stageName);
 
