@@ -18,6 +18,7 @@ public:
     };
 
     GameSequenceInfo();
+
     void init();
     void resetSceneStatus();
     void setSceneStatusBossBattle();
@@ -33,6 +34,7 @@ public:
     ShopStatus getShopStatus() const { return mShopStatus; }
 
     bool isWipeOpenEnd() const { return mIsWipeOpenEnd; }
+
     void setWipeOpenEnd(bool isEnd) { mIsWipeOpenEnd = isEnd; }
 
 private:
