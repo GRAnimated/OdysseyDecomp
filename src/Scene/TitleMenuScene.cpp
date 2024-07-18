@@ -201,8 +201,9 @@ void TitleMenuScene::drawMain() const {
 
     al::setRenderBuffer(getLayoutKit(), frameBuffer);
 
-    sead::Viewport viewport2(0.0f, 0.0f, al::getLayoutDisplayWidth(), al::getLayoutDisplayHeight());
-    viewport2.apply(drawContext, *frameBuffer);
+    sead::Viewport layoutViewport(0.0f, 0.0f, al::getLayoutDisplayWidth(),
+                                  al::getLayoutDisplayHeight());
+    layoutViewport.apply(drawContext, *frameBuffer);
     frameBuffer->bind(drawContext);
 
     al::drawKit(this, "２Ｄベース（メイン画面）");

@@ -10,30 +10,6 @@
 
 namespace al {
 
-/*
-
-void startAction(IUseLayoutAction* layout, const char* actionName, const char* paneName);
-void startFreezeAction(IUseLayoutAction* layout, const char* actionName, f32 frame,
-                       const char* paneName);
-void startFreezeActionEnd(IUseLayoutAction* layout, const char* actionName, const char* paneName);
-void startActionAtRandomFrame(IUseLayoutAction* layout, const char* actionName,
-                              const char* paneName);
-void startFreezeGaugeAction(IUseLayoutAction* layout, f32 value, f32 minFrame, f32 maxFrame,
-                            const char* actionName, const char* paneName);
-
-bool tryStartAction(IUseLayoutAction* layout, const char* actionName, const char* paneName);
-
-f32 getActionFrame(const IUseLayoutAction* layout, const char* paneName);
-f32 getActionFrameRate(const IUseLayoutAction* layout, const char* paneName);
-f32 getActionFrameMax(const IUseLayoutAction* layout, const char* actionName, const char* paneName);
-
-void setActionFrameRate(const IUseLayoutAction* layout, f32 frameRate, const char* paneName);
-void setActionFrame(const IUseLayoutAction* layout, f32 frame, const char* paneName);
-
-const char* getActionName(const al::IUseLayoutAction* layout, const char* paneName);
-
-*/
-
 void startAction(IUseLayoutAction* layout, const char* actionName, const char* paneName) {
     layout->getLayoutActionKeeper()->startAction(actionName, paneName);
 }

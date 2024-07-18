@@ -30,7 +30,7 @@ void setActionFrame(IUseLayoutAction* layout, f32 frame, const char* paneName);
 f32 getActionFrameRate(const IUseLayoutAction* layout, const char* paneName);
 void setActionFrameRate(IUseLayoutAction* layout, f32 frameRate, const char* paneName);
 
-const char* getActionName(const al::IUseLayoutAction* layout, const char* paneName);
+const char* getActionName(const IUseLayoutAction* layout, const char* paneName);
 
 bool isActionOneTime(const IUseLayoutAction* layout, const char* actionName, const char* paneName);
 bool isActionPlaying(const IUseLayoutAction* layout, const char* actionName, const char* paneName);
@@ -42,31 +42,26 @@ bool isExistAction(const IUseLayoutAction* layout, const char* actionName, const
 
 void setNerveAtActionEnd(LayoutActor*, const Nerve* nerve);
 
-void startTextPaneAnim(al::LayoutActor*, const char16*, const al::MessageTagDataHolder*,
-                       const al::ReplaceTagProcessorBase*);
-void startTextPaneAnimWithAudioUser(al::LayoutActor*, const char16*,
-                                    const al::MessageTagDataHolder*,
-                                    const al::ReplaceTagProcessorBase*, al::IUseAudioKeeper const*);
-void startAndSetTextPaneAnimStage(al::LayoutActor*, const char*, const char*,
-                                  const al::MessageTagDataHolder*,
-                                  const al::ReplaceTagProcessorBase*);
-void startAndSetTextPaneAnimSystem(al::LayoutActor*, const char*, const char*,
-                                   const al::MessageTagDataHolder*,
-                                   const al::ReplaceTagProcessorBase*);
-void endTextPaneAnim(al::LayoutActor*);
-void skipTextPaneAnim(al::LayoutActor*);
-void flushTextPaneAnim(al::LayoutActor*);
-void changeNextPage(al::LayoutActor*, const al::MessageTagDataHolder*,
-                    const al::ReplaceTagProcessorBase*);
-void tryChangeNextPage(al::LayoutActor*, const al::MessageTagDataHolder*,
-                       const al::ReplaceTagProcessorBase*);
-bool isExistNextPage(const al::LayoutActor*);
-bool isEndTextPaneAnim(const al::LayoutActor*, bool);
-void getCurrentMessagePaneAnim(const al::LayoutActor*);
-void calcCurrentMessageTextNum(const al::LayoutActor*);
+void startTextPaneAnim(LayoutActor*, const char16*, const MessageTagDataHolder*,
+                       const ReplaceTagProcessorBase*);
+void startTextPaneAnimWithAudioUser(LayoutActor*, const char16*, const MessageTagDataHolder*,
+                                    const ReplaceTagProcessorBase*, IUseAudioKeeper const*);
+void startAndSetTextPaneAnimStage(LayoutActor*, const char*, const char*,
+                                  const MessageTagDataHolder*, const ReplaceTagProcessorBase*);
+void startAndSetTextPaneAnimSystem(LayoutActor*, const char*, const char*,
+                                   const MessageTagDataHolder*, const ReplaceTagProcessorBase*);
+void endTextPaneAnim(LayoutActor*);
+void skipTextPaneAnim(LayoutActor*);
+void flushTextPaneAnim(LayoutActor*);
+void changeNextPage(LayoutActor*, const MessageTagDataHolder*, const ReplaceTagProcessorBase*);
+void tryChangeNextPage(LayoutActor*, const MessageTagDataHolder*, const ReplaceTagProcessorBase*);
+bool isExistNextPage(const LayoutActor*);
+bool isEndTextPaneAnim(const LayoutActor*, bool);
+void getCurrentMessagePaneAnim(const LayoutActor*);
+void calcCurrentMessageTextNum(const LayoutActor*);
 void calcShowTextTime(s32);
-void tryStartTextAnim(al::LayoutActor*, const char16*);
-void tryStartTextTagVoice(al::LayoutActor*, const char16*, const al::IUseAudioKeeper*, const char*,
+void tryStartTextAnim(LayoutActor*, const char16*);
+void tryStartTextTagVoice(LayoutActor*, const char16*, const IUseAudioKeeper*, const char*,
                           sead::FixedSafeString<64>*);
-void startHitReaction(const al::LayoutActor*, const char*, const char*);
+void startHitReaction(const LayoutActor*, const char*, const char*);
 }  // namespace al

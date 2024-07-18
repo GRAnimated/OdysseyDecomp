@@ -1,15 +1,15 @@
 #pragma once
 
-#include "Library/Layout/LayoutActor.h"
-
 #include <container/seadPtrArray.h>
+
+#include "Library/Layout/LayoutActor.h"
 
 namespace al {
 class LayoutInitInfo;
 
-class WindowConfirm : public al::LayoutActor {
+class WindowConfirm : public LayoutActor {
 public:
-    WindowConfirm(const al::LayoutInitInfo&, const char*, const char*);
+    WindowConfirm(const LayoutInitInfo&, const char*, const char*);
 
     void setTxtMessage(const char16*);
     void setTxtList(s32, const char16*);
@@ -43,8 +43,8 @@ private:
     s32 field_138 = -1;
     bool field_13C = false;
     s32 field_140 = -1;
-    sead::PtrArray<al::LayoutActor> mParListArray;
-    al::LayoutActor* mCursorActor;
-    al::LayoutActor* mButtonActor;
+    sead::PtrArray<LayoutActor> mParListArray;
+    LayoutActor* mCursorActor;
+    LayoutActor* mButtonActor;
 };
 }  // namespace al

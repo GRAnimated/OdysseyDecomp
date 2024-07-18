@@ -5,9 +5,9 @@
 namespace al {
 class LayoutInitInfo;
 
-class WipeSimple : public al::LayoutActor {
+class WipeSimple : public LayoutActor {
 public:
-    WipeSimple(const char*, const char*, al::LayoutInitInfo const&, const char*);
+    WipeSimple(const char*, const char*, const LayoutInitInfo&, const char*);
 
     void startClose(s32);
     void tryStartClose(s32);

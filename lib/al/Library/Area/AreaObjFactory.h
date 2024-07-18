@@ -5,5 +5,5 @@
 namespace al {
 class AreaObj;
 
-class AreaObjFactory : public al::Factory<al::AreaObj* (*)()> {};
+class AreaObjFactory : public Factory<AreaObj* (*)()> {};
 }  // namespace al

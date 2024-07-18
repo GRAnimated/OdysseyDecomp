@@ -14,9 +14,9 @@ class StageSceneStatePauseMenu;
 
 class StageSceneStateStartSeparatePlay : public al::HostStateBase<StageSceneStatePauseMenu> {
 public:
-    StageSceneStateStartSeparatePlay(const char*, StageSceneStatePauseMenu*,
-                                     const al::LayoutInitInfo&, al::WipeSimple*, al::GamePadSystem*,
-                                     FooterParts*);
+    StageSceneStateStartSeparatePlay(const char* name, StageSceneStatePauseMenu* host,
+                                     const al::LayoutInitInfo& info, al::WipeSimple* wipeSimple,
+                                     al::GamePadSystem* gamePadSystem, FooterParts* footerParts);
 
     virtual void appear();
 

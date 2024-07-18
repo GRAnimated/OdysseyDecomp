@@ -26,10 +26,14 @@ class StageSceneStateStartSeparatePlay;
 
 class StageSceneStatePauseMenu : public al::HostStateBase<al::Scene> {
 public:
-    StageSceneStatePauseMenu(const char*, al::Scene*, al::SimpleLayoutAppearWaitEnd*,
-                             GameDataHolder*, const al::SceneInitInfo&, const al::ActorInitInfo&,
-                             const al::LayoutInitInfo&, al::WindowConfirm*, StageSceneLayout*, bool,
-                             SceneAudioSystemPauseController*);
+    StageSceneStatePauseMenu(const char* name, al::Scene* host,
+                             al::SimpleLayoutAppearWaitEnd* menuLayout,
+                             GameDataHolder* gameDataHolder, const al::SceneInitInfo& sceneInitInfo,
+                             const al::ActorInitInfo& actorInitInfo,
+                             const al::LayoutInitInfo& layoutInitInfo,
+                             al::WindowConfirm* windowConfirm, StageSceneLayout* stageSceneLayout,
+                             bool a11,
+                             SceneAudioSystemPauseController* sceneAudioSystemPauseController);
 
     virtual void appear();
     virtual void kill();

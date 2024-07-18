@@ -11,8 +11,8 @@ class AudioDirectorInitInfo {
 public:
     AudioDirectorInitInfo() {}
 
-    al::AudioSystemInfo* mAudioSystemInfo = nullptr;
-    al::Sequence* mCurSequence = nullptr;
+    AudioSystemInfo* mAudioSystemInfo = nullptr;
+    Sequence* mCurSequence = nullptr;
     const char* mCurStage = nullptr;
     int mScenarioNo = 0;
     void* qword20 = nullptr;

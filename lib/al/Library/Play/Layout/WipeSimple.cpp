@@ -30,39 +30,38 @@ void WipeSimple::startClose(s32 time) {
     startAction(this, "Appear", nullptr);
     LayoutActor::appear();
 
-    al::setActionFrameRate(
-        this, (mTime <= 0) ? 1.0f : al::getActionFrameMax(this, "Appear", nullptr) / mTime,
-        nullptr);
-    al::setNerve(this, &NrvWipeSimple.Close);
+    setActionFrameRate(
+        this, (mTime <= 0) ? 1.0f : getActionFrameMax(this, "Appear", nullptr) / mTime, nullptr);
+    setNerve(this, &NrvWipeSimple.Close);
 }
 
 void WipeSimple::tryStartClose(s32 time) {
     if (isCloseEnd() ||
-        (!al::isNerve(this, &NrvWipeSimple.Close) && !al::isNerve(this, &NrvWipeSimple.CloseEnd)))
+        (!isNerve(this, &NrvWipeSimple.Close) && !isNerve(this, &NrvWipeSimple.CloseEnd)))
         startClose(time);
 }
 
 void WipeSimple::startCloseEnd() {
     startAction(this, "Wait", nullptr);
     LayoutActor::appear();
-    al::setNerve(this, &NrvWipeSimple.CloseEnd);
+    setNerve(this, &NrvWipeSimple.CloseEnd);
 }
 
 void WipeSimple::startOpen(s32 time) {
     mTime = time;
-    al::startAction(this, "End", nullptr);
-    al::setNerve(this, &Open);
+    startAction(this, "End", nullptr);
+    setNerve(this, &Open);
 }
 
 void WipeSimple::tryStartOpen(s32 time) {
-    if (isOpenEnd() || al::isNerve(this, &Open))
+    if (isOpenEnd() || isNerve(this, &Open))
         return;
 
     startOpen(time);
 }
 
 bool WipeSimple::isCloseEnd() const {
-    return al::isNerve(this, &NrvWipeSimple.CloseEnd);
+    return isNerve(this, &NrvWipeSimple.CloseEnd);
 }
 
 bool WipeSimple::isOpenEnd() const {
@@ -70,22 +69,21 @@ bool WipeSimple::isOpenEnd() const {
 }
 
 void WipeSimple::exeClose() {
-    if (!al::isFirstStep(this) && al::isActionEnd(this, nullptr))
-        al::setNerve(this, &NrvWipeSimple.CloseEnd);
+    if (!isFirstStep(this) && isActionEnd(this, nullptr))
+        setNerve(this, &NrvWipeSimple.CloseEnd);
 }
 
 void WipeSimple::exeCloseEnd() {
-    if (al::isFirstStep(this))
-        al::startAction(this, "Wait", nullptr);
+    if (isFirstStep(this))
+        startAction(this, "Wait", nullptr);
 }
 
 void WipeSimple::exeOpen() {
-    if (al::isFirstStep(this)) {
-        al::setActionFrameRate(
-            this, (mTime <= 0) ? 1.0f : al::getActionFrameMax(this, "End", nullptr) / mTime,
-            nullptr);
+    if (isFirstStep(this)) {
+        setActionFrameRate(
+            this, (mTime <= 0) ? 1.0f : getActionFrameMax(this, "End", nullptr) / mTime, nullptr);
     }
-    if (al::isActionEnd(this, nullptr))
+    if (isActionEnd(this, nullptr))
         kill();
 }
 
