@@ -22,4 +22,5 @@ private:
 
 namespace rs {
 bool isInvalidChangeStage(const al::LiveActor*);
-}
+bool isKidsMode(const al::IUseSceneObjHolder*);
+}  // namespace rs
