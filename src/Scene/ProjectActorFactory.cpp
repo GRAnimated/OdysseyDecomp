@@ -13,6 +13,7 @@
 #include "MapObj/TransparentWall.h"
 #include "MapObj/WeightSwitch.h"
 #include "MapObj/WorldMapEarth.h"
+#include "Npc/VocalMike.h"
 
 static al::NameToCreator<al::ActorCreatorFunction> sProjectActorFactoryEntries[] = {
     {"AchievementNpc", nullptr},
@@ -523,7 +524,7 @@ static al::NameToCreator<al::ActorCreatorFunction> sProjectActorFactoryEntries[]
     {"TwistChainList", nullptr},
     {"Utsubo", nullptr},
     {"UtsuboWatcher", nullptr},
-    {"VocalMike", nullptr},
+    {"VocalMike", al::createActorFunction<VocalMike>},
     {"VolleyballBase", nullptr},
     {"VolleyballNet", nullptr},
     {"VolleyballNpc", nullptr},
