@@ -22,12 +22,12 @@ public:
     void onCameraReverseInputV();
     void offCameraReverseInputV();
     s32 getCameraStickSensitivityLevel() const;
-    void setCameraStickSensitivityLevel(s32);
+    void setCameraStickSensitivityLevel(s32 level);
     bool isValidCameraGyro() const;
     void validateCameraGyro();
     void invalidateCameraGyro();
     s32 getCameraGyroSensitivityLevel() const;
-    void setCameraGyroSensitivityLevel(s32);
+    void setCameraGyroSensitivityLevel(s32 level);
     bool isUseOpenListAdditionalButton() const;
     void onUseOpenListAdditionalButton();
     void offUseOpenListAdditionalButton();
@@ -35,9 +35,9 @@ public:
     void validatePadRumble();
     void invalidatePadRumble();
     s32 getPadRumbleLevel() const;
-    void setPadRumbleLevel(s32);
-    void write(al::ByamlWriter*) override;
-    void read(const al::ByamlIter&) override;
+    void setPadRumbleLevel(s32 level);
+    void write(al::ByamlWriter* writer) override;
+    void read(const al::ByamlIter& conf) override;
 
 private:
     s32 mCameraStickSensitivityLevel = -1;
@@ -51,8 +51,8 @@ private:
 };
 
 namespace rs {
-GameConfigData* getGameConfigData(const al::LayoutActor*);
-void saveGameConfigData(const al::LayoutActor*);
-void applyGameConfigData(al::Scene*, const GameConfigData*);
-bool isUseOpenListAdditionalButton(const al::IUseSceneObjHolder*);
+GameConfigData* getGameConfigData(const al::LayoutActor* actor);
+void saveGameConfigData(const al::LayoutActor* actor);
+void applyGameConfigData(al::Scene* scene, const GameConfigData* gameConfigData);
+bool isUseOpenListAdditionalButton(const al::IUseSceneObjHolder* holder);
 }  // namespace rs

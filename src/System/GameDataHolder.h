@@ -32,6 +32,8 @@ public:
     virtual char* getSceneObjName() const;
     virtual al::MessageSystem* getMessageSystem() const;
 
+    GameConfigData* getConfigData() const { return mConfigData; }
+
     WorldList* getWorldList() const { return mWorldList; }
 
     void setPlayingFileId(s32 file);
