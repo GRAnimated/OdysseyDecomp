@@ -104,6 +104,10 @@ public:
 
     void changeNextStage(const struct ChangeStageInfo*, s32);
 
+    void setSeparatePlay(bool);
+
+    bool isSeparatePlay() const { return mIsSeparatePlay; }
+
     s32 findUseScenarioNo(const char*);
 
     GameSequenceInfo* getSequenceInfo() const { return mSequenceInfo; }
