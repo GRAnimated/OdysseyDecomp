@@ -67,8 +67,7 @@ void HakoniwaStateBootLoadData::startLoad() {
 
 void HakoniwaStateBootLoadData::init() {
     initNerve(&NrvHostType.Boot, 2);
-    // TODO: Remove cast here
-    al::addNerveState(this, (al::NerveStateBase*)mStateDeleteScene, &NrvHostType.DestroyMenu,
+    al::addNerveState(this, mStateDeleteScene, &NrvHostType.DestroyMenu,
                       "シーン破棄[タイトルメニュー]");
 }
 
