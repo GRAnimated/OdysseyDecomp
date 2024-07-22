@@ -1,53 +1,23 @@
 #include "Sequence/HakoniwaStateBootLoadData.h"
 
-/*
-class HakoniwaStateBootLoadData : public al::HostStateBase<HakoniwaSequence> {
-public:
-    HakoniwaStateBootLoadData(HakoniwaSequence* sequence, al::GamePadSystem* gamePadSystem,
-                              al::WipeHolder* wipeHolder,
-                              al::ScreenCaptureExecutor* screenCaptureExecutor,
-                              WorldResourceLoader* worldResourceLoader, BootLayout* bootLayout,
-                              al::LayoutInitInfo const& layoutInitInfo,
-                              GameDataHolder* gameDataHolder,
-                              HakoniwaStateDeleteScene* stateDeleteScene,
-                              al::AsyncFunctorThread* asyncFunctorThread);
+#include <heap/seadHeapMgr.h>
+#include <thread/seadThread.h>
 
-    const char* getLanguage() const;
-    bool isChangeLanguage() const;
-    bool isNewGame() const;
-    void startLoad();
-    virtual void init() override;
-    virtual void appear() override;
-    void exeBoot();
-    void exeBootLayout();
-    void updatePadSystem();
-    void exeBootLayoutInitScene();
-    void exeMenu();
-    void exeDestroyMenu();
-
-private:
-    al::GamePadSystem* mGamePadSystem;
-    al::WipeHolder* mWipeHolder;
-    BootLayout* mBootLayout;
-    al::ScreenCaptureExecutor* mScreenCaptureExecutor;
-    WorldResourceLoader* mWorldResourceLoader;
-    TitleMenuScene* mTitleMenuScene;
-    GameDataHolder* mGameDataHolder;
-    sead::FixedSafeString<128> mLanguage;
-    bool mIsNewGame;
-    HakoniwaStateDeleteScene* mStateDeleteScene;
-    bool field_100;
-    bool mIsStartLoad;
-    al::AsyncFunctorThread* mAsyncFunctorThread;
-};
-
-*/
-
-#include "Layout/BootLayout.h"
+#include "Library/Audio/System/AudioKeeperFunction.h"
+#include "Library/Bgm/BgmLineFunction.h"
 #include "Library/Memory/HeapUtil.h"
+#include "Library/Memory/SceneHeapSetter.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
+#include "Library/Play/Layout/WipeHolder.h"
+#include "Library/Screen/ScreenCaptureExecutor.h"
+#include "Library/Sequence/Sequence.h"
 #include "Library/Thread/AsyncFunctorThread.h"
+
+#include "Layout/BootLayout.h"
+#include "Scene/TitleMenuScene.h"
+#include "Sequence/WorldResourceLoader.h"
+#include "System/GameDataFunction.h"
 #include "System/GameDataHolder.h"
 #include "Util/StageInputFunction.h"
 
@@ -63,6 +33,8 @@ HostTypeNrvBootLayout NrvBootLayout;  // TODO: BootLayout nerve in a macro confl
 NERVES_MAKE_NOSTRUCT(HostType, Menu);
 NERVES_MAKE_STRUCT(HostType, Boot, DestroyMenu, BootLayoutInitScene);
 }  // namespace
+
+const s32 mThreadPriority = sead::Thread::cDefaultPriority;
 
 HakoniwaStateBootLoadData::HakoniwaStateBootLoadData(
     HakoniwaSequence* sequence, al::GamePadSystem* gamePadSystem, al::WipeHolder* wipeHolder,
@@ -131,12 +103,87 @@ void HakoniwaStateBootLoadData::updatePadSystem() {
         mGameDataHolder->setSeparatePlay(false);
 }
 
-/*
 void HakoniwaStateBootLoadData::exeBootLayoutInitScene() {
     updatePadSystem();
 
     if (al::isFirstStep(this)) {
         al::createSceneHeap(nullptr, true);
+        al::SceneHeapSetter sceneHeapSetter;
+
+        mTitleMenuScene = new TitleMenuScene();
+        alAudioSystemFunction::resetDataDependedStage(
+            ((al::Sequence*)getHost())->getAudioDirector(), nullptr, 1);
+        al::setSceneAndUseInitThread((al::Sequence*)getHost(), mTitleMenuScene, mThreadPriority, 0,
+                                     1, "Sequence=ProductSequence", nullptr);
+
+        sead::ScopedCurrentHeapSetter setter(sceneHeapSetter.getLastHeap());
+    }
+    if (al::tryEndSceneInitThread((al::Sequence*)getHost())) {
+        al::setSequenceAudioKeeperToSceneSeDirector((al::Sequence*)getHost(), mTitleMenuScene);
+        mTitleMenuScene->appear();
+        if (mIsStartLoad)
+            mTitleMenuScene->startLoadDirect(false);
+        ((al::Sequence*)getHost())->setCurrentScene(mTitleMenuScene);
+        al::setSequenceNameForActorPickTool((al::Sequence*)getHost(), mTitleMenuScene);
+        al::getSceneHeap()->adjust();
+        mScreenCaptureExecutor->offDraw();
+        if (mWipeHolder->getField18())
+            mWipeHolder->startOpen(-1);
+        al::setNerve(this, &Menu);
     }
 }
-*/
+
+void HakoniwaStateBootLoadData::exeMenu() {
+    updatePadSystem();
+    if (al::isFirstStep(this)) {
+        mBootLayout->kill();
+        s32 currentWorldId = GameDataFunction::getCurrentWorldId(mGameDataHolder);
+        s32 scenarioNo = GameDataFunction::calcNextScenarioNo(mGameDataHolder);
+        if (scenarioNo == -1)
+            scenarioNo = 1;
+        mWorldResourceLoader->requestLoadWorldHomeStageResource(currentWorldId, scenarioNo);
+    }
+
+    mTitleMenuScene->setLoadPercent(mWorldResourceLoader->calcLoadPercent());
+
+    if (mTitleMenuScene->isCancelLoadWorldResource()) {
+        field_100 = true;
+        mWorldResourceLoader->cancelLoadWorldResource();
+    }
+
+    if (!mIsStartLoad && al::isStep(this, 195))
+        al::startBgm((al::Sequence*)getHost(), "Title", -1, 0);
+
+    if (field_100) {
+        if (!mWorldResourceLoader->isEndLoadWorldResource())
+            return;
+
+        field_100 = false;
+        mWorldResourceLoader->tryDestroyWorldResource();
+        mTitleMenuScene->startLoadWorldResource();
+        s32 currentWorldId = GameDataFunction::getCurrentWorldId(mGameDataHolder);
+        s32 scenarioNo = GameDataFunction::calcNextScenarioNo(mGameDataHolder);
+        if (scenarioNo == -1)
+            scenarioNo = 1;
+        mWorldResourceLoader->requestLoadWorldHomeStageResource(currentWorldId, scenarioNo);
+    }
+    bool v19 = mTitleMenuScene->isChangeLanguage();
+    bool test = false;
+    bool isNewGame = mTitleMenuScene->isNewGame();
+    if (v19 || isNewGame) {
+        if (isNewGame)
+            mIsNewGame = true;
+        if (v19)
+            mLanguage.format("%s", mTitleMenuScene->getLanguage());
+        mWorldResourceLoader->cancelLoadWorldResource();
+        test = true;
+    }
+
+    if (mTitleMenuScene->isEnableKill()) {
+        if (test || mWorldResourceLoader->isEndLoadWorldResource()) {
+            mTitleMenuScene->kill();
+            mScreenCaptureExecutor->requestCapture(true, 0);
+            al::setNerve(this, &NrvHostType.DestroyMenu);
+        }
+    }
+}

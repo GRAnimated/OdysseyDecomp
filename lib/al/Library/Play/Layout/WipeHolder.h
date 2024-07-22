@@ -24,7 +24,11 @@ public:
     bool isOpenEnd() const;
     bool isCloseWipe(const char*) const;
 
+    bool getField18() const { return field_18; }
+
 private:
-    void* filler[7];
+    void* filler[3];
+    bool field_18;
+    void* filler2[3];
 };
 }  // namespace al
