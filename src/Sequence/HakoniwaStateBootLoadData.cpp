@@ -16,6 +16,7 @@
 
 #include "Layout/BootLayout.h"
 #include "Scene/TitleMenuScene.h"
+#include "Sequence/HakoniwaStateDeleteScene.h"
 #include "Sequence/WorldResourceLoader.h"
 #include "System/GameDataFunction.h"
 #include "System/GameDataHolder.h"
@@ -185,5 +186,17 @@ void HakoniwaStateBootLoadData::exeMenu() {
             mScreenCaptureExecutor->requestCapture(true, 0);
             al::setNerve(this, &NrvHostType.DestroyMenu);
         }
+    }
+}
+
+void HakoniwaStateBootLoadData::exeDestroyMenu() {
+    if (al::isFirstStep(this)) {
+        mWipeHolder->startClose("FadeBlack", -1);
+        mStateDeleteScene->start(mTitleMenuScene, true, false, 0);
+    }
+    if (al::updateNerveState(this)) {
+        mTitleMenuScene = nullptr;
+        al::stopBgm((al::Sequence*)getHost(), "Title", 140);
+        kill();
     }
 }
