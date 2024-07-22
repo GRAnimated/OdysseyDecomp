@@ -35,7 +35,8 @@ NERVES_MAKE_NOSTRUCT(HostType, Menu);
 NERVES_MAKE_STRUCT(HostType, Boot, DestroyMenu, BootLayoutInitScene);
 }  // namespace
 
-const s32 mThreadPriority = sead::Thread::cDefaultPriority;
+s32 cDefaultPriority = sead::Thread::cDefaultPriority;
+const s32 cThreadPriority = sead::Thread::cDefaultPriority + 3;
 
 HakoniwaStateBootLoadData::HakoniwaStateBootLoadData(
     HakoniwaSequence* sequence, al::GamePadSystem* gamePadSystem, al::WipeHolder* wipeHolder,
@@ -113,7 +114,7 @@ void HakoniwaStateBootLoadData::exeBootLayoutInitScene() {
         mTitleMenuScene = new TitleMenuScene();
         alAudioSystemFunction::resetDataDependedStage(
             ((al::Sequence*)getHost())->getAudioDirector(), nullptr, 1);
-        al::setSceneAndUseInitThread((al::Sequence*)getHost(), mTitleMenuScene, mThreadPriority, 0,
+        al::setSceneAndUseInitThread((al::Sequence*)getHost(), mTitleMenuScene, cThreadPriority, 0,
                                      1, "Sequence=ProductSequence", nullptr);
 
         sead::ScopedCurrentHeapSetter setter(sceneHeapSetter.getLastHeap());
