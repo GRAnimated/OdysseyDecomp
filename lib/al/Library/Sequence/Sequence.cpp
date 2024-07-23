@@ -2,7 +2,7 @@
 
 namespace al {
 
-void Sequence::init(const SequenceInitInfo& initInfo) {}
+void Sequence::init(const SequenceInitInfo& info) {}
 
 void Sequence::kill() {
     mIsAlive = false;

@@ -16,6 +16,7 @@
 
 #include "Layout/BootLayout.h"
 #include "Scene/TitleMenuScene.h"
+#include "Sequence/HakoniwaSequence.h"
 #include "Sequence/HakoniwaStateDeleteScene.h"
 #include "Sequence/WorldResourceLoader.h"
 #include "System/GameDataFunction.h"
@@ -112,20 +113,19 @@ void HakoniwaStateBootLoadData::exeBootLayoutInitScene() {
         al::SceneHeapSetter sceneHeapSetter;
 
         mTitleMenuScene = new TitleMenuScene();
-        alAudioSystemFunction::resetDataDependedStage(
-            ((al::Sequence*)getHost())->getAudioDirector(), nullptr, 1);
-        al::setSceneAndUseInitThread((al::Sequence*)getHost(), mTitleMenuScene, cThreadPriority, 0,
-                                     1, "Sequence=ProductSequence", nullptr);
+        alAudioSystemFunction::resetDataDependedStage((getHost())->getAudioDirector(), nullptr, 1);
+        al::setSceneAndUseInitThread(getHost(), mTitleMenuScene, cThreadPriority, 0, 1,
+                                     "Sequence=ProductSequence", nullptr);
 
         sead::ScopedCurrentHeapSetter setter(sceneHeapSetter.getLastHeap());
     }
-    if (al::tryEndSceneInitThread((al::Sequence*)getHost())) {
-        al::setSequenceAudioKeeperToSceneSeDirector((al::Sequence*)getHost(), mTitleMenuScene);
+    if (al::tryEndSceneInitThread(getHost())) {
+        al::setSequenceAudioKeeperToSceneSeDirector(getHost(), mTitleMenuScene);
         mTitleMenuScene->appear();
         if (mIsStartLoad)
             mTitleMenuScene->startLoadDirect(false);
-        ((al::Sequence*)getHost())->setCurrentScene(mTitleMenuScene);
-        al::setSequenceNameForActorPickTool((al::Sequence*)getHost(), mTitleMenuScene);
+        (getHost())->setCurrentScene(mTitleMenuScene);
+        al::setSequenceNameForActorPickTool(getHost(), mTitleMenuScene);
         al::getSceneHeap()->adjust();
         mScreenCaptureExecutor->offDraw();
         if (mWipeHolder->getField18())
@@ -153,7 +153,7 @@ void HakoniwaStateBootLoadData::exeMenu() {
     }
 
     if (!mIsStartLoad && al::isStep(this, 195))
-        al::startBgm((al::Sequence*)getHost(), "Title", -1, 0);
+        al::startBgm(getHost(), "Title", -1, 0);
 
     if (field_100) {
         if (!mWorldResourceLoader->isEndLoadWorldResource())
@@ -196,7 +196,7 @@ void HakoniwaStateBootLoadData::exeDestroyMenu() {
     }
     if (al::updateNerveState(this)) {
         mTitleMenuScene = nullptr;
-        al::stopBgm((al::Sequence*)getHost(), "Title", 140);
+        al::stopBgm(getHost(), "Title", 140);
         kill();
     }
 }

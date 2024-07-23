@@ -8,9 +8,9 @@
 #include "Library/System/GameSystemInfo.h"
 
 namespace al {
-struct GameSystemInfo;
-struct SequenceInitInfo;
-struct AudioSystemInfo;
+class GameSystemInfo;
+class SequenceInitInfo;
+class AudioSystemInfo;
 class AudioDirector;
 class Scene;
 
@@ -25,13 +25,13 @@ class Sequence : public NerveExecutor, public IUseAudioKeeper, public IUseSceneC
 public:
     Sequence(const char* name);
     virtual ~Sequence() override;
-    virtual void init(const SequenceInitInfo& initInfo);
+    virtual void init(const SequenceInitInfo& info);
     virtual void update();
     virtual void kill();
     virtual void drawMain() const;
     virtual void drawSub() const;
 
-    virtual bool isDisposable() { return false; }
+    virtual bool isDisposable() const;
 
     virtual Scene* getCurrentScene() const;
 
