@@ -168,7 +168,7 @@ public:
     static bool isAlreadyShowExplainCheckpointFlag(GameDataHolderAccessor);
     static bool isEnableShowExplainCheckpointFlag(GameDataHolderAccessor);
     static void showExplainCheckpointFlag(GameDataHolderAccessor);
-    static void getLifeMaxUpItem(const al::LiveActor*);
+    static al::LiveActor* getLifeMaxUpItem(const al::LiveActor*);
     static void getPlayerHitPoint(GameDataHolderAccessor);
     static void getPlayerHitPointMaxCurrent(GameDataHolderAccessor);
     static void getPlayerHitPointMaxNormal(GameDataHolderAccessor);

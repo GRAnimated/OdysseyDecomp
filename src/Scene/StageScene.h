@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Library/Scene/Scene.h"
+#include "Player/PlayerActorBase.h"
 
 namespace al {
 class LayoutActor;
@@ -66,7 +67,7 @@ void endDemoCommonProc(al::Scene*, ProjectItemDirector*);
 void endDemoNormalShineGet(al::Scene*, ProjectItemDirector*);
 bool tryOpenMap(al::IUseNerve*, const al::Scene*, const MapLayout*, const al::Nerve*);
 bool tryChangeNextStage(GameDataHolder*, al::Scene*);
-PlayerActorHakoniwa* getPlayerActor(const al::Scene*);
+PlayerActorBase* getPlayerActor(const al::Scene*);
 void registerGraphicsPreset(const al::Scene*, const char*, const char*, const char*, bool);
 void requestGraphicsPreset(const al::Scene*, const char*, const sead::Vector3f&);
 void requestGraphicsCubeMap(const al::Scene*, const char*, const char*);
