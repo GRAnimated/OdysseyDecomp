@@ -14,8 +14,7 @@ class BootLayout;
 class TitleMenuScene : public al::Scene {
 public:
     TitleMenuScene();
-    ~TitleMenuScene();
-    ;
+    virtual ~TitleMenuScene();
 
     void init(al::SceneInitInfo const& info);
     void appear();

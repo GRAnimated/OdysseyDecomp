@@ -17,6 +17,7 @@
 #include "Library/Draw/GraphicsFunction.h"
 #include "Library/Draw/GraphicsSystemInfo.h"
 #include "Library/Draw/ViewRenderer.h"
+#include "Library/Framework/GameFrameworkNx.h"
 #include "Library/Layout/LayoutActionFunction.h"
 #include "Library/Layout/LayoutActorUtil.h"
 #include "Library/Layout/LayoutInitInfo.h"
@@ -46,6 +47,7 @@
 #include "Scene/SceneObjFactory.h"
 #include "Scene/StageScene.h"
 #include "Scene/StageSceneStatePauseMenu.h"
+#include "System/Application.h"
 #include "System/GameDataFunction.h"
 #include "System/GameDataHolder.h"
 #include "System/GameDataHolderAccessor.h"
@@ -66,9 +68,9 @@ NERVES_MAKE_STRUCT(TitleMenuScene, Appear, LoadAppear, Menu, Wipe);
 TitleMenuScene::TitleMenuScene() : al::Scene("TitleMenuScene") {}
 
 TitleMenuScene::~TitleMenuScene() {
-    // Application::instance()->mFramework->field_268 = true;
-    mChromakeyDrawer->finalize();
-    delete this;
+    Application::instance()->getGameFramework()->disableRendering();
+    if (mChromakeyDrawer)
+        mChromakeyDrawer->finalize();
 }
 
 void TitleMenuScene::init(al::SceneInitInfo const& info) {
@@ -169,7 +171,7 @@ void TitleMenuScene::init(al::SceneInitInfo const& info) {
 
 void TitleMenuScene::appear() {
     al::Scene::appear();
-    // Application::instance()->mFramework->field_268 = false;
+    Application::instance()->getGameFramework()->enableRendering();
 }
 
 void TitleMenuScene::control() {}
