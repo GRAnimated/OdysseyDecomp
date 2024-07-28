@@ -32,7 +32,7 @@
 #include "Library/Play/Layout/SimpleLayoutAppearWaitEnd.h"
 #include "Library/Play/Layout/WindowConfirm.h"
 #include "Library/Play/Layout/WipeSimple.h"
-#include "Library/Player/PlayerHolder.h"
+#include "Library/Player/PlayerUtil.h"
 #include "Library/Projection/Projection.h"
 #include "Library/Scene/Scene.h"
 #include "Library/Scene/SceneObjUtil.h"

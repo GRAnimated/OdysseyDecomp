@@ -3,6 +3,7 @@
 namespace al {
 class AreaObjGroup;
 class FluidSurfaceHolder;
+class LiveActor;
 
 class NatureDirector {
 public:
@@ -17,5 +18,7 @@ private:
 };
 
 static_assert(sizeof(NatureDirector) == 0x10);
+
+bool isInWater(const al::LiveActor*);
 
 }  // namespace al

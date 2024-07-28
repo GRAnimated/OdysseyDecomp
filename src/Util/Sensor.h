@@ -23,5 +23,16 @@ bool isMsgFrogHackTrample(const al::SensorMsg*);
 bool isMsgCapAttack(const al::SensorMsg*);
 bool isMsgPressDown(const al::SensorMsg*);
 bool isMsgAttackDirect(const al::SensorMsg*);
+bool isMsgTankBullet(const al::SensorMsg*);
+bool isMsgTankExplosion(const al::SensorMsg*);
+bool isMsgSeedAttackHold(const al::SensorMsg*);
+bool isMsgWanwanEnemyAttack(const al::SensorMsg*);
+bool isMsgBlowDown(const al::SensorMsg*);
+bool isMsgNpcScareByEnemy(const al::SensorMsg*);
+bool isMsgKillByShineGet(const al::SensorMsg*);
+bool isMsgKillByHomeDemo(const al::SensorMsg*);
+
+void requestHitReactionToAttacker(const al::SensorMsg*, al::HitSensor* target,
+                                  al::HitSensor* source);
 
 }  // namespace rs
