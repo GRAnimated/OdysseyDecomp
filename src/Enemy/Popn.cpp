@@ -301,12 +301,12 @@ void Popn::exeMove() {
         al::addVelocityToFront(this, mIsAngry ? 17.0f : 8.1f);
         al::addVelocityY(this, mIsAngry ? 15.0f : 12.2f);
 
-        sead::Vector3f interia;
+        sead::Vector3f inertia;
         sead::Vector3f velocity = al::getVelocity(this);
 
         al::normalize(&velocity);
-        al::calcJumpInertia(&interia, this, velocity, 0.7f);
-        al::addVelocity(this, interia);
+        al::calcJumpInertia(&inertia, this, velocity, 0.7f);
+        al::addVelocity(this, inertia);
     }
 
     applyInertia(this);
