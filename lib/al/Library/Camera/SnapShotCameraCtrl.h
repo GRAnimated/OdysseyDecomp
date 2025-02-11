@@ -46,13 +46,13 @@ private:
     sead::Vector3f field_38 = sead::Vector3f(0.0f, 0.0f, 0.0f);
     bool mIsValidZoomFovy = false;
     f32 mFovyDegree = 0.0f;
-    f32 field_4C = 0.0f;
-    f32 field_50 = 0.0f;
+    f32 mInitialFovy = 0.0f;
+    f32 mFovyTarget = 0.0f;
     f32 mMaxZoomOutFovyDegree = -1.0f;
     bool mIsValidRoll = false;
     f32 mRollDegree = false;
     f32 mRollTarget = false;
-    u32 field_64 = -1;
+    u32 mResetFrames = -1;
     bool unk5 = false;
 };
 }  // namespace al
