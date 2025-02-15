@@ -16,8 +16,8 @@ public:
     void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
 
 private:
-    int mNumJoints = 0;
-    f32 mBendStrength = 0.0f;
+    s32 mNumJoints = 0;
+    f32 mBendLength = 0.0f;
     f32* mBendSpeeds = nullptr;
     f32* mBendAngles = nullptr;
     s32* mDitherTimers = nullptr;

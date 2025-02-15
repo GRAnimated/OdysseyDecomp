@@ -112,8 +112,8 @@ bool BendLeafTree::initBendInfo() {
             }
         }
 
-        if (al::tryGetByamlF32(&mBendStrength, bendIter, "BendLeafStrength")) {
-            mBendStrength *= mScaleY;
+        if (al::tryGetByamlF32(&mBendLength, bendIter, "BendLeafLength")) {
+            mBendLength *= mScaleY;
             return true;
         }
     }
@@ -220,7 +220,7 @@ bool BendLeafTree::receiveMsg(const al::SensorMsg* message, al::HitSensor* other
             for (s32 i = 0; i < mNumJoints; i++) {
                 if (al::getSubActor(this, i) == sensorHost) {
                     f32 length = (al::getSensorPos(self) - al::getSensorPos(other)).length();
-                    mBendAngles[i] += (length * -3.2f) / mBendStrength;  // regswap
+                    mBendAngles[i] += (length * -3.2f) / mBendLength;  // regswap
                     return false;
                 }
             }
@@ -234,7 +234,7 @@ bool BendLeafTree::receiveMsg(const al::SensorMsg* message, al::HitSensor* other
                 if (al::getSubActor(this, i) == sensorHost) {
                     f32 length = (al::getSensorPos(self) - al::getSensorPos(other)).length();
                     mBendAngles[i] += ((length + (mScaleY * 100.0f)) * -0.12f) /
-                                      (mBendStrength + (mScaleY * 100.0f));
+                                      (mBendLength + (mScaleY * 100.0f));
 
                     if (al::isEqualString(getName(), "墜落ワールドホーム木000")) {
                         mDitherTimers[i] = 40;
@@ -254,7 +254,7 @@ bool BendLeafTree::receiveMsg(const al::SensorMsg* message, al::HitSensor* other
             for (s32 i = 0; i < mNumJoints; i++) {
                 if (al::getSubActor(this, i) == sensorHost) {
                     f32 length = (al::getSensorPos(self) - al::getSensorPos(other)).length();
-                    mBendImpulses[i] = -length / mBendStrength;
+                    mBendImpulses[i] = -length / mBendLength;
                     break;
                 }
             }
