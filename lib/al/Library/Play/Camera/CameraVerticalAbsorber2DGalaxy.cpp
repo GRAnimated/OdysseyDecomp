@@ -1,4 +1,4 @@
-#include "Library/Camera/CameraVerticalAbsorber2DGalaxy.h"
+#include "Library/Play/Camera/CameraVerticalAbsorber2DGalaxy.h"
 
 #include "Library/Camera/CameraPoserFunction.h"
 #include "Library/Math/MathUtil.h"
