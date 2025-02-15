@@ -45,27 +45,27 @@ void CameraVerticalAbsorber2DGalaxy::update(const CameraPoser* poser) {
 }
 
 void CameraVerticalAbsorber2DGalaxy::applyLimit(sead::Vector3f* limit) const {
-    *limit -= (unkFloat * mLimit);
+    *limit -= (mVerticalDamp * mLimit);
 }
 
 void CameraVerticalAbsorber2DGalaxy::exeNone() {
     if (mIsTargetCollideGround)
         setNerve(this, &NrvCameraVerticalAbsorber2DGalaxy.Ground);
     else {
-        unkFloat2 = lerpValue(unkFloat2, 0.0f, 0.075f);
-        unkFloat = lerpValue(unkFloat, 0.0f, 0.05f);
+        mVerticalVelocity = lerpValue(mVerticalVelocity, 0.0f, 0.075f);
+        mVerticalDamp = lerpValue(mVerticalDamp, 0.0f, 0.05f);
     }
 }
 
 // NON_MATCHING: .dot uses wrong order
 void CameraVerticalAbsorber2DGalaxy::exeGround() {
     if (mIsTargetCollideGround) {
-        unkFloat2 = lerpValue(unkFloat2, 0.0f, 0.075f);
-        unkFloat = lerpValue(unkFloat, 0.0f, 0.05f);
+        mVerticalVelocity = lerpValue(mVerticalVelocity, 0.0f, 0.075f);
+        mVerticalDamp = lerpValue(mVerticalDamp, 0.0f, 0.05f);
     } else {
         sead::Vector3f gravity = -mPrevTargetGravity;
 
-        unkFloat = (mTargetTrans - mPrevTargetTrans).dot(gravity);
+        mVerticalDamp = (mTargetTrans - mPrevTargetTrans).dot(gravity);
         mLimit = gravity;
 
         setNerve(this, &NrvCameraVerticalAbsorber2DGalaxy.Limit);
@@ -77,35 +77,35 @@ void CameraVerticalAbsorber2DGalaxy::exeLimit() {
     if (isFirstStep(this))
         unkVec.set(mTargetUp);
 
-    unkFloat += (mTargetTrans - mPrevTargetTrans).dot(mLimit);
+    mVerticalDamp += (mTargetTrans - mPrevTargetTrans).dot(mLimit);
 
     if (mIsTargetCollideGround) {
-        unkFloat2 = unkFloat;
+        mVerticalVelocity = mVerticalDamp;
         setNerve(this, &NrvCameraVerticalAbsorber2DGalaxy.LimitAfter);
 
-    } else if (unkFloat >= 600.0f) {
-        unkFloat2 = unkFloat;
+    } else if (mVerticalDamp >= 600.0f) {
+        mVerticalVelocity = mVerticalDamp;
         setNerve(this, &NrvCameraVerticalAbsorber2DGalaxy.LimitOver);
 
     } else if (calcAngleDegree(unkVec, mTargetUp) > 30.0f) {
-        unkFloat2 = unkFloat;
+        mVerticalVelocity = mVerticalDamp;
         setNerve(this, &NrvCameraVerticalAbsorber2DGalaxy.LimitOver);
     }
 }
 
 void CameraVerticalAbsorber2DGalaxy::exeLimitOver() {
-    unkFloat2 = lerpValue(unkFloat2, 0.0f, 0.1f);
-    unkFloat = lerpValue(unkFloat, unkFloat2, 0.05f);
+    mVerticalVelocity = lerpValue(mVerticalVelocity, 0.0f, 0.1f);
+    mVerticalDamp = lerpValue(mVerticalDamp, mVerticalVelocity, 0.05f);
     if (mIsTargetCollideGround)
         setNerve(this, &NrvCameraVerticalAbsorber2DGalaxy.LimitAfter);
 }
 
 void CameraVerticalAbsorber2DGalaxy::exeLimitAfter() {
-    unkFloat2 = lerpValue(unkFloat2, 0.0f, 0.075f);
-    unkFloat = lerpValue(unkFloat, unkFloat2, 0.05f);
+    mVerticalVelocity = lerpValue(mVerticalVelocity, 0.0f, 0.075f);
+    mVerticalDamp = lerpValue(mVerticalDamp, mVerticalVelocity, 0.05f);
 
     if (mIsTargetCollideGround) {
-        if (isNearZero(unkFloat, 0.01f))
+        if (isNearZero(mVerticalDamp, 0.01f))
             setNerve(this, &NrvCameraVerticalAbsorber2DGalaxy.Ground);
     } else
         setNerve(this, &NrvCameraVerticalAbsorber2DGalaxy.Limit);

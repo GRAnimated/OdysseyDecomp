@@ -26,9 +26,9 @@ private:
     bool mIsTargetCollideGround = false;
     sead::Vector3f mPrevTargetTrans = sead::Vector3f(0.0f, 0.0f, 0.0f);
     sead::Vector3f mPrevTargetGravity = sead::Vector3f(0.0f, 0.0f, 0.0f);
-    f32 unkFloat = 0.0f;
+    f32 mVerticalDamp = 0.0f;
     sead::Vector3f mLimit = sead::Vector3f(0.0f, 0.0f, 0.0f);
     sead::Vector3f unkVec = sead::Vector3f(0.0f, 0.0f, 0.0f);
-    f32 unkFloat2 = 0.0f;
+    f32 mVerticalVelocity = 0.0f;
 };
 }  // namespace al
