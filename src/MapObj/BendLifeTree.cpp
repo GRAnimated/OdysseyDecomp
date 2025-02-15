@@ -148,7 +148,6 @@ void BendLeafTree::movement() {
         al::LiveActor::movement();
 }
 
-// NON_MATCHING: cmp vs subs
 void BendLeafTree::control() {
     for (s32 i = 0; i < mNumJoints; i++) {
         if (mBendImpulses[i] == 0.0f) {
@@ -167,14 +166,9 @@ void BendLeafTree::control() {
     }
 
     if (al::isEqualString(getName(), "墜落ワールドホーム木000")) {
-        if (mBendTimers[0] > 0)  // should be cmp/b.le, uses subs
-            mBendTimers[0]--;
-
-        if (mBendTimers[1] > 0)  // should be cmp/b.le, uses subs
-            mBendTimers[1]--;
-
-        if (mBendTimers[2] > 0)  // should be subs, uses subs
-            mBendTimers[2]--;
+        for (int i = 0; i < 3; i++)
+            if (mBendTimers[i] > 0)
+                mBendTimers[i]--;
     }
 }
 
