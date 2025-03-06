@@ -50,7 +50,8 @@ include_directories(lib)
 include_directories(lib/aarch64)
 
 add_subdirectory(lib/NintendoSDK)
-target_link_libraries(odyssey PUBLIC NintendoSDK)
+add_subdirectory(lib/NintendoSDK/src/NintendoSDK-NEX)
+target_link_libraries(odyssey PUBLIC NintendoSDK NintendoSDK-NEX)
 
 add_subdirectory(lib/sead)
 target_link_libraries(odyssey PUBLIC sead)
