@@ -38,7 +38,7 @@ def main():
 
     # Adding real source files
     real_source_paths = []
-    for dir in [project_root/'lib'/'al', project_root/'src']:
+    for dir in [project_root/'lib'/'al', project_root/'lib'/'NintendoSDK', project_root/'src']:
         for root, _, files in os.walk(dir):
             for file in files:
                 file_path = os.path.join(root, file)

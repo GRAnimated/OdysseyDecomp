@@ -42,6 +42,8 @@ target_compile_options(odyssey PRIVATE -Wno-unused-parameter -Wno-unused-private
 target_compile_options(odyssey PRIVATE -fno-strict-aliasing)
 target_compile_options(odyssey PRIVATE -Wno-invalid-offsetof)
 
+set(NN_NEX_VERSION 4.1.2)
+set(NN_NEX_PROJECT apprs)
 set(NN_WARE 3.5.1)
 set(NN_SDK 3.5.1)
 set(NN_SDK_TYPE "Release")
@@ -50,14 +52,8 @@ include_directories(lib)
 include_directories(lib/aarch64)
 
 add_subdirectory(lib/NintendoSDK)
-add_subdirectory(lib/NintendoSDK/src/NintendoSDK-NEX)
-target_link_libraries(odyssey PUBLIC NintendoSDK NintendoSDK-NEX)
-
+add_subdirectory(lib/NintendoSDK-NEX)
 add_subdirectory(lib/sead)
-target_link_libraries(odyssey PUBLIC sead)
-
 add_subdirectory(lib/agl)
-target_link_libraries(odyssey PUBLIC agl)
-
 add_subdirectory(lib/eui)
-target_link_libraries(odyssey PUBLIC eui)
+target_link_libraries(odyssey PUBLIC NintendoSDK NintendoSDK-NEX sead agl eui)
