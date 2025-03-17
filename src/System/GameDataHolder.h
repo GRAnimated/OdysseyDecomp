@@ -19,6 +19,7 @@ class ChangeStageInfo;
 class GameDataFile;
 class GameSequenceInfo;
 class TimeBalloonSequenceInfo;
+class QuestInfoHolder;
 
 class GameDataHolder : public al::GameDataHolderBase {
 public:
@@ -91,6 +92,10 @@ public:
     void readFromSaveDataBufferCommonFileOnlyLanguage();
     void readFromSaveDataBuffer(const char* bufferName);
 
+    void setSeparatePlay(bool);
+
+    bool isSeparatePlay() const { return mIsSeparatePlay; }
+
     void changeNextStage(const ChangeStageInfo*, s32);
 
     s32 findUseScenarioNo(const char*);
@@ -131,7 +136,11 @@ private:
     sead::PtrArray<ShopItem::ItemInfo> mItemSticker;
     u8 gap_150[0x190 - 0x150];
     WorldList* mWorldList;
-    u8 gap_198[0x258 - 0x198];
+    u8 gap_198[0x244 - 0x198];
+    bool field_244;
+    bool mIsSeparatePlay;
+    QuestInfoHolder* mQuestInfoHolder;
+    bool field_250;
     GameSequenceInfo* mSequenceInfo;
     TimeBalloonSequenceInfo* mTimeBalloonSequenceInfo;
 };

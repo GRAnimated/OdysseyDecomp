@@ -12,7 +12,14 @@ struct DrawSystemInfo;
 struct SequenceInitInfo;
 struct AudioSystemInfo;
 class AudioDirector;
+class GameDataHolderBase;
+class ScreenCaptureExecutor;
+class AudioDirectorInitInfo;
 class Scene;
+
+namespace alSceneFunction {
+class SceneFactory;
+}
 
 class Sequence : public NerveExecutor, public IUseAudioKeeper, public IUseSceneCreator {
 public:
@@ -27,6 +34,9 @@ public:
     virtual bool isDisposable() const;
 
     virtual Scene* getCurrentScene() const;
+
+    void setNextScene(Scene* scene) { mNextScene = scene; }
+
     virtual SceneCreator* getSceneCreator() const override;
     virtual void setSceneCreator(SceneCreator* sceneCreator) override;
 
@@ -38,6 +48,8 @@ public:
 
     DrawSystemInfo* getDrawInfo() const { return mDrawSystemInfo; }
 
+    AudioDirector* getAudioDirector() const { return mAudioDirector; }
+
 private:
     sead::FixedSafeString<0x40> mName;
     Scene* mCurrentScene;
@@ -48,4 +60,19 @@ private:
     DrawSystemInfo* mDrawSystemInfo;
     bool mIsAlive;
 };
+
+void initSceneCreator(IUseSceneCreator*, const SequenceInitInfo&, GameDataHolderBase*,
+                      AudioDirector*, ScreenCaptureExecutor*, alSceneFunction::SceneFactory*);
+void createSceneAndInit(IUseSceneCreator*, const char*, const char*, s32, const char*);
+void createSceneAndUseInitThread(IUseSceneCreator*, const char*, s32, const char*, s32,
+                                 const char*);
+void setSceneAndInit(IUseSceneCreator*, Scene*, const char*, s32, const char*);
+void setSceneAndUseInitThread(IUseSceneCreator*, Scene*, s32, const char*, s32, const char*,
+                              sead::Heap*);
+bool tryEndSceneInitThread(IUseSceneCreator*);
+bool isExistSceneInitThread(const IUseSceneCreator*);
+void initAudioDirector(Sequence*, AudioSystemInfo*, AudioDirectorInitInfo&);
+void setSequenceAudioKeeperToSceneSeDirector(Sequence*, Scene*);
+void setSequenceNameForActorPickTool(Sequence*, Scene*);
+
 }  // namespace al
