@@ -23,6 +23,11 @@ class TalkNpcCap;
 
 class Doshi : public al::LiveActor {
 public:
+    struct Camera {
+        al::CameraTicket* ticket;
+        bool isActive;
+    };
+
     Doshi(const char* name);
 
     void init(const al::ActorInitInfo& initInfo) override;
@@ -43,6 +48,8 @@ public:
     void exeReaction();
     void exeBossBattle();
 
+    Camera* getCamera() const { return mCamera; }
+
 private:
     ShoppingWatcher* mShoppingWatcher = nullptr;
     al::BgmPlayObj* mBgmPlayObj = nullptr;
@@ -54,7 +61,7 @@ private:
     f32 mClippingRadius = 4500.0f;
     f32 mLocalOffsetY = 2500.0f;
     s32 mRemainingCoins = 5;
-    al::CameraTicket* mCamera = nullptr;
+    Camera* mCamera = nullptr;
     TalkNpcCap* mTalkNpcCap = nullptr;
     f32 mActionWaitFrame = -1;
     f32 mActionMoveFrame = -1;
