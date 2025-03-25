@@ -108,6 +108,12 @@ public:
     static SubActorKeeper* create(LiveActor*);
     static SubActorKeeper* tryCreate(LiveActor*, const char*, s32);
 
+    s32 getMaxActorCount() const { return mMaxActorCount; }
+
+    s32 getCurActorCount() const { return mCurActorCount; }
+
+    SubActorInfo* getSubActorInfo(s32 index) const { return mBuffer[index]; }
+
 protected:
     friend class alSubActorFunction;
 
@@ -169,5 +175,5 @@ void trySyncClippingEnd(al::SubActorKeeper*);
 void trySyncShowModel(al::SubActorKeeper*);
 void trySyncHideModel(al::SubActorKeeper*);
 void trySyncModelAlphaMask(al::SubActorKeeper*, f32);
-void findSubActor(const al::SubActorKeeper*, const char*);
+al::LiveActor* findSubActor(const al::SubActorKeeper*, const char*);
 }  // namespace alSubActorFunction

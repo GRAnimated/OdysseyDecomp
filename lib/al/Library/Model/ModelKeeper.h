@@ -25,6 +25,12 @@ public:
     void createMatAnimForProgram(s32);
     void setDitherAnimator(DitherAnimator* ditherAnimator);
 
+    void update();
+    void show();
+    void hide();
+
+    const char* getName() const { return mName; }
+
     ModelCtrl* getModelCtrl() const { return mModelCtrl; }
 
     AnimPlayerSkl* getAnimSkl() const { return mAnimSkl; }
@@ -41,6 +47,22 @@ public:
 
     AnimPlayerVis* getAnimVisForAction() const { return mAnimVisForAction; }
 
+    bool isFixedModel() const { return mIsFixedModel; }
+
+    void setFixedModelFlag(bool isFixedModel) { mIsFixedModel = isFixedModel; }
+
+    bool isIgnoreUpdateDrawClipping() const { return mIsIgnoreUpdateDrawClipping; }
+
+    void setIgnoreUpdateDrawClipping(bool isIgnoreUpdateDrawClipping) {
+        mIsIgnoreUpdateDrawClipping = isIgnoreUpdateDrawClipping;
+    }
+
+    bool isNeedSetBaseMtxAndCalcAnim() const { return mIsNeedSetBaseMtxAndCalcAnim; }
+
+    void setNeedSetBaseMtxAndCalcAnimFlag(bool isNeedSetBaseMtxAndCalcAnim) {
+        mIsNeedSetBaseMtxAndCalcAnim = isNeedSetBaseMtxAndCalcAnim;
+    }
+
 private:
     const char* mName;
     ModelCtrl* mModelCtrl;
@@ -52,6 +74,11 @@ private:
     AnimPlayerMat* mAnimMat;
     AnimPlayerVis* mAnimVisForAction;
     AnimPlayerVis* mAnimVis;
+    void* _58;
+    bool _60;
+    bool mIsFixedModel;
+    bool mIsIgnoreUpdateDrawClipping;
+    bool mIsNeedSetBaseMtxAndCalcAnim;
 };
 
 }  // namespace al

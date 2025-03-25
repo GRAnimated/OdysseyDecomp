@@ -10,6 +10,8 @@ class ActorDitherAnimator : public DitherAnimator {
 public:
     ActorDitherAnimator(LiveActor* host);
 
+    void stopAutoCtrl();
+    void restartAutoCtrl();
     void validateDitherAnim();
     void invalidateDitherAnim();
 

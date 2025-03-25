@@ -4,6 +4,7 @@
 #include <math/seadBoundBox.h>
 #include <math/seadMatrix.h>
 #include <math/seadQuat.h>
+#include <nn/g3d/MaterialObj.h>
 #include <nn/g3d/ResFile.h>
 #include <nn/gfx/gfx_DescriptorSlot.h>
 
@@ -68,13 +69,13 @@ void setMaterialProgrammable(LiveActor* actor);
 bool isIncludePrepassCullingShape(LiveActor* actor);
 bool isExistJoint(const LiveActor* actor, const char*);
 s32 getJointIndex(const LiveActor* actor, const char*);
-sead::Matrix34f* getJointMtxPtr(const LiveActor* actor, const char*);  // return type might be const
-sead::Matrix34f* getJointMtxPtrByIndex(const LiveActor* actor, s32);
+sead::Matrix34f* getJointMtxPtr(const LiveActor* actor, const char*);
+sead::Matrix34f* getJointMtxPtrByIndex(const LiveActor* actor, s32 index);
 void getJointLocalTrans(sead::Vector3f*, const LiveActor* actor, const char*);
 void calcJointPos(sead::Vector3f*, const LiveActor* actor, const char*);
 void calcJointOffsetPos(sead::Vector3f*, const LiveActor* actor, const char*,
                         const sead::Vector3f&);
-void calcJointPosByIndex(sead::Vector3f*, const LiveActor* actor, s32);
+void calcJointPosByIndex(sead::Vector3f*, const LiveActor* actor, s32 index);
 void calcJointSideDir(sead::Vector3f*, const LiveActor* actor, const char*);
 void calcJointUpDir(sead::Vector3f*, const LiveActor* actor, const char*);
 void calcJointFrontDir(sead::Vector3f*, const LiveActor* actor, const char*);
@@ -99,21 +100,21 @@ void calcJointAngleZDirToTargetOnYDir(const LiveActor* actor, const char*, const
 void getMaterialName(const LiveActor* actor, s32);
 void getMaterialCount(const LiveActor* actor);
 bool isExistMaterial(const LiveActor* actor, const char*);
-void getMaterialObj(const LiveActor* actor, s32);
-void getMaterialObj(const LiveActor* actor, const char*);
+nn::g3d::MaterialObj* getMaterialObj(const LiveActor* actor, s32);
+nn::g3d::MaterialObj* getMaterialObj(const LiveActor* actor, const char*);
 s32 getMaterialIndex(const LiveActor* actor, const char*);
 bool isExistMaterialTexture(const LiveActor* actor, const char*, const char*);
-void getMaterialCategory(const LiveActor* actor, s32);
-void tryGetMaterialCategory(const LiveActor* actor, s32);
+const char* getMaterialCategory(const LiveActor* actor, s32);
+const char* tryGetMaterialCategory(const LiveActor* actor, s32);
 bool isOnlyMaterialCategoryObject(const LiveActor* actor);
 void showMaterial(LiveActor* actor, const char*);
 void hideMaterial(LiveActor* actor, const char*);
 void showMaterial(LiveActor* actor, s32);
 void hideMaterial(LiveActor* actor, s32);
 void showMaterialAll(LiveActor* actor);
-void tryShowMaterial(LiveActor* actor, s32);
-void tryHideMaterial(LiveActor* actor, s32);
-void tryShowMaterialAll(LiveActor* actor);
+bool tryShowMaterial(LiveActor* actor, s32);
+bool tryHideMaterial(LiveActor* actor, s32);
+bool tryShowMaterialAll(LiveActor* actor);
 void setModelMaterialParameterF32(const LiveActor* actor, s32, const char*, f32);
 void setModelMaterialParameterF32(const LiveActor* actor, const char*, const char*, f32);
 void setModelMaterialParameterV2F(const LiveActor* actor, s32, const char*, const sead::Vector2f&);
@@ -162,13 +163,13 @@ void replaceMaterialResTexture(LiveActor*, const char*, const char*, nn::gfx::De
 void replaceMaterialLayoutTexture(LiveActor* actor, const LayoutTextureRenderObj*, const char*,
                                   const char*);
 void recreateModelDisplayList(const LiveActor* actor);
-void calcPolygonNum(const LiveActor* actor, s32);
-void calcPolygonNumCurrentLod(const LiveActor* actor);
-void calcPolygonNumCurrentLodWithoutVisAnim(const LiveActor* actor);
-void getLodLevel(const LiveActor* actor);
-void getMaterialLodLevel(const LiveActor* actor);
-void getLodLevelNoClamp(const LiveActor* actor);
-void getLodModelCount(const LiveActor* actor);
+s32 calcPolygonNum(const LiveActor* actor, s32);
+s32 calcPolygonNumCurrentLod(const LiveActor* actor);
+s32 calcPolygonNumCurrentLodWithoutVisAnim(const LiveActor* actor);
+s32 getLodLevel(const LiveActor* actor);
+s32 getMaterialLodLevel(const LiveActor* actor);
+s32 getLodLevelNoClamp(const LiveActor* actor);
+s32 getLodModelCount(const LiveActor* actor);
 void forceLodLevel(LiveActor* actor, s32);
 void unforceLodLevel(LiveActor* actor);
 bool isExistLodModel(const LiveActor* actor);
