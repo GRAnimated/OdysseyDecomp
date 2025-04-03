@@ -6,6 +6,10 @@
 #include "Library/Nerve/NerveExecutor.h"
 #include "Library/Sequence/IUseSceneCreator.h"
 
+namespace alSceneFunction {
+class SceneFactory;
+}
+
 namespace al {
 struct GameSystemInfo;
 struct DrawSystemInfo;
@@ -27,6 +31,9 @@ public:
     virtual bool isDisposable() const;
 
     virtual Scene* getCurrentScene() const;
+
+    void setNextScene(Scene* scene) { mNextScene = scene; }
+
     virtual SceneCreator* getSceneCreator() const override;
     virtual void setSceneCreator(SceneCreator* sceneCreator) override;
 
@@ -35,6 +42,8 @@ public:
     void initAudioKeeper(const char*);
     void initDrawSystemInfo(const SequenceInitInfo&);
     AudioSystemInfo* getAudioSystemInfo();
+
+    AudioDirector* getAudioDirector() const { return mAudioDirector; }
 
     DrawSystemInfo* getDrawInfo() const { return mDrawSystemInfo; }
 
@@ -48,4 +57,5 @@ private:
     DrawSystemInfo* mDrawSystemInfo;
     bool mIsAlive;
 };
+
 }  // namespace al
