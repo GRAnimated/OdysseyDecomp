@@ -58,6 +58,7 @@
 #include "MapObj/MoonBasementSlideObj.h"
 #include "MapObj/MoonWorldCaptureParadeLift.h"
 #include "MapObj/PeachWorldTree.h"
+#include "MapObj/Souvenir.h"
 #include "MapObj/StageSwitchSelector.h"
 #include "MapObj/TrampleBush.h"
 #include "MapObj/TrampleSwitch.h"
@@ -66,6 +67,8 @@
 #include "MapObj/VolleyballNet.h"
 #include "MapObj/WeightSwitch.h"
 #include "MapObj/WorldMapEarth.h"
+#include "Npc/Bird.h"
+#include "Npc/BirdPlayerGlideCtrl.h"
 #include "Npc/KuriboGirl.h"
 
 const al::NameToCreator<al::ActorCreatorFunction> sProjectActorFactoryEntries[] = {
@@ -87,9 +90,9 @@ const al::NameToCreator<al::ActorCreatorFunction> sProjectActorFactoryEntries[] 
     {"BazookaElectric", nullptr},
     {"BendLeafTree", nullptr},
     {"BgmPlayObj", nullptr},
-    {"Bird", nullptr},
+    {"Bird", al::createActorFunction<Bird>},
     {"BirdCarryMeat", nullptr},
-    {"BirdPlayerGlideCtrl", nullptr},
+    {"BirdPlayerGlideCtrl", al::createActorFunction<BirdPlayerGlideCtrl>},
     {"BlockBrick", nullptr},
     {"BlockBrick2D", nullptr},
     {"BlockBrickBig2D", nullptr},
@@ -504,7 +507,7 @@ const al::NameToCreator<al::ActorCreatorFunction> sProjectActorFactoryEntries[] 
     {"SnowManRaceNpc", nullptr},
     {"SnowVolume", nullptr},
     {"SnowVolumeEraser", nullptr},
-    {"Souvenir", nullptr},
+    {"Souvenir", al::createActorFunction<Souvenir>},
     {"SouvenirDirector", nullptr},
     {"Special2KeyMoveLift", nullptr},
     {"Special2KeyMoveParts", nullptr},
