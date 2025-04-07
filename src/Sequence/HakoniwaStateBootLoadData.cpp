@@ -28,12 +28,10 @@ namespace {
 NERVE_HOST_TYPE_IMPL(HakoniwaStateBootLoadData, Boot);
 NERVE_HOST_TYPE_IMPL(HakoniwaStateBootLoadData, DestroyMenu);
 NERVE_HOST_TYPE_IMPL(HakoniwaStateBootLoadData, BootLayoutInitScene);
-NERVE_HOST_TYPE_IMPL(HakoniwaStateBootLoadData, BootLayout);
+NERVE_HOST_TYPE_IMPL_(HakoniwaStateBootLoadData, NrvBootLayout, BootLayout);
 NERVE_HOST_TYPE_IMPL(HakoniwaStateBootLoadData, Menu);
 
-HostTypeNrvBootLayout NrvBootLayout;  // TODO: BootLayout nerve in a macro conflicts with the name
-                                      // of the BootLayout class
-NERVES_MAKE_NOSTRUCT(HostType, Menu);
+NERVES_MAKE_NOSTRUCT(HostType, Menu, NrvBootLayout);
 NERVES_MAKE_STRUCT(HostType, Boot, DestroyMenu, BootLayoutInitScene);
 }  // namespace
 
@@ -124,7 +122,7 @@ void HakoniwaStateBootLoadData::exeBootLayoutInitScene() {
         mTitleMenuScene->appear();
         if (mIsStartLoad)
             mTitleMenuScene->startLoadDirect(false);
-        (getHost())->setNextScene(mTitleMenuScene);
+        getHost()->setNextScene(mTitleMenuScene);
         al::setSequenceNameForActorPickTool(getHost(), mTitleMenuScene);
         al::getSceneHeap()->adjust();
         mScreenCaptureExecutor->offDraw();
@@ -168,28 +166,27 @@ void HakoniwaStateBootLoadData::exeMenu() {
             scenarioNo = 1;
         mWorldResourceLoader->requestLoadWorldHomeStageResource(currentWorldId, scenarioNo);
     }
-    bool v19 = mTitleMenuScene->isChangeLanguage();
-    s32 test = 0;
+
+    bool isChangeLanguage = mTitleMenuScene->isChangeLanguage();
     bool isNewGame = mTitleMenuScene->isNewGame();
-    if (v19 || (isNewGame)) {
+    bool shouldExit = false;
+    if (isChangeLanguage || isNewGame) {
         if (isNewGame)
             mIsNewGame = true;
-        if (v19)
+        if (isChangeLanguage)
             mLanguage.format("%s", mTitleMenuScene->getLanguage());
         mWorldResourceLoader->cancelLoadWorldResource();
-        test = 1;
+        shouldExit = true;
     }
 
-    if (!mTitleMenuScene->isEnableKill()) {
-        if (test != 0) {
+    if (mTitleMenuScene->isEnableKill()) {
+        bool endLoad = mWorldResourceLoader->isEndLoadWorldResource();
+        if (shouldExit || endLoad) {
             mTitleMenuScene->kill();
             mScreenCaptureExecutor->requestCapture(true, 0);
             al::setNerve(this, &NrvHostType.DestroyMenu);
         }
-        return;
-    }
-
-    if (test || !mWorldResourceLoader->isEndLoadWorldResource()) {
+    } else if (shouldExit) {
         mTitleMenuScene->kill();
         mScreenCaptureExecutor->requestCapture(true, 0);
         al::setNerve(this, &NrvHostType.DestroyMenu);
