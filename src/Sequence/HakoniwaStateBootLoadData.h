@@ -24,7 +24,7 @@ public:
                               al::WipeHolder* wipeHolder,
                               al::ScreenCaptureExecutor* screenCaptureExecutor,
                               WorldResourceLoader* worldResourceLoader, BootLayout* bootLayout,
-                              al::LayoutInitInfo const& layoutInitInfo,
+                              const al::LayoutInitInfo& layoutInitInfo,
                               GameDataHolder* gameDataHolder,
                               HakoniwaStateDeleteScene* stateDeleteScene,
                               al::AsyncFunctorThread* asyncFunctorThread);
