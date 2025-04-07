@@ -81,6 +81,7 @@ public:
     void resetMiniGameData();
     s32 getPlayingFileId() const;
     void requestSetPlayingFileId(s32);
+    void receiveSetPlayingFileIdMsg();
 
     s32 findUnlockShineNum(bool*, s32) const;
     s32 calcBeforePhaseWorldNumMax(s32) const;

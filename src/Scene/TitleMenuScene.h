@@ -16,10 +16,10 @@ public:
     TitleMenuScene();
     ~TitleMenuScene() override;
 
-    void init(al::SceneInitInfo const& info) override;
+    void init(const al::SceneInitInfo& info) override;
     void appear() override;
     void control() override;
-    void drawMain() override;
+    void drawMain() const override;
     bool isEnableKill() const;
     bool isChangeLanguage() const;
     const char* getLanguage() const;
@@ -38,14 +38,14 @@ public:
 private:
     StageSceneStatePauseMenu* mStatePauseMenu = nullptr;
     al::ChromakeyDrawer* mChromakeyDrawer = nullptr;
-    al::SimpleLayoutAppearWaitEnd* mMenuLayout = nullptr;
+    al::SimpleLayoutAppearWaitEnd* mLayoutMenu = nullptr;
     al::SimpleLayoutAppearWaitEnd* mLayoutContinueLoading = nullptr;
     al::SimpleLayoutAppearWaitEnd* mLayoutParBG = nullptr;
     al::WindowConfirm* mWindowConfirm = nullptr;
     al::WipeSimple* mFadeBlack = nullptr;
     BootLayout* mBootLayout = nullptr;
-    float mLoadPercent = 0.0f;
-    float float_11c = 0.0f;
+    f32 mLoadPercent = 0.0f;
+    f32 mLoadPercentBuffered = 0.0f;  // unused
     bool mIsCancelLoadResource = false;
-    int mEnableKillStep = 0;
+    s32 mLoadCompleteCounter = 0;
 };
