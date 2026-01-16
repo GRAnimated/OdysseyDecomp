@@ -25,13 +25,6 @@ class IUseCollision;
 
 class SnapShotCameraCtrl : public NerveExecutor, public IUseAudioKeeper {
 public:
-    struct CameraParam {
-        bool mHasMin;
-        bool mHasMax;
-        f32 mMinFovyDegree;
-        f32 mMaxFovyDegree;
-    };
-
     SnapShotCameraCtrl(const SnapShotCameraSceneInfo*);
     void start(f32);
     void load(const ByamlIter& iter);

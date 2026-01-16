@@ -21,16 +21,11 @@ NERVES_MAKE_STRUCT(SnapShotCameraCtrl, Wait, Reset);
 
 namespace al {
 
-// NON_MATCHING: also this is generating C2 when the original is C1
 SnapShotCameraCtrl::SnapShotCameraCtrl(const SnapShotCameraSceneInfo* sceneInfo)
     : NerveExecutor("スナップショットモード中のカメラ制御"), mCameraSceneInfo(sceneInfo) {
     initNerve(&NrvSnapShotCameraCtrl.Wait, 0);
 
-    CameraParam* param = new CameraParam();
-    param->mHasMin = false;
-    param->mHasMax = false;
-    param->mMinFovyDegree = 40.0f;
-    param->mMaxFovyDegree = 85.0f;
+    CameraParam* param = new CameraParam{false, false, 40.0f, 85.0f};
     mParam = param;
 }
 
@@ -76,8 +71,8 @@ void SnapShotCameraCtrl::update(const sead::LookAtCamera& camera, const IUseColl
         else if (input->isHoldSnapShotZoomOut())
             newFovyTarget = mFovyTarget + 3.0f;
 
-        f32 min = mParam->mHasMin ? mParam->mMinFovyDegree : 5.0f;
-        f32 max = mParam->mHasMax              ? mParam->mMaxFovyDegree :
+        f32 min = mParam->hasMin ? mParam->minFovyDegree : 5.0f;
+        f32 max = mParam->hasMax               ? mParam->maxFovyDegree :
                   mMaxZoomOutFovyDegree > 0.0f ? mMaxZoomOutFovyDegree :
                                                  mInitialFovy;
 
@@ -156,8 +151,8 @@ void SnapShotCameraCtrl::update(const sead::LookAtCamera& camera, const IUseColl
 
 void SnapShotCameraCtrl::makeLookAtCameraPost(sead::LookAtCamera* camera) const {
     if (mIsValidLookAtOffset) {
-        camera->getAt() = camera->getAt() + mLookAtOffset;
-        camera->getPos() = camera->getPos() + mLookAtOffset;
+        camera->setAt(camera->getAt() + mLookAtOffset);
+        camera->setPos(camera->getPos() + mLookAtOffset);
     }
 }
 
@@ -170,8 +165,8 @@ void SnapShotCameraCtrl::makeLookAtCameraLast(sead::LookAtCamera* camera) const 
         al::rotateVectorDegree(&up, up, v13, this->mRollDegree);
         al::normalize(&up);
 
-        camera->getUp() = up;
-        camera->getUp().normalize();
+        camera->setUp(up);
+        camera->normalizeUp();
     }
 }
 
