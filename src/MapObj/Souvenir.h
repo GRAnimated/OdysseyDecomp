@@ -1,0 +1,32 @@
+#pragma once
+
+#include <basis/seadTypes.h>
+
+#include "Library/LiveActor/LiveActor.h"
+
+namespace al {
+struct ActorInitInfo;
+class HitSensor;
+class SensorMsg;
+}  // namespace al
+
+class Souvenir : public al::LiveActor {
+public:
+    Souvenir(const char* name);
+    void init(const al::ActorInitInfo& info) override;
+    void control() override;
+    void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
+    bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
+                    al::HitSensor* self) override;
+
+    void exeWait();
+    void exeReactionCap();
+
+private:
+    bool mIsWait = false;
+    bool mIsReactionPlayerUpperPunch = false;
+    bool mIsThroughCapAttack = false;
+    f32 mRotateYSpeed = 0.0f;
+};
+
+static_assert(sizeof(Souvenir) == 0x110);

@@ -12,6 +12,14 @@ struct SnapShotCameraSceneInfo {
     bool field_8;
     f32 field_C;
 };
+
+struct CameraParam {
+    bool hasMin;
+    bool hasMax;
+    f32 minFovyDegree;
+    f32 maxFovyDegree;
+};
+
 class ICameraInput;
 class IUseCollision;
 
@@ -26,7 +34,7 @@ public:
 
     SnapShotCameraCtrl(const SnapShotCameraSceneInfo*);
     void start(f32);
-    void load(const ByamlIter&);
+    void load(const ByamlIter& iter);
     void startReset(s32);
     void update(const sead::LookAtCamera&, const IUseCollision*, const ICameraInput*);
     void makeLookAtCameraPost(sead::LookAtCamera*) const;

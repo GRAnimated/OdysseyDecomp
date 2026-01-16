@@ -40,7 +40,7 @@ f32 BezierCurve::calcLength(f32 startParam, f32 endParam, s32 stepCount) const {
 
     return std::floor((halfStepSize * 0.33333f) *
                       (avgVelocity + (sumVelFullStep * 2) + (sumVelHalfStep * 4)) * 1024.0f) /
-           1024.f;
+           1024.0f;
 }
 
 void BezierCurve::calcPos(sead::Vector3f* pos, f32 param) const {
@@ -80,6 +80,7 @@ f32 BezierCurve::calcDeltaLength(f32 param) const {
 }
 
 // NON_MATCHING: flipped parts of if in last statement and unoptimized 1.0f - load
+// (https://decomp.me/scratch/hGwGZ)
 f32 BezierCurve::calcCurveParam(f32 distance) const {
     f32 percent = distance / mDistance;
     f32 partLength = calcLength(0, percent, 10);
@@ -139,7 +140,7 @@ f32 BezierCurve::calcNearestLength(f32* param, const sead::Vector3f& pos, f32 ma
     return bestDist;
 }
 
-// NON_MATCHING: Difference in loading for calcNearestParam
+// NON_MATCHING: Difference in loading for calcNearestParam (https://decomp.me/scratch/mFZVT)
 void BezierCurve::calcNearestPos(sead::Vector3f* nearest, const sead::Vector3f& pos,
                                  f32 interval) const {
     calcPos(nearest, calcNearestParam(pos, interval));

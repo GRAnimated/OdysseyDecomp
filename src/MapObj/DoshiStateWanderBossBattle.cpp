@@ -3,7 +3,7 @@
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 
@@ -11,9 +11,8 @@
 
 namespace {
 NERVE_IMPL(DoshiStateWanderBossBattle, Wait);
-NERVE_IMPL(DoshiStateWanderBossBattle, Reaction);
 
-NERVES_MAKE_STRUCT(DoshiStateWanderBossBattle, Wait, Reaction);
+NERVES_MAKE_STRUCT(DoshiStateWanderBossBattle, Wait);
 }  // namespace
 
 DoshiStateWanderBossBattle::DoshiStateWanderBossBattle(Doshi* doshi)
@@ -22,7 +21,7 @@ DoshiStateWanderBossBattle::DoshiStateWanderBossBattle(Doshi* doshi)
 }
 
 void DoshiStateWanderBossBattle::appear() {
-    setDead(false);
+    al::NerveStateBase::appear();
     al::setNerve(this, &NrvDoshiStateWanderBossBattle.Wait);
 }
 

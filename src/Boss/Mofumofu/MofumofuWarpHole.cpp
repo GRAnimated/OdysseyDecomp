@@ -1,12 +1,13 @@
 #include "Boss/Mofumofu/MofumofuWarpHole.h"
 
-#include <math/seadQuat.h>
 #include <math/seadVector.h>
 
+#include "Library/Effect/EffectSystemInfo.h"
+#include "Library/Joint/JointControllerKeeper.h"
 #include "Library/LiveActor/ActorActionFunction.h"
-#include "Library/LiveActor/ActorInitInfo.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
-#include "Library/LiveActor/LiveActorUtil.h"
+#include "Library/LiveActor/ActorInitUtil.h"
+#include "Library/LiveActor/ActorModelFunction.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -30,11 +31,10 @@ NERVES_MAKE_NOSTRUCT(MofumofuWarpHole, Close, Disappear, Appear, HideMove, HideW
 
 }  // namespace
 
-MofumofuWarpHole::MofumofuWarpHole(const char* name)
-    : al::LiveActor(name) {}  // TODO minor mismatch about storing `gap`
+MofumofuWarpHole::MofumofuWarpHole(const char* name) : al::LiveActor(name) {}
 
-void MofumofuWarpHole::init(const al::ActorInitInfo& actorInitInfo) {
-    al::initActorWithArchiveName(this, actorInitInfo, "MofumofuWarpHole", nullptr);
+void MofumofuWarpHole::init(const al::ActorInitInfo& info) {
+    al::initActorWithArchiveName(this, info, "MofumofuWarpHole", nullptr);
     al::initNerve(this, &Appear, 0);
     al::initJointControllerKeeper(this, 1);
     al::initJointGlobalQuatController(this, &gap, "DashSign");

@@ -2,12 +2,12 @@
 
 #include "System/GameDataHolderAccessor.h"
 
-class AchievementInfo;
+struct AchievementInfo;
 
 class Achievement {
 public:
-    Achievement(const AchievementInfo*);
-    bool isGet(GameDataHolderAccessor) const;
+    Achievement(const AchievementInfo* info);
+    bool isGet(GameDataHolderAccessor accessor) const;
 
 private:
     bool mIsGet = false;

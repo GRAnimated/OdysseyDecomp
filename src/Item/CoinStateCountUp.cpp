@@ -4,7 +4,7 @@
 
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/LiveActor/LiveActor.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -22,7 +22,7 @@ CoinStateCountUp::CoinStateCountUp(al::LiveActor* actor)
 }
 
 void CoinStateCountUp::appear() {
-    setDead(false);
+    al::NerveStateBase::appear();
     al::setNerve(this, &CountUp);
 }
 

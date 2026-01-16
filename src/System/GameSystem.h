@@ -1,18 +1,20 @@
 #pragma once
 
 #include "Library/Nerve/NerveExecutor.h"
-#include "Library/System/GameSystemInfo.h"
 
 namespace al {
 class Sequence;
 struct GameSystemInfo;
 class AudioSystem;
+template <typename T>
 class AudioInfoListWithParts;
 class AccountHolder;
 class NetworkSystem;
 class HtmlViewer;
 class GamePadSystem;
 class ApplicationMessageReceiver;
+class WaveVibrationHolder;
+class AudioResourceLoadGroupInfo;
 }  // namespace al
 
 class GameConfigData;
@@ -33,7 +35,7 @@ private:
     al::Sequence* mSequence;
     al::GameSystemInfo* mSystemInfo;
     al::AudioSystem* mAudioSystem;
-    al::AudioInfoListWithParts* mAudioInfoList;
+    al::AudioInfoListWithParts<al::AudioResourceLoadGroupInfo>* mAudioInfoList;
     al::AccountHolder* mAccountHolder;
     al::NetworkSystem* mNetworkSystem;
     void* field_40;

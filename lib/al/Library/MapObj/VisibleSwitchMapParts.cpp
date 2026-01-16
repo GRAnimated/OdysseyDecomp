@@ -1,21 +1,19 @@
 #include "Library/MapObj/VisibleSwitchMapParts.h"
 
-#include "Library/Collision/PartsConnector.h"
+#include "Library/Collision/PartsConnectorUtil.h"
 #include "Library/LiveActor/ActorActionFunction.h"
-#include "Library/LiveActor/ActorInitFunction.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorModelFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Placement/PlacementFunction.h"
-#include "Library/Stage/StageSwitchKeeper.h"
 #include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 
+namespace al {
 namespace {
-using namespace al;
-
 NERVE_IMPL(VisibleSwitchMapParts, Show)
 NERVE_IMPL(VisibleSwitchMapParts, Hide)
 NERVE_IMPL(VisibleSwitchMapParts, Disappear)
@@ -27,12 +25,11 @@ NERVES_MAKE_STRUCT(VisibleSwitchMapParts, Show, Hide, Disappear, DisappearDither
                    AppearDither)
 }  // namespace
 
-namespace al {
 VisibleSwitchMapParts::VisibleSwitchMapParts(const char* name) : LiveActor(name) {}
 
 void VisibleSwitchMapParts::init(const ActorInitInfo& info) {
     using VisibleSwitchMapPartsFunctor =
-        FunctorV0M<al::VisibleSwitchMapParts*, void (al::VisibleSwitchMapParts::*)()>;
+        FunctorV0M<VisibleSwitchMapParts*, void (VisibleSwitchMapParts::*)()>;
 
     initMapPartsActor(this, info, nullptr);
     initNerve(this, &NrvVisibleSwitchMapParts.Show, 0);
@@ -104,7 +101,7 @@ void VisibleSwitchMapParts::startSuddenDisappear() {
 }
 
 void VisibleSwitchMapParts::initAfterPlacement() {
-    if (mMtxConnector == nullptr)
+    if (!mMtxConnector)
         return;
 
     sead::Vector3f dir;
@@ -135,7 +132,7 @@ void VisibleSwitchMapParts::initAfterPlacement() {
 }
 
 void VisibleSwitchMapParts::control() {
-    if (mMtxConnector == nullptr)
+    if (!mMtxConnector)
         return;
 
     connectPoseQT(this, mMtxConnector);

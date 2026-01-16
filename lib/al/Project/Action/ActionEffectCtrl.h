@@ -6,9 +6,9 @@
 
 namespace al {
 struct ActionEffectCtrlInfo {
-    const char* mName;
-    const char* mMaterialName;
-    bool mHasEmittedEffect;
+    const char* name;
+    const char* materialName;
+    bool hasEmittedEffect;
 };
 
 class ActionEffectCtrl : public IUseEffectKeeper {
@@ -18,7 +18,7 @@ public:
     ActionEffectCtrl(IUseEffectKeeper*);
 
     void startAction(const char*);
-    void update(f32, f32, f32, bool);
+    void update(f32 frame, f32 frameRateMax, f32 frameRate, bool isStop);
     bool isKeepSameEffectNext(const ActionEffectCtrlInfo*, const char*);
 
 private:

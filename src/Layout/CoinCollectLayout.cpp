@@ -3,7 +3,7 @@
 #include "Library/Layout/LayoutActionFunction.h"
 #include "Library/Layout/LayoutActorUtil.h"
 #include "Library/Layout/LayoutInitInfo.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/LiveActor/LiveActor.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -19,8 +19,8 @@ NERVES_MAKE_NOSTRUCT(CoinCollectLayout, Start, Wait, End);
 
 CoinCollectLayout::CoinCollectLayout(const al::LayoutInitInfo& info)
     : al::LayoutActor("コレクトコインレイアウト") {
-    al::initLayoutActor(this, info, "PopUpCollectCoin", nullptr);
-    initNerve(&Start, 0);
+    al::initLayoutActor(this, info, "PopUpCollectCoin");
+    initNerve(&Start);
 }
 
 void CoinCollectLayout::appearCounter(s32 maxCoins, s32 currentCoins,
@@ -40,8 +40,8 @@ void CoinCollectLayout::appearCounter(s32 maxCoins, s32 currentCoins,
 
 void CoinCollectLayout::exeStart() {
     if (al::isFirstStep(this))
-        al::startAction(this, "Appear", nullptr);
-    if (al::isActionEnd(this, nullptr))
+        al::startAction(this, "Appear");
+    if (al::isActionEnd(this))
         al::setNerve(this, &Wait);
     updatePos();
 }
@@ -55,7 +55,7 @@ void CoinCollectLayout::updatePos() {
 
 void CoinCollectLayout::exeWait() {
     if (al::isFirstStep(this))
-        al::startAction(this, "Wait", nullptr);
+        al::startAction(this, "Wait");
     if (al::isGreaterEqualStep(this, 120)) {
         al::setNerve(this, &End);
         return;
@@ -65,8 +65,8 @@ void CoinCollectLayout::exeWait() {
 
 void CoinCollectLayout::exeEnd() {
     if (al::isFirstStep(this))
-        al::startAction(this, "End", nullptr);
-    if (al::isActionEnd(this, nullptr)) {
+        al::startAction(this, "End");
+    if (al::isActionEnd(this)) {
         kill();
         return;
     }

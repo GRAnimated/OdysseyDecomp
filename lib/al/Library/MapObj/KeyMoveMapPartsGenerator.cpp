@@ -1,10 +1,10 @@
 #include "Library/MapObj/KeyMoveMapPartsGenerator.h"
 
-#include "Library/KeyPose/KeyPoseKeeper.h"
+#include "Library/KeyPose/KeyPoseKeeperUtil.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
 #include "Library/LiveActor/ActorInitFunction.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/LiveActorGroup.h"
-#include "Library/LiveActor/SubActorFunction.h"
 #include "Library/MapObj/KeyMoveMapParts.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -80,7 +80,7 @@ void KeyMoveMapPartsGenerator::exeDelay() {
 void KeyMoveMapPartsGenerator::exeGenerate() {
     if (isIntervalStep(this, mGenerateInterval, 0)) {
         KeyMoveMapParts* keyMoveMapParts = mKeyMoveMapPartsGroup->tryFindDeadDeriveActor();
-        if (keyMoveMapParts != nullptr)
+        if (keyMoveMapParts)
             keyMoveMapParts->appearAndSetStart();
     }
 }

@@ -38,7 +38,7 @@ namespace {
     // and no variants without it have been found so far
 }
 
-al::initNerveAction(this, "Hide", &NrvExampleUseCase.mCollector, 0);
+al::initNerveAction(this, "Hide", &NrvExampleUseCase.collector, 0);
 
 */
 
@@ -75,14 +75,14 @@ al::initNerveAction(this, "Hide", &NrvExampleUseCase.mCollector, 0);
 
 #define NERVE_HOST_TYPE_IMPL(Class, Action) NERVE_HOST_TYPE_IMPL_(Class, Action, Action)
 
-#define NERVE_MAKE(Class, Action) Class##Nrv##Action Action;
+#define NERVE_MAKE(Class, Action) [[maybe_unused]] Class##Nrv##Action Action;
 
 #define NERVES_MAKE_STRUCT(Class, ...)                                                             \
     struct {                                                                                       \
         FOR_EACH(NERVE_MAKE, Class, __VA_ARGS__)                                                   \
     } Nrv##Class;
 
-#define NERVES_MAKE_NOSTRUCT(Class, ...) FOR_EACH(NERVE_MAKE, Class, __VA_ARGS__);
+#define NERVES_MAKE_NOSTRUCT(Class, ...) FOR_EACH(NERVE_MAKE, Class, __VA_ARGS__)
 
 #define NERVE_ACTION_IMPL_(Class, Action, ActionFunc)                                              \
     class Class##Nrv##Action : public al::NerveAction {                                            \
@@ -91,7 +91,9 @@ al::initNerveAction(this, "Hide", &NrvExampleUseCase.mCollector, 0);
             (keeper->getParent<Class>())->exe##ActionFunc();                                       \
         }                                                                                          \
                                                                                                    \
-        const char* getActionName() const override { return #Action; }                             \
+        const char* getActionName() const override {                                               \
+            return #Action;                                                                        \
+        }                                                                                          \
     };
 
 #define NERVE_ACTION_IMPL(Class, Action) NERVE_ACTION_IMPL_(Class, Action, Action)
@@ -104,7 +106,9 @@ al::initNerveAction(this, "Hide", &NrvExampleUseCase.mCollector, 0);
     struct NrvStruct##Class {                                                                      \
         FOR_EACH(NERVE_ACTION_MAKE, Class, __VA_ARGS__)                                            \
                                                                                                    \
-        alNerveFunction::NerveActionCollector mCollector;                                          \
+        alNerveFunction::NerveActionCollector collector;                                           \
                                                                                                    \
-        NrvStruct##Class() { FOR_EACH(NERVE_ACTION_CONSTRUCT, Class, __VA_ARGS__) }                \
+        NrvStruct##Class() {                                                                       \
+            FOR_EACH(NERVE_ACTION_CONSTRUCT, Class, __VA_ARGS__)                                   \
+        }                                                                                          \
     } Nrv##Class;

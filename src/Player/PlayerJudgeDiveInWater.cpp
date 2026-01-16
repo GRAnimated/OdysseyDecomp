@@ -1,6 +1,6 @@
 #include "Player/PlayerJudgeDiveInWater.h"
 
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Nature/NatureUtil.h"
 
 #include "Player/IUsePlayerFallDistanceCheck.h"
@@ -42,7 +42,3 @@ bool PlayerJudgeDiveInWater::judge() const {
 
     return true;
 }
-
-void PlayerJudgeDiveInWater::reset() {}
-
-void PlayerJudgeDiveInWater::update() {}

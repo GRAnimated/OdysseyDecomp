@@ -4,9 +4,9 @@
 #include "Library/Effect/EffectKeeper.h"
 #include "Library/Effect/EffectSystemInfo.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
-#include "Library/LiveActor/ActorDrawFunction.h"
-#include "Library/LiveActor/ActorInitInfo.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorFlagFunction.h"
+#include "Library/LiveActor/ActorInitUtil.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Matrix/MatrixUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
@@ -14,19 +14,17 @@
 #include "Library/Obj/EffectObjFunction.h"
 #include "Library/Placement/PlacementFunction.h"
 #include "Library/Se/SeFunction.h"
-#include "Library/Stage/StageSwitchKeeper.h"
+#include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 
+namespace al {
 namespace {
-using namespace al;
-
 NERVE_IMPL(EffectObjFollowCameraLimit, Wait)
 NERVE_IMPL(EffectObjFollowCameraLimit, Disappear)
 
 NERVES_MAKE_NOSTRUCT(EffectObjFollowCameraLimit, Wait, Disappear)
 }  // namespace
 
-namespace al {
 EffectObjFollowCameraLimit::EffectObjFollowCameraLimit(const char* name) : LiveActor(name) {}
 
 void EffectObjFollowCameraLimit::init(const ActorInitInfo& info) {
@@ -35,7 +33,7 @@ void EffectObjFollowCameraLimit::init(const ActorInitInfo& info) {
 
     EffectObjFunction::initActorEffectObj(this, info);
     invalidateClipping(this);
-    setEffectNamedMtxPtr(this, "Wait", &mBaseMtx);
+    setEffectFollowMtxPtr(this, "Wait", &mBaseMtx);
     initNerve(this, &Wait, 0);
 
     listenStageSwitchOnOffAppear(
@@ -80,7 +78,7 @@ void EffectObjFollowCameraLimit::control() {
 
     pos.y = sead::Mathf::max(pos.y, mLimitBottom);
 
-    if (!isNearZero(mLimitTop + 1, 0.001f))
+    if (!isNearZero(mLimitTop + 1))
         pos.y = sead::Mathf::min(pos.y, mLimitTop);
 
     if (!isParallelDirection(sead::Vector3f::ey, front, 0.01f))

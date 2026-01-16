@@ -2,7 +2,7 @@
 
 #include "Library/Controller/PadRumbleFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -27,7 +27,7 @@ PlayerStateSlope::PlayerStateSlope(al::LiveActor* player, const PlayerConst* pCo
 }
 
 void PlayerStateSlope::appear() {
-    setDead(false);
+    al::NerveStateBase::appear();
     mActionSlopeSlideControl->setup();
 
     mTimeInAir = 0;
@@ -37,7 +37,7 @@ void PlayerStateSlope::appear() {
 
     if (rs::isOnGroundForceSlideCode(mActor, mCollision, mConst)) {
         sead::Vector3f direction = mActionSlopeSlideControl->getDirSlide();
-        if (al::isNearZero(direction, 0.001f))
+        if (al::isNearZero(direction))
             al::setVelocityZero(mActor);
         else {
             sead::Vector3f* velocityPtr = al::getVelocityPtr(mActor);
@@ -58,11 +58,11 @@ void PlayerStateSlope::appear() {
 }
 
 void PlayerStateSlope::kill() {
-    setDead(true);
+    al::NerveStateBase::kill();
 
     if (mIsRunningRumbleLoop) {
         alPadRumbleFunction::stopPadRumbleLoop(mActor, "【ループ】ジリジリ（中）",
-                                               al::getTransPtr(mActor), -1);
+                                               al::getTransPtr(mActor));
         mIsRunningRumbleLoop = false;
     }
 }
@@ -88,19 +88,19 @@ void PlayerStateSlope::exeSlide() {
     if (isCollidedGround) {
         if (!mIsRunningRumbleLoop) {
             alPadRumbleFunction::startPadRumbleLoopNo3D(actor, "【ループ】ジリジリ（中）",
-                                                        al::getTransPtr(actor), -1);
+                                                        al::getTransPtr(actor));
             mIsRunningRumbleLoop = true;
         }
     } else if (mIsRunningRumbleLoop) {
         alPadRumbleFunction::stopPadRumbleLoop(actor, "【ループ】ジリジリ（中）",
-                                               al::getTransPtr(actor), -1);
+                                               al::getTransPtr(actor));
         mIsRunningRumbleLoop = false;
     }
 
     bool isForceSlide = rs::isOnGroundForceSlideCode(mActor, mCollision, mConst);
     if (!mIsForceSlide && isForceSlide) {
         sead::Vector3f direction = mActionSlopeSlideControl->getDirSlide();
-        if (al::isNearZero(direction, 0.001f))
+        if (al::isNearZero(direction))
             al::setVelocityZero(mActor);
         else {
             sead::Vector3f* velocityPtr = al::getVelocityPtr(mActor);

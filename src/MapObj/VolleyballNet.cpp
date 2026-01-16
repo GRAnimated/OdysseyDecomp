@@ -1,8 +1,8 @@
 #include "MapObj/VolleyballNet.h"
 
 #include "Library/LiveActor/ActorActionFunction.h"
-#include "Library/LiveActor/ActorInitInfo.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorInitUtil.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 
@@ -17,8 +17,8 @@ NERVES_MAKE_NOSTRUCT(VolleyballNet, Wait, Reaction);
 
 VolleyballNet::VolleyballNet(const char* name) : al::LiveActor(name) {}
 
-void VolleyballNet::init(const al::ActorInitInfo& initInfo) {
-    al::initActor(this, initInfo);
+void VolleyballNet::init(const al::ActorInitInfo& info) {
+    al::initActor(this, info);
     al::initNerve(this, &Wait, 0);
     makeActorAlive();
 }

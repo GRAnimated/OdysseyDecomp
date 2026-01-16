@@ -12,31 +12,31 @@ class CollisionParts;
 class LiveActor;
 
 struct KCPrismHeader {
-    u32 mPositionsOffset;
-    u32 mNormalsOffset;
-    u32 mTrianglesOffset;
-    u32 mOctreeOffset;
-    f32 mThickness;
-    sead::Vector3f mOctreeOrigin;
-    sead::Vector3u mWidthMask;
-    sead::Vector3u mWidthShift;
-    f32 mHitboxRadiusCap;
+    u32 positionsOffset;
+    u32 normalsOffset;
+    u32 trianglesOffset;
+    u32 octreeOffset;
+    f32 thickness;
+    sead::Vector3f octreeOrigin;
+    sead::Vector3u widthMask;
+    sead::Vector3u widthShift;
+    f32 hitboxRadiusCap;
 };
 
 struct KCPrismData {
-    f32 mLength;
-    u16 mPosIndex;
-    u16 mFaceNormalIndex;
-    u16 mEdgeNormalIndex[3];
-    u16 mCollisionType;
-    u32 mTriIndex;
+    f32 length;
+    u16 posIndex;
+    u16 faceNormalIndex;
+    u16 edgeNormalIndex[3];
+    u16 collisionType;
+    u32 triIndex;
 };
 
 struct KCHitInfo {
-    const KCPrismHeader* mHeader;
-    const KCPrismData* mData;
-    f32 _16;
-    u8 _20;  // collision location, enum
+    const KCPrismHeader* header;
+    const KCPrismData* data;
+    f32 _10;
+    u8 _14;  // collision location, enum
 };
 
 class KCollisionServer {
@@ -198,13 +198,23 @@ public:
 
 class CollisionPartsFilterActor : public CollisionPartsFilterBase {
 public:
-    CollisionPartsFilterActor(LiveActor* actor) : mActor(actor) {}
+    CollisionPartsFilterActor(const LiveActor* actor) : mActor(actor) {}
 
     bool isInvalidParts(CollisionParts* collisionParts) override;
 
 private:
-    LiveActor* mActor;
+    const LiveActor* mActor;
     bool mIsCompareEqual = true;
+};
+
+class CollisionPartsFilterSubActor : public CollisionPartsFilterBase {
+public:
+    CollisionPartsFilterSubActor(const LiveActor* actor) : mActor(actor) {}
+
+    bool isInvalidParts(CollisionParts* collisionParts) override;
+
+private:
+    const LiveActor* mActor;
 };
 
 class CollisionPartsFilterSpecialPurpose : public CollisionPartsFilterBase {
@@ -216,6 +226,30 @@ public:
 
 private:
     const char* mSpecialPurpose;
+};
+
+class CollisionPartsFilterIgnoreOptionalPurpose : public CollisionPartsFilterBase {
+public:
+    CollisionPartsFilterIgnoreOptionalPurpose(const char* specialPurpose)
+        : mSpecialPurpose(specialPurpose) {}
+
+    bool isInvalidParts(CollisionParts* collisionParts) override;
+
+private:
+    const char* mSpecialPurpose;
+};
+
+class CollisionPartsFilterMergePair : public CollisionPartsFilterBase {
+public:
+    CollisionPartsFilterMergePair(CollisionPartsFilterBase* firstFilter,
+                                  CollisionPartsFilterBase* secondFilter)
+        : mFirstFilter(firstFilter), mSecondFilter(secondFilter) {}
+
+    bool isInvalidParts(CollisionParts* collisionParts) override;
+
+private:
+    CollisionPartsFilterBase* mFirstFilter;
+    CollisionPartsFilterBase* mSecondFilter;
 };
 
 }  // namespace al

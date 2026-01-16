@@ -7,17 +7,15 @@
 #include "Library/LiveActor/ActorClippingFunction.h"
 #include "Library/LiveActor/ActorCollisionFunction.h"
 #include "Library/LiveActor/ActorFlagFunction.h"
-#include "Library/LiveActor/ActorInitInfo.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
-#include "Library/LiveActor/ActorSensorFunction.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nature/NatureUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Player/PlayerUtil.h"
-#include "Library/Stage/StageSwitchKeeper.h"
 #include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 
@@ -162,7 +160,7 @@ void Togezo::control() {
 
     mForceKeeper->reset();
 
-    if (!al::isNearZero(calculatedForce, 0.001f)) {
+    if (!al::isNearZero(calculatedForce)) {
         mWanderCooldown = 180;
         al::invalidateClipping(this);
     }
@@ -385,7 +383,7 @@ void Togezo::exeCapHit() {
         al::setVelocity(this, capDirection * 20.0f);
 
         sead::Quatf frontUp = sead::Quatf::unit;
-        al::makeQuatUpFront(&frontUp, capDirection, sead::Vector3f::ey);
+        al::makeQuatFrontUp(&frontUp, capDirection, sead::Vector3f::ey);
 
         mAirTime = 0;
 

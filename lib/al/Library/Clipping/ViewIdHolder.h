@@ -10,9 +10,11 @@ class ViewIdHolder {
 public:
     ViewIdHolder();
     void init(const PlacementInfo& placementInfo);
-    PlacementId& getViewId(s32 idx) const;
+    const PlacementId& getViewId(s32 idx) const;
 
     static ViewIdHolder* tryCreate(const PlacementInfo& placementInfo);
+
+    s32 getNumPlacements() const { return mNumPlacements; }
 
 private:
     s32 mNumPlacements = 0;

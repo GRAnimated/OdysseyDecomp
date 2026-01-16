@@ -3,19 +3,18 @@
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorAreaFunction.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
-#include "Library/LiveActor/ActorInitFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorInitUtil.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Placement/PlacementFunction.h"
 #include "Library/Placement/PlacementInfo.h"
-#include "Library/Stage/StageSwitchKeeper.h"
+#include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 
+namespace al {
 namespace {
-using namespace al;
-
 NERVE_ACTION_IMPL(SwitchOpenMapParts, Wait)
 NERVE_ACTION_IMPL(SwitchOpenMapParts, DelayOpen)
 NERVE_ACTION_IMPL(SwitchOpenMapParts, Open)
@@ -26,14 +25,13 @@ NERVE_ACTION_IMPL(SwitchOpenMapParts, Close)
 NERVE_ACTIONS_MAKE_STRUCT(SwitchOpenMapParts, Wait, DelayOpen, Open, WaitOpend, DelayClose, Close)
 }  // namespace
 
-namespace al {
 SwitchOpenMapParts::SwitchOpenMapParts(const char* name) : LiveActor(name) {}
 
 void SwitchOpenMapParts::init(const ActorInitInfo& info) {
     using SwitchOpenMapPartsFunctor =
         FunctorV0M<SwitchOpenMapParts*, void (SwitchOpenMapParts::*)()>;
 
-    initNerveAction(this, "Wait", &NrvSwitchOpenMapParts.mCollector, 0);
+    initNerveAction(this, "Wait", &NrvSwitchOpenMapParts.collector, 0);
 
     const char* suffix = nullptr;
     tryGetStringArg(&suffix, info, "SuffixName");
@@ -80,7 +78,7 @@ void SwitchOpenMapParts::open() {
 void SwitchOpenMapParts::close() {
     if (isNerve(this, NrvSwitchOpenMapParts.WaitOpend.data()))
         if (mDelayTimeClose > 0)
-            startNerveAction(this, "DelayOpen");
+            startNerveAction(this, "DelayClose");
         else
             startNerveAction(this, "Close");
     else if (isNerve(this, NrvSwitchOpenMapParts.DelayOpen.data()))

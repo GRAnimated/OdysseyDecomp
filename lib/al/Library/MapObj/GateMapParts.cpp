@@ -5,13 +5,14 @@
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
 #include "Library/LiveActor/ActorInitFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorInitUtil.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Placement/PlacementFunction.h"
 #include "Library/Se/SeFunction.h"
-#include "Library/Stage/StageSwitchKeeper.h"
+#include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 
 namespace {
@@ -31,7 +32,7 @@ GateMapParts::GateMapParts(const char* name) : LiveActor(name) {}
 void GateMapParts::init(const ActorInitInfo& info) {
     using GateMapPartsFunctor = FunctorV0M<GateMapParts*, void (GateMapParts::*)()>;
 
-    initNerveAction(this, "Wait", &NrvGateMapParts.mCollector, 0);
+    initNerveAction(this, "Wait", &NrvGateMapParts.collector, 0);
     initMapPartsActor(this, info, nullptr);
     tryGetQuatPtr(this);
 
@@ -82,15 +83,15 @@ void GateMapParts::exeOpen() {
         mHitReactionCurrent = 0;
 
         if (mMaxHitReactions > mHitReactionCurrent && mCurrentBoundSteps > 1) {
-            startAction(this, "Bound");
+            startNerveAction(this, "Bound");
 
             return;
         }
 
-        if (mSuccessSeObj != nullptr)
+        if (mSuccessSeObj)
             startSe(mSuccessSeObj, "Riddle");
 
-        startAction(this, "End");
+        startNerveAction(this, "End");
 
         if (mHitReactionCount < 2)
             startHitReaction(this, "バウンド1回目");
@@ -123,15 +124,15 @@ void GateMapParts::exeBound() {
         mCurrentBoundSteps = (s32)(mBoundRate * (f32)mCurrentBoundSteps);
 
         if (mMaxHitReactions > mHitReactionCurrent && mCurrentBoundSteps > 1) {
-            startAction(this, "Bound");
+            startNerveAction(this, "Bound");
 
             return;
         }
 
-        if (mSuccessSeObj != nullptr)
+        if (mSuccessSeObj)
             startSe(mSuccessSeObj, "Riddle");
 
-        startAction(this, "End");
+        startNerveAction(this, "End");
     }
 }
 

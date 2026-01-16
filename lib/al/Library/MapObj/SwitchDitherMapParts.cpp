@@ -1,9 +1,9 @@
 #include "Library/MapObj/SwitchDitherMapParts.h"
 
-#include "Library/LiveActor/ActorInitFunction.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorModelFunction.h"
 #include "Library/Nerve/NerveSetupUtil.h"
-#include "Library/Stage/StageSwitchKeeper.h"
+#include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 
 namespace {
@@ -21,7 +21,7 @@ void SwitchDitherMapParts::init(const ActorInitInfo& info) {
     using SwitchDitherMapPartsFunctor =
         FunctorV0M<SwitchDitherMapParts*, void (SwitchDitherMapParts::*)()>;
 
-    initNerveAction(this, "Wait", &NrvSwitchDitherMapParts.mCollector, 0);
+    initNerveAction(this, "Wait", &NrvSwitchDitherMapParts.collector, 0);
     initMapPartsActor(this, info, nullptr);
 
     bool isListenStartOnOff = listenStageSwitchOnOff(

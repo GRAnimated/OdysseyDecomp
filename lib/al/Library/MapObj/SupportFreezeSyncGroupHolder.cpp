@@ -1,7 +1,7 @@
 #include "Library/MapObj/SupportFreezeSyncGroupHolder.h"
 
 #include "Library/LiveActor/ActorInitFunction.h"
-#include "Library/LiveActor/ActorSensorFunction.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Project/LiveActor/SupportFreezeSyncGroup.h"
 
 namespace al {
@@ -33,7 +33,7 @@ void SupportFreezeSyncGroupHolder::movement() {
 
 void SupportFreezeSyncGroupHolder::regist(LiveActor* actor, const ActorInitInfo& info) {
     SupportFreezeSyncGroup* supportFreezeSyncGroup = tryFindGroup(info);
-    if (supportFreezeSyncGroup == nullptr) {
+    if (!supportFreezeSyncGroup) {
         supportFreezeSyncGroup = new SupportFreezeSyncGroup();
         supportFreezeSyncGroup->init(info);
 

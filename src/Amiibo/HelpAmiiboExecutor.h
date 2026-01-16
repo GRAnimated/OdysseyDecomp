@@ -5,38 +5,40 @@
 #include "Library/HostIO/HioNode.h"
 
 namespace al {
-class NfpInfo;
+struct NfpInfo;
 class LiveActor;
-class ActorInitInfo;
+struct ActorInitInfo;
 }  // namespace al
 
 class HelpAmiiboDirector;
 
-enum class HelpAmiiboType : s32 {
-    PlayerInvincible = 0,
-    FallCoin = 1,
-    LifeMaxUpItem = 1,
-    CoinCollect = 2,
-    InvincibleAttack = 2,
-    NavigateCoinCollect = 2,
+enum class HelpAmiiboType : s64 {
+    Mario = 0,
+    Peach = 1,
+    Koopa = 2,
     Yoshi = 3,
-    CountUpCoin = 4,
+    All = 4,
 };
 
 class HelpAmiiboExecutor : public al::IUseHioNode {
 public:
-    HelpAmiiboExecutor(HelpAmiiboDirector*, al::LiveActor*, const char*);
+    HelpAmiiboExecutor(HelpAmiiboDirector* director, al::LiveActor* amiiboActor,
+                       const char* amiiboName);
 
-    virtual void initAfterPlacement(const al::ActorInitInfo&);
-    virtual bool isTriggerTouch(const al::NfpInfo&) const = 0;
+    virtual void initAfterPlacement(const al::ActorInitInfo& initInfo);
+    virtual bool isTriggerTouch(const al::NfpInfo& nfpInfo) const = 0;
     virtual bool isEnableUse() = 0;
     virtual bool execute() = 0;
     virtual void activate();
     virtual void deactivate();
     virtual HelpAmiiboType getType() const = 0;
 
-    bool tryTouch(const al::NfpInfo&);
+    bool tryTouch(const al::NfpInfo& nfpInfo);
     void tryExecute();
+
+    bool isTouched() const { return mIsTouched; }
+
+    HelpAmiiboDirector* getDirector() const { return mHelpAmiiboDirector; }
 
     al::LiveActor* getActor() const { return mHelpAmiiboActor; }
 

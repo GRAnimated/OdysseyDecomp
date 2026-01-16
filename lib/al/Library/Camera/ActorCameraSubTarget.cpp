@@ -1,7 +1,7 @@
 #include "Library/Camera/ActorCameraSubTarget.h"
 
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/LiveActor/LiveActor.h"
 
 namespace al {
@@ -50,9 +50,4 @@ void ActorBackAroundCameraSubTarget::calcTrans(sead::Vector3f* trans) const {
     calcFrontDir(&front, getActor());
     *trans += front * 200.0f;
 }
-
-const char* ActorBackAroundCameraSubTarget::getTargetName() const {
-    return mTargetName.cstr();
-}
-
 }  // namespace al

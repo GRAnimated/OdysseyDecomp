@@ -3,17 +3,17 @@
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorAreaFunction.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
-#include "Library/LiveActor/ActorInitFunction.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorModelFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/MapObj/ChildStep.h"
 #include "Library/Movement/SwingMovement.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Placement/PlacementFunction.h"
-#include "Library/Stage/StageSwitchKeeper.h"
+#include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 
 namespace {
@@ -36,9 +36,9 @@ void SwingMapParts::init(const ActorInitInfo& info) {
     mSwingMovement = new SwingMovement(info);
 
     if (mSwingMovement->isLeft())
-        initNerveAction(this, "MoveLeft", &NrvSwingMapParts.mCollector, 0);
+        initNerveAction(this, "MoveLeft", &NrvSwingMapParts.collector, 0);
     else
-        initNerveAction(this, "MoveRight", &NrvSwingMapParts.mCollector, 0);
+        initNerveAction(this, "MoveRight", &NrvSwingMapParts.collector, 0);
 
     tryInitSubActorKeeperChildStep(this, info);
     initMapPartsActor(this, info, nullptr);

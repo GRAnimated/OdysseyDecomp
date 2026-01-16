@@ -2,6 +2,7 @@
 
 #include <math/seadMatrix.h>
 #include <math/seadVector.h>
+#include <prim/seadStorageFor.h>
 
 namespace al {
 class Triangle;
@@ -39,17 +40,21 @@ public:
     const sead::Vector3f& calcAndGetFaceNormal();
     const sead::Vector3f& calcAndGetEdgeNormal(s32 index);
     const sead::Vector3f& calcAndGetPos(s32 index);
-    void getLocalPos(sead::Vector3f* localPos, s32 index) const;
-    void calcForceMovePower(sead::Vector3f* movePower, const sead::Vector3f& pos) const;
-    void calcForceRotatePower(sead::Quatf* rotatePower) const;
+    void getLocalPos(sead::Vector3f* pos, s32 index) const;
+    void calcForceMovePower(sead::Vector3f* power, const sead::Vector3f& pos) const;
+    void calcForceRotatePower(sead::Quatf* power) const;
     bool getAttributes(ByamlIter* iter) const;
     const HitSensor* getSensor() const;
     const sead::Matrix34f& getBaseMtx() const;
     const sead::Matrix34f& getBaseInvMtx() const;
     const sead::Matrix34f& getPrevBaseMtx() const;
 
-    friend bool ::operator==(const Triangle& tri1, const Triangle& tri2);
-    friend bool ::operator!=(const Triangle& tri1, const Triangle& tri2);
+    const CollisionParts* getCollisionParts() const { return mCollisionParts; }
+
+    // clang-format off
+    friend bool ::operator==(const Triangle& lhs, const Triangle& rhs);
+    friend bool ::operator!=(const Triangle& lhs, const Triangle& rhs);
+    // clang-format on
 
 private:
     const CollisionParts* mCollisionParts;
@@ -70,8 +75,7 @@ enum class CollisionLocation : u8 {
     Corner3 = 7,
 };
 
-class HitInfo {
-public:
+struct HitInfo {
     HitInfo();
 
     bool isCollisionAtFace() const;
@@ -79,27 +83,54 @@ public:
     bool isCollisionAtCorner() const;
     const sead::Vector3f& tryGetHitEdgeNormal() const;
 
-protected:
-    Triangle mTriangle;
+    Triangle triangle;
     f32 _70 = 0.0f;
-    sead::Vector3f mCollisionHitPos = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f collisionHitPos = {0.0f, 0.0f, 0.0f};
     sead::Vector3f _80 = {0.0f, 0.0f, 0.0f};
-    sead::Vector3f mCollisionMovingReaction = {0.0f, 0.0f, 0.0f};
-    CollisionLocation mCollisionLocation = CollisionLocation::None;
+    sead::Vector3f collisionMovingReaction = {0.0f, 0.0f, 0.0f};
+    CollisionLocation collisionLocation = CollisionLocation::None;
 };
 
-class ArrowHitInfo : public HitInfo {};
+struct ArrowHitInfo {
+    HitInfo* operator*() { return hitInfo.data(); }
 
-class SphereHitInfo : public HitInfo {
-public:
-    void calcFixVector(sead::Vector3f* a1, sead::Vector3f* a2) const;
-    void calcFixVectorNormal(sead::Vector3f* a1, sead::Vector3f* a2) const;
+    const HitInfo* operator*() const { return hitInfo.data(); }
+
+    HitInfo& operator->() { return *hitInfo; }
+
+    const HitInfo& operator->() const { return *hitInfo; }
+
+    sead::StorageFor<HitInfo> hitInfo{sead::ZeroInitializeTag{}};
 };
 
-class DiskHitInfo : public HitInfo {
-public:
+struct SphereHitInfo {
     void calcFixVector(sead::Vector3f* a1, sead::Vector3f* a2) const;
     void calcFixVectorNormal(sead::Vector3f* a1, sead::Vector3f* a2) const;
+
+    HitInfo* operator*() { return hitInfo.data(); }
+
+    const HitInfo* operator*() const { return hitInfo.data(); }
+
+    HitInfo& operator->() { return *hitInfo; }
+
+    const HitInfo& operator->() const { return *hitInfo; }
+
+    sead::StorageFor<HitInfo> hitInfo{sead::ZeroInitializeTag{}};
+};
+
+struct DiskHitInfo {
+    void calcFixVector(sead::Vector3f* a1, sead::Vector3f* a2) const;
+    void calcFixVectorNormal(sead::Vector3f* a1, sead::Vector3f* a2) const;
+
+    HitInfo* operator*() { return hitInfo.data(); }
+
+    const HitInfo* operator*() const { return hitInfo.data(); }
+
+    HitInfo& operator->() { return *hitInfo; }
+
+    const HitInfo& operator->() const { return *hitInfo; }
+
+    sead::StorageFor<HitInfo> hitInfo{sead::ZeroInitializeTag{}};
 };
 
 }  // namespace al

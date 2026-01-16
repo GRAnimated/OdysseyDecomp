@@ -5,7 +5,7 @@
 #include "Library/Camera/CameraUtil.h"
 #include "Library/Layout/LayoutActionFunction.h"
 #include "Library/Layout/LayoutInitInfo.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -33,8 +33,8 @@ bool isAreaMadness(al::AreaObj* area) {
 Compass::Compass(const char* name, const al::LayoutInitInfo& info,
                  const al::PlayerHolder* playerHolder)
     : al::LayoutActor(name), mPlayerHolder(playerHolder) {
-    al::initLayoutActor(this, info, "TestCompass", nullptr);
-    initNerve(&Appear, 0);
+    al::initLayoutActor(this, info, "TestCompass");
+    initNerve(&Appear);
 
     mSceneCamInfo = getCameraDirector()->getSceneCameraInfo();
     kill();
@@ -44,14 +44,14 @@ void Compass::appear() {
     if (GameDataFunction::isMainStage(this)) {
         al::LayoutActor::appear();
         al::setNerve(this, &Appear);
-        field_14C = 0.0f;
+        field_14c = 0.0f;
 
         al::LiveActor* player = al::tryGetPlayerActor(mPlayerHolder, 0);
 
-        if (player != nullptr) {
+        if (player) {
             al::AreaObj* area = al::tryFindAreaObj(player, "CompassArea", al::getTrans(player));
 
-            if (area != nullptr && isAreaMadness(area))
+            if (area && isAreaMadness(area))
                 return;
         }
 
@@ -74,12 +74,12 @@ void Compass::appear() {
     } else {
         al::LiveActor* player = al::tryGetPlayerActor(mPlayerHolder, 0);
 
-        if (player == nullptr || !al::isInAreaObj(player, "CompassArea", al::getTrans(player)))
+        if (!player || !al::isInAreaObj(player, "CompassArea", al::getTrans(player)))
             return;
 
         al::LayoutActor::appear();
         al::setNerve(this, &Appear);
-        field_14C = 0.0f;
+        field_14c = 0.0f;
     }
 }
 
@@ -90,7 +90,7 @@ void Compass::end() {
 
 void Compass::exeAppear() {
     if (al::isFirstStep(this))
-        al::startAction(this, "Appear", nullptr);
+        al::startAction(this, "Appear");
 
     updateLayout();
     al::setNerveAtActionEnd(this, &Wait);
@@ -100,17 +100,17 @@ void Compass::exeAppear() {
 
 void Compass::exeWait() {
     if (al::isFirstStep(this))
-        al::startAction(this, "Wait", nullptr);
+        al::startAction(this, "Wait");
 
     updateLayout();
 }
 
 void Compass::exeEnd() {
     if (al::isFirstStep(this))
-        al::startAction(this, "End", nullptr);
+        al::startAction(this, "End");
 
     updateLayout();
 
-    if (al::isActionEnd(this, nullptr))
+    if (al::isActionEnd(this))
         kill();
 }

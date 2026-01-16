@@ -35,14 +35,14 @@ bool AchievementHolder::isGetMoon(s32 index, GameDataHolderAccessor accessor) co
 
 bool AchievementHolder::isAchieve(s32 index, GameDataHolderAccessor accessor) const {
     return getAchievementProgressCurrent(index, accessor) >=
-           mAchievementInfoReader->get(index)->mNum;
+           mAchievementInfoReader->get(index)->num;
 }
 
 s32 AchievementHolder::getAchievementProgressCurrent(s32 index,
                                                      GameDataHolderAccessor accessor) const {
     s32 progressCurrentRow = getAchievementProgressCurrentRow(index, accessor);
     auto* infoItem = mAchievementInfoReader->get(index);
-    const char** name = infoItem ? &infoItem->mName : nullptr;
+    const char** name = infoItem ? &infoItem->name : nullptr;
 
     if (al::isEqualSubString(*name, "Shine_")) {
         s32 max = 999;
@@ -65,13 +65,13 @@ s32 AchievementHolder::getAchievementProgressCurrent(s32 index,
 }
 
 s32 AchievementHolder::getAchievementProgressMax(s32 index, GameDataHolderAccessor) const {
-    return mAchievementInfoReader->get(index)->mNum;
+    return mAchievementInfoReader->get(index)->num;
 }
 
 s32 AchievementHolder::getAchievementProgressCurrentRow(s32 index,
                                                         GameDataHolderAccessor accessor) const {
     auto* infoItem = mAchievementInfoReader->get(index);
-    const char** name = infoItem ? &infoItem->mName : nullptr;
+    const char** name = infoItem ? &infoItem->name : nullptr;
 
     if (al::isEqualString(*name, "Scenario_Ending"))
         return 1;
@@ -79,7 +79,7 @@ s32 AchievementHolder::getAchievementProgressCurrentRow(s32 index,
         return rs::calcClearWorldNum(accessor);
     if (al::isEqualString(*name, "Shine_Gather_1") || al::isEqualString(*name, "Shine_Gather_2") ||
         al::isEqualString(*name, "Shine_Gather_3"))
-        return GameDataFunction::getTotalShineNum(accessor, -1);
+        return GameDataFunction::getTotalShineNum(accessor);
     if (al::isEqualString(*name, "Shine_CollectCoinShop"))
         return rs::calcBuyItemNumForCoinCollectByWorld(accessor);
     if (al::isEqualString(*name, "Shine_Shine2D_1") || al::isEqualString(*name, "Shine_Shine2D_2"))
@@ -140,7 +140,7 @@ s32 AchievementHolder::getAchievementProgressCurrentRow(s32 index,
     if (al::isEqualString(*name, "Souvenir_Count_1") ||
         al::isEqualString(*name, "Souvenir_Count_2") ||
         al::isEqualString(*name, "Souvenir_Count_3"))
-        return rs::calcHaveStickerNum(accessor) + rs::calcHaveGiftNum(accessor);
+        return rs::calcHaveGiftNum(accessor) + rs::calcHaveStickerNum(accessor);
     if (al::isEqualString(*name, "Capture_Count_1") ||
         al::isEqualString(*name, "Capture_Count_2") || al::isEqualString(*name, "Capture_Count_3"))
         return rs::calcHackObjNum(accessor);
@@ -171,7 +171,7 @@ s32 AchievementHolder::calcAchieveTotalNum(GameDataHolderAccessor accessor) cons
     s32 count = 0;
 
     for (s32 i = 0; i < mArray.capacity(); i++)
-        if (getAchievementProgressCurrent(i, accessor) >= mAchievementInfoReader->get(i)->mNum)
+        if (getAchievementProgressCurrent(i, accessor) >= mAchievementInfoReader->get(i)->num)
             count++;
 
     return count;
@@ -190,7 +190,7 @@ s32 AchievementHolder::calcMoonGetTotalNum(GameDataHolderAccessor accessor) cons
 Achievement* AchievementHolder::tryGetNewAchievement(GameDataHolderAccessor accessor) const {
     for (s32 i = 0; i < mArray.capacity(); i++)
         if (!mArray[i]->isGet(accessor) &&
-            getAchievementProgressCurrent(i, accessor) >= mAchievementInfoReader->unsafeAt(i)->mNum)
+            getAchievementProgressCurrent(i, accessor) >= mAchievementInfoReader->unsafeAt(i)->num)
             return mArray[i];
     return nullptr;
 }

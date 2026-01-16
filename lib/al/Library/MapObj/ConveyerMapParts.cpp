@@ -2,16 +2,16 @@
 
 #include "Library/LiveActor/ActorClippingFunction.h"
 #include "Library/LiveActor/ActorInitFunction.h"
-#include "Library/LiveActor/ActorInitInfo.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorInitUtil.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/LiveActor/LiveActorGroup.h"
 #include "Library/MapObj/ConveyerStep.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Placement/PlacementFunction.h"
-#include "Library/Stage/StageSwitchKeeper.h"
+#include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 #include "Project/LiveActor/ConveyerKeyKeeper.h"
 
@@ -61,7 +61,7 @@ void ConveyerMapParts::init(const ActorInitInfo& info) {
 
     f32 totalMoveDistance = mConveyerKeyKeeper->getTotalMoveDistance();
     if (mConveyerKeyKeeper->getConveyerKeyCount() > 1)
-        isNearZero(totalMoveDistance, 0.001f);
+        isNearZero(totalMoveDistance);
 
     s32 groupCount = (s32)(totalMoveDistance / mPartsInterval) + 1;
     mMaxCoord = mPartsInterval * (f32)groupCount;

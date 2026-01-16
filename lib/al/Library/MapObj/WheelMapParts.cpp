@@ -5,10 +5,10 @@
 #include "Library/Effect/EffectSystemInfo.h"
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorAreaFunction.h"
-#include "Library/LiveActor/ActorInitFunction.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorModelFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/MapObj/ChildStep.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Matrix/MatrixUtil.h"
@@ -32,7 +32,7 @@ WheelMapParts::WheelMapParts(const char* name) : LiveActor(name) {}
 
 void WheelMapParts::init(const ActorInitInfo& info) {
     tryInitSubActorKeeperChildStep(this, info);
-    initNerveAction(this, "Wait", &NrvWheelMapParts.mCollector, 0);
+    initNerveAction(this, "Wait", &NrvWheelMapParts.collector, 0);
     initMapPartsActor(this, info, nullptr);
     tryGetQuatPtr(this);
     registerAreaHostMtx(this, info);
@@ -51,15 +51,15 @@ void WheelMapParts::init(const ActorInitInfo& info) {
 
 void WheelMapParts::control() {
     sead::Vector3f moveDir = mWheelMovement->getMoveDir();
-    if (mWheelMovement->get_50() < 0.0f)
+    if (mWheelMovement->deltaAngle() < 0.0f)
         moveDir *= -1;
 
     makeMtxUpFrontPos(&mSurfaceEffectMtx, sead::Vector3f::ey, moveDir, getTrans(this));
 
-    if (mSwitchKeepOnAreaGroup != nullptr)
+    if (mSwitchKeepOnAreaGroup)
         mSwitchKeepOnAreaGroup->update(getTrans(this));
 
-    if (mSwitchOnAreaGroup != nullptr)
+    if (mSwitchOnAreaGroup)
         mSwitchOnAreaGroup->update(getTrans(this));
 }
 
@@ -106,24 +106,24 @@ void WheelMapParts::appearAndSetStart() {
 void WheelMapParts::exeWait() {
     mWheelMovement->update(this);
 
-    if (mWheelMovement->get_66())
+    if (mWheelMovement->isInvertDirection())
         startHitReaction(this, "端点接触");
 
-    if (!isNearZero(mWheelMovement->get_48(), 0.2f))
+    if (!isNearZero(mWheelMovement->nextDeltaAngle(), 0.2f))
         startNerveAction(this, "Move");
 }
 
 void WheelMapParts::exeMove() {
     mWheelMovement->update(this);
 
-    if (mWheelMovement->get_66())
+    if (mWheelMovement->isInvertDirection())
         startHitReaction(this, "端点接触");
 
-    f32 fVar3 = mWheelMovement->get_48();
-    if (isNearZero(fVar3, 0.2f))
+    f32 nextDeltaAngle = mWheelMovement->nextDeltaAngle();
+    if (isNearZero(nextDeltaAngle, 0.2f))
         startNerveAction(this, "Wait");
     else
-        tryHoldSeWithParam(this, "Rotate", sead::Mathf::abs(fVar3), "回転速度");
+        tryHoldSeWithParam(this, "Rotate", sead::Mathf::abs(nextDeltaAngle), "回転速度");
 }
 
 void WheelMapParts::exeAssistStop() {

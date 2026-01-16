@@ -1,7 +1,8 @@
 #include "Npc/AchievementInfoReader.h"
 
 #include "Library/Base/StringUtil.h"
-#include "Library/Resource/ResourceUtil.h"
+#include "Library/Resource/Resource.h"
+#include "Library/Resource/ResourceFunction.h"
 #include "Library/Yaml/ByamlIter.h"
 
 AchievementInfoReader::AchievementInfoReader() = default;
@@ -41,7 +42,7 @@ void AchievementInfoReader::init() {
 
 s32 AchievementInfoReader::tryFindIndexByName(const char* name) const {
     for (s32 i = 0; i < mAchievements.size(); i++)
-        if (al::isEqualString(name, mAchievements[i]->mName))
+        if (al::isEqualString(name, mAchievements[i]->name))
             return i;
     return -1;
 }

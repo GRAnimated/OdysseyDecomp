@@ -6,7 +6,7 @@
 #include "Library/LiveActor/LiveActor.h"
 
 namespace al {
-class ActorInitInfo;
+struct ActorInitInfo;
 class BgmPlayObj;
 class CameraTicket;
 class EventFlowExecutor;
@@ -25,7 +25,7 @@ class Doshi : public al::LiveActor {
 public:
     Doshi(const char* name);
 
-    void init(const al::ActorInitInfo& initInfo) override;
+    void init(const al::ActorInitInfo& info) override;
     void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
     bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                     al::HitSensor* self) override;

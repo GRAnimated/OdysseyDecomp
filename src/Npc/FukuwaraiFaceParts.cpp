@@ -8,12 +8,11 @@
 #include "Library/LiveActor/ActorClippingFunction.h"
 #include "Library/LiveActor/ActorCollisionFunction.h"
 #include "Library/LiveActor/ActorFlagFunction.h"
-#include "Library/LiveActor/ActorInitInfo.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorModelFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
-#include "Library/LiveActor/ActorSensorFunction.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -189,7 +188,7 @@ bool FukuwaraiFaceParts::receiveMsg(const al::SensorMsg* message, al::HitSensor*
     return false;
 }
 
-// NON_MATCHING
+// NON_MATCHING: https://decomp.me/scratch/bIDOJ
 f32 FukuwaraiFaceParts::calcScore(bool isMario) const {
     if (!isPlaced())
         return 0.0f;
@@ -229,8 +228,8 @@ f32 FukuwaraiFaceParts::calcScore(bool isMario) const {
             return -5.0f;
     }
 
-    return bodyPart.mBasePoints + bodyPart.mDistancePoints * calcScoreDistRate() +
-           bodyPart.mAnglePoints * calcScoreAngleRate();
+    return bodyPart.basePoints + bodyPart.distancePoints * calcScoreDistRate() +
+           bodyPart.anglePoints * calcScoreAngleRate();
 }
 
 bool FukuwaraiFaceParts::isPlaced() const {

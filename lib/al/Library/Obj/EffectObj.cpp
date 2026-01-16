@@ -1,18 +1,18 @@
 #include "Library/Obj/EffectObj.h"
 
 #include "Library/Base/StringUtil.h"
-#include "Library/Collision/PartsConnector.h"
+#include "Library/Collision/PartsConnectorUtil.h"
 #include "Library/Effect/EffectKeeper.h"
 #include "Library/Effect/EffectSystemInfo.h"
-#include "Library/LiveActor/ActorInitFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorInitUtil.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Matrix/MatrixUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Obj/EffectObjFunction.h"
 #include "Library/Placement/PlacementFunction.h"
 #include "Library/Rail/RailUtil.h"
 #include "Library/Se/SeFunction.h"
-#include "Library/Stage/StageSwitchKeeper.h"
+#include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 
 namespace al {
@@ -50,7 +50,7 @@ void EffectObj::init(const ActorInitInfo& info) {
 }
 
 void EffectObj::initAfterPlacement() {
-    if (mMtxConnector == nullptr)
+    if (!mMtxConnector)
         return;
 
     attachMtxConnectorToCollision(mMtxConnector, this, false);
@@ -80,7 +80,7 @@ void EffectObj::control() {
             makeMtxFrontUpPos(&poseMtx, railDir, railUp, railTrans);
             updatePoseMtx(this, &poseMtx);
         }
-    } else if (mMtxConnector != nullptr)
+    } else if (mMtxConnector)
         connectPoseQT(this, mMtxConnector);
 
     makeMtxRT(&mBaseMtx, this);

@@ -8,18 +8,18 @@
 namespace al {
 class CameraTicket;
 class ICameraInput;
-class CameraFlagCtrl;
+struct CameraFlagCtrl;
 class IUseCamera;
 class CameraSubTargetBase;
 class CameraSubTargetTurnParam;
 class SceneCameraInfo;
 class PlacementId;
 class Resource;
-class ActorInitInfo;
+struct ActorInitInfo;
 class LiveActor;
 class PlacementInfo;
 class CameraPoser;
-class CameraPoseInfo;
+struct CameraPoseInfo;
 class CameraTargetBase;
 class Projection;
 class SimpleCameraInput;
@@ -39,12 +39,12 @@ const char* getViewName(const IUseCamera* user, s32 viewIdx);
 const char* getViewName(const SceneCameraInfo* info, s32 viewIdx);
 const sead::Matrix34f& getViewMtx(const IUseCamera* user, s32 viewIdx);
 const sead::Matrix34f& getViewMtx(const SceneCameraInfo* info, s32 viewIdx);
-sead::Matrix34f* getViewMtxPtr(const IUseCamera* user, s32 viewIdx);
-sead::Matrix34f* getViewMtxPtr(const SceneCameraInfo* info, s32 viewIdx);
+const sead::Matrix34f* getViewMtxPtr(const IUseCamera* user, s32 viewIdx);
+const sead::Matrix34f* getViewMtxPtr(const SceneCameraInfo* info, s32 viewIdx);
 const sead::Matrix44f& getProjectionMtx(const IUseCamera* user, s32 viewIdx);
 const sead::Matrix44f& getProjectionMtx(const SceneCameraInfo* info, s32 viewIdx);
-sead::Matrix44f* getProjectionMtxPtr(const IUseCamera* user, s32 viewIdx);
-sead::Matrix44f* getProjectionMtxPtr(const SceneCameraInfo* info, s32 viewIdx);
+const sead::Matrix44f* getProjectionMtxPtr(const IUseCamera* user, s32 viewIdx);
+const sead::Matrix44f* getProjectionMtxPtr(const SceneCameraInfo* info, s32 viewIdx);
 const sead::LookAtCamera& getLookAtCamera(const IUseCamera* user, s32 viewIdx);
 const sead::LookAtCamera& getLookAtCamera(const SceneCameraInfo* info, s32 viewIdx);
 const sead::Projection& getProjectionSead(const IUseCamera* user, s32 viewIdx);
@@ -81,9 +81,10 @@ bool tryCalcCameraDirH(sead::Vector3f* dirH, const SceneCameraInfo* info,
                        const sead::Vector3f& upDir, s32 viewIdx);
 bool tryCalcCameraLookDirH(sead::Vector3f* lookDirH, const SceneCameraInfo* info,
                            const sead::Vector3f& upDir, s32 viewIdx);
-void startCamera(const IUseCamera* user, CameraTicket* ticket, s32);
-void startCameraSub(const IUseCamera* user, CameraTicket* ticket, s32);
-void startAnimCamera(const IUseCamera* user, CameraTicket* ticket, const char* animName, s32);
+void startCamera(const IUseCamera* user, CameraTicket* ticket, s32 unk = -1);
+void startCameraSub(const IUseCamera* user, CameraTicket* ticket, s32 unk = -1);
+void startAnimCamera(const IUseCamera* user, CameraTicket* ticket, const char* animName,
+                     s32 unk = 0);
 void startAnimCameraAnim(CameraTicket* ticket, const char*, s32, s32, s32);
 void startAnimCameraWithStartStepAndEndStepAndPlayStep(const IUseCamera* user, CameraTicket* ticket,
                                                        const char* animName, s32, s32, s32, s32);

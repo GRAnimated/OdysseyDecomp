@@ -2,11 +2,11 @@
 
 #include <math/seadQuat.h>
 
-#include "Library/Collision/PartsConnector.h"
+#include "Library/Collision/PartsConnectorUtil.h"
 #include "Library/LiveActor/ActorActionFunction.h"
+#include "Library/LiveActor/ActorModelFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
-#include "Library/LiveActor/LiveActorUtil.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -26,7 +26,7 @@ CoinStateAppearRotate::CoinStateAppearRotate(al::LiveActor* actor, al::MtxConnec
 }
 
 void CoinStateAppearRotate::appear() {
-    setDead(false);
+    al::NerveStateBase::appear();
     al::setNerve(this, &NrvCoinStateAppearRotate.Rotate);
 }
 
@@ -46,7 +46,7 @@ void CoinStateAppearRotate::exeRotate() {
     al::calcUpDir(&upDir, actor);
     al::rotateVectorDegree(&frontDir, frontDir, upDir, 15.0f);
 
-    if (mMtxConnector == nullptr) {
+    if (!mMtxConnector) {
         al::getTransPtr(actor)->y = mInitialTransY + mOffset.y;
 
         sead::Quatf quad = sead::Quatf::unit;

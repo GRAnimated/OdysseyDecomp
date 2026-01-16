@@ -3,7 +3,7 @@
 #include "Library/Nerve/NerveStateBase.h"
 
 namespace al {
-class ActorInitInfo;
+struct ActorInitInfo;
 class HitSensor;
 class LiveActor;
 class SensorMsg;
@@ -16,10 +16,10 @@ public:
     EnemyStateDamageCap(al::LiveActor* actor);
     void kill() override;
 
-    void createEnemyCap(const al::ActorInitInfo&, const char*);
-    bool tryReceiveMsgCapBlow(const al::SensorMsg*, al::HitSensor*, al::HitSensor*);
+    void createEnemyCap(const al::ActorInitInfo& info, const char* name);
+    bool tryReceiveMsgCapBlow(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self);
     bool isCapOn() const;
-    void blowCap(al::HitSensor*);
+    void blowCap(al::HitSensor* source);
     void resetCap();
     void makeActorDeadCap();
 

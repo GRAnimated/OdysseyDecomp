@@ -7,11 +7,11 @@
 #include "Amiibo/HelpAmiiboExecutor.h"
 
 namespace al {
-class ActorInitInfo;
+struct ActorInitInfo;
 class IUseNerve;
 class LiveActor;
 class NerveKeeper;
-class NfpInfo;
+struct NfpInfo;
 }  // namespace al
 
 class HelpAmiiboDirector;
@@ -29,8 +29,10 @@ public:
     bool isEnableUse() override;
     bool execute() override;
     void activate() override;
-    HelpAmiiboType getType() const override;
-    al::NerveKeeper* getNerveKeeper() const override;
+
+    HelpAmiiboType getType() const override { return HelpAmiiboType::All; }
+
+    al::NerveKeeper* getNerveKeeper() const override { return mNerveKeeper; }
 
     void updateItemQT(al::LiveActor* actor);
 

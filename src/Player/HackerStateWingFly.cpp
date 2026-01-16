@@ -4,9 +4,8 @@
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorCollisionFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
-#include "Library/LiveActor/ActorSensorFunction.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -29,7 +28,7 @@ NERVES_MAKE_STRUCT(HostType, FlyRiseToHighest, Fall, Trample, UpperPunch, FlyRis
                    FallFly);
 }  // namespace
 
-bool isTriggerHacker(IUsePlayerHack** hacker) {
+inline bool isTriggerHacker(IUsePlayerHack** hacker) {
     return rs::isTriggerHackAnyButton(*hacker) || rs::isTriggerHackSwing(*hacker);
 }
 
@@ -41,7 +40,7 @@ HackerStateWingFly::HackerStateWingFly(al::LiveActor* actor, IUsePlayerHack** ha
 }
 
 void HackerStateWingFly::appear() {
-    setDead(false);
+    al::NerveStateBase::appear();
     mFallTimeDelay = 0;
 
     if (mIsJudgeFall) {
@@ -65,8 +64,7 @@ void HackerStateWingFly::goFlyRise() {
 }
 
 void HackerStateWingFly::attackSensor(al::HitSensor* self, al::HitSensor* other) {
-    if (mParam.actionTrample != nullptr &&
-        rs::trySendMsgPlayerReflectOrTrample(mActor, self, other)) {
+    if (mParam.actionTrample && rs::trySendMsgPlayerReflectOrTrample(mActor, self, other)) {
         al::setNerve(this, &NrvHostType.Trample);
         return;
     }
@@ -80,7 +78,7 @@ void HackerStateWingFly::attackSensor(al::HitSensor* self, al::HitSensor* other)
 }
 
 bool HackerStateWingFly::canUpperPunch(al::HitSensor* self, al::HitSensor* other) const {
-    if (mParam.actionUpperPunch == nullptr)
+    if (!mParam.actionUpperPunch)
         return false;
     if (al::isNerve(this, &NrvHostType.Fall))
         return false;
@@ -135,7 +133,7 @@ void HackerStateWingFly::updateMove() {
     rs::addHackActorAccelStick(actor, *mHacker, &dir, mAccel, sead::Vector3f::ey);
     al::turnToDirection(actor, dir, mParam.turnAngle);
 
-    if (mCollision != nullptr) {
+    if (mCollision) {
         rs::reboundVelocityFromCollision(actor, mCollision, 0.0f, 0.0f, 1.0f);
         return;
     }
@@ -157,7 +155,7 @@ void HackerStateWingFly::updateMove() {
 
 bool HackerStateWingFly::isOnGround() const {
     al::LiveActor* actor = mActor;
-    if (mCollision != nullptr)
+    if (mCollision)
         return rs::isOnGround(actor, mCollision);
 
     return al::isOnGround(actor, 0);

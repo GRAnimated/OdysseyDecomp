@@ -19,9 +19,12 @@ public:
     void endSubAnim();
 
     void updateAnimFrame();
+    void updateModelAlpha();
     void clearUpperBodyAnim();
+    void resetModelAlpha();
 
     bool isAnim(const sead::SafeString& animName) const;
+    bool isAnimEnd() const;
     bool isSubAnim(const sead::SafeString& subAnimName) const;
     bool isSubAnimEnd() const;
     bool isUpperBodyAnimAttached() const;
@@ -32,6 +35,7 @@ public:
     f32 getSubAnimFrame() const;
     f32 getSubAnimFrameMax() const;
     f32 getBlendWeight(s32 index);
+    f32 getModelAlpha() const;
 
     void setAnimRate(f32);
     void setAnimRateCommon(f32);
@@ -44,12 +48,19 @@ public:
     void setPartsAnimRate(f32, const char*);
     void setPartsAnimFrame(f32, const char*);
 
+    bool isSubAnimPlaying() const { return mIsSubAnimPlaying; }
+
 private:
     PlayerModelHolder* mModelHolder;
     al::LiveActor* mPlayerDeco;
     void* _10;
     PlayerAnimFrameCtrl* mAnimFrameCtrl;
-    sead::SafeString mCurAnim;
-    unsigned char padding_78[0x78 - 0x30];
-    sead::SafeString mCurSubAnim;
+    sead::FixedSafeString<64> mCurAnim;
+    sead::FixedSafeString<64> mCurSubAnim;
+    sead::FixedSafeString<64> mCurUpperBodyAnim;
+    sead::FixedSafeString<64> _128;
+    char padding_180[0x1A2 - 0x180];
+    bool mIsSubAnimPlaying;
 };
+
+static_assert(sizeof(PlayerAnimator) == 0x1a8);

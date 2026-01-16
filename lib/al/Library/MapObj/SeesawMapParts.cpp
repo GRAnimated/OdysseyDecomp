@@ -2,10 +2,10 @@
 
 #include "Library/LiveActor/ActorAreaFunction.h"
 #include "Library/LiveActor/ActorInitFunction.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorModelFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
-#include "Library/LiveActor/ActorSensorFunction.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/MapObj/ChildStep.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
@@ -25,7 +25,7 @@ SeesawMapParts::SeesawMapParts(const char* name) : LiveActor(name) {}
 
 void SeesawMapParts::init(const ActorInitInfo& info) {
     tryInitSubActorKeeperChildStep(this, info);
-    initNerveAction(this, "Wait", &NrvSeesawMapParts.mCollector, 0);
+    initNerveAction(this, "Wait", &NrvSeesawMapParts.collector, 0);
     initMapPartsActor(this, info, nullptr);
     tryGetQuatPtr(this);
 

@@ -1,13 +1,15 @@
 #include "Library/MapObj/RollingCubeMapParts.h"
 
+#include "Library/Base/StringUtil.h"
 #include "Library/Effect/EffectSystemInfo.h"
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
 #include "Library/LiveActor/ActorInitFunction.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/LiveActor/ActorResourceFunction.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -16,6 +18,7 @@
 #include "Library/Yaml/ByamlIter.h"
 #include "Library/Yaml/ByamlUtil.h"
 #include "Project/Joint/RollingCubePoseKeeper.h"
+#include "Project/Joint/RollingCubePoseKeeperUtil.h"
 
 namespace {
 using namespace al;
@@ -43,7 +46,7 @@ namespace al {
 RollingCubeMapParts::RollingCubeMapParts(const char* name) : LiveActor(name) {}
 
 void RollingCubeMapParts::init(const ActorInitInfo& info) {
-    initNerveAction(this, "Wait", &NrvRollingCubeMapParts.mCollector, 0);
+    initNerveAction(this, "Wait", &NrvRollingCubeMapParts.collector, 0);
     initMapPartsActor(this, info, nullptr);
     tryGetQuatPtr(this);
 
@@ -57,8 +60,8 @@ void RollingCubeMapParts::init(const ActorInitInfo& info) {
         mMoveLimitMtx->makeQT(mInitialPoseQuat, mInitialPoseTrans);
 
         mMoveLimitPartsModel = new PartsModel("");
-        sead::FixedSafeString<256> model;
-        sead::FixedSafeString<256> archive;
+        StringTmp<256> model;
+        StringTmp<256> archive;
         makeMapPartsModelName(&model, &archive, info);
         mMoveLimitPartsModel->initPartsSuffix(this, info, model.cstr(), "MoveLimit", mMoveLimitMtx,
                                               false);
@@ -104,7 +107,7 @@ bool RollingCubeMapParts::receiveMsg(const SensorMsg* message, HitSensor* other,
 }
 
 void RollingCubeMapParts::control() {
-    if (mMoveLimitMtx != nullptr)
+    if (mMoveLimitMtx)
         mMoveLimitMtx->makeQT(mInitialPoseQuat, getTrans(this));
 
     calcMtxLandEffect(&mLandEffectMtx, mRollingCubePoseKeeper, getQuat(this), getTrans(this));

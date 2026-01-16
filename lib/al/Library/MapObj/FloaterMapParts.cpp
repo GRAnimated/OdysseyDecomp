@@ -1,15 +1,15 @@
 #include "Library/MapObj/FloaterMapParts.h"
 
 #include "Library/Effect/EffectSystemInfo.h"
-#include "Library/KeyPose/KeyPoseKeeper.h"
+#include "Library/KeyPose/KeyPoseKeeperUtil.h"
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorAreaFunction.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
-#include "Library/LiveActor/ActorInitFunction.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorModelFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -29,7 +29,7 @@ namespace al {
 FloaterMapParts::FloaterMapParts(const char* name) : LiveActor(name) {}
 
 void FloaterMapParts::init(const ActorInitInfo& info) {
-    initNerveAction(this, "Wait", &NrvFloaterMapParts.mCollector, 0);
+    initNerveAction(this, "Wait", &NrvFloaterMapParts.collector, 0);
     initMapPartsActor(this, info, nullptr);
 
     tryGetQuatPtr(this);
@@ -96,7 +96,7 @@ void FloaterMapParts::appearAndSetStart() {
 }
 
 void FloaterMapParts::control() {
-    f32 rate = isNearZero(mMaxCoord, 0.001f) ? 0.0f : mCoord / mMaxCoord;
+    f32 rate = isNearZero(mMaxCoord) ? 0.0f : mCoord / mMaxCoord;
 
     calcLerpKeyTrans(getTransPtr(this), mKeyPoseKeeper, rate);
     calcSlerpKeyQuat(getQuatPtr(this), mKeyPoseKeeper, rate);

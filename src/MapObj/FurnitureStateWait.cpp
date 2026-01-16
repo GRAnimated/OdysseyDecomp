@@ -1,6 +1,6 @@
 #include "MapObj/FurnitureStateWait.h"
 
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -21,7 +21,7 @@ FurnitureStateWait::FurnitureStateWait(al::LiveActor* actor, FurnitureType furni
 }
 
 void FurnitureStateWait::appear() {
-    setDead(false);
+    al::NerveStateBase::appear();
     al::setNerve(this, &NrvFurnitureStateWait.Wait);
     mIsPlayerNotOnGround = !rs::isPlayerOnGround(mActor);
     mPlayerState = PlayerFurnitureState::Unbound;
@@ -50,7 +50,7 @@ void FurnitureStateWait::exeWait() {
 
     bool isPlayerOnGround = rs::isPlayerOnGround(actor);
     const sead::Vector3f& newPlayerPos = rs::getPlayerPos(actor);
-    bool isPlayerStationary = al::isNearZero(mPlayerPos - newPlayerPos, 0.001f);
+    bool isPlayerStationary = al::isNearZero(mPlayerPos - newPlayerPos);
     mPlayerPos = newPlayerPos;
 
     if (!isPlayerOnSomething || !isPlayerNoInput || !isPlayerStationary) {

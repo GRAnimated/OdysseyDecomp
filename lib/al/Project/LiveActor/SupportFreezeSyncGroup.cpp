@@ -1,12 +1,12 @@
 #include "Project/LiveActor/SupportFreezeSyncGroup.h"
 
 #include "Library/HitSensor/HitSensorKeeper.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/LiveActor/LiveActor.h"
 #include "Library/Placement/PlacementFunction.h"
 
 namespace al {
-SupportFreezeSyncGroup::SupportFreezeSyncGroup() {}
+SupportFreezeSyncGroup::SupportFreezeSyncGroup() = default;
 
 void SupportFreezeSyncGroup::init(const ActorInitInfo& info) {
     alPlacementFunction::getLinkGroupId(mSupportFreezeSyncGroupId, info, "SupportFreezeSyncGroup");
@@ -47,9 +47,9 @@ void SupportFreezeSyncGroup::movement() {
 
     for (s32 i = 0; i < mActorCount; i++)
         if (isAnyNerveSupportFreeze)
+            sendMsgOnSyncSupportFreeze(mActors[i]->getHitSensorKeeper()->getSensor(0), mHostSensor);
+        else
             sendMsgOffSyncSupportFreeze(mActors[i]->getHitSensorKeeper()->getSensor(0),
                                         mHostSensor);
-        else
-            sendMsgOnSyncSupportFreeze(mActors[i]->getHitSensorKeeper()->getSensor(0), mHostSensor);
 }
 }  // namespace al

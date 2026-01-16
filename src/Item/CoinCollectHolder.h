@@ -5,6 +5,8 @@
 
 #include "Library/Scene/ISceneObj.h"
 
+#include "Scene/SceneObjFactory.h"
+
 namespace al {
 class IUseSceneObjHolder;
 }  // namespace al
@@ -15,6 +17,8 @@ class CoinCollectHintObj;
 
 class CoinCollectHolder : public al::ISceneObj {
 public:
+    static constexpr s32 sSceneObjId = SceneObjID_CoinCollectHolder;
+
     CoinCollectHolder();
 
     const char* getSceneObjName() const override;
@@ -28,7 +32,7 @@ public:
     CoinCollect* tryFindDeadButHintEnableCoinCollect() const;
     CoinCollect2D* tryFindAliveCoinCollect2D(const sead::Vector3f&, bool) const;
     CoinCollect2D* tryFindAliveCoinCollect2D(const sead::Vector3f&, f32, f32, bool) const;
-    CoinCollectHintObj* tryFindExStageHintObjTrans(sead::Vector3f*, const char*);
+    bool tryFindExStageHintObjTrans(sead::Vector3f*, const char*);
 };
 
 namespace rs {

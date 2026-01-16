@@ -1,6 +1,6 @@
 #include "Item/CoinCollectWatcher.h"
 
-#include "Library/LiveActor/ActorInitInfo.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/Player/PlayerUtil.h"
 #include "Library/Scene/IUseSceneObjHolder.h"
 #include "Library/Se/SeFunction.h"
@@ -11,12 +11,8 @@
 
 CoinCollectWatcher::CoinCollectWatcher() : al::ISceneObj() {}
 
-const char* CoinCollectWatcher::getSceneObjName() const {
-    return "コインコレクト監視者";
-}
-
-void CoinCollectWatcher::initAfterPlacementSceneObj(const al::ActorInitInfo& initInfo) {
-    mCoinCollectLayout = new CoinCollectLayout(al::getLayoutInitInfo(initInfo));
+void CoinCollectWatcher::initAfterPlacementSceneObj(const al::ActorInitInfo& info) {
+    mCoinCollectLayout = new CoinCollectLayout(al::getLayoutInitInfo(info));
 }
 
 void CoinCollectWatcher::registerCoin(bool isCountUpCoin) {

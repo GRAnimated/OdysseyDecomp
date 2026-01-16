@@ -14,24 +14,24 @@ public:
     EnemyStateBlowDownParam(const char* actionName);
     EnemyStateBlowDownParam(const char* actionName, f32 velocityStrength, f32 gravityStrength,
                             f32 velocityMultiplier, f32 velocityScale, s32 blowDownLength,
-                            bool faceAwayFromActor);
+                            bool isFaceAwayFromActor);
 
-    const char* mActionName = "BlowDown";
-    f32 mVelocityStrength = 10.3f;
-    f32 mGravityStrength = 28.2f;
-    f32 mVelocityMultiplier = 1.1f;
-    f32 mVelocityScale = 0.995f;
-    s32 mBlowDownLength = 120;
-    bool mFaceAwayFromActor = true;
+    const char* actionName = "BlowDown";
+    f32 velocityStrength = 10.3f;
+    f32 gravityStrength = 28.2f;
+    f32 velocityMultiplier = 1.1f;
+    f32 velocityScale = 0.995f;
+    s32 blowDownLength = 120;
+    bool isFaceAwayFromActor = true;
 };
 
 class EnemyStateBlowDown : public ActorStateBase {
 public:
-    EnemyStateBlowDown(LiveActor*, const EnemyStateBlowDownParam*, const char*);
-    void start(const HitSensor*);
-    void start(const sead::Vector3f&);
-    void start(const HitSensor*, const HitSensor*);
-    void start(const LiveActor*);
+    EnemyStateBlowDown(LiveActor* actor, const EnemyStateBlowDownParam* param, const char* name);
+    void start(const HitSensor* other);
+    void start(const sead::Vector3f& dir);
+    void start(const HitSensor* other, const HitSensor* self);
+    void start(const LiveActor* attacker);
 
     void appear() override;
     void kill() override;

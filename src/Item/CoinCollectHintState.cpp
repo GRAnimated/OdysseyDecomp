@@ -4,7 +4,7 @@
 
 #include "Library/Camera/CameraUtil.h"
 #include "Library/Effect/EffectSystemInfo.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/LiveActor/LiveActor.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -24,13 +24,13 @@ void CoinCollectHintState::init() {
 
 void CoinCollectHintState::appear() {
     al::setNerve(this, &NrvCoinCollectHintState.Wait);
-    setDead(false);
+    al::NerveStateBase::appear();
     appearHintEffect();
 }
 
 void CoinCollectHintState::kill() {
     al::deleteEffect(mActor, "Emission");
-    setDead(true);
+    al::NerveStateBase::kill();
 }
 
 void CoinCollectHintState::deleteHintEffect() {

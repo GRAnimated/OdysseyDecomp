@@ -15,10 +15,10 @@ public:
 
     void init();
     void resetAction(bool);
-    void restartAction(bool);
+    void restartAction();
     void startAction(const char*);
     void checkAndPlayStart(f32, f32, f32, bool);
-    void update(f32, f32, f32, bool);
+    void update(f32 frame, f32 frameRateMax, f32 frameRate, bool isStop);
     void resetState();
 };
 }  // namespace al

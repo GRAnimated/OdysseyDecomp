@@ -1,7 +1,7 @@
 #include "Player/PlayerJudgeDirectRolling.h"
 
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Math/MathUtil.h"
 
 #include "Player/IPlayerModelChanger.h"
@@ -30,8 +30,4 @@ void PlayerJudgeDirectRolling::update() {
     sead::Vector3f horizontalSpeed = {0.0f, 0.0f, 0.0f};
     al::verticalizeVec(&horizontalSpeed, al::getGravity(mPlayer), al::getVelocity(mPlayer));
     mIsJudge = horizontalSpeed.length() >= mConst->getDashJudgeSpeed();
-}
-
-bool PlayerJudgeDirectRolling::judge() const {
-    return mIsJudge;
 }

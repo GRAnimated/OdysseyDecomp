@@ -31,6 +31,8 @@ class SeadAudioPlayer;
 class AudioBusSendFader;
 class SimpleAudioUser;
 class ScreenCaptureExecutor;
+class GamePadSystem;
+class EffectSystem;
 
 }  // namespace al
 
@@ -38,7 +40,7 @@ class HakoniwaSequence : public al::Sequence {
 public:
     HakoniwaSequence(const char* name);
 
-    void init(const al::SequenceInitInfo& info) override;
+    void init(const al::SequenceInitInfo& initInfo) override;
     void update() override;
     void drawMain() const override;
 
@@ -84,7 +86,7 @@ private:
     bool _100;
     sead::FixedSafeString<128> mStageName;
     s32 mNextScenarioNum;
-    s32 _1A4;
+    s32 _1a4;
     al::ScreenCaptureExecutor* mScreenCaptureExecutor;
     al::WipeHolder* mWipeHolder;
     bool mIsMissEnd;

@@ -7,11 +7,10 @@
 #include "Library/LiveActor/ActorAnimFunction.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
 #include "Library/LiveActor/ActorCollisionFunction.h"
-#include "Library/LiveActor/ActorInitInfo.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
-#include "Library/LiveActor/ActorPoseKeeper.h"
-#include "Library/LiveActor/ActorSensorFunction.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
+#include "Library/LiveActor/ActorPoseUtil.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -46,7 +45,7 @@ void Player::exeWait() {
 
     if (al::isPadTriggerA(mPort))
         al::setNerve(this, &NrvPlayer.Jump);
-    else if (!al::isNearZero(al::getLeftStick(mPort), 0.001f))
+    else if (!al::isNearZero(al::getLeftStick(mPort)))
         al::setNerve(this, &NrvPlayer.Run);
 }
 
@@ -136,7 +135,7 @@ void Player::control() {
     }
 }
 
-// NON_MATCHING: issue with getting actorTrans
+// NON_MATCHING: issue with getting actorTrans (https://decomp.me/scratch/yXJNN)
 void Player::attackSensor(al::HitSensor* self, al::HitSensor* other) {
     const sead::Vector3f& actorTransRef = al::getActorTrans(other);
     const sead::Vector3f& transRef = al::getTrans(this);
@@ -158,7 +157,7 @@ bool Player::receiveMsg(const al::SensorMsg* message, al::HitSensor* other, al::
             al::verticalizeVec(&offset, al::getGravity(this), offset);
             al::tryNormalizeOrZero(&offset);
 
-            if (!al::isNearZero(offset, 0.001f)) {
+            if (!al::isNearZero(offset)) {
                 sead::Vector3f* front = al::getFrontPtr(this);
                 front->set(offset);
             }

@@ -1,9 +1,10 @@
 #include "Library/MapObj/FixMapParts.h"
 
+#include "Library/Demo/DemoFunction.h"
 #include "Library/LiveActor/ActorActionFunction.h"
-#include "Library/LiveActor/ActorInitInfo.h"
-#include "Library/LiveActor/ActorSensorMsgFunction.h"
-#include "Library/LiveActor/LiveActorUtil.h"
+#include "Library/LiveActor/ActorInitUtil.h"
+#include "Library/LiveActor/ActorModelFunction.h"
+#include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/Placement/PlacementFunction.h"
 #include "Library/Stage/StageSwitchUtil.h"
 
@@ -17,7 +18,7 @@ void FixMapParts::init(const ActorInitInfo& info) {
     trySyncStageSwitchAppearAndKill(this);
     registActorToDemoInfo(this, info);
 
-    if (getModelKeeper() != nullptr && !isExistAction(this) && !isViewDependentModel(this))
+    if (getModelKeeper() && !isExistAction(this) && !isViewDependentModel(this))
         mIsStatic = true;
 }
 

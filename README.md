@@ -1,6 +1,14 @@
-# OdysseyDecomp ![Decompiled Status](https://img.shields.io/badge/dynamic/json?url=https://monsterdruide.one/OdysseyDecomp/progress.json&query=$.matching&suffix=%&label=decompiled&color=blue)
+# OdysseyDecomp 
 
-Decompilation of all Super Mario Odyssey versions, from 1.0.0 to 1.3.0.
+ [![Decompilation Progress][progress-badge]][progress] [![Discord Channel][discord-badge]][discord]
+
+[progress]: https://decomp.dev/MonsterDruide1/OdysseyDecomp
+[progress-badge]: https://img.shields.io/badge/dynamic/json?url=https://monsterdruide.one/OdysseyDecomp/progress.json&query=$.matching&suffix=%&label=decompiled&color=blue
+
+[discord]: https://discord.gg/uUecWhMHZy
+[discord-badge]: https://img.shields.io/discord/774687602996936747?color=%237289DA&logo=discord&logoColor=%23FFFFFF
+
+This is a WIP decompilation of Super Mario Odyssey 1.0.0. The purpose of the project is to recreate a source code base for the game from scratch. For more information, you can get in touch with the team on the [SMO Modding Discord Server][discord].
 
 # Building
 
@@ -11,7 +19,7 @@ Decompilation of all Super Mario Odyssey versions, from 1.0.0 to 1.3.0.
 ## For Windows users
 
 While Linux is not a hard requirement, it is strongly advised
-to [set up WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) to simplify the setup process. Ubuntu 22.04
+to [set up WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10) to simplify the setup process. Ubuntu 24.04
 is usually a good choice.
 
 The instructions below assume that you are using Linux (native or WSL) or macOS.
@@ -38,7 +46,10 @@ with the following content:
 export USE_NIX=true
 ```
 
-Finally, run `direnv allow` to setup all dependencies. The remainder of this section can be skipped.
+Run `direnv allow` to setup all dependencies, and run `direnv exec . bash` to ensure that you can access the dev shell.
+If `echo $IN_NIX_SHELL` prints "impure", then you have successfully entered the dev shell.
+The rest of the guide must be done with inside the dev shell, or you will get errors like `ModuleNotFoundError: No module named 'toml'`.
+The remainder of this section can be skipped.
 
 All other systems have to manually install the required packages and programs. We will need:
 
@@ -48,13 +59,12 @@ All other systems have to manually install the required packages and programs. W
     * If you are on Ubuntu 18.04, you must
       first [update CMake by using the official CMake APT repository](https://apt.kitware.com/).
 * ccache (to speed up builds)
-* xdelta3
-* clang (not for compiling SMO code, but for compiling Rust tools)
+* llvm-objdump
 
 Ubuntu users can install those dependencies by running:
 
 ```shell
-sudo apt install python3 ninja-build cmake ccache xdelta3 clang libssl-dev libncurses5
+sudo apt install python3 ninja-build cmake ccache libssl-dev libncurses5 llvm
 ```
 
 If you are running Ubuntu 23.10 or later, the `libncurses5` package won't be available anymore. You can install it from
@@ -86,14 +96,11 @@ Additionally, you'll also need:
       follow [the instructions on the wiki](https://zeldamods.org/wiki/Help:Dumping_games#Dumping_binaries_.28executable_files.29).
     * You do not need to dump the entire game (RomFS + ExeFS + DLC). Just dumping the 1.0 ExeFS is sufficient.
 
-3. Run `tools/setup.py [path to the NSO]`
+3. If you are using Nix, run `nix run '.#setup' [path to the NSO]`. For all others, run `tools/setup.py [path to the NSO]`
     * This will:
         * install tools/check to check for differences in decompiled code
         * convert the executable if necessary
-        * set up [Clang 3.9.1](https://releases.llvm.org/download.html#3.9.1) by downloading it from the official LLVM
-          website
-        * set up [Clang 4.0.1](https://releases.llvm.org/download.html#4.0.1) by downloading it from the official LLVM
-          website
+        * set up clang, ld.lld and other tools by downloading them from the releases of [OdysseyDecompToolsCache](https://github.com/MonsterDruide1/OdysseyDecompToolsCache/)
         * create a build directory in `build/`
     * If something goes wrong, follow the instructions given to you by the script.
     * If you wish to use a CMake generator that isn't Ninja, use `--cmake_backend` to specify it.
@@ -120,19 +127,6 @@ Anyone is welcome to contribute to this project, just send a pull request!
 
 - Enable comparison between different versions and check for mis-matches in all versions using `tools/check`
 - 1.3.0 uses a different optimization method, find it and implement it into the toolchain
-
-#### from the re-organization
-
-- Rework the al/Library/Yaml-File structure (should be fewer files, merge a few of them)
-- Find proper place for Factories (+Placement of ActorFactory?)
-- Graph in Rails misordered
-- LiveActorGroup vs. Kit are in the wrong order
-- Split files/functions in Library/Resource
-- Library/Stage: Proper place for StageInfo
-- Library/Math: Split up into multiple files
-- Library/Player: Re-organize Util
-- game/Util/ResourceUtil remove/cleanup
-- Once open-ead/sead#130 is merged, clean up RootTask
 
 # Credits
 
