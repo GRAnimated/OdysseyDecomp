@@ -5,14 +5,14 @@
 #include "Library/LiveActor/LiveActor.h"
 
 namespace al {
-class ActorInitInfo;
+struct ActorInitInfo;
 class EventFlowExecutor;
 }  // namespace al
 
 class ShineTowerNpc : public al::LiveActor {
 public:
     ShineTowerNpc(const char* name);
-    void init(const al::ActorInitInfo& actorInitInfo) override;
+    void init(const al::ActorInitInfo& info) override;
     void noBalloon();
     void startBalloon();
     void exeWait();

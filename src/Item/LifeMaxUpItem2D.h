@@ -8,7 +8,7 @@
 #include "Util/IUseDimension.h"
 
 namespace al {
-class ActorInitInfo;
+struct ActorInitInfo;
 class HitSensor;
 }  // namespace al
 
@@ -20,7 +20,7 @@ class LifeMaxUpItem2D : public al::LiveActor, public IUseDimension {
 public:
     LifeMaxUpItem2D(const char* name);
 
-    void init(const al::ActorInitInfo& initInfo) override;
+    void init(const al::ActorInitInfo& info) override;
     bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                     al::HitSensor* self) override;
     ActorDimensionKeeper* getActorDimensionKeeper() const override;

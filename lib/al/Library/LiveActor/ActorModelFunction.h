@@ -97,8 +97,8 @@ void calcJointAngleYDirToTargetOnXDir(const LiveActor* actor, const char*, const
 void calcJointAngleYDirToTargetOnZDir(const LiveActor* actor, const char*, const sead::Vector3f&);
 void calcJointAngleZDirToTargetOnXDir(const LiveActor* actor, const char*, const sead::Vector3f&);
 void calcJointAngleZDirToTargetOnYDir(const LiveActor* actor, const char*, const sead::Vector3f&);
-void getMaterialName(const LiveActor* actor, s32);
-void getMaterialCount(const LiveActor* actor);
+const char* getMaterialName(const LiveActor* actor, s32);
+s32 getMaterialCount(const LiveActor* actor);
 bool isExistMaterial(const LiveActor* actor, const char*);
 nn::g3d::MaterialObj* getMaterialObj(const LiveActor* actor, s32);
 nn::g3d::MaterialObj* getMaterialObj(const LiveActor* actor, const char*);
@@ -163,12 +163,12 @@ void replaceMaterialResTexture(LiveActor*, const char*, const char*, nn::gfx::De
 void replaceMaterialLayoutTexture(LiveActor* actor, const LayoutTextureRenderObj*, const char*,
                                   const char*);
 void recreateModelDisplayList(const LiveActor* actor);
-s32 calcPolygonNum(const LiveActor* actor, s32);
-s32 calcPolygonNumCurrentLod(const LiveActor* actor);
-s32 calcPolygonNumCurrentLodWithoutVisAnim(const LiveActor* actor);
-s32 getLodLevel(const LiveActor* actor);
-s32 getMaterialLodLevel(const LiveActor* actor);
-s32 getLodLevelNoClamp(const LiveActor* actor);
+void calcPolygonNum(const LiveActor* actor, s32);
+void calcPolygonNumCurrentLod(const LiveActor* actor);
+void calcPolygonNumCurrentLodWithoutVisAnim(const LiveActor* actor);
+void getLodLevel(const LiveActor* actor);
+void getMaterialLodLevel(const LiveActor* actor);
+void getLodLevelNoClamp(const LiveActor* actor);
 s32 getLodModelCount(const LiveActor* actor);
 void forceLodLevel(LiveActor* actor, s32);
 void unforceLodLevel(LiveActor* actor);

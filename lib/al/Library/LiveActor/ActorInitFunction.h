@@ -12,7 +12,7 @@ class NerveActionCollector;
 }
 
 namespace al {
-class ActorInitInfo;
+struct ActorInitInfo;
 class ActorResource;
 class ByamlIter;
 class HitSensor;
@@ -23,8 +23,8 @@ class Resource;
 class ShadowMaskBase;
 
 void initActorSceneInfo(LiveActor* actor, const ActorInitInfo& info);
-void initExecutorUpdate(LiveActor* actor, const ActorInitInfo& info, const char*);
-void initExecutorDraw(LiveActor* actor, const ActorInitInfo& info, const char*);
+void initExecutorUpdate(LiveActor* actor, const ActorInitInfo& info, const char* listName);
+void initExecutorDraw(LiveActor* actor, const ActorInitInfo& info, const char* listName);
 void initExecutorPlayer(LiveActor* actor, const ActorInitInfo& info);
 void initExecutorPlayerPreMovement(LiveActor* actor, const ActorInitInfo& info);
 void initExecutorPlayerMovement(LiveActor* actor, const ActorInitInfo& info);

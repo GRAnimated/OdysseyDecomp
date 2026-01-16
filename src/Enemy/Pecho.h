@@ -7,7 +7,7 @@
 #include "Library/LiveActor/LiveActor.h"
 
 namespace al {
-class ActorInitInfo;
+struct ActorInitInfo;
 class AnimScaleController;
 class HitSensor;
 class SensorMsg;
@@ -17,7 +17,7 @@ class Pecho : public al::LiveActor {
 public:
     Pecho(const char* name);
 
-    void init(const al::ActorInitInfo& initInfo) override;
+    void init(const al::ActorInitInfo& info) override;
     bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                     al::HitSensor* self) override;
     void attackSensor(al::HitSensor* self, al::HitSensor* other) override;

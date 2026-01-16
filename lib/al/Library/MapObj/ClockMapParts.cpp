@@ -15,7 +15,7 @@
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Placement/PlacementFunction.h"
 #include "Library/Se/SeFunction.h"
-#include "Library/Stage/StageSwitchKeeper.h"
+#include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 
 #include "MapObj/SubActorLodFixPartsScenarioAction.h"
@@ -93,7 +93,7 @@ void ClockMapParts::init(const ActorInitInfo& info) {
     if (isExistModel(this)) {
         mRippleCtrl = RippleCtrl::tryCreate(this);
 
-        if (mRippleCtrl != nullptr)
+        if (mRippleCtrl)
             mRippleCtrl->init(info);
     }
 
@@ -209,7 +209,7 @@ void ClockMapParts::setRestartNerve() {
 }
 
 void ClockMapParts::control() {
-    if (mRippleCtrl == nullptr)
+    if (!mRippleCtrl)
         return;
 
     mRippleCtrl->update();

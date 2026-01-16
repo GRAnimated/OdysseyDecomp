@@ -13,6 +13,13 @@ class AnimPlayerSkl;
 class AnimPlayerVis;
 class ModelCtrl;
 class DitherAnimator;
+class ModelLodCtrl;
+class GpuMemAllocator;
+class ModelShaderHolder;
+class ModelOcclusionCullingDirector;
+class ShadowDirector;
+class PrepassTriangleCulling;
+class Resource;
 
 class ModelKeeper : public HioNode {
 public:
@@ -20,10 +27,24 @@ public:
 
     virtual ~ModelKeeper();
 
-    void calc(const sead::Matrix34f&, const sead::Vector3f&);
-    void initResource();
+    void initResource(const ActorResource*);
     void createMatAnimForProgram(s32);
+    void setDisplayRootJointMtxPtr(const sead::Matrix34f* mtx);
+    void setModelLodCtrl(ModelLodCtrl* modelLodCtrl);
     void setDitherAnimator(DitherAnimator* ditherAnimator);
+    void initModel(s32, GpuMemAllocator*, ModelShaderHolder*, ModelOcclusionCullingDirector*,
+                   ShadowDirector*, PrepassTriangleCulling*);
+    void show();
+    void hide();
+    void update();
+    void updateLast();
+    void calc(const sead::Matrix34f&, const sead::Vector3f&);
+    const sead::Matrix34f* getBaseMtx() const;
+    sead::Matrix34f* getWorldMtxPtrByIndex(s32 index) const;
+    Resource* getAnimResource() const;
+    Resource* getModelResource() const;
+
+    const char* getName() const { return mName; }
 
     void update();
     void show();

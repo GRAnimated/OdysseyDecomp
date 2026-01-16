@@ -14,7 +14,7 @@
 #include "Library/Nerve/NerveStateCtrl.h"
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Rail/RailUtil.h"
-#include "Library/Stage/StageSwitchKeeper.h"
+#include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 
 namespace al {
@@ -86,10 +86,10 @@ bool RailMoveMapParts::receiveMsg(const SensorMsg* message, HitSensor* other, Hi
 }
 
 void RailMoveMapParts::control() {
-    if (mSwitchKeepOnAreaGroup != nullptr)
+    if (mSwitchKeepOnAreaGroup)
         mSwitchKeepOnAreaGroup->update(getTrans(this));
 
-    if (mSwitchOnAreaGroup != nullptr)
+    if (mSwitchOnAreaGroup)
         mSwitchOnAreaGroup->update(getTrans(this));
 }
 

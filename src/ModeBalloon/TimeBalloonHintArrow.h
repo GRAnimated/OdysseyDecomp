@@ -5,7 +5,7 @@
 #include "Library/LiveActor/LiveActor.h"
 
 namespace al {
-class ActorInitInfo;
+struct ActorInitInfo;
 class HitSensor;
 class SensorMsg;
 }  // namespace al
@@ -14,7 +14,7 @@ class TimeBalloonHintArrow : public al::LiveActor {
 public:
     TimeBalloonHintArrow();
 
-    void init(const al::ActorInitInfo& initInfo) override;
+    void init(const al::ActorInitInfo& info) override;
     bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                     al::HitSensor* self) override;
     void appear() override;

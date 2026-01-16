@@ -5,14 +5,14 @@
 #include "Library/Nerve/NerveStateBase.h"
 
 namespace al {
-class ActorInitInfo;
+struct ActorInitInfo;
 }
 
 class EnemyCap;
 
 class EnemyStateReset : public al::ActorStateBase {
 public:
-    EnemyStateReset(al::LiveActor*, const al::ActorInitInfo&, EnemyCap*);
+    EnemyStateReset(al::LiveActor* actor, const al::ActorInitInfo& info, EnemyCap* cap);
 
     void appear() override;
     void kill() override;

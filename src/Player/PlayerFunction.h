@@ -1,23 +1,24 @@
 #pragma once
 
-#include <math/seadVector.h>
+#include <math/seadMatrix.h>
 #include <prim/seadSafeString.h>
 
 namespace al {
 class LiveActor;
-class ActorInitInfo;
+struct ActorInitInfo;
 class Resource;
 class AudioKeeper;
 }  // namespace al
 
 class PlayerConst;
 class PlayerCostumeInfo;
-class PlayerBodyCostumeInfo;
+struct PlayerBodyCostumeInfo;
 class PlayerJointControlPartsDynamics;
 
 class PlayerFunction {
 public:
     static u32 getPlayerInputPort(const al::LiveActor*);
+    static const sead::Matrix34f& getPlayerViewMtx(const al::LiveActor*);
     static bool tryActivateAmiiboPreventDamage(const al::LiveActor*);
     static bool isPlayerDeadStatus(const al::LiveActor* player);
     static void syncBodyHairVisibility(al::LiveActor*, al::LiveActor*);

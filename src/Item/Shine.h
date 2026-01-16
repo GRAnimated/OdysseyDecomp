@@ -10,7 +10,7 @@ class Shine : public al::LiveActor, public IUseDimension {
 public:
     Shine(const char*);
 
-    void init(const al::ActorInitInfo&) override;
+    void init(const al::ActorInitInfo& info) override;
     al::LiveActor* getCurrentModel();
     bool tryExpandShadowAndClipping();
     void initAppearDemo(const al::ActorInitInfo&);
@@ -114,10 +114,19 @@ public:
 
     void set_16c(const sead::Vector3f& newValue) { _16c.set(newValue); }
 
+    bool isMainShine() const { return mIsMainShine; }
+
 private:
-    char filler_16c[92];
+    char filler_110[92];
     sead::Vector3f _16c;
-    void* filler_380[65];
+    void* filler[35];
+    s32 filler2;
+    bool mIsMainShine;
+    void* filler3[29];
 };
 
 static_assert(sizeof(Shine) == 0x380);
+
+namespace ShineFunction {
+const char* getMovePointLinkName();
+}

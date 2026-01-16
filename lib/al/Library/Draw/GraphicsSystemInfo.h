@@ -1,125 +1,215 @@
 #pragma once
 
+#include <container/seadOffsetList.h>
 #include <container/seadPtrArray.h>
-#include "gfx/seadCamera.h"
-#include "utility/aglParameterIO.h"
+#include <container/seadStrTreeMap.h>
+#include <gfx/seadCamera.h>
+#include <gfx/seadFrameBuffer.h>
+#include <nn/g3d/ViewVolume.h>
+#include <utility/aglParameterIO.h>
 
 namespace agl {
+class DrawContext;
+
 namespace pfx {
 class FilterAA;
 }
 class DrawContext;
 }  // namespace agl
 
-namespace al {
-struct GraphicsInitArg {
-    s32 dword_0;
-    bool _4;
-    u8 mAtmosScatterViewNum;
-    bool _6;
-    s32 mDisplayWidth;
-    s32 mDisplayHeight;
-    s32 dword_10;
-    s32 dword_14;
-    s32 dword_18;
-    s32 dword_1c;
-    bool byte_20;
-    s32 dword_24;
-    bool byte_28;
-    s32 dword_2c;
-    s32 dword_30;
-    s32 dword_34;
-    s32 dword_38;
-    s32 dword_3c;
-    agl::DrawContext* _40;
-};
+namespace sdw {
+class PrimitiveOcclusion;
+}  // namespace sdw
+}  // namespace agl
 
+namespace al {
+class ApplicationMessageReceiver;
 class AreaObjDirector;
-class ExecuteDirector;
-class EffectSystem;
-class PlayerHolder;
-class SceneCameraInfo;
-class ShaderHolder;
-class BloomDirector;
-class CubeMapDirector;
-class DirectionalLightKeeper;
-class GraphicsAreaDirector;
-class GraphicsPresetDirector;
-class DemoGraphicsController;
-class RadialBlurDirector;
-class PrePassLightKeeper;
-class ShaderEnvTextureKeeper;
-class ShadowDirector;
-class DepthOfFieldDrawer;
-class GraphicsQualityController;
-class ShaderMirrorDirector;
-class GraphicsParamRequesterImpl;
-class GraphicsParamRequesterImpl;
-class FlareFilterDirector;
-class GodRayDirector;
-class FogDirector;
-class OccludedEffectDirector;
-class LightStreakDirector;
-class HdrCompose;
-class SSIIKeeper;
-class OceanWave;
-class RandomTextureKeeper;
-class WorldAODirector;
-class PointSpriteCursorHolder;
-class MaterialLightDirector;
-class MaterialCategoryKeeper;
-class OcclusionCullingJudge;
-class VignettingDrawer;
-class CameraBlurController;
-class ThunderRenderKeeper;
-class StarrySky;
-class SkyDirector;
-class NoiseTextureKeeper;
-class CloudRenderKeeper;
-class GpuMemAllocator;
-class FootPrintTextureKeeper;
-class ProgramTextureKeeper;
-class ViewRenderer;
-class SubCameraRenderer;
-class TemporalInterlace;
-class PeripheryRendering;
-class PostProcessingFilter;
-class GBufferArray;
 class AtmosScatter;
 class AtmosScatterDrawer;
-class GraphicsParamFilePath;
-class Projection;
-class UniformBlock;
-class Resource;
-class VastGridMeshDirector;
-class FullModelMaterialCategory;
+class BloomDirector;
+class CameraBlurController;
+class CloudRenderKeeper;
+class CubeMapDirector;
+class DemoGraphicsController;
+class DepthOfFieldDrawer;
+class DirectionalLightKeeper;
+class EffectSystem;
+class ExecuteDirector;
+class FlareFilterDirector;
+class FootPrintTextureKeeper;
+class FogDirector;
 class FullScreenTriangle;
-class ReducedBufferRenderer;
-class ModelOcclusionCullingDirector;
+class GBufferArray;
+class GodRayDirector;
+class GpuMemAllocator;
+class GraphicsAreaDirector;
+class GraphicsCalcGpuInfo;
+class GraphicsComputeInfo;
+class GraphicsCopyInfo;
+class GraphicsQualityController;
+class GraphicsParamFilePath;
+class GraphicsParamRequesterImpl;
+class GraphicsParamRequesterImpl;
+class GraphicsPresetDirector;
+class GraphicsRenderInfo;
+class GraphicsUpdateInfo;
+class HdrCompose;
+class LightStreakDirector;
+class MaterialCategoryKeeper;
+class MaterialLightDirector;
 class ModelLodAllCtrl;
+class ModelOcclusionCullingDirector;
 class ModelShaderHolder;
+class NoiseTextureKeeper;
+class OccludedEffectDirector;
+class OcclusionCullingJudge;
+class OceanWave;
+class PartsGraphics;
+class PlayerHolder;
+class PeripheryRendering;
+class PointSpriteCursorHolder;
+class PostProcessingFilter;
+class PrePassLightKeeper;
 class PrepassTriangleCulling;
-class ApplicationMessageReceiver;
+class ProgramTextureKeeper;
+class Projection;
+class RadialBlurDirector;
+class RandomTextureKeeper;
+class ReducedBufferRenderer;
+class RenderVariables;
+class RippleTextureKeeper;
+class Resource;
+class SceneCameraInfo;
+class ShaderCubeMapKeeper;
+class ShaderEnvTextureKeeper;
+class ShadowDirector;
+class ShaderHolder;
+class ShaderMirrorDirector;
+class SimpleModelEnv;
+class SkyDirector;
+class SSIIKeeper;
+class StarrySky;
+class SubCameraRenderer;
+class TemporalInterlace;
+class ThunderRenderKeeper;
+class UniformBlock;
+class VastGridMeshDirector;
+class ViewRenderer;
+class VignettingDrawer;
+class WorldAODirector;
+
+struct GraphicsInitArg {
+    GraphicsInitArg(agl::DrawContext*, sead::FrameBuffer*);
+    bool isUsingCubeMapAtmosScatter() const;
+    u32 getAtmosScatterViewNum() const;
+
+    s32 _0;
+    bool _4;
+    u8 atmosScatterViewNum;
+    bool _6;
+    s32 displayWidth;
+    s32 displayHeight;
+    s32 _10;
+    s32 _14;
+    s32 _18;
+    s32 _1c;
+    bool _20;
+    s32 _24;
+    bool _28;
+    s32 _2c;
+    s32 _30;
+    s32 _34;
+    s32 _38;
+    s32 _3c;
+    agl::DrawContext* drawContext;
+};
 
 class GraphicsSystemInfo {
 public:
     GraphicsSystemInfo();
     ~GraphicsSystemInfo();
 
+    SimpleModelEnv* getModelEnv() const;
+    agl::DrawContext* getDrawContext() const;
+    ShaderCubeMapKeeper* getShaderCubeMapKeeper() const;
+    const sead::PtrArray<UniformBlock>* getViewIndexedUboArray(const char*) const;
+    void setViewIndexedUboArray(const char*, const sead::PtrArray<UniformBlock>*);
+    void initAtmosScatter(ExecuteDirector*);
     void init(const GraphicsInitArg&, AreaObjDirector*, ExecuteDirector*, EffectSystem*,
               PlayerHolder*, SceneCameraInfo*, ShaderHolder*);
-
-    agl::DrawContext* getDrawContext() const;
+    void initProjectResource();
+    void initStageResource(const Resource*, const char*, const char*);
     void endInit();
     void initAfterPlacement();
+    void initAfterCreateDrawTable();
+    void setDrawEnv(s32, GBufferArray*, const sead::Camera*, const Projection*);
     void clearGraphicsRequest();
+    void cancelLerp();
     void updateGraphics();
-    void preDrawGraphics(SceneCameraInfo*);
+    void updatePartsGraphics(const GraphicsUpdateInfo&);
+    void preDrawGraphics(const SceneCameraInfo*);
+    void calcGpuPartsGraphics(const GraphicsCalcGpuInfo&);
+    void updateViewGpu(s32, const sead::Camera*, const Projection*);
+    void updateViewVolume(const sead::Matrix34f&, const sead::Matrix44f&);
+    void clearViewVolume();
+    bool tryGetAtmosLightDir(sead::Vector3f*) const;
+    bool tryDirectionalLightInfo(sead::Vector3f*) const;
+    void activateDirLitColorTex() const;
+    void activateDirLitColorTex(agl::DrawContext*) const;
+    bool registPartsGraphics(PartsGraphics*);
+    void drawSystemPartsGraphics(const GraphicsRenderInfo*) const;
+    void doPartsGraphicsCommandBufferCopy(const GraphicsCopyInfo&) const;
+    void doPartsGraphicsCompute(const GraphicsComputeInfo&) const;
+    void drawPartsGraphics(const GraphicsRenderInfo&, const RenderVariables&) const;
+    void drawPartsGraphicsGBufferAfterSky(const GraphicsRenderInfo&) const;
+    void drawPartsGraphicsDeferred(const GraphicsRenderInfo&) const;
+    void drawPartsGraphicsLdr(const GraphicsRenderInfo&) const;
+    void drawPartsGraphicsIndirect(const GraphicsRenderInfo&, const RenderVariables&) const;
+    void drawPartsGraphicsCubemap(const GraphicsRenderInfo&) const;
+
+    void set_2f4(s32 set) { _2f4 = set; }
+
+    ViewRenderer* getViewRenderer() const { return mViewRenderer; }
+
+    ModelLodAllCtrl* getModelLodAllCtrl() const { return mModelLodAllCtrl; }
 
     MaterialCategoryKeeper* getMaterialCategoryKeeper() const { return mMaterialCategoryKeeper; }
 
+    GraphicsQualityController* getGraphicsQualityController() const {
+        return mGraphicsQualityController;
+    }
+
+    ModelOcclusionCullingDirector* getModelOcclusionCullingDirector() {
+        return mModelOcclusionCullingDirector;
+    }
+
+    void setApplicationMessageReceiver(ApplicationMessageReceiver* applicationMessageReceiver) {
+        mApplicationMessageReceiver = applicationMessageReceiver;
+    }
+
+    SkyDirector* getSkyDirector() const { return mSkyDirector; }
+
+    OcclusionCullingJudge* getOcclusionCullingJudge() const { return mOcclusionCullingJudge; }
+
+    PostProcessingFilter* getPostProcessingFilter() const { return mPostProcessingFilter; }
+
+    GpuMemAllocator* getGpuMemAllocator() const { return mGpuMemAllocator; }
+
+    ModelShaderHolder* getModelShaderHolder() const { return mModelShaderHolder; }
+
+    ModelOcclusionCullingDirector* getModelOcclusionCullingDirector() const {
+        return mModelOcclusionCullingDirector;
+    }
+
+    ShadowDirector* getShadowDirector() const { return mShadowDirector; }
+
+    PrepassTriangleCulling* getPrepassTriangleCulling() const { return mPrepassTriangleCulling; }
+
+    RadialBlurDirector* getRadialBlurDirector() const { return mRadialBlurDirector; }
+
 private:
-    char mViewIndexedUboArrayTree[28];
+    sead::StrTreeMap<128, const sead::PtrArray<UniformBlock>*> mViewIndexedUboArrayTree;
     GraphicsInitArg mInitArg;
     BloomDirector* mBloomDirector;
     CubeMapDirector* mCubeMapDirector;
@@ -143,8 +233,8 @@ private:
     LightStreakDirector* mLightStreakDirector;
     HdrCompose* mHdrCompose;
     SSIIKeeper* mSSIIKeeper;
-    void* mPrimitiveOcclusion;
-    char mViewVolume[232];
+    agl::sdw::PrimitiveOcclusion* mPrimitiveOcclusion;
+    nn::g3d::ViewVolume mViewVolume;
     void* _208;
     OceanWave* mOceanWave;
     RandomTextureKeeper* mRandomTextureKeeper;
@@ -164,7 +254,7 @@ private:
     GpuMemAllocator* mGpuMemAllocator;
     FootPrintTextureKeeper* mFootPrintTextureKeeper;
     ProgramTextureKeeper* mProgramTextureKeeper;
-    void* mRippleTextureKeeper;
+    RippleTextureKeeper* mRippleTextureKeeper;
     sead::PtrArrayImpl* _2a8;
     ViewRenderer* mViewRenderer;
     SubCameraRenderer* mSubCameraRenderer;
@@ -180,30 +270,28 @@ private:
     AtmosScatter* mAtmosScatter;
     AtmosScatterDrawer* mAtmosScatterDrawer;
     GraphicsParamFilePath* mParamFilePath;
-    void* filler[0xC0];
-    // TODO: Fill these parameter variables once Int, Bool and Float are added to agl
-    /*
-    agl::utl::IParameterIO _318;
-    agl::utl::IParameterObj _4E8;
-    agl::utl::ParameterOfInt mAreaFindMode;
-    agl::utl::ParameterOfInt mAtmosScatterType;
-    agl::utl::ParameterOfBool mIsUsingUpdateAtmosCubeMap;
-    agl::utl::ParameterOfBool mIsUsingOceanWave;
-    agl::utl::ParameterOfInt mOccGroupNum;
-    agl::utl::IParameterIO _5B8;
-    agl::utl::IParameterObj _788;
-    agl::utl::ParameterOfBool mIsUsingTemporal;
-    agl::utl::ParameterOfBool mIsUsingPeriphery;
-    agl::utl::ParameterOfBool mIsUsingStarrySky;
-    agl::utl::ParameterOfFloat mCupeMapIntensityPower;
-    agl::utl::ParameterOfFloat mCubeMapIntensityRange;
-    agl::utl::ParameterOfFloat mLineLightAntiArtifact;
-    agl::utl::ParameterOfFloat mMinRoughnessGGX;
-    agl::utl::ParameterOfFloat mSphereLightDiffuseAdd;
-    agl::utl::ParameterOfFloat mSpecularScale;
-    agl::utl::ParameterOfFloat mLightUnitScale;
-    agl::utl::ParameterOfFloat mLightColorScale;
-    */
+    // agl::utl::IParameterIO _318;
+    // agl::utl::IParameterObj _4e8;
+    // agl::utl::ParameterOfInt mAreaFindMode;
+    // agl::utl::ParameterOfInt mAtmosScatterType;
+    // agl::utl::ParameterOfBool mIsUsingUpdateAtmosCubeMap;
+    // agl::utl::ParameterOfBool mIsUsingOceanWave;
+    // agl::utl::ParameterOfInt mOccGroupNum;
+    // agl::utl::IParameterIO _5b8;
+    // agl::utl::IParameterObj _788;
+    // agl::utl::ParameterOfBool mIsUsingTemporal;
+    // agl::utl::ParameterOfBool mIsUsingPeriphery;
+    // agl::utl::ParameterOfBool mIsUsingStarrySky;
+    // agl::utl::ParameterOfFloat mCupeMapIntensityPower;
+    // agl::utl::ParameterOfFloat mCubeMapIntensityRange;
+    // agl::utl::ParameterOfFloat mLineLightAntiArtifact;
+    // agl::utl::ParameterOfFloat mMinRoughnessGGX;
+    // agl::utl::ParameterOfFloat mSphereLightDiffuseAdd;
+    // agl::utl::ParameterOfFloat mSpecularScale;
+    // agl::utl::ParameterOfFloat mLightUnitScale;
+    // agl::utl::ParameterOfFloat mLightColorScale;
+    char filler[0x918 - 0x318];  // TODO: Replace this with the real params once the Parameter types
+                                 // are added to agl
     UniformBlock* _918;
     Resource* _920;
     AreaObjDirector* mAreaObjDirector;
@@ -211,7 +299,7 @@ private:
     EffectSystem* mEffectSystem;
     SceneCameraInfo* mSceneCameraInfo;
     const char* _948;
-    void* _950[3];  // sead::OffsetList;
+    void* _950[3];  // sead::OffsetList
     VastGridMeshDirector* mVastGridMeshDirector;
     FullScreenTriangle* mFullScreenTriangle;
     s32 _978;

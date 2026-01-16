@@ -5,22 +5,22 @@
 #include "Library/LiveActor/ActorInitFunction.h"
 #include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/Placement/PlacementFunction.h"
-#include "Library/Stage/StageSwitchKeeper.h"
+#include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 
 CoinBlow::CoinBlow(const char* name) : al::LiveActor(name) {}
 
-void CoinBlow::init(const al::ActorInitInfo& initInfo) {
+void CoinBlow::init(const al::ActorInitInfo& info) {
     using CoinBlowFunctor = al::FunctorV0M<CoinBlow*, void (CoinBlow::*)()>;
 
-    al::initActorWithArchiveName(this, initInfo, "CoinBlow", nullptr);
+    al::initActorWithArchiveName(this, info, "CoinBlow", nullptr);
     al::listenStageSwitchOnStart(this, CoinBlowFunctor(this, &CoinBlow::listenStart));
-    al::tryGetStringArg(&mBlowSize, initInfo, "BlowSize");
+    al::tryGetStringArg(&mBlowSize, info, "BlowSize");
     makeActorDead();
 }
 
 void CoinBlow::listenStart() {
-    if (mBlowSize == nullptr) {
+    if (!mBlowSize) {
         al::appearItemTiming(this, "小");
         return;
     }

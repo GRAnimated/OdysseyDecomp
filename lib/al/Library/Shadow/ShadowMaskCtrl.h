@@ -7,7 +7,7 @@ namespace al {
 
 class ShadowMaskBase;
 class LiveActor;
-class ActorInitInfo;
+struct ActorInitInfo;
 class ByamlIter;
 class ShadowMaskCastOvalCylinder;
 class ShadowMaskCube;
@@ -32,6 +32,10 @@ public:
     void setupShadowMaskSphereParam(ShadowMaskSphere*);
     void show();
     void validate();
+
+    s32 getShadowMaskNum() const { return mShadowMasks.size(); }
+
+    ShadowMaskBase* getShadowMask(s32 index) const { return mShadowMasks[index]; }
 
 private:
     sead::PtrArray<ShadowMaskBase> mShadowMasks;

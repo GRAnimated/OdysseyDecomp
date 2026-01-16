@@ -5,7 +5,7 @@
 #include "Util/IUseDimension.h"
 
 namespace al {
-class ActorInitInfo;
+struct ActorInitInfo;
 class HitSensor;
 class SensorMsg;
 }  // namespace al
@@ -17,11 +17,12 @@ class Coin2DCity : public al::LiveActor, public IUseDimension {
 public:
     Coin2DCity(const char* name, Coin2DCityDirector* director);
 
-    void init(const al::ActorInitInfo& initInfo) override;
+    void init(const al::ActorInitInfo& info) override;
     void control() override;
     bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                     al::HitSensor* self) override;
-    ActorDimensionKeeper* getActorDimensionKeeper() const override;
+
+    ActorDimensionKeeper* getActorDimensionKeeper() const override { return mDimensionKeeper; }
 
     void startLight();
     void endLight();

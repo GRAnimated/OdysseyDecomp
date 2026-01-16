@@ -1,7 +1,7 @@
 #include "MapObj/WeightSwitch.h"
 
 #include "Library/Camera/CameraUtil.h"
-#include "Library/Collision/PartsConnector.h"
+#include "Library/Collision/PartsConnectorUtil.h"
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
 #include "Library/LiveActor/ActorCollisionFunction.h"
@@ -13,7 +13,7 @@
 #include "Library/Obj/CollisionObj.h"
 #include "Library/Obj/PartsFunction.h"
 #include "Library/Placement/PlacementFunction.h"
-#include "Library/Stage/StageSwitchKeeper.h"
+#include "Library/Stage/StageSwitchUtil.h"
 
 #include "Item/Shine.h"
 #include "Util/DemoUtil.h"

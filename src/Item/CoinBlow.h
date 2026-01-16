@@ -3,14 +3,14 @@
 #include "Library/LiveActor/LiveActor.h"
 
 namespace al {
-class ActorInitInfo;
+struct ActorInitInfo;
 }  // namespace al
 
 class CoinBlow : public al::LiveActor {
 public:
     CoinBlow(const char* name);
 
-    void init(const al::ActorInitInfo& initInfo) override;
+    void init(const al::ActorInitInfo& info) override;
 
     void listenStart();
 

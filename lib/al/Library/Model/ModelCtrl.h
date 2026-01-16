@@ -1,8 +1,6 @@
 #pragma once
 
 #include <basis/seadTypes.h>
-#include <common/aglDrawContext.h>
-#include <heap/seadHeap.h>
 #include <math/seadMatrix.h>
 
 namespace nn::g3d {
@@ -16,14 +14,8 @@ class GpuMemAllocator;
 class ModelShaderHolder;
 class Resource;
 class ActorDitherAnimator;
-class ShaderHolder;
-class ModelLodCtrl;
-struct EnvTexInfo;
-class ModelOcclusionCullingDirector;
-class PrepassTriangleCulling;
-class ShadowDirector;
-class DitherAnimator;
-class ModelMaterialCategory;
+class GraphicsQualityInfo;
+class ModelOcclusionQuery;
 
 class ModelCtrl {
 public:
@@ -102,12 +94,9 @@ public:
     void tryCreateCulledIndexBuffer();
     void show();
     void hide();
-    void calc(const sead::Matrix34f&, const sead::Vector3f&);
-    bool calcView();
-    void calcModelObjBoundingWithOffset(nn::g3d::Sphere*) const;
+    void recreateDisplayList();
     void setCameraInfo(const sead::Matrix34f*, const sead::Matrix34f*, const sead::Matrix44f*,
                        const sead::Matrix44f*);
-    void getShapeObj(s32) const;
 
     nn::g3d::ModelObj* getModelObj() const { return mModelObj; }
 
@@ -133,7 +122,13 @@ public:
 
     ActorDitherAnimator* getActorDitherAnimator() const { return mActorDitherAnimator; }
 
-    ModelMaterialCategory* getModelMaterialCategory() const { return mModelMaterialCategory; }
+    s32 getCalcViewCore() const { return mCalcViewCore; }
+
+    void setCalcViewCore(s32 core) { mCalcViewCore = core; }
+
+    void setGraphicsQualityInfo(GraphicsQualityInfo* info) { mGraphicsQualityInfo = info; }
+
+    void setModelOcclusionQuery(ModelOcclusionQuery* query) { mModelOcclusionQuery = query; }
 
 private:
     nn::g3d::ModelObj* mModelObj;
@@ -141,23 +136,16 @@ private:
     GpuMemAllocator* mGpuMemAllocator;
     ModelShaderHolder* mShaderHolder;
     s32 mBlockBufferSize;
-    unsigned char padding1[316];
-    bool _160;
-    bool mIsNeedUpdateModel;
-    bool _162;
-    bool _163;
-    bool mIsEnableZPrePass;
-    bool mIsValidateZPrePass;
-    bool field_166;
-    bool mIsExistZPrePass;
-    bool field_168;
-    bool mIsNeedUpdate;
-    unsigned char padding2[0xB];
-    f32 mAlphaMask;
-    unsigned char padding3[0x1F8];
+    unsigned char padding1[332];
+    GraphicsQualityInfo* mGraphicsQualityInfo;
+    unsigned char padding2[514];
     ActorDitherAnimator* mActorDitherAnimator;
-    ModelMaterialCategory* mModelMaterialCategory;
-    unsigned char padding4[0xC0];
+    unsigned char padding3[36];
+    s32 mCalcViewCore;
+    s32 pad_3b0;
+    unsigned char padding4[124];
+    ModelOcclusionQuery* mModelOcclusionQuery;
+    unsigned char padding5[16];
 };
 
 static_assert(sizeof(ModelCtrl) == 0x448);

@@ -3,6 +3,7 @@
 #include <math/seadMatrix.h>
 
 namespace al {
+class GraphicsSystemInfo;
 class ModelKeeper;
 class GraphicsSystemInfo;
 class SklAnimRetargettingInfo;
