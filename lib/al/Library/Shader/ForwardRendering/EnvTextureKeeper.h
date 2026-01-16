@@ -26,9 +26,9 @@ struct EnvTexId {
     s32 _0;
     s32 _4;
     s32 _8;
-    s32 mMirrorId;
+    s32 mirrorId;
     s32 _10;
-    s32 mProc3DId;
+    s32 proc3DId;
     s32 _18;
 };
 
@@ -52,7 +52,7 @@ struct EnvTexInfo {
     s32 _10;
     s32 _14;
     s32 _18;
-    EnvTexId mEnvTexId;
+    EnvTexId envTexId;
     s32 _38;
     bool _3c;
 };

@@ -1,4 +1,10 @@
 #include "Library/LiveActor/ActorModelFunction.h"
+
+#include <math/seadMatrix.h>
+#include <math/seadMatrixCalcCommon.h>
+#include <math/seadVectorFwd.h>
+#include <nn/g3d/ModelObj.h>
+
 #include "Library/Area/AreaObjUtil.h"
 #include "Library/Base/StringUtil.h"
 #include "Library/Camera/CameraUtil.h"
@@ -31,10 +37,6 @@
 #include "Library/Shader/ForwardRendering/EnvTextureKeeper.h"
 #include "Library/Shadow/ActorShadowUtil.h"
 #include "Project/Light/ActorPrepassLightKeeper.h"
-#include "math/seadMatrix.h"
-#include "math/seadMatrixCalcCommon.h"
-#include "math/seadVectorFwd.h"
-#include "nn/g3d/ModelObj.h"
 
 namespace al {
 void updateMaterialCodeGround(LiveActor* actor, const char* material) {
@@ -105,14 +107,14 @@ void updateMaterialCodeWater(LiveActor* actor, bool isInWater) {
 }
 
 void updateMaterialCodePuddle(LiveActor* actor) {
-    const sead::Vector3f& gravity = -al::getGravity(actor);
+    const sead::Vector3f& gravity = -getGravity(actor);
     sead::Vector3f unk = {0.0f, 0.0f, 0.0f};
     sead::Vector3f unk2 = {0.0f, 0.0f, 0.0f};
-    const sead::Vector3f& trans = al::getTrans(actor);
+    const sead::Vector3f& trans = getTrans(actor);
 
     bool isWet = false;
-    if (al::calcFindWaterSurface(&unk, &unk2, actor, trans, gravity, 80.0f)) {
-        const sead::Vector3f& trans2 = al::getTrans(actor);
+    if (calcFindWaterSurface(&unk, &unk2, actor, trans, gravity, 80.0f)) {
+        const sead::Vector3f& trans2 = getTrans(actor);
         isWet = (unk - trans2).dot(gravity) > 0.0f;
     }
     updateMaterialCodePuddle(actor, isWet);
@@ -143,7 +145,7 @@ void showModel(LiveActor* actor) {
         modelKeeper->show();
 
     if (actor->getShadowKeeper())
-        al::showShadow(actor);
+        showShadow(actor);
 
     alActorSystemFunction::addToExecutorDraw(actor);
 
@@ -178,7 +180,7 @@ void hideModel(LiveActor* actor) {
         modelKeeper->hide();
 
     if (actor->getShadowKeeper())
-        al::hideShadow(actor);
+        hideShadow(actor);
 
     alActorSystemFunction::removeFromExecutorDraw(actor);
 
@@ -203,17 +205,17 @@ bool isExistModel(const LiveActor* actor) {
 }
 
 void switchShowHideModelIfNearCamera(LiveActor* actor, f32 radius) {
-    const sead::Vector3f& trans = al::getTrans(actor);
-    const sead::Vector3f& cameraPos = al::getCameraPos(actor, 0);
+    const sead::Vector3f& trans = getTrans(actor);
+    const sead::Vector3f& cameraPos = getCameraPos(actor, 0);
     bool isInRadius = (trans - cameraPos).length() < radius;
     if (!isInRadius) {
         if (isHideModel(actor)) {
-            al::showModel(actor);
-            al::onCalcAndDrawEffect(actor);
+            showModel(actor);
+            onCalcAndDrawEffect(actor);
         }
     } else if (!isHideModel(actor)) {
-        al::hideModel(actor);
-        al::offCalcAndDrawEffect(actor);
+        hideModel(actor);
+        offCalcAndDrawEffect(actor);
     }
 }
 
@@ -249,10 +251,10 @@ void showSilhouetteModel(LiveActor* actor) {
     for (s32 i = 0; i < curActorCount; ++i) {
         SubActorInfo* subActorInfo = actor->getSubActorKeeper()->getActorInfo(i);
 
-        if (al::isEqualString(subActorInfo->subActor->getName(), "シルエットモデル"))
+        if (isEqualString(subActorInfo->subActor->getName(), "シルエットモデル"))
             showModelIfHide(subActorInfo->subActor);
         else if (subActorInfo->subActor->getSubActorKeeper())
-            al::showSilhouetteModel(subActorInfo->subActor);
+            showSilhouetteModel(subActorInfo->subActor);
     }
 }
 
@@ -261,10 +263,10 @@ void hideSilhouetteModel(LiveActor* actor) {
     for (s32 i = 0; i < curActorCount; ++i) {
         SubActorInfo* subActorInfo = actor->getSubActorKeeper()->getActorInfo(i);
 
-        if (al::isEqualString(subActorInfo->subActor->getName(), "シルエットモデル"))
+        if (isEqualString(subActorInfo->subActor->getName(), "シルエットモデル"))
             hideModelIfShow(subActorInfo->subActor);
         else if (subActorInfo->subActor->getSubActorKeeper())
-            al::hideSilhouetteModel(subActorInfo->subActor);
+            hideSilhouetteModel(subActorInfo->subActor);
     }
 }
 
@@ -308,16 +310,16 @@ bool isModelAlphaMask(const LiveActor* actor) {
 
 void updateModelAlphaMaskCameraDistance(LiveActor* actor, f32 a2, f32 a3, f32 a4, f32 a5) {
     sead::Vector3f cameraLookDir = {0.0f, 0.0f, 0.0f};
-    al::calcCameraLookDir(&cameraLookDir, actor, 0);
+    calcCameraLookDir(&cameraLookDir, actor, 0);
 
-    const sead::Vector3f& cameraPos = al::getCameraPos(actor, 0);
-    const sead::Vector3f& trans = al::getTrans(actor);
+    const sead::Vector3f& cameraPos = getCameraPos(actor, 0);
+    const sead::Vector3f& trans = getTrans(actor);
     f32 length = ((trans - cameraPos).dot(cameraLookDir) - a3) / (a2 - a3);
     if (length < 0.0f)
         length = 0.0f;
     else if (length > 1.0f)
         length = 1.0f;
-    f32 lerpedLength = al::lerpValue(a5, a4, length);
+    f32 lerpedLength = lerpValue(a5, a4, length);
     setModelAlphaMask(actor, lerpedLength);
 }
 
@@ -389,14 +391,14 @@ void tryInitFixedModelGpuBuffer(LiveActor* actor) {
 
     sead::Matrix34f baseMtx;
     alActorPoseFunction::calcBaseMtx(&baseMtx, actor);
-    al::setBaseMtxAndCalcAnim(actor, baseMtx, al::getScale(actor));
+    setBaseMtxAndCalcAnim(actor, baseMtx, getScale(actor));
 
-    if (al::isExistDepthShadow(actor))
+    if (isExistDepthShadow(actor))
         actor->getModelKeeper()->getModelCtrl()->updateGpuBufferAll();
 
     if (mModelKeeper->isFixedModel() &&
         (actor->getEffectKeeper() || actor->getAudioKeeper() || actor->getHitSensorKeeper()))
-        al::onUpdateMovementEffectAudioCollisionSensor(actor);
+        onUpdateMovementEffectAudioCollisionSensor(actor);
 }
 
 void setIgnoreUpdateDrawClipping(LiveActor* actor, bool isIgnoreUpdateDrawClipping) {
@@ -418,33 +420,33 @@ bool isNeedUpdateModel(const LiveActor* actor) {
 
 void setEnvTextureMirror(LiveActor* actor, s32 id) {
     EnvTexId envTexId;
-    envTexId.mMirrorId = id;
+    envTexId.mirrorId = id;
 
     ModelCtrl* modelCtrl = actor->getModelKeeper()->getModelCtrl();
     s32 numShapes = modelCtrl->getModelObj()->GetNumShapes();
     if (modelCtrl->getModelObj()->GetNumShapes())
         for (s32 i = 0; i < numShapes; ++i)
-            modelCtrl->getEnvTexInfo(i).mEnvTexId.change(envTexId);
+            modelCtrl->getEnvTexInfo(i)->envTexId.change(envTexId);
 
     modelCtrl->recreateDisplayList();
 }
 
 void setEnvTextureProc3D(LiveActor* actor, s32 id) {
     EnvTexId envTexId;
-    envTexId.mProc3DId = id;
+    envTexId.proc3DId = id;
 
     ModelCtrl* modelCtrl = actor->getModelKeeper()->getModelCtrl();
     s32 numShapes = modelCtrl->getModelObj()->GetNumShapes();
 
     for (s32 i = 0; i < numShapes; ++i)
-        modelCtrl->getEnvTexInfo(i).mEnvTexId.change(envTexId);
+        modelCtrl->getEnvTexInfo(i)->envTexId.change(envTexId);
 
     modelCtrl->recreateDisplayList();
 }
 
 void forceApplyCubeMap(LiveActor* actor, const char* cubeMapName) {
-    al::forceApplyCubeMap(actor->getModelKeeper(), actor->getSceneInfo()->graphicsSystemInfo,
-                          cubeMapName);
+    forceApplyCubeMap(actor->getModelKeeper(), actor->getSceneInfo()->graphicsSystemInfo,
+                      cubeMapName);
 }
 
 void setMaterialProgrammable(LiveActor* actor) {
@@ -504,24 +506,24 @@ void calcJointPosByIndex(sead::Vector3f* out, const LiveActor* actor, s32 index)
 void calcJointSideDir(sead::Vector3f* out, const LiveActor* actor, const char* jointName) {
     sead::Matrix34f* jointMtx = getJointMtxPtr(actor, jointName);
     jointMtx->getBase(*out, 0);
-    al::tryNormalizeOrZero(out);
+    tryNormalizeOrZero(out);
 }
 
 void calcJointUpDir(sead::Vector3f* out, const LiveActor* actor, const char* jointName) {
     sead::Matrix34f* jointMtx = getJointMtxPtr(actor, jointName);
     jointMtx->getBase(*out, 1);
-    al::tryNormalizeOrZero(out);
+    tryNormalizeOrZero(out);
 }
 
 void calcJointFrontDir(sead::Vector3f* out, const LiveActor* actor, const char* jointName) {
     sead::Matrix34f* jointMtx = getJointMtxPtr(actor, jointName);
     jointMtx->getBase(*out, 2);
-    al::tryNormalizeOrZero(out);
+    tryNormalizeOrZero(out);
 }
 
 void calcJointScale(sead::Vector3f* out, const LiveActor* actor, const char* jointName) {
     sead::Matrix34f* jointMtx = getJointMtxPtr(actor, jointName);
-    al::calcMtxScale(out, *jointMtx);
+    calcMtxScale(out, *jointMtx);
 }
 
 void calcJointQuat(sead::Quatf* out, const LiveActor* actor, const char* jointName) {
@@ -574,7 +576,7 @@ bool isFaceJointXDirDegreeYZ(const LiveActor* actor, const char* jointName,
     jointMtx->getTranslation(pos);
     pos = dir - pos;
 
-    return al::isNearAngleDegreeHV(pos, side, up, y, z);
+    return isNearAngleDegreeHV(pos, side, up, y, z);
 }
 
 bool isFaceJointYDirDegreeZX(const LiveActor* actor, const char* jointName,
@@ -588,7 +590,7 @@ bool isFaceJointYDirDegreeZX(const LiveActor* actor, const char* jointName,
     jointMtx->getTranslation(pos);
     pos = dir - pos;
 
-    return al::isNearAngleDegreeHV(pos, up, front, z, x);
+    return isNearAngleDegreeHV(pos, up, front, z, x);
 }
 
 bool isFaceJointZDirDegreeXY(const LiveActor* actor, const char* jointName,
@@ -602,43 +604,43 @@ bool isFaceJointZDirDegreeXY(const LiveActor* actor, const char* jointName,
     jointMtx->getTranslation(pos);
     pos = dir - pos;
 
-    return al::isNearAngleDegreeHV(pos, front, side, x, y);
+    return isNearAngleDegreeHV(pos, front, side, x, y);
 }
 
 void calcJointAngleXDirToTargetOnYDir(const LiveActor* actor, const char* jointName,
                                       const sead::Vector3f& dir) {
     sead::Matrix34f* jointMtx = getJointMtxPtr(actor, jointName);
-    al::calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 0, 1);
+    calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 0, 1);
 }
 
 void calcJointAngleXDirToTargetOnZDir(const LiveActor* actor, const char* jointName,
                                       const sead::Vector3f& dir) {
     sead::Matrix34f* jointMtx = getJointMtxPtr(actor, jointName);
-    al::calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 0, 2);
+    calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 0, 2);
 }
 
 void calcJointAngleYDirToTargetOnXDir(const LiveActor* actor, const char* jointName,
                                       const sead::Vector3f& dir) {
     sead::Matrix34f* jointMtx = getJointMtxPtr(actor, jointName);
-    al::calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 1, 0);
+    calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 1, 0);
 }
 
 void calcJointAngleYDirToTargetOnZDir(const LiveActor* actor, const char* jointName,
                                       const sead::Vector3f& dir) {
     sead::Matrix34f* jointMtx = getJointMtxPtr(actor, jointName);
-    al::calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 1, 2);
+    calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 1, 2);
 }
 
 void calcJointAngleZDirToTargetOnXDir(const LiveActor* actor, const char* jointName,
                                       const sead::Vector3f& dir) {
     sead::Matrix34f* jointMtx = getJointMtxPtr(actor, jointName);
-    al::calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 2, 0);
+    calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 2, 0);
 }
 
 void calcJointAngleZDirToTargetOnYDir(const LiveActor* actor, const char* jointName,
                                       const sead::Vector3f& dir) {
     sead::Matrix34f* jointMtx = getJointMtxPtr(actor, jointName);
-    al::calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 2, 1);
+    calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 2, 1);
 }
 
 const char* getMaterialName(const LiveActor* actor, s32 a2) {
@@ -661,8 +663,9 @@ nn::g3d::MaterialObj* getMaterialObj(const LiveActor* actor, const char* materia
     return actor->getModelKeeper()->getModelCtrl()->getModelObj()->FindMaterial(materialName);
 }
 
-// s32 getMaterialIndex(const LiveActor* actor, const char* materialName);
-// bool isExistMaterialTexture(const LiveActor* actor, const char*, const char*);
+// getMaterialIndex
+// isExistMaterialTexture
+
 const char* getMaterialCategory(const LiveActor* actor, s32 materialIndex) {
     s32 index = actor->getModelKeeper()
                     ->getModelCtrl()
@@ -685,46 +688,46 @@ const char* tryGetMaterialCategory(const LiveActor* actor, s32 materialIndex) {
 }
 
 bool isOnlyMaterialCategoryObject(const LiveActor* actor) {
-    s32 materialCount = al::getMaterialCount(actor->getModelKeeper());
+    s32 materialCount = getMaterialCount(actor->getModelKeeper());
     for (s32 i = 0; i < materialCount; ++i) {
-        const char* category = al::getMaterialCategory(actor, i);
-        if (!al::isEqualString(category, "Obj"))
+        const char* category = getMaterialCategory(actor, i);
+        if (!isEqualString(category, "Obj"))
             return false;
     }
     return true;
 }
 
 void showMaterial(LiveActor* actor, const char* materialName) {
-    al::showMaterial(actor->getModelKeeper(), materialName);
+    showMaterial(actor->getModelKeeper(), materialName);
     alActorSystemFunction::updateExecutorDraw(actor);
 }
 
 void hideMaterial(LiveActor* actor, const char* materialName) {
-    al::hideMaterial(actor->getModelKeeper(), materialName);
+    hideMaterial(actor->getModelKeeper(), materialName);
     alActorSystemFunction::updateExecutorDraw(actor);
 }
 
 void showMaterial(LiveActor* actor, s32 index) {
-    al::showMaterial(actor->getModelKeeper(), index);
+    showMaterial(actor->getModelKeeper(), index);
     alActorSystemFunction::updateExecutorDraw(actor);
 }
 
 void hideMaterial(LiveActor* actor, s32 index) {
-    al::hideMaterial(actor->getModelKeeper(), index);
+    hideMaterial(actor->getModelKeeper(), index);
     alActorSystemFunction::updateExecutorDraw(actor);
 }
 
 void showMaterialAll(LiveActor* actor) {
-    s32 materialCount = al::getMaterialCount(actor->getModelKeeper());
+    s32 materialCount = getMaterialCount(actor->getModelKeeper());
     for (s32 i = 0; i < materialCount; ++i)
-        al::showMaterial(actor, i);
+        showMaterial(actor, i);
 }
 
 bool tryShowMaterial(LiveActor* actor, s32 index) {
     ModelKeeper* modelKeeper = actor->getModelKeeper();
     if (!modelKeeper)
         return false;
-    al::showMaterial(actor, index);
+    showMaterial(actor, index);
     return true;
 }
 
@@ -732,7 +735,7 @@ bool tryHideMaterial(LiveActor* actor, s32 index) {
     ModelKeeper* modelKeeper = actor->getModelKeeper();
     if (!modelKeeper)
         return false;
-    al::hideMaterial(actor, index);
+    hideMaterial(actor, index);
     return true;
 }
 
@@ -740,58 +743,46 @@ bool tryShowMaterialAll(LiveActor* actor) {
     ModelKeeper* modelKeeper = actor->getModelKeeper();
     if (!modelKeeper)
         return false;
-    s32 materialCount = al::getMaterialCount(actor->getModelKeeper());
+    s32 materialCount = getMaterialCount(actor->getModelKeeper());
     for (s32 i = 0; i < materialCount; ++i)
-        al::showMaterial(actor, i);
+        showMaterial(actor, i);
     return true;
 }
 
-// void setModelMaterialParameterF32(const LiveActor* actor, s32, const char*, f32);
-// void setModelMaterialParameterF32(const LiveActor* actor, const char*, const char*, f32);
-// void setModelMaterialParameterV2F(const LiveActor* actor, s32, const char*, const
-// sead::Vector2f&); void setModelMaterialParameterV2F(const LiveActor* actor, const char*, const
-// char*,
-//                                   const sead::Vector2f&);
-// void setModelMaterialParameterV3F(const LiveActor* actor, s32, const char*, const
-// sead::Vector3f&); void setModelMaterialParameterV3F(const LiveActor* actor, const char*, const
-// char*,
-//                                   const sead::Vector3f&);
-// void setModelMaterialParameterV4F(const LiveActor* actor, s32, const char*, const
-// sead::Vector4f&); void setModelMaterialParameterV4F(const LiveActor* actor, const char*, const
-// char*,
-//                                   const sead::Vector4f&);
-// void setModelMaterialParameterRgb(const LiveActor* actor, s32, const char*, const
-// sead::Vector3f&); void setModelMaterialParameterRgb(const LiveActor* actor, const char*, const
-// char*,
-//                                   const sead::Vector3f&);
-// void setModelMaterialParameterRgb(const LiveActor* actor, s32, const char*, const
-// sead::Color4f&); void setModelMaterialParameterRgb(const LiveActor* actor, const char*, const
-// char*,
-//                                   const sead::Color4f&);
-// void setModelMaterialParameterRgba(const LiveActor* actor, s32, const char*, const
-// sead::Color4f&); void setModelMaterialParameterRgba(const LiveActor* actor, const char*, const
-// char*,
-//                                    const sead::Color4f&);
-// void setModelMaterialParameterAlpha(const LiveActor* actor, s32, const char*, f32);
-// void setModelMaterialParameterAlpha(const LiveActor* actor, const char*, const char*, f32);
-// void setModelMaterialParameterTextureTrans(const LiveActor* actor, const char*, s32,
-//                                            const sead::Vector2f&);
-// void getModelMaterialParameterDisplacementScale(const LiveActor* actor, const char*, s32);
-// void setModelMaterialParameterDisplacementScale(const LiveActor* actor, const char*, s32, f32);
-// void getModelUniformBlock(const LiveActor* actor, const char*);
-// void findModelUniformBlock(const LiveActor* actor, const char*);
-// void swapModelUniformBlock(agl::UniformBlock*);
-// void flushModelUniformBlock(agl::UniformBlock*);
-// void getModelDrawCategoryFromShaderAssign(bool*, bool*, bool*, bool*, const LiveActor* actor);
-// void trySetOcclusionQueryBox(LiveActor* actor, f32);
-// void trySetOcclusionQueryBox(LiveActor* actor, const sead::BoundBox3f&);
-// void trySetOcclusionQueryCenter(LiveActor* actor, const sead::Vector3f*);
+// setModelMaterialParameterF32
+// setModelMaterialParameterF32
+// setModelMaterialParameterV2F
+// setModelMaterialParameterV2F
+// setModelMaterialParameterV3F
+// setModelMaterialParameterV3F
+// setModelMaterialParameterV4F
+// setModelMaterialParameterV4F
+// setModelMaterialParameterRgb
+// setModelMaterialParameterRgb
+// setModelMaterialParameterRgb
+// setModelMaterialParameterRgb
+// setModelMaterialParameterRgba
+// setModelMaterialParameterRgba
+// setModelMaterialParameterAlpha
+// setModelMaterialParameterAlpha
+// setModelMaterialParameterTextureTrans
+// getModelMaterialParameterDisplacementScale
+// setModelMaterialParameterDisplacementScale
+// getModelUniformBlock
+// findModelUniformBlock
+// swapModelUniformBlock
+// flushModelUniformBlock
+// getModelDrawCategoryFromShaderAssign
+// trySetOcclusionQueryBox
+// trySetOcclusionQueryBox
+// trySetOcclusionQueryCenter
+
 const char* getModelName(const LiveActor* actor) {
     return actor->getModelKeeper()->getName();
 }
 
 bool isModelName(const LiveActor* actor, const char* name) {
-    return al::isEqualString(getModelName(actor), name);
+    return isEqualString(getModelName(actor), name);
 }
 
 f32 calcModelBoundingSphereRadius(const LiveActor* actor) {
@@ -818,11 +809,10 @@ void calcModelBoundingBoxMtx(sead::Matrix34f* out, const LiveActor* actor) {
 
 void submitViewModel(const LiveActor* actor, const sead::Matrix34f& mtx) {}
 
-// void replaceMaterialTextureRef(LiveActor* actor, nn::g3d::TextureRef*, const char*, const char*);
-// void replaceMaterialResTexture(LiveActor* actor, nn::gfx::ResTexture*, const char*, const char*);
-// void replaceMaterialResTexture(LiveActor*, const char*, const char*, nn::gfx::DescriptorSlot,
-// const nn::gfx::TextureView*); void replaceMaterialLayoutTexture(LiveActor* actor, const
-// LayoutTextureRenderObj*, const char*, const char*);
+// replaceMaterialTextureRef
+// replaceMaterialResTexture
+// replaceMaterialResTexture
+// void replaceMaterialLayoutTexture
 
 void recreateModelDisplayList(const LiveActor* actor) {
     actor->getModelKeeper()->getModelCtrl()->recreateDisplayList();
@@ -831,29 +821,29 @@ void recreateModelDisplayList(const LiveActor* actor) {
 s32 calcPolygonNum(const LiveActor* actor, s32 index) {
     ModelKeeper* modelKeeper = actor->getModelKeeper();
     if (modelKeeper)
-        return al::calcPolygonNum(modelKeeper, index);
+        return calcPolygonNum(modelKeeper, index);
     return 0;
 }
 
 s32 calcPolygonNumCurrentLod(const LiveActor* actor) {
     ModelKeeper* modelKeeper = actor->getModelKeeper();
     if (modelKeeper)
-        return al::calcPolygonNumCurrentLod(modelKeeper);
+        return calcPolygonNumCurrentLod(modelKeeper);
     return 0;
 }
 
-// s32 calcPolygonNumCurrentLodWithoutVisAnim(const LiveActor* actor);
+// calcPolygonNumCurrentLodWithoutVisAnim
 
 s32 getLodLevel(const LiveActor* actor) {
-    return al::getLodLevel(actor->getModelKeeper());
+    return getLodLevel(actor->getModelKeeper());
 }
 
 s32 getMaterialLodLevel(const LiveActor* actor) {
-    return al::getMaterialLodLevel(actor->getModelKeeper());
+    return getMaterialLodLevel(actor->getModelKeeper());
 }
 
 s32 getLodLevelNoClamp(const LiveActor* actor) {
-    return al::getLodLevelNoClamp(actor->getModelKeeper());
+    return getLodLevelNoClamp(actor->getModelKeeper());
 }
 
 s32 getLodModelCount(const LiveActor* actor) {
@@ -877,20 +867,20 @@ bool isExistLodModel(const LiveActor* actor) {
 }
 
 bool isEnableMaterialLod(const LiveActor* actor) {
-    return al::isEnableMaterialLod(actor->getModelKeeper());
+    return isEnableMaterialLod(actor->getModelKeeper());
 }
 
 void validateLodModel(LiveActor* actor) {
-    al::validateLodModel(actor->getModelKeeper());
+    validateLodModel(actor->getModelKeeper());
 }
 
 void invalidateLodModel(LiveActor* actor) {
-    al::invalidateLodModel(actor->getModelKeeper());
+    invalidateLodModel(actor->getModelKeeper());
 }
 
 bool isValidateLodModel(const LiveActor* actor) {
     if (isExistLodModel(actor))
-        return al::isValidateLodModel(actor->getModelKeeper());
+        return isValidateLodModel(actor->getModelKeeper());
     return false;
 }
 
@@ -918,23 +908,23 @@ void invalidateDitherAnim(LiveActor* actor) {
     actor->getModelKeeper()->getModelCtrl()->getActorDitherAnimator()->invalidateDitherAnim();
 }
 
-// void validateFarDitherIfInvalidateClipping(LiveActor* actor);
+// validateFarDitherIfInvalidateClipping
+// setDitherAnimSphereRadius
+// setDitherAnimBoundingBox
+// setDitherAnimMaxAlpha
+// setDitherAnimClippingJudgeLocalOffset
+// setDitherAnimClippingJudgeParam
+// resetDitherAnimClippingJudgeParam
+// getDitherAnimMinNearDitherAlpha
+// getDitherAnimNearClipStartDistance
+// getDitherAnimNearClipEndDistance
+// calcDitherAnimJudgeDistance
+// createUniqueShader
+// isJudgedToClipFrustum
+// isJudgedToClipFrustum
+// isJudgedToClipFrustum
+// isJudgedToClipFrustumWithoutFar
+// isJudgedToClipFrustumWithoutFar
+// isJudgedToClipFrustumWithoutFar
 
-void setDitherAnimSphereRadius(LiveActor* actor, f32);
-void setDitherAnimBoundingBox(LiveActor* actor, const sead::Vector3f&);
-void setDitherAnimMaxAlpha(LiveActor* actor, f32);
-void setDitherAnimClippingJudgeLocalOffset(LiveActor* actor, const sead::Vector3f&);
-void setDitherAnimClippingJudgeParam(LiveActor* actor, const char*);
-void resetDitherAnimClippingJudgeParam(LiveActor* actor);
-void getDitherAnimMinNearDitherAlpha(const LiveActor* actor);
-f32 getDitherAnimNearClipStartDistance(const LiveActor* actor);
-f32 getDitherAnimNearClipEndDistance(const LiveActor* actor);
-void calcDitherAnimJudgeDistance(const LiveActor* actor);
-void createUniqueShader(LiveActor* actor);
-bool isJudgedToClipFrustum(const ClippingDirector*, const sead::Vector3f&, f32, f32);
-bool isJudgedToClipFrustum(const LiveActor* actor, const sead::Vector3f&, f32, f32);
-bool isJudgedToClipFrustum(const LiveActor* actor, f32, f32);
-bool isJudgedToClipFrustumWithoutFar(const ClippingDirector*, const sead::Vector3f&, f32, f32);
-bool isJudgedToClipFrustumWithoutFar(const LiveActor* actor, const sead::Vector3f&, f32, f32);
-bool isJudgedToClipFrustumWithoutFar(const LiveActor* actor, f32, f32);
 }  // namespace al

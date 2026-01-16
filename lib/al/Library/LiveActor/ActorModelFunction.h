@@ -4,9 +4,9 @@
 #include <math/seadBoundBox.h>
 #include <math/seadMatrix.h>
 #include <math/seadQuat.h>
+#include <nn/g3d/ModelObj.h>
 #include <nn/g3d/ResFile.h>
 #include <nn/gfx/gfx_DescriptorSlot.h>
-#include "nn/g3d/ModelObj.h"
 
 namespace agl {
 class UniformBlock;

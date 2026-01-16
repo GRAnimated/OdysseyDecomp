@@ -32,7 +32,7 @@ public:
     ModelCtrl();
     ~ModelCtrl();
 
-    void initialize(nn::g3d::ResModel*, s32, s32, sead::Heap*, al::ShaderHolder*);
+    void initialize(nn::g3d::ResModel*, s32, s32, sead::Heap*, ShaderHolder*);
     void tryBindShader();
     void tryUpdateModelAdditionalInfoUbo(s32);
     void updateWorldMatrix(const sead::Matrix34f&, const sead::Vector3f&);
@@ -53,21 +53,21 @@ public:
     void setDirtyTexture();
     void onZPrePass();
     void offZPrePass();
-    EnvTexInfo& getEnvTexInfo(s32) const;
+    EnvTexInfo* getEnvTexInfo(s32) const;
     void requestModelAdditionalInfoUbo();
-    void setLodCtrl(al::ModelLodCtrl*);
+    void setLodCtrl(ModelLodCtrl*);
     void getLodLevelMax() const;
     void getLodLevelMaterial() const;
     void getLodLevelNoClamp() const;
     void setLodLevelForce(s32);
     void updateLodCtrl();
-    void setDitherAnimator(al::DitherAnimator*);
+    void setDitherAnimator(DitherAnimator*);
     void updateDitherAnimator();
     void checkChangeDisplayList();
     void addToDrawerCulling();
     void removeFromDrawerCulling();
     void updateSubMesh();
-    void setModelMaterialCategory(const al::ModelMaterialCategory*);
+    void setModelMaterialCategory(const ModelMaterialCategory*);
     void setModelAlphaMask(f32);
     void setModelUvOffset(const sead::Vector2f&);
     void setModelProjMtx0(const sead::Matrix44f&);
@@ -98,9 +98,9 @@ public:
     void pushDisplayListModel(agl::DisplayList*);
     void pushDisplayListShape(agl::DisplayList*, s32);
     void getModelShapeCtrl(s32) const;
-    void initResource(al::Resource*, al::Resource*);
-    void initModel(al::GpuMemAllocator*, al::ModelShaderHolder*, al::ModelOcclusionCullingDirector*,
-                   al::ShadowDirector*, al::PrepassTriangleCulling*, s32, s32);
+    void initResource(Resource*, Resource*);
+    void initModel(GpuMemAllocator*, ModelShaderHolder*, ModelOcclusionCullingDirector*,
+                   ShadowDirector*, PrepassTriangleCulling*, s32, s32);
     void tryCreateCulledIndexBuffer();
     void show();
     void hide();
