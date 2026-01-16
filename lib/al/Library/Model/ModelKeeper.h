@@ -46,12 +46,6 @@ public:
 
     const char* getName() const { return mName; }
 
-    void update();
-    void show();
-    void hide();
-
-    const char* getName() const { return mName; }
-
     ModelCtrl* getModelCtrl() const { return mModelCtrl; }
 
     AnimPlayerSkl* getAnimSkl() const { return mAnimSkl; }

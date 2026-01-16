@@ -15,7 +15,6 @@ namespace pfx {
 class FilterAA;
 }
 class DrawContext;
-}  // namespace agl
 
 namespace sdw {
 class PrimitiveOcclusion;

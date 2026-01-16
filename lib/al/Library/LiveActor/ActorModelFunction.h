@@ -4,9 +4,9 @@
 #include <math/seadBoundBox.h>
 #include <math/seadMatrix.h>
 #include <math/seadQuat.h>
-#include <nn/g3d/MaterialObj.h>
 #include <nn/g3d/ResFile.h>
 #include <nn/gfx/gfx_DescriptorSlot.h>
+#include "nn/g3d/ModelObj.h"
 
 namespace agl {
 class UniformBlock;
@@ -163,12 +163,12 @@ void replaceMaterialResTexture(LiveActor*, const char*, const char*, nn::gfx::De
 void replaceMaterialLayoutTexture(LiveActor* actor, const LayoutTextureRenderObj*, const char*,
                                   const char*);
 void recreateModelDisplayList(const LiveActor* actor);
-void calcPolygonNum(const LiveActor* actor, s32);
-void calcPolygonNumCurrentLod(const LiveActor* actor);
-void calcPolygonNumCurrentLodWithoutVisAnim(const LiveActor* actor);
-void getLodLevel(const LiveActor* actor);
-void getMaterialLodLevel(const LiveActor* actor);
-void getLodLevelNoClamp(const LiveActor* actor);
+s32 calcPolygonNum(const LiveActor* actor, s32);
+s32 calcPolygonNumCurrentLod(const LiveActor* actor);
+s32 calcPolygonNumCurrentLodWithoutVisAnim(const LiveActor* actor);
+s32 getLodLevel(const LiveActor* actor);
+s32 getMaterialLodLevel(const LiveActor* actor);
+s32 getLodLevelNoClamp(const LiveActor* actor);
 s32 getLodModelCount(const LiveActor* actor);
 void forceLodLevel(LiveActor* actor, s32);
 void unforceLodLevel(LiveActor* actor);

@@ -16,7 +16,9 @@
 #include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/LiveActor/ActorSceneInfo.h"
 #include "Library/LiveActor/LiveActorFlag.h"
-#include "Library/LiveActor/SubActorKeeper.h"
+#include "Library/LiveActor/LiveActorFunction.h"
+#include "Library/LiveActor/LiveActorInfo.h"
+#include "Library/LiveActor/LiveActorKeeper.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Matrix/MatrixUtil.h"
 #include "Library/Model/ModelCtrl.h"
@@ -245,7 +247,7 @@ void calcViewModel(LiveActor* actor) {
 void showSilhouetteModel(LiveActor* actor) {
     s32 curActorCount = actor->getSubActorKeeper()->getCurActorCount();
     for (s32 i = 0; i < curActorCount; ++i) {
-        SubActorInfo* subActorInfo = actor->getSubActorKeeper()->getSubActorInfo(i);
+        SubActorInfo* subActorInfo = actor->getSubActorKeeper()->getActorInfo(i);
 
         if (al::isEqualString(subActorInfo->subActor->getName(), "シルエットモデル"))
             showModelIfHide(subActorInfo->subActor);
@@ -257,7 +259,7 @@ void showSilhouetteModel(LiveActor* actor) {
 void hideSilhouetteModel(LiveActor* actor) {
     s32 curActorCount = actor->getSubActorKeeper()->getCurActorCount();
     for (s32 i = 0; i < curActorCount; ++i) {
-        SubActorInfo* subActorInfo = actor->getSubActorKeeper()->getSubActorInfo(i);
+        SubActorInfo* subActorInfo = actor->getSubActorKeeper()->getActorInfo(i);
 
         if (al::isEqualString(subActorInfo->subActor->getName(), "シルエットモデル"))
             hideModelIfShow(subActorInfo->subActor);
@@ -639,12 +641,12 @@ void calcJointAngleZDirToTargetOnYDir(const LiveActor* actor, const char* jointN
     al::calcMtxLocalDirAngleOnPlaneToTarget(jointMtx, dir, 2, 1);
 }
 
-void getMaterialName(const LiveActor* actor, s32 a2) {
-    getMaterialName(actor->getModelKeeper(), a2);
+const char* getMaterialName(const LiveActor* actor, s32 a2) {
+    return getMaterialName(actor->getModelKeeper(), a2);
 }
 
-void getMaterialCount(const LiveActor* actor) {
-    getMaterialCount(actor->getModelKeeper());
+s32 getMaterialCount(const LiveActor* actor) {
+    return getMaterialCount(actor->getModelKeeper());
 }
 
 bool isExistMaterial(const LiveActor* actor, const char* materialName) {
