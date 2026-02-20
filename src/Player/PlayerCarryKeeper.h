@@ -24,7 +24,8 @@ public:
                       PlayerJointParamHandLegAngle* handLegAngleParam);
 
     void update();
-    bool updateCollideLockUp(const IUsePlayerCollision* collider, PlayerPushReceiver* pushReceiver);
+    bool updateCollideLockUp(const IUsePlayerCollision* collider,
+                             const PlayerPushReceiver* pushReceiver);
     void updateHandJointAngle();
 
     bool startCarry(al::HitSensor* heldSensor);
@@ -62,12 +63,12 @@ public:
     void exeRelease();
 
 private:
-    al::LiveActor* mPlayer;
+    const al::LiveActor* mPlayer;
     PlayerAnimator* mAnimator;
     al::HitSensor* mCarrySensor;
     al::HitSensor* mHeldSensor;
-    IPlayerModelChanger* mModelChanger;
-    IUsePlayerCeilingCheck* mCeilingCheck;
+    const IPlayerModelChanger* mModelChanger;
+    const IUsePlayerCeilingCheck* mCeilingCheck;
     PlayerJointParamHandLegAngle* mHandLegAngleParam;
     s32 _48;
     bool mIsCarryAbove;
