@@ -37,14 +37,14 @@ NERVES_MAKE_STRUCT(PlayerCarryKeeper, Wait, Start, ThrowSwing, Throw, Release);
 //   causing a mismatch in PlayerCarryKeeper::exeStart
 //
 // - It chose to not create a struct for PlayerJointParamHandLegAngle,
-//   instead only interpreting it as a float array
+//   instead only interpreting it as an f32 array
 
 PlayerCarryKeeper::PlayerCarryKeeper(const al::LiveActor* player, al::HitSensor* carrySensor,
                                      PlayerAnimator* animator,
                                      const IPlayerModelChanger* modelChanger,
                                      const IUsePlayerCeilingCheck* ceilingCheck,
                                      PlayerJointParamHandLegAngle* handLegAngleParam)
-    : al::NerveExecutor("PlayerCarryKeeper") {
+    : al::NerveExecutor("持ち運び管理") {
     mPlayer = player;
     mAnimator = animator;
     mCarrySensor = carrySensor;
@@ -94,11 +94,11 @@ bool PlayerCarryKeeper::updateCollideLockUp(const IUsePlayerCollision* collider,
 }
 
 void PlayerCarryKeeper::updateHandJointAngle() {
-    auto* param = reinterpret_cast<float*>(mHandLegAngleParam);
+    auto* param = reinterpret_cast<f32*>(mHandLegAngleParam);
     param[0] = _50.x;
     param[1] = _50.y;
     param[2] = _50.z;
-    reinterpret_cast<float*>(mHandLegAngleParam)[6] = 0.5f;
+    reinterpret_cast<f32*>(mHandLegAngleParam)[6] = 0.5f;
 }
 
 bool PlayerCarryKeeper::startCarry(al::HitSensor* heldSensor) {
@@ -156,7 +156,7 @@ void PlayerCarryKeeper::startCancelAndRelease() {
 }
 
 void PlayerCarryKeeper::startRelease() {
-    auto* param = reinterpret_cast<float*>(mHandLegAngleParam);
+    auto* param = reinterpret_cast<f32*>(mHandLegAngleParam);
     param[0] = 0.0f;
     param[1] = 0.0f;
     param[2] = 0.0f;
@@ -309,7 +309,7 @@ void PlayerCarryKeeper::exeThrow() {
     if (al::isFirstStep(this)) {
         mAnimator->clearUpperBodyAnim();
         mAnimator->startSubAnim(getCarryThrowAnimName());
-        auto* param = reinterpret_cast<float*>(mHandLegAngleParam);
+        auto* param = reinterpret_cast<f32*>(mHandLegAngleParam);
         param[0] = 0.0f;
         param[1] = 0.0f;
         param[2] = 0.0f;

@@ -97,6 +97,12 @@ tools/listsym -l          # decompiled symbols (exist in file list)
 tools/check-format.py     # reports every formatting problem to fix before a class is done
 ```
 
+Common format errors to watch for:
+
+- **`float` / `char16_t` forbidden** — use `f32` and `char16` everywhere, including in `reinterpret_cast<float*>` and in comments.
+- **Offset comments forbidden in headers** — `// 0x108` style comments on member declarations are rejected. Use a plain descriptive comment or none.
+- **String not found in binary** — every string literal in source must appear verbatim in the game binary. Always read the full null-terminated string with `idaapi.get_bytes` before writing it; the actual string may have suffixes like `"電撃ライン[ライトニング用]"` that you would miss by only reading the first few bytes.
+
 ### File list
 
 `data/file_list.yml` — defines the offset, size, label (mangled symbol), and status of every function, and which object file it belongs to. Use this to find functions and to match source/header file directory structure.
@@ -282,9 +288,29 @@ These patterns come up repeatedly. Recognising them saves iteration time.
 
 **`STRH` for two adjacent bool fields** — The original compiler sometimes emits a single `strh w8, [x0, #off]` (halfword store of 0x0101) to initialise two adjacent `bool` fields at once. Our compiler emits two `strb` instructions. This is NonMatchingMinor in constructors; mark NON_MATCHING.
 
-**Hardcoded Japanese name strings** — Some classes pass a hardcoded Japanese string literal as the `name` argument to their base class or to `initDemoAnimCamera`. These live in rodata and are visible in the constructor disassembly as `ADRL X1, byte_XXXXXXXX`. To find the string, use `py_eval` with `idaapi.get_bytes(addr, N)` and decode as UTF-8.
+**Hardcoded Japanese name strings** — Some classes pass a hardcoded Japanese string literal as the `name` argument to their base class, to `initDemoAnimCamera`, or to `al::NerveExecutor`. These live in rodata and are visible in the constructor disassembly as `ADRL X1, byte_XXXXXXXX`. To find the string, use `py_eval` with `idaapi.get_bytes(addr, N)` and decode as UTF-8. **Always read enough bytes to see the full null terminator** — strings often have unexpected suffixes or brackets (e.g. `"電撃ライン[ライトニング用]"`) and the format checker will reject the source if any character is missing.
 
 **Adjacent f32 store coalescing** — When two adjacent `f32` fields are initialised in sequence (e.g. `mRotateSpeed = 5.0f; mRotateAngle = 0.0f`), the original compiler may merge them into a single 64-bit `str x8` where the upper 32 bits are zero. Our compiler emits two separate word stores. Fix: ensure both fields are written in the source (even if one is already zero) and try reordering them to match the target's store order. The coalescing is sensitive to declaration order and assignment order.
+
+**`sead::Vector3f` copy store ordering** — When the original copies a `sead::Vector3f` with the pattern:
+```asm
+ldr w9, [x1, #0x8]       ; load source.z
+str w9, [x0, #offset+8]  ; store dest.z first
+ldr x9, [x1]             ; load source.x+y as 64-bit pair
+str x9, [x0, #offset]    ; store dest.x+y together
+```
+use `mVec.set(other)` instead of `mVec = other`. The `set()` method produces a different store schedule (z stored first, then x+y coalesced as one 64-bit store) that matches the original. Using `mVec = other` emits individual x, y, z stores in field order and will not match.
+
+**Local `sead::Vector3f` stack slot ordering** — When a function has two local `sead::Vector3f` variables and the stack slots are swapped relative to the original, swap their declaration order. Declaring the output vector first (before the input) can swap their stack slot assignments to match the original. For example, if the original places `frontDir` at `sp+0x10` and `shotDir` at `sp+0x20`, declare `shotDir` before `frontDir` in source.
+
+**Load/store scheduling across call boundaries** — The original compiler sometimes hoists a field load or function call ahead of adjacent computation. For example, loading `mElectricLine` and calling `getTrans(this)` immediately after `rotateVectorDegree` (before computing the offset vector) matches the original's schedule. Add local variables to force evaluation order:
+```cpp
+// Force the pointer load and getTrans before the multiply
+BossRaidElectricLine* electricLine = mElectricLine;
+const sead::Vector3f& trans = al::getTrans(this);
+sead::Vector3f offset = mRadius * shotDir;  // multiply happens after
+electricLine->shot(trans, offset);
+```
 
 **Extra callee-saved register / wrong function size** — If the diff shows our function saving fewer callee-saved registers than the target (e.g. target saves `x21` but ours does not), the fix is often to remove a redundant local variable that is keeping the register live. For instance, caching a member field into a local `s32 timer = mField` and then using `timer` everywhere can force an extra register; using `mField` directly throughout instead lets the compiler reuse scratch registers without needing an extra save.
 
