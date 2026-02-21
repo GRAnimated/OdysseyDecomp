@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math/seadVector.h>
+
 #include "Library/LiveActor/LiveActor.h"
 
 namespace al {
@@ -30,4 +32,16 @@ public:
     bool isHide() const;
     void updateEffectScale(f32 scale);
     void calcNearPos(sead::Vector3f* outPos, const sead::Vector3f& targetPos) const;
+
+private:
+    al::DeriveActorGroup<BossRaidElectric>* mActorGroup = nullptr;  // active bullet list
+    BossRaidElectric* mNextBullet = nullptr;
+    BossRaidElectric* mPrevBullet = nullptr;
+    sead::Vector3f mFrontDir = sead::Vector3f::ez;  // segment direction, normalised
+    sead::Vector3f _12c = sead::Vector3f::zero;      // center position of segment
+    sead::Vector3f mMoveDir = sead::Vector3f::zero; // per-frame translation delta
+    f32 _144 = 0.0f;                                // segment length offset (length - 500)
+    bool _148 = true;                               // true while bullet is in the active area
 };
+
+static_assert(sizeof(BossRaidElectric) == 0x150);
