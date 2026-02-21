@@ -8,6 +8,22 @@ You are a decompilation assistant for *Super Mario Odyssey*. Your job is to anal
 
 **Never rename anything.** All symbol names come from `data/file_list.yml` or from IDA. Use them exactly as given. Do not rename, abbreviate, or "clean up" any identifier that was not invented by you.
 
+## Environment
+
+Always run tools inside the nix environment with the venv activated:
+
+```
+nix develop --command bash -c "source ../venv/bin/activate && <command>"
+```
+
+`tools/check` requires a TTY. Pass `--algorithm=difflib` to avoid the Levenshtein dependency issue, and pipe through `strings` to strip ANSI escape codes when capturing output:
+
+```
+nix develop --command bash -c "source ../venv/bin/activate && tools/check --no-pager --algorithm=difflib <sym>" | strings
+```
+
+IDA MCP uses the `addr` parameter (not `name`) for address lookups. Addresses are `0x7100000000 + offset` where offset comes from `file_list.yml`. Example: offset `0x45a8b8` → addr `0x710045a8b8`.
+
 ## Tools
 
 ### Build
@@ -64,6 +80,8 @@ Update statuses as you work. `tools/check` does this automatically for functions
 
 ### IDA Pro (MCP)
 
+The base address for SMO in IDA is `0x7100000000`.
+
 ida-pro-mcp is your **main point of reference**. Key operations:
 
 - `decompile` — decompile a function to pseudocode (use heavily during implementation)
@@ -98,7 +116,21 @@ static_assert(sizeof(MyClass) == 0x1D8);
 - Member variables: `m` prefix + camelCase (e.g., `mAudioKeeper`). Static members: `s` prefix.
 - Use scoped `enum class` for typed enumerations; define them inside the class if they belong to it.
 
-### 2. Analyze fields thoroughly
+### 2. Determine struct layout from constructor asm
+
+Reading the constructor disassembly is the fastest and most reliable way to establish the field layout. Key patterns:
+
+- `STP Xn, Xm, [X0, #off]` — stores two pointer-sized values (args or vtable) at `off` and `off+8`
+- `STP XZR, XZR, [X0, #off]` — zeroes 16 bytes at `off` (two adjacent fields)
+- `STUR XZR, [X0, #off]` — zeroes 8 bytes at an **unaligned** offset; the compiler uses this to zero the tail of one field plus an adjacent bool/padding in one shot
+- `STR WZR, [X0, #off]` — zeroes 4 bytes (s32/f32 field)
+- `STRB WZR, [X0, #off]` — zeroes 1 byte (bool field)
+
+Overlapping STURs are common: e.g. `STP XZR,XZR,[X0,#0x30]` + `STUR XZR,[X0,#0x3D]` together zero bytes 0x30–0x44. Map every store to a byte range, take their union, and split into fields at natural alignment boundaries.
+
+Find the class size from `operator new` xrefs in the caller (search `initPlayer` or similar). Look for `operator new(0xNN)` immediately before the constructor call.
+
+### 3. Analyze fields thoroughly
 
 - Examine the most important functions (often all of them) to find every field usage.
 - Use IDA decompiler output for thoroughness; assembly for speed.
@@ -106,7 +138,7 @@ static_assert(sizeof(MyClass) == 0x1D8);
 - Rename IDA variables and add comments to the decompiler view as you go.
 - If IDA's argument types look wrong for a call, fix them to match the decomp's equivalent.
 
-### 3. Implement the source file
+### 4. Implement the source file
 
 - Do a **first pass**: decompile every function with `decompile`, clean up the output enough to compile.
 - IDA may produce `goto`s, unrolled loops, and out-of-place logic — the original never used `goto`s. Reorder logic to be sensible without sacrificing the match.
@@ -130,7 +162,7 @@ NERVES_MAKE_NOSTRUCT(MyClass, Idle, Move);
 MyClass::MyClass(const char* name) : al::LiveActor(name) {}
 ```
 
-### 4. Check everything
+### 5. Check everything
 
 After the first pass, run:
 
@@ -140,7 +172,7 @@ tools/check
 
 Then cross-reference `file_list.yml` to confirm no functions were missed. Every function in the class should have some matching state before proceeding.
 
-### 5. Fix non-matching functions
+### 6. Fix non-matching functions
 
 For each non-matching function, you have **up to 3 attempts**: rebuild and run `tools/check --no-pager <func>` after each change. If it still doesn't match after 3 tries, add a comment above the function:
 
@@ -148,12 +180,30 @@ For each non-matching function, you have **up to 3 attempts**: rebuild and run `
 // NON_MATCHING: <explanation of what's wrong>
 ```
 
-### 6. Final cleanup and verification
+### 7. Final cleanup and verification
 
 - Run `tools/check-format.py` and fix every formatting issue it reports.
 - Run `tools/check` one final time to confirm all statuses.
 - Use sead math/vector inlines wherever possible; write it as a programmer would.
 - **Always verify your contribution is correct** before considering a class done: check that statuses in `file_list.yml` are accurate, that no functions were skipped, and that the build is clean.
+
+## Common Non-Matching Patterns
+
+These patterns come up repeatedly. Recognising them saves iteration time.
+
+**`ldp w8, w9` vs `ldr x8` + `lsr x9`** — When copying adjacent `s32` + `f32` fields the original uses `ldp` (two 32-bit registers). Clang may instead do a 64-bit `ldr` + `lsr #0x20`. This is a one-instruction size mismatch (NonMatchingMinor). Reordering source assignments does not fix it — mark NON_MATCHING.
+
+**`stur xzr` zero-init ordering** — In constructors the original often schedules zero-init stores to fill instruction latency slots, producing a different order than C++ declaration order. Rearranging body assignments rarely helps because the compiler re-schedules them. Mark NON_MATCHING.
+
+**Branch layout / shared tail blocks** — The original compiler sometimes places a shared "LABEL" block at the end of a function, reached from two paths via fall-through and one conditional branch. Clang generates the same logic inline with an inverted branch, resulting in a longer function and missing the tail block. This produces a "wrong function size" error. It is NonMatchingMajor if 10+ instructions differ, NonMatchingMinor if only 1–2 instructions differ. Mark NON_MATCHING with a clear explanation.
+
+**`bool` field byte stores** — A `bool` field always generates `strb wzr` (1 byte). The original may instead use `stur xzr` covering the bool plus adjacent memory. You cannot force the wider store from C++; mark NON_MATCHING if it matters.
+
+**`reset()` clearing two fields** — If IDA shows `reset` zeroes a 64-bit slot (e.g. `str xzr, [x0, #0x28]`), the function clears two adjacent 32-bit fields together. The source should assign both to `0`.
+
+**Virtual `reset()` call from record functions** — `recordJudgeAndReset` / `recordCooperateAndReset` call `reset()` through the vtable (`br x1`). This is virtual dispatch, which matches as long as the class is not `final`. Do not devirtualize.
+
+**`*((_DWORD*)this + N)` offset arithmetic** — IDA uses dword (4-byte) indices. `*((_DWORD*)this + N)` = byte offset `N*4`. Qword index `*((_QWORD*)this + N)` = byte offset `N*8`. Always double-check by computing the byte offset; confusing the two is the most common layout mistake.
 
 ## Code Style (summary)
 
