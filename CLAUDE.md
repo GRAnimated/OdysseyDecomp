@@ -22,11 +22,43 @@ nix develop --command bash -c "source ../venv/bin/activate && <command>"
 nix develop --command bash -c "source ../venv/bin/activate && tools/check --no-pager --algorithm=difflib <sym>" | strings
 ```
 
+**Important**: `curl` may not work outside the nix environment due to glibc version mismatches. Call IDA MCP directly using Python's `urllib`:
+
+```python
+python3 -c "
+import urllib.request, json
+def ida(tool, args):
+    data = json.dumps({'jsonrpc':'2.0','id':1,'method':'tools/call','params':{'name':tool,'arguments':args}}).encode()
+    req = urllib.request.Request('http://127.0.0.1:13337/mcp', data=data, headers={'Content-Type':'application/json'})
+    resp = urllib.request.urlopen(req)
+    return json.loads(resp.read())['result']['content'][0]['text']
+print(ida('decompile', {'addr': '0x710XXXXXXXXX'}))
+"
+```
+
+Or, if curl works (e.g. inside a distrobox or with matching glibc):
+
+```
+curl -s -X POST http://127.0.0.1:13337/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"decompile","arguments":{"addr":"0x710XXXXXXXXX"}}}' \
+  | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['result']['content'][0]['text'])"
+```
+
 IDA MCP uses the `addr` parameter (not `name`) for address lookups. Addresses are `0x7100000000 + offset` where offset comes from `file_list.yml`. Example: offset `0x45a8b8` → addr `0x710045a8b8`.
 
 **Address formatting**: offsets are at most 6 hex digits, so the full address is always 10 hex digits total. Example: offset `0x046d58` → `0x7100046d58` (not `0x710046d58`). When in doubt, zero-pad the offset to 6 digits before prepending the base.
 
 **Reading raw bytes/strings**: use `py_eval` with `idaapi.get_bytes(addr, length)` to read raw data at an address. Useful for finding hardcoded string literals embedded in rodata (e.g. Japanese name strings passed to constructors).
+
+**Reading float constants**: IDA often shows integer literals where floats are expected. Use Python's `struct.unpack` to convert: `struct.unpack('<f', struct.pack('<I', 0x40A00000))[0]` → `5.0`. Or use `py_eval` to read multiple globals at once:
+
+```python
+import idaapi, struct
+for addr in [0x710187FD54, ...]:
+    b = idaapi.get_bytes(addr, 4)
+    print(hex(addr), struct.unpack('<f', b)[0])
+```
 
 ## Tools
 
@@ -91,7 +123,7 @@ ida-pro-mcp is your **main point of reference**. Key operations:
 - `decompile` — decompile a function to pseudocode (use heavily during implementation)
 - `disasm` — disassemble a function
 - `lookup_funcs` / `list_funcs` — find functions by address or name
-- `xrefs_to` — find callers of a function or address
+- `xrefs_to` — find callers of a function or address: `{"addrs": ["0x..."]}`
 - `xrefs_to_field` — find usages of a struct field
 - `list_globals` / `get_global_value` — inspect globals
 - `rename` — rename functions, locals, stack variables in IDA
@@ -103,21 +135,37 @@ ida-pro-mcp is your **main point of reference**. Key operations:
 - `get_string` — read a string from an address: `{"addrs": ["0x..."]}`
 - `py_eval` — run arbitrary Python in IDA context: `{"code": "import idaapi; ..."}`
 
+**Trust the IDA decompile for vtable calls.** IDA resolves virtual dispatch from the vtables in the executable — the function names it shows are ground truth. If the pseudocode shows `v12->makeActorDead(this)`, that really is `makeActorDead()`. If you are unsure, use `set_type` in IDA to apply the correct type to the function and re-decompile for clarity.
+
+**Finding class size**: use `xrefs_to` on the C1 constructor address to find callers, then look for `operator new(0xNN)` immediately before the constructor call in the caller's disasm. The argument is the class size.
+
 ## Decompilation Workflow
 
-### 1. Create the header first
+### 1. Survey the class
+
+Before writing any code, gather all the information you need:
+
+- Find the class in `data/file_list.yml` to get all function offsets and the object file path.
+- Compute full IDA addresses: `0x7100000000 + offset` (zero-pad offset to 6 hex digits).
+- Decompile **all** functions up front in one pass using the IDA MCP. Batch multiple calls to save time.
+- Disassemble the constructor(s) to establish struct layout.
+- Find the class size by calling `xrefs_to` on the C1 constructor and looking for `operator new(0xNN)` immediately before the constructor call in the caller's disasm.
+- Read any hardcoded string literals (Japanese names etc.) using `py_eval` + `idaapi.get_bytes`.
+- Look up free-function headers by grepping `lib/al` for the relevant function names before writing includes.
+
+### 2. Create the header
 
 - Mirror the object file's directory path from `file_list.yml` for all source/header files.
 - Start with `#pragma once`.
 - Fill in function declarations, includes, forward declarations, and inheritance.
 - **Always forward declare** types in headers when you don't need the full definition. Only `#include` what is strictly required by the header itself. This reduces compile times and keeps headers clean for other contributors.
-- If you know the class size (check `operator new` xrefs in the constructor), add it as padding using `void*` fields (can be an array) and add a `static_assert` at the bottom. Omit the assert if the size cannot be determined:
+- If you know the class size (check `operator new` xrefs in the constructor), add a `static_assert` at the bottom. Omit the assert if the size cannot be determined:
 
 ```cpp
 static_assert(sizeof(MyClass) == 0x1D8);
 ```
 
-- Only name fields you are confident about; use filler names like `_0x58` otherwise.
+- Only name fields you are confident about; use filler names like `_0x58` otherwise. **Add a comment next to uncertain field names** explaining what they appear to do.
 - Use `= nullptr` / `= 0` / `= false` initializers on member variables where appropriate.
 - Member variables: `m` prefix + camelCase (e.g., `mAudioKeeper`). Static members: `s` prefix.
 - Use scoped `enum class` for typed enumerations; define them inside the class if they belong to it.
@@ -130,7 +178,7 @@ static_assert(sizeof(MyClass) == 0x1D8);
 - When a set of related free functions belongs together but has no class, use a `namespace` (e.g., `namespace PlayerDemoFunction { ... }`) — **not** a class with static methods.
 - Parameter names in header declarations must match the names used in the source definitions exactly.
 
-### 2. Determine struct layout from constructor asm
+### 3. Determine struct layout from constructor asm
 
 Reading the constructor disassembly is the fastest and most reliable way to establish the field layout. Key patterns:
 
@@ -139,12 +187,13 @@ Reading the constructor disassembly is the fastest and most reliable way to esta
 - `STUR XZR, [X0, #off]` — zeroes 8 bytes at an **unaligned** offset; the compiler uses this to zero the tail of one field plus an adjacent bool/padding in one shot
 - `STR WZR, [X0, #off]` — zeroes 4 bytes (s32/f32 field)
 - `STRB WZR, [X0, #off]` — zeroes 1 byte (bool field)
+- `STR X8, [X0, #off]` where `W8` was set from a float constant — stores two adjacent 32-bit fields (e.g. `f32` + `f32`) as a single 64-bit write. Both fields must be declared in the struct; setting both in source will coalesce them back into the wide store.
 
 Overlapping STURs are common: e.g. `STP XZR,XZR,[X0,#0x30]` + `STUR XZR,[X0,#0x3D]` together zero bytes 0x30–0x44. Map every store to a byte range, take their union, and split into fields at natural alignment boundaries.
 
-Find the class size from `operator new` xrefs in the caller (search `initPlayer` or similar). Look for `operator new(0xNN)` immediately before the constructor call.
+Find the class size from `operator new` xrefs in the caller. Use `xrefs_to` on the C1 constructor address, then disassemble the caller and look for `operator new(0xNN)` immediately before the constructor call.
 
-### 3. Analyze fields thoroughly
+### 4. Analyze fields thoroughly
 
 - Examine the most important functions (often all of them) to find every field usage.
 - Use IDA decompiler output for thoroughness; assembly for speed.
@@ -152,7 +201,7 @@ Find the class size from `operator new` xrefs in the caller (search `initPlayer`
 - Rename IDA variables and add comments to the decompiler view as you go.
 - If IDA's argument types look wrong for a call, fix them to match the decomp's equivalent.
 
-### 4. Implement the source file
+### 5. Implement the source file
 
 - Do a **first pass**: decompile every function with `decompile`, clean up the output enough to compile.
 - IDA may produce `goto`s, unrolled loops, and out-of-place logic — the original never used `goto`s. Reorder logic to be sensible without sacrificing the match.
@@ -184,7 +233,7 @@ NERVES_MAKE_NOSTRUCT(MyClass, Idle, Move);
 MyClass::MyClass(const char* name) : al::LiveActor(name) {}
 ```
 
-### 5. Check everything
+### 6. Check everything
 
 After the first pass, run with **no arguments** to check all functions at once — this is much more token-efficient than checking one at a time:
 
@@ -196,7 +245,7 @@ Then cross-reference `file_list.yml` to confirm no functions were missed. Every 
 
 `tools/check` with no arguments only prints `note:` lines for functions that are marked `NotDecompiled` but actually match or mismatch — it does not re-report functions already in a non-`NotDecompiled` status. Use per-symbol checks to see diffs for specific functions.
 
-### 6. Fix non-matching functions
+### 7. Fix non-matching functions
 
 For each non-matching function, you have **up to 3 attempts**: rebuild and run `tools/check --no-pager <func>` after each change. If it still doesn't match after 3 tries, add a comment above the function:
 
@@ -204,7 +253,7 @@ For each non-matching function, you have **up to 3 attempts**: rebuild and run `
 // NON_MATCHING: <explanation of what's wrong>
 ```
 
-### 7. Final cleanup and verification
+### 8. Final cleanup and verification
 
 - Run `tools/check-format.py` and fix every formatting issue it reports.
 - Run `tools/check` one final time to confirm all statuses.
@@ -234,6 +283,10 @@ These patterns come up repeatedly. Recognising them saves iteration time.
 **`STRH` for two adjacent bool fields** — The original compiler sometimes emits a single `strh w8, [x0, #off]` (halfword store of 0x0101) to initialise two adjacent `bool` fields at once. Our compiler emits two `strb` instructions. This is NonMatchingMinor in constructors; mark NON_MATCHING.
 
 **Hardcoded Japanese name strings** — Some classes pass a hardcoded Japanese string literal as the `name` argument to their base class or to `initDemoAnimCamera`. These live in rodata and are visible in the constructor disassembly as `ADRL X1, byte_XXXXXXXX`. To find the string, use `py_eval` with `idaapi.get_bytes(addr, N)` and decode as UTF-8.
+
+**Adjacent f32 store coalescing** — When two adjacent `f32` fields are initialised in sequence (e.g. `mRotateSpeed = 5.0f; mRotateAngle = 0.0f`), the original compiler may merge them into a single 64-bit `str x8` where the upper 32 bits are zero. Our compiler emits two separate word stores. Fix: ensure both fields are written in the source (even if one is already zero) and try reordering them to match the target's store order. The coalescing is sensitive to declaration order and assignment order.
+
+**Extra callee-saved register / wrong function size** — If the diff shows our function saving fewer callee-saved registers than the target (e.g. target saves `x21` but ours does not), the fix is often to remove a redundant local variable that is keeping the register live. For instance, caching a member field into a local `s32 timer = mField` and then using `timer` everywhere can force an extra register; using `mField` directly throughout instead lets the compiler reuse scratch registers without needing an extra save.
 
 ## Code Style (summary)
 
