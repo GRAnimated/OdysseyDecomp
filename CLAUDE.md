@@ -24,6 +24,10 @@ nix develop --command bash -c "source ../venv/bin/activate && tools/check --no-p
 
 IDA MCP uses the `addr` parameter (not `name`) for address lookups. Addresses are `0x7100000000 + offset` where offset comes from `file_list.yml`. Example: offset `0x45a8b8` → addr `0x710045a8b8`.
 
+**Address formatting**: offsets are at most 6 hex digits, so the full address is always 10 hex digits total. Example: offset `0x046d58` → `0x7100046d58` (not `0x710046d58`). When in doubt, zero-pad the offset to 6 digits before prepending the base.
+
+**Reading raw bytes/strings**: use `py_eval` with `idaapi.get_bytes(addr, length)` to read raw data at an address. Useful for finding hardcoded string literals embedded in rodata (e.g. Japanese name strings passed to constructors).
+
 ## Tools
 
 ### Build
@@ -96,6 +100,8 @@ ida-pro-mcp is your **main point of reference**. Key operations:
 - `set_comments` — annotate the decompiler view to aid analysis
 - `int_convert` — **always use this** to convert number bases; never convert manually
 - `find_regex` / `find` / `find_bytes` — search the binary
+- `get_string` — read a string from an address: `{"addrs": ["0x..."]}`
+- `py_eval` — run arbitrary Python in IDA context: `{"code": "import idaapi; ..."}`
 
 ## Decompilation Workflow
 
@@ -115,6 +121,14 @@ static_assert(sizeof(MyClass) == 0x1D8);
 - Use `= nullptr` / `= 0` / `= false` initializers on member variables where appropriate.
 - Member variables: `m` prefix + camelCase (e.g., `mAudioKeeper`). Static members: `s` prefix.
 - Use scoped `enum class` for typed enumerations; define them inside the class if they belong to it.
+
+**Header placement rules (critical):**
+
+- Every function belongs in the header whose `.o` file owns it per `file_list.yml`. Never put a function in a different header just because it's convenient — check the object file, find/create the matching `.h`.
+- Functions within a header must appear in **ascending offset order** (the same order they appear in the executable). Check `file_list.yml` offsets before inserting.
+- Forward declare `ActorInitInfo` as `struct ActorInitInfo;` (not `class`) to avoid `-Wmismatched-tags` warnings — it is declared as a struct elsewhere.
+- When a set of related free functions belongs together but has no class, use a `namespace` (e.g., `namespace PlayerDemoFunction { ... }`) — **not** a class with static methods.
+- Parameter names in header declarations must match the names used in the source definitions exactly.
 
 ### 2. Determine struct layout from constructor asm
 
@@ -146,6 +160,14 @@ Find the class size from `operator new` xrefs in the caller (search `initPlayer`
 - Identify inlined functions and uninline them (call the original inline; let the compiler re-inline it). sead inlines are especially common — use math and vector inlines wherever applicable.
 - If something doesn't exist in sead, do not add it.
 
+**Recognising inlined functions (critical):** When IDA shows direct field access instead of a function call, that callee was inlined. Examples:
+- `*(*(this+8) + 8)` instead of `getStringTop()` — use `getStringTop()` directly.
+- `sead::BufferedSafeStringBase::getStringTop()` — accesses `mStringTop` with no virtual call; use for inline string pointer access.
+- `sead::BufferedSafeStringBase::cstr()` — calls virtual `assureTerminationImpl_()` first; generates a real call.
+- Always compare IDA output carefully: if it shows field offsets rather than a named call, an inline is hiding there.
+
+**IUseCamera cast pattern:** When IDA shows `mActor + 48` (or similar offset) being passed to a camera function, this is the compiler computing `(IUseCamera*)mActor` — the `IUseCamera` subobject sits at that offset inside `LiveActor`. In source, simply cast `mActor` to `IUseCamera*` (or pass it directly where the type is compatible) and the compiler will emit the same offset.
+
 **Nerve/state-machine pattern** (very common in this codebase): nerve declarations go in an anonymous namespace at the top of the `.cpp` file using `NERVE_IMPL` or `NERVE_ACTION_IMPL`, followed by `NERVES_MAKE_NOSTRUCT` or `NERVE_ACTIONS_MAKE_STRUCT`. Example:
 
 ```cpp
@@ -164,13 +186,15 @@ MyClass::MyClass(const char* name) : al::LiveActor(name) {}
 
 ### 5. Check everything
 
-After the first pass, run:
+After the first pass, run with **no arguments** to check all functions at once — this is much more token-efficient than checking one at a time:
 
 ```
 tools/check
 ```
 
 Then cross-reference `file_list.yml` to confirm no functions were missed. Every function in the class should have some matching state before proceeding.
+
+`tools/check` with no arguments only prints `note:` lines for functions that are marked `NotDecompiled` but actually match or mismatch — it does not re-report functions already in a non-`NotDecompiled` status. Use per-symbol checks to see diffs for specific functions.
 
 ### 6. Fix non-matching functions
 
@@ -205,6 +229,12 @@ These patterns come up repeatedly. Recognising them saves iteration time.
 
 **`*((_DWORD*)this + N)` offset arithmetic** — IDA uses dword (4-byte) indices. `*((_DWORD*)this + N)` = byte offset `N*4`. Qword index `*((_QWORD*)this + N)` = byte offset `N*8`. Always double-check by computing the byte offset; confusing the two is the most common layout mistake.
 
+**Register allocation / wrong function size** — The original compiler sometimes saves more callee-saved registers (e.g. x23/x24/x25) than our clang produces, making the stack frame larger and causing a "wrong function size" error even when the logic is identical. This is NonMatchingMinor. You cannot fix it from C++ source — mark NON_MATCHING and move on. Diagnosis: if the diff shows only register name differences and a frame size difference (e.g. `stp x24, x23` vs absent), it is purely register allocation.
+
+**`STRH` for two adjacent bool fields** — The original compiler sometimes emits a single `strh w8, [x0, #off]` (halfword store of 0x0101) to initialise two adjacent `bool` fields at once. Our compiler emits two `strb` instructions. This is NonMatchingMinor in constructors; mark NON_MATCHING.
+
+**Hardcoded Japanese name strings** — Some classes pass a hardcoded Japanese string literal as the `name` argument to their base class or to `initDemoAnimCamera`. These live in rodata and are visible in the constructor disassembly as `ADRL X1, byte_XXXXXXXX`. To find the string, use `py_eval` with `idaapi.get_bytes(addr, N)` and decode as UTF-8.
+
 ## Code Style (summary)
 
 Full details in `Contributing.md`. Key rules:
@@ -217,9 +247,11 @@ Full details in `Contributing.md`. Key rules:
 - Includes: angle brackets `<>` for system/sead/library headers; quotes `""` for al/rs/game headers. Three blocks separated by blank lines: `<>` first, then `al`/`Library`, then game-local.
 - Type names and compile-time constants: `UpperCamelCase`.
 - Function names: `camelCase`.
-- Local variables and parameters: `lowercase_snake_case`.
+- Local variables and parameters: `camelCase`.
 - Class member variables: `mCamelCase`. Static members: `sCamelCase`. Globals: `gCamelCase`.
 - Class member order: `public` → `protected` → `private`; constructor/destructor/operators/other functions, then non-static variables, statics before non-statics.
 - Use `override` not `virtual` when overriding. Mark `const` where applicable. No `this->` unless necessary.
 - `= default;` for empty constructors/destructors.
 - Virtual function order must match the original executable's vtable order.
+- Never use `float` or `char16_t` directly — use the sead equivalents `f32` and `char16`. The format checker enforces this. Similarly use `sead::Quatf` not `sead::Quat<float>`, `sead::Vector3f` not `sead::Vector3<float>`.
+- **No `snake_case` anywhere** — locals, parameters, everything is `camelCase`. There are no exceptions in this project.
