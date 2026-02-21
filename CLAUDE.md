@@ -264,7 +264,12 @@ For each non-matching function, you have **up to 3 attempts**: rebuild and run `
 - Run `tools/check-format.py` and fix every formatting issue it reports.
 - Run `tools/check` one final time to confirm all statuses.
 - Use sead math/vector inlines wherever possible; write it as a programmer would.
+- **Handle unlabeled functions**: run `tools/listsym` to find any symbols in the output ELF that aren't yet in `file_list.yml`. For static initializers and other auto-generated functions without labels, the symbol name is the label — add it with `guess: true` and run `tools/check` to confirm it matches.
 - **Always verify your contribution is correct** before considering a class done: check that statuses in `file_list.yml` are accurate, that no functions were skipped, and that the build is clean.
+
+### 9. Update CLAUDE.md
+
+After finishing a class, update `CLAUDE.md` with any new patterns, pitfalls, or techniques you discovered. This keeps the instructions useful for future work. Add new patterns to the relevant section (e.g., **Common Non-Matching Patterns** or **Code Style**), and update the workflow steps if any tooling behaviour was surprising.
 
 ## Common Non-Matching Patterns
 
@@ -313,6 +318,10 @@ electricLine->shot(trans, offset);
 ```
 
 **Extra callee-saved register / wrong function size** — If the diff shows our function saving fewer callee-saved registers than the target (e.g. target saves `x21` but ours does not), the fix is often to remove a redundant local variable that is keeping the register live. For instance, caching a member field into a local `s32 timer = mField` and then using `timer` everywhere can force an extra register; using `mField` directly throughout instead lets the compiler reuse scratch registers without needing an extra save.
+
+**`sead::Mathf::maxNumber()` for float max** — When IDA shows a float constant of `3.4028235e+38` (FLT_MAX), write it as `sead::Mathf::maxNumber()` in source. This is `std::numeric_limits<float>::max()` wrapped in a sead helper. The header is available transitively via `<math/seadVector.h>` (included by `ActorPoseUtil.h` and `Library/Math/MathUtil.h`).
+
+**`squaredLength()` for distance comparisons** — When IDA shows manual dot-product distance code (`dx*dx + dy*dy + dz*dz` followed by `sqrtf`), use sead's `sead::Vector3f::squaredLength()` with a vector subtraction: `sqrtf((a - b).squaredLength())`. The subtraction uses `operator-` on `sead::Vector3f`.
 
 ## Code Style (summary)
 

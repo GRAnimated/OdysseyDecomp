@@ -15,12 +15,13 @@ public:
     void init(const al::ActorInitInfo& info) override;
     void setBulletList(al::DeriveActorGroup<BossRaidElectric>* bulletList);
     void shot(const sead::Vector3f& pos, const sead::Vector3f& dir);
+    void exeMove();
     void killForce();
 
 private:
-    void* _108 = nullptr;
-    void* _110 = nullptr;
-    void* _118 = nullptr;
+    BossRaidElectric* mPrevBullet = nullptr;
+    al::DeriveActorGroup<BossRaidElectric>* mActors = nullptr;
+    al::DeriveActorGroup<BossRaidElectric>* mBulletList = nullptr;
 };
 
 static_assert(sizeof(BossRaidElectricLine) == 0x120);
