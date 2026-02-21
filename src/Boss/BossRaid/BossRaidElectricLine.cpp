@@ -37,7 +37,7 @@ void BossRaidElectricLine::shot(const sead::Vector3f& pos, const sead::Vector3f&
     if (bullet == nullptr)
         return;
 
-    BossRaidElectric::shot(bullet, pos, dir, mPrevBullet, mActors);
+    bullet->shot(pos, dir, mPrevBullet, mActors);
     mPrevBullet = bullet;
     if (al::isDead(this)) {
         al::startNerveAction(this, "Move");

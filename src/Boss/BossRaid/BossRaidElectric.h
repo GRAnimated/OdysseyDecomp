@@ -19,9 +19,8 @@ public:
     void setPrevBullet(BossRaidElectric* bullet);
     void setNextBullet(BossRaidElectric* bullet);
 
-    static void shot(BossRaidElectric* self, const sead::Vector3f& pos, const sead::Vector3f& dir,
-                     BossRaidElectric* prevBullet,
-                     al::DeriveActorGroup<BossRaidElectric>* actorGroup);
+    void shot(const sead::Vector3f& pos, const sead::Vector3f& dir, BossRaidElectric* prevBullet,
+              al::DeriveActorGroup<BossRaidElectric>* actorGroup);
     void updatePosition();
     void exeWait();
     void updateAnimAndJoint();
