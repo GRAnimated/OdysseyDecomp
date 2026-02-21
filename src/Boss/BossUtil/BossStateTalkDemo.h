@@ -55,12 +55,12 @@ private:
     const char* mDemoEntryName = nullptr;
     al::CameraTicket* mDemoAnimCamera = nullptr;
     sead::BufferedSafeStringBase<char>* mDemoActionName = nullptr;
-    bool mIsRequestedDemo = true;
-    bool mIsEnableSkipDemo = true;
-    bool mIsFirstDemo = true;
-    bool mIsReplaced = false;
-    sead::Vector3f mReplaceTrans = {0.0f, 0.0f, 0.0f};
-    sead::Quatf mReplaceQuat = {0.0f, 0.0f, 0.0f, 1.0f};
+    bool mIsRequestedDemo;
+    bool mIsEnableSkipDemo;
+    bool mIsFirstDemo;
+    bool mIsReplaced;
+    sead::Vector3f mReplaceTrans;
+    sead::Quatf mReplaceQuat;
 };
 
 static_assert(sizeof(BossStateTalkDemo) == 0x68);

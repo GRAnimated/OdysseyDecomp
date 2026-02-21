@@ -4,15 +4,14 @@
 
 #include "Library/Base/StringUtil.h"
 #include "Library/Camera/CameraUtil.h"
-#include "Library/LiveActor/LiveActor.h"
 #include "Library/Event/EventFlowFunction.h"
 #include "Library/Event/EventFlowUtil.h"
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorSceneFunction.h"
+#include "Library/LiveActor/LiveActor.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 
-#include "Demo/IUseDemoSkip.h"
 #include "Util/DemoUtil.h"
 #include "Util/NpcEventFlowUtil.h"
 #include "Util/PlayerDemoUtil.h"
@@ -50,8 +49,14 @@ BossStateTalkDemo* BossStateTalkDemo::createWithEventFlow(al::LiveActor* owner,
 BossStateTalkDemo::BossStateTalkDemo(const char* name, al::LiveActor* owner,
                                      const al::ActorInitInfo& initInfo,
                                      al::EventFlowExecutor* executor)
-    : al::ActorStateBase(name, owner) {
-    mEventFlowExecutor = executor;
+    : al::ActorStateBase(name, owner), mEventFlowExecutor(executor) {
+    mIsRequestedDemo = true;
+    mIsEnableSkipDemo = true;
+    mIsFirstDemo = true;
+    mIsReplaced = false;
+    mReplaceTrans = {0.0f, 0.0f, 0.0f};
+    mReplaceQuat = sead::Quatf::unit;
+
     auto* actionName = new sead::FixedSafeString<64>();
     mDemoActionName = actionName;
     mDemoAnimCamera = al::initDemoAnimCamera(owner, initInfo, "ボス会話デモ");
