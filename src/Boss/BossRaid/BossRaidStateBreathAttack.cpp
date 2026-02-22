@@ -65,10 +65,8 @@ BossRaidStateBreathAttack::BossRaidStateBreathAttack(BossRaid* boss, const al::A
     mJointAimHead->setPowerRate(0.0f);
     mJointAimHead->setInterpoleRate(1.0f);
     mJointAimHead->setBaseAimLocalDir(sead::Vector3f::ex);
-    mJointAimHead->setBaseUpLocalDir(
-        {-sead::Vector3f::ez.x, -sead::Vector3f::ez.y, -sead::Vector3f::ez.z});
-    mJointAimHead->setBaseSideLocalDir(
-        {-sead::Vector3f::ey.x, -sead::Vector3f::ey.y, -sead::Vector3f::ey.z});
+    mJointAimHead->setBaseUpLocalDir({-sead::Vector3f::ez});
+    mJointAimHead->setBaseSideLocalDir({-sead::Vector3f::ey});
     mJointAimHead->setBaseOffsetLocal({900.0f, 0.0f, 400.0f});
     mJointAimHead->setLimitDegreeRect(20.0f, 20.0f, 50.0f, 50.0f);
     al::initJointAimController(mBossRaid, mJointAimHead, "Head");
@@ -104,8 +102,7 @@ void BossRaidStateBreathAttack::appear() {
 void BossRaidStateBreathAttack::kill() {
     al::NerveStateBase::kill();
     mBreathActor->kill();
-    mJointAimRoot->setPowerRate(0.0f);
-    mJointAimHead->setPowerRate(0.0f);
+    setAimRate(0.0f);
 }
 
 void BossRaidStateBreathAttack::control() {
@@ -116,8 +113,7 @@ void BossRaidStateBreathAttack::control() {
 
     al::LiveActor* breathActor = mBreathActor;
     sead::Matrix34f* toMouthMtx = &mToMouthMtx;
-    const sead::Vector3f& trans = al::getTrans(breathActor);
-    sead::Vector3f dir = trans - mTargetPos;
+    sead::Vector3f dir = al::getTrans(breathActor) - mTargetPos;
     al::makeMtxUpNoSupportPos(toMouthMtx, dir, mTargetPos);
 }
 
@@ -126,18 +122,27 @@ void BossRaidStateBreathAttack::setAimRate(f32 rate) {
     mJointAimHead->setPowerRate(rate);
 }
 
-// NON_MATCHING: switch generates bitmask pattern instead of jump table
 void BossRaidStateBreathAttack::updateAttackSign() {
     switch (mBossRaid->getShotLevel()) {
     case 0:
+        updateAttackSignLv1();
+        break;
     case 1:
-    case 3:
-    case 4:
         updateAttackSignLv1();
         break;
     case 2:
+        updateAttackSignLv3();
+        break;
+    case 3:
+        updateAttackSignLv1();
+        break;
+    case 4:
+        updateAttackSignLv1();
+        break;
     case 5:
         updateAttackSignLv3();
+        break;
+    default:
         break;
     }
 }
@@ -146,48 +151,12 @@ void BossRaidStateBreathAttack::updateAttackSign() {
 void BossRaidStateBreathAttack::updateAttackSignLv1() {
     if (al::isFirstStep(this)) {
         const sead::Vector3f& playerPos = rs::getPlayerPos(mBossRaid);
-        f32 dx = playerPos.x - mBreathCenter.x;
-        f32 dz = playerPos.z - mBreathCenter.z;
-        f32 dy = 0.0f;
-        f32 distSq = dx * dx + dy * dy + dz * dz;
-        f32 dist = sead::Mathf::sqrt(distSq);
-        f32 clampDist = 6500.0f;
-        if (dist < 6500.0f ||
-            (clampDist = sead::Mathf::max(dist - 1500.0f, 8000.0f), dist > clampDist)) {
-            f32 d2 = sead::Mathf::sqrt(distSq);
-            if (d2 > 0.0f) {
-                f32 scale = clampDist / d2;
-                dx = dx * scale;
-                dy = dy * scale;
-                dz = dz * scale;
-            }
-        }
-        mTargetPos.x = dx + mBreathCenter.x;
-        mTargetPos.y = dy + mBreathCenter.y;
-        mTargetPos.z = dz + mBreathCenter.z;
+        limitBreathPos(&mTargetPos, playerPos, 6500.0f, 8000.0f);
     }
 
     const sead::Vector3f& playerPos = rs::getPlayerPos(mBossRaid);
-    f32 dx = playerPos.x - mBreathCenter.x;
-    f32 dz = playerPos.z - mBreathCenter.z;
-    f32 dy = 0.0f;
-    f32 distSq = dx * dx + dy * dy + dz * dz;
-    f32 dist = sead::Mathf::sqrt(distSq);
-    f32 clampDist = 6500.0f;
-    if (dist < 6500.0f ||
-        (clampDist = sead::Mathf::max(dist - 1500.0f, 8000.0f), dist > clampDist)) {
-        f32 d2 = sead::Mathf::sqrt(distSq);
-        if (d2 > 0.0f) {
-            f32 scale = clampDist / d2;
-            dx = dx * scale;
-            dy = dy * scale;
-            dz = dz * scale;
-        }
-    }
     sead::Vector3f target;
-    target.x = dx + mBreathCenter.x;
-    target.y = dy + mBreathCenter.y;
-    target.z = dz + mBreathCenter.z;
+    limitBreathPos(&target, playerPos, 6500.0f, 8000.0f);
     al::convergeVec(&mTargetPos, mTargetPos, target, 10.0f);
 }
 
@@ -205,26 +174,24 @@ void BossRaidStateBreathAttack::updateAttackSignLv3() {
         f32 degree = isLeft ? -15.0f : 15.0f;
         al::calcFrontDir(&frontDir, mBossRaid);
         sead::Vector3f shotDir;
-        shotDir.x = frontDir.x * 9000.0f;
-        shotDir.y = frontDir.y * 9000.0f;
-        shotDir.z = frontDir.z * 9000.0f;
+        shotDir = frontDir * 9000.0f;
         al::rotateVectorDegree(&frontDir, shotDir, sead::Vector3f::ey, degree);
-        mTargetPos.x = mBreathCenter.x + frontDir.x;
-        mTargetPos.y = mBreathCenter.y + frontDir.y;
-        mTargetPos.z = mBreathCenter.z + frontDir.z;
+        mTargetPos = mBreathCenter + frontDir;
     }
 }
 
-// NON_MATCHING: switch generates bitmask pattern instead of jump table
 bool BossRaidStateBreathAttack::updateAttack() {
     switch (mBossRaid->getShotLevel()) {
     case 0:
-    case 3:
         return updateAttackLv1();
     case 1:
-    case 4:
         return updateAttackLv2();
     case 2:
+        return updateAttackLv3();
+    case 3:
+        return updateAttackLv1();
+    case 4:
+        return updateAttackLv2();
     case 5:
         return updateAttackLv3();
     default:
@@ -234,68 +201,20 @@ bool BossRaidStateBreathAttack::updateAttack() {
 
 bool BossRaidStateBreathAttack::updateAttackLv1() {
     if (al::isStep(this, 20)) {
-        BossRaidWheel* wheel = (BossRaidWheel*)mWheelList->tryFindDeadActor();
-        if (wheel) {
-            sead::Vector3f frontDir = sead::Vector3f::ez;
-            al::calcJointFrontDir(&frontDir, mBossRaid, "JointRoot");
-            al::rotateVectorDegree(&frontDir, sead::Vector3f::ey, 0.0f);
-            wheel->shotGround(mTargetPos, frontDir, 0.0f);
-        }
-        BossRaidWheel* wheel2 = (BossRaidWheel*)mWheelList->tryFindDeadActor();
-        if (wheel2) {
-            sead::Vector3f frontDir = sead::Vector3f::ez;
-            al::calcJointFrontDir(&frontDir, mBossRaid, "JointRoot");
-            al::rotateVectorDegree(&frontDir, sead::Vector3f::ey, 120.0f);
-            wheel2->shotGround(mTargetPos, frontDir, 0.0f);
-        }
-        BossRaidWheel* wheel3 = (BossRaidWheel*)mWheelList->tryFindDeadActor();
-        if (wheel3) {
-            sead::Vector3f frontDir = sead::Vector3f::ez;
-            al::calcJointFrontDir(&frontDir, mBossRaid, "JointRoot");
-            al::rotateVectorDegree(&frontDir, sead::Vector3f::ey, 240.0f);
-            wheel3->shotGround(mTargetPos, frontDir, 0.0f);
-        }
+        shotWheel(0.0f);
+        shotWheel(120.0f);
+        shotWheel(240.0f);
     }
     return al::isGreaterEqualStep(this, 70);
 }
 
 bool BossRaidStateBreathAttack::updateAttackLv2() {
     if (al::isStep(this, 20)) {
-        BossRaidWheel* wheel = (BossRaidWheel*)mWheelList->tryFindDeadActor();
-        if (wheel) {
-            sead::Vector3f frontDir = sead::Vector3f::ez;
-            al::calcJointFrontDir(&frontDir, mBossRaid, "JointRoot");
-            al::rotateVectorDegree(&frontDir, sead::Vector3f::ey, 0.0f);
-            wheel->shotGround(mTargetPos, frontDir, 0.0f);
-        }
-        BossRaidWheel* wheel2 = (BossRaidWheel*)mWheelList->tryFindDeadActor();
-        if (wheel2) {
-            sead::Vector3f frontDir = sead::Vector3f::ez;
-            al::calcJointFrontDir(&frontDir, mBossRaid, "JointRoot");
-            al::rotateVectorDegree(&frontDir, sead::Vector3f::ey, 72.0f);
-            wheel2->shotGround(mTargetPos, frontDir, 0.0f);
-        }
-        BossRaidWheel* wheel3 = (BossRaidWheel*)mWheelList->tryFindDeadActor();
-        if (wheel3) {
-            sead::Vector3f frontDir = sead::Vector3f::ez;
-            al::calcJointFrontDir(&frontDir, mBossRaid, "JointRoot");
-            al::rotateVectorDegree(&frontDir, sead::Vector3f::ey, 144.0f);
-            wheel3->shotGround(mTargetPos, frontDir, 0.0f);
-        }
-        BossRaidWheel* wheel4 = (BossRaidWheel*)mWheelList->tryFindDeadActor();
-        if (wheel4) {
-            sead::Vector3f frontDir = sead::Vector3f::ez;
-            al::calcJointFrontDir(&frontDir, mBossRaid, "JointRoot");
-            al::rotateVectorDegree(&frontDir, sead::Vector3f::ey, 216.0f);
-            wheel4->shotGround(mTargetPos, frontDir, 0.0f);
-        }
-        BossRaidWheel* wheel5 = (BossRaidWheel*)mWheelList->tryFindDeadActor();
-        if (wheel5) {
-            sead::Vector3f frontDir = sead::Vector3f::ez;
-            al::calcJointFrontDir(&frontDir, mBossRaid, "JointRoot");
-            al::rotateVectorDegree(&frontDir, sead::Vector3f::ey, 288.0f);
-            wheel5->shotGround(mTargetPos, frontDir, 0.0f);
-        }
+        shotWheel(0.0f);
+        shotWheel(72.0f);
+        shotWheel(144.0f);
+        shotWheel(216.0f);
+        shotWheel(288.0f);
     }
     return al::isGreaterEqualStep(this, 70);
 }
@@ -307,81 +226,44 @@ bool BossRaidStateBreathAttack::updateAttackLv3() {
         mShotIndex = 0;
 
     f32 sweepDeg = al::calcNerveValue(this, 250, -15.0f, 15.0f);
+    f32 rotDeg = sweepDeg;
+    if (!mIsLeftTarget)
+        rotDeg = -rotDeg;
     sead::Vector3f frontDir = sead::Vector3f::ez;
-    f32 rotDeg = mIsLeftTarget ? -sweepDeg : sweepDeg;
     al::calcFrontDir(&frontDir, mBossRaid);
-    sead::Vector3f shotDir;
-    shotDir.x = frontDir.x * 9000.0f;
-    shotDir.y = frontDir.y * 9000.0f;
-    shotDir.z = frontDir.z * 9000.0f;
-    al::rotateVectorDegree(&frontDir, shotDir, sead::Vector3f::ey, rotDeg);
-    mTargetPos.x = mBreathCenter.x + frontDir.x;
-    mTargetPos.y = mBreathCenter.y + frontDir.y;
-    mTargetPos.z = mBreathCenter.z + frontDir.z;
+    al::rotateVectorDegree(&frontDir, frontDir * 9000.0f, sead::Vector3f::ey, rotDeg);
+    mTargetPos = mBreathCenter + frontDir;
 
     if (al::isIntervalStep(this, 62, 0)) {
-        BossRaidWheel* wheel = (BossRaidWheel*)mWheelList->tryFindDeadActor();
-        if (wheel) {
-            f32 angle = sAngleTable0[(mShotIndex & 1) == 0];
-            sead::Vector3f dir = sead::Vector3f::ez;
-            al::calcJointFrontDir(&dir, mBossRaid, "JointRoot");
-            al::rotateVectorDegree(&dir, sead::Vector3f::ey, angle);
-            wheel->shotGround(mTargetPos, dir, 0.0f);
-        }
-        BossRaidWheel* wheel2 = (BossRaidWheel*)mWheelList->tryFindDeadActor();
-        if (wheel2) {
-            f32 angle = sAngleTable1[(mShotIndex & 1) == 0];
-            sead::Vector3f dir = sead::Vector3f::ez;
-            al::calcJointFrontDir(&dir, mBossRaid, "JointRoot");
-            al::rotateVectorDegree(&dir, sead::Vector3f::ey, angle);
-            wheel2->shotGround(mTargetPos, dir, 0.0f);
-        }
-        BossRaidWheel* wheel3 = (BossRaidWheel*)mWheelList->tryFindDeadActor();
-        if (wheel3) {
-            f32 angle = sAngleTable2[(mShotIndex & 1) == 0];
-            sead::Vector3f dir = sead::Vector3f::ez;
-            al::calcJointFrontDir(&dir, mBossRaid, "JointRoot");
-            al::rotateVectorDegree(&dir, sead::Vector3f::ey, angle);
-            wheel3->shotGround(mTargetPos, dir, 0.0f);
-        }
-        BossRaidWheel* wheel4 = (BossRaidWheel*)mWheelList->tryFindDeadActor();
-        if (wheel4) {
-            f32 angle = sAngleTable3[(mShotIndex & 1) == 0];
-            sead::Vector3f dir = sead::Vector3f::ez;
-            al::calcJointFrontDir(&dir, mBossRaid, "JointRoot");
-            al::rotateVectorDegree(&dir, sead::Vector3f::ey, angle);
-            wheel4->shotGround(mTargetPos, dir, 0.0f);
-        }
+        shotWheel(sAngleTable0[(mShotIndex & 1) == 0]);
+        shotWheel(sAngleTable1[(mShotIndex & 1) == 0]);
+        shotWheel(sAngleTable2[(mShotIndex & 1) == 0]);
+        shotWheel(sAngleTable3[(mShotIndex & 1) == 0]);
         mShotIndex++;
     }
 
     return al::isGreaterEqualStep(this, 250);
 }
 
-// NON_MATCHING: dx/dz assigned to swapped f32 registers; register allocation differs
+// NON_MATCHING: s9 and s10 regswap
 void BossRaidStateBreathAttack::limitBreathPos(sead::Vector3f* result,
                                                const sead::Vector3f& targetPos, f32 minDist,
                                                f32 maxDist) {
-    f32 dx = targetPos.x - mBreathCenter.x;
-    f32 dz = targetPos.z - mBreathCenter.z;
-    f32 dy = 0.0f;
-    f32 distSq = dx * dx + dy * dy + dz * dz;
+    sead::Vector3f diff = targetPos - mBreathCenter;
+    diff.y = 0.0f;
+    f32 distSq = diff.squaredLength();
     f32 dist = sead::Mathf::sqrt(distSq);
-    f32 clampDist = minDist;
-    if (dist < minDist ||
-        ((dist - 1500.0f >= maxDist) ? (clampDist = dist - 1500.0f) : (clampDist = maxDist),
-         dist > clampDist)) {
-        f32 d2 = sead::Mathf::sqrt(distSq);
-        if (d2 > 0.0f) {
-            f32 scale = clampDist / d2;
-            dx = dx * scale;
-            dy = dy * scale;
-            dz = dz * scale;
+
+    if (dist < minDist || (minDist = sead::Mathf::max(maxDist, dist - 1500.0f), dist > minDist)) {
+        f32 dist2 = sead::Mathf::sqrt(distSq);
+        if (dist2 > 0.0f) {
+            f32 scale = minDist / dist2;
+            diff.x = diff.x * scale;
+            diff.y = scale * 0.0f;
+            diff.z = diff.z * scale;
         }
     }
-    result->x = dx + mBreathCenter.x;
-    result->y = dy + mBreathCenter.y;
-    result->z = dz + mBreathCenter.z;
+    *result = diff + mBreathCenter;
 }
 
 void BossRaidStateBreathAttack::shotWheel(f32 degree) {
@@ -394,22 +276,15 @@ void BossRaidStateBreathAttack::shotWheel(f32 degree) {
     }
 }
 
-// NON_MATCHING: register allocation differs
 void BossRaidStateBreathAttack::calcBreathPosDistanceDegree(sead::Vector3f* pos, f32 distance,
                                                             f32 degree) {
     sead::Vector3f frontDir = sead::Vector3f::ez;
     al::calcFrontDir(&frontDir, mBossRaid);
-    sead::Vector3f shotDir;
-    shotDir.x = frontDir.x * distance;
-    shotDir.y = frontDir.y * distance;
-    shotDir.z = frontDir.z * distance;
+    sead::Vector3f shotDir = frontDir * distance;
     al::rotateVectorDegree(&frontDir, shotDir, sead::Vector3f::ey, degree);
-    pos->x = mBreathCenter.x + frontDir.x;
-    pos->y = mBreathCenter.y + frontDir.y;
-    pos->z = mBreathCenter.z + frontDir.z;
+    *pos = mBreathCenter + frontDir;
 }
 
-// NON_MATCHING: updateAttackSign() inlined; register differences
 void BossRaidStateBreathAttack::exeAttackSign() {
     if (al::isFirstStep(this)) {
         mBossRaid->startActionMain("BreathAttackSign");
@@ -421,8 +296,7 @@ void BossRaidStateBreathAttack::exeAttackSign() {
     f32 frame = al::getActionFrame(mBossRaid);
     f32 frameMax = al::getActionFrameMax(mBossRaid);
     f32 rate = al::easeInOut(frame / frameMax);
-    mJointAimRoot->setPowerRate(rate);
-    mJointAimHead->setPowerRate(rate);
+    setAimRate(rate);
     if (al::isActionEnd(mBossRaid))
         al::setNerve(this, &AttackStart);
 }
@@ -432,8 +306,7 @@ void BossRaidStateBreathAttack::exeAttackStart() {
         mBossRaid->startActionMain("BreathAttack");
         mBossRaid->startElectricParts();
         al::startAction(mBreathActor, "Appear");
-        mJointAimRoot->setPowerRate(1.0f);
-        mJointAimHead->setPowerRate(1.0f);
+        setAimRate(1.0f);
         alPadRumbleFunction::startPadRumblePos(mBreathActor, mTargetPos, "ドーン（強）", 3000.0f,
                                                8500.0f, -1);
         alPadRumbleFunction::startPadRumbleLoop(mBreathActor, "【ループ】ジリジリ（弱）",
@@ -443,7 +316,6 @@ void BossRaidStateBreathAttack::exeAttackStart() {
         al::setNerve(this, &Attack);
 }
 
-// NON_MATCHING: updateAttack() inlined
 void BossRaidStateBreathAttack::exeAttack() {
     if (al::isFirstStep(this))
         al::startAction(mBreathActor, "Wait");
@@ -468,11 +340,10 @@ void BossRaidStateBreathAttack::exeAttackEnd() {
     f32 frame = al::getActionFrame(mBossRaid);
     f32 frameMax = al::getActionFrameMax(mBossRaid);
     f32 rate = al::easeInOut(1.0f - (frame / frameMax));
-    mJointAimRoot->setPowerRate(rate);
-    mJointAimHead->setPowerRate(rate);
+    setAimRate(rate);
     if (al::isActionEnd(mBossRaid)) {
         mAttackCount++;
-        mIsLeftTarget ^= true;
+        mIsLeftTarget = !mIsLeftTarget;
         if (mAttackCount >= mAttackMax)
             kill();
         else
