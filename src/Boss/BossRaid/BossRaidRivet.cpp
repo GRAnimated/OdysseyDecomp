@@ -71,8 +71,6 @@ void BossRaidRivet::setChainRootConnect(al::LiveActor* actor, const char* jointN
         al::attachMtxConnectorToActor(mChainRootMtxConnector, actor, rotate, trans);
 }
 
-// NON_MATCHING: regalloc (d8 saved for sqrtf result; operator new called before dist calc; vector
-// literal stored via immediates vs global load)
 void BossRaidRivet::createChainAndPopn(al::LiveActor* actor, const al::ActorInitInfo& info) {
     calcAnim();
     al::calcJointOffsetPos(&mCapPointPos, this, "CapPoint", sCapPointPos);
@@ -80,12 +78,8 @@ void BossRaidRivet::createChainAndPopn(al::LiveActor* actor, const al::ActorInit
 
     f32 dist = (mCapPointPos - mChainRootPos).length();
 
-    f32 countF = (dist + 150.0f) / 100.0f;
-    s32 count = (s32)countF;
-    if (countF >= 0.0f && (f32)count != countF)
-        count += 1;
-
-    mChainList = new BossRaidChainList("鎖リスト", "BossRaidChain", count, 20.0f, 60.0f);
+    mChainList = new BossRaidChainList("鎖リスト", "BossRaidChain",
+                                       sead::Mathf::ceil((dist + 150.0f) / 100.0f), 20.0f, 60.0f);
     mChainList->setRootPosPtr(&mChainRootPos);
     mChainList->setTipPosPtr(&mCapPointPos);
     al::initCreateActorNoPlacementInfo(mChainList, info);

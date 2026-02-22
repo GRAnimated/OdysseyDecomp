@@ -27,6 +27,7 @@ public:
     void exeBlowDown();
 
     void setArchiveName(const char* name) { mArchiveName = name; }
+
     void setAngry(bool angry) { mIsAngry = angry; }
 
 private:
