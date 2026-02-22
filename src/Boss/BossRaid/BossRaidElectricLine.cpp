@@ -33,6 +33,7 @@ void BossRaidElectricLine::setBulletList(al::DeriveActorGroup<BossRaidElectric>*
 void BossRaidElectricLine::shot(const sead::Vector3f& pos, const sead::Vector3f& dir) {
     if (mBulletList == nullptr)
         return;
+
     BossRaidElectric* bullet = mBulletList->tryFindDeadDeriveActor();
     if (bullet == nullptr)
         return;
@@ -47,28 +48,31 @@ void BossRaidElectricLine::shot(const sead::Vector3f& pos, const sead::Vector3f&
 
 void BossRaidElectricLine::exeMove() {
     s32 actorCount = mActors->getActorCount();
-    if (actorCount != 0) {
-        const sead::Vector3f& trans = al::getTrans(this);
-        sead::Vector3f nearPos = trans;
-        if (actorCount >= 1) {
-            f32 minDist = sead::Mathf::maxNumber();
-            for (s32 i = 0; i < actorCount; i++) {
-                BossRaidElectric* electric = mActors->getDeriveActor(i);
-                sead::Vector3f calcPos;
-                electric->calcNearPos(&calcPos, al::getPlayerPos(this, 0));
-                const sead::Vector3f& playerPos = al::getPlayerPos(this, 0);
-                f32 dist = sqrtf((playerPos - calcPos).squaredLength());
-                if (dist < minDist) {
-                    nearPos.set(calcPos);
-                    minDist = dist;
-                }
-            }
-        }
-        al::setTrans(this, nearPos);
-    } else {
+    if (actorCount == 0) {
         mPrevBullet = nullptr;
         makeActorDead();
+        return;
     }
+
+    const sead::Vector3f& trans = al::getTrans(this);
+    sead::Vector3f nearPos = trans;
+    f32 minDist = sead::Mathf::maxNumber();
+
+    for (s32 i = 0; i < actorCount; i++) {
+        BossRaidElectric* electric = mActors->getDeriveActor(i);
+
+        sead::Vector3f calcPos;
+        electric->calcNearPos(&calcPos, al::getPlayerPos(this, 0));
+        const sead::Vector3f& playerPos = al::getPlayerPos(this, 0);
+
+        f32 dist = sqrtf((playerPos - calcPos).squaredLength());
+        if (dist < minDist) {
+            nearPos.set(calcPos);
+            minDist = dist;
+        }
+    }
+
+    al::setTrans(this, nearPos);
 }
 
 void BossRaidElectricLine::killForce() {
