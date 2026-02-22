@@ -9,9 +9,9 @@
 
 // NON_MATCHING: zero-init store scheduling differs (stur xzr vs strb wzr ordering)
 PlayerJudgePreInputCapThrow::PlayerJudgePreInputCapThrow(const PlayerConst* pConst,
-                                                        const PlayerInput* input,
-                                                        const PlayerCarryKeeper* carryKeeper,
-                                                        const HackCap* hackCap)
+                                                         const PlayerInput* input,
+                                                         const PlayerCarryKeeper* carryKeeper,
+                                                         const HackCap* hackCap)
     : mConst(pConst), mInput(input), mCarryKeeper(carryKeeper), mHackCap(hackCap) {}
 
 void PlayerJudgePreInputCapThrow::reset() {
@@ -19,8 +19,8 @@ void PlayerJudgePreInputCapThrow::reset() {
     mPreInputFrameSingle = 0;
 }
 
-// NON_MATCHING: spiral upgrade branch (isThrowTypeSpiral + dir.y > 0) layout differs; missing shared
-// LABEL_27 tail block; equivalent logic
+// NON_MATCHING: spiral upgrade branch (isThrowTypeSpiral + dir.y > 0) layout differs; missing
+// shared LABEL_27 tail block; equivalent logic
 void PlayerJudgePreInputCapThrow::update() {
     mPreInputFrame = sead::Mathi::clampMin(mPreInputFrame - 1, 0);
     mPreInputFrameSingle = sead::Mathi::clampMin(mPreInputFrameSingle - 1, 0);

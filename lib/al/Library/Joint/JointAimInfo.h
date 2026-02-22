@@ -22,7 +22,7 @@ private:
     sead::Vector3f mBaseUpLocalDir = sead::Vector3f::ex;
     sead::Vector3f mBaseSideLocalDir = sead::Vector3f::ey;
     sead::Vector3f mBaseOffsetLocal = sead::Vector3f::zero;
-    f32 _3C = 0.0f;
+    f32 _3c = 0.0f;
     f32 _40 = 0.0f;
     f32 _44 = 0.0f;
     f32 mPowerRate = 1.0f;
@@ -30,9 +30,9 @@ private:
     f32 _50 = 30.0f;
     f32 _54 = 30.0f;
     f32 _58 = 30.0f;
-    f32 _5C = 30.0f;
+    f32 _5c = 30.0f;
     s32 _60 = 0;
-    bool mEnableBackAim = false;
+    bool mIsEnableBackAim = false;
 };
 
 static_assert(sizeof(JointAimInfo) == 0x68);

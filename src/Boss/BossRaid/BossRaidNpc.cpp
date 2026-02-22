@@ -5,9 +5,9 @@
 #include "Library/Demo/DemoFunction.h"
 #include "Library/Joint/JointAimInfo.h"
 #include "Library/Joint/JointControllerKeeper.h"
+#include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorSensorUtil.h"
-#include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 
@@ -59,8 +59,7 @@ void BossRaidNpc::init(const al::ActorInitInfo& info) {
 bool BossRaidNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
     if (rs::isMsgPlayerDisregardTargetMarker(msg))
         return true;
-    if (rs::isMsgNpcCapReactionAll(msg) && al::isSensorEnemyBody(self) &&
-        (!al::isNerve(this, &Reaction) || al::isGreaterEqualStep(this, 20))) {
+    if (rs::isMsgNpcCapReactionAll(msg) && al::isSensorEnemyBody(self) && isEnableReaction()) {
         rs::requestHitReactionToAttacker(msg, self, other);
         al::setNerve(this, &Reaction);
         return true;

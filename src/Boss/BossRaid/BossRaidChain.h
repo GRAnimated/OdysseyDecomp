@@ -30,11 +30,11 @@ public:
 
 private:
     const char* mArchiveName = nullptr;
-    const char* mModelName = nullptr;  // suffix passed to initActorWithArchiveName; "NoModel" for interior chain links
+    const char* mModelName = nullptr;
     const sead::Matrix34f* mDemoFollowMtxPtr = nullptr;
     BossRaidChain* mPrevChain = nullptr;
     BossRaidChain* mNextChain = nullptr;
-    sead::Vector3f mBlowAxis = sead::Vector3f::ex;  // rotation axis during blow-down, computed as cross(randomDirH, gravity)
+    sead::Vector3f mBlowAxis = sead::Vector3f::ex;
     f32 mMinDist = 0.0f;
     f32 mMaxDist = 0.0f;
     bool mIsFix = false;
