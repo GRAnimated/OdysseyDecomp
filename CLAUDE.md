@@ -171,7 +171,7 @@ Before writing any code, gather all the information you need:
 static_assert(sizeof(MyClass) == 0x1D8);
 ```
 
-- Only name fields you are confident about; use filler names like `_0x58` otherwise. **Add a comment next to uncertain field names** explaining what they appear to do.
+- Only name fields you are confident about; use filler names like `_0x58` otherwise. **Add a brief comment next to uncertain field names** explaining what they appear to do and how you inferred it (e.g. the function that uses it, or the value it's initialised to). Also comment fields whose names are correct but whose role isn't obvious from the name alone.
 - Use `= nullptr` / `= 0` / `= false` initializers on member variables where appropriate.
 - Member variables: `m` prefix + camelCase (e.g., `mAudioKeeper`). Static members: `s` prefix.
 - Use scoped `enum class` for typed enumerations; define them inside the class if they belong to it.
@@ -322,6 +322,17 @@ electricLine->shot(trans, offset);
 **`sead::Mathf::maxNumber()` for float max** — When IDA shows a float constant of `3.4028235e+38` (FLT_MAX), write it as `sead::Mathf::maxNumber()` in source. This is `std::numeric_limits<float>::max()` wrapped in a sead helper. The header is available transitively via `<math/seadVector.h>` (included by `ActorPoseUtil.h` and `Library/Math/MathUtil.h`).
 
 **`squaredLength()` for distance comparisons** — When IDA shows manual dot-product distance code (`dx*dx + dy*dy + dz*dz` followed by `sqrtf`), use sead's `sead::Vector3f::squaredLength()` with a vector subtraction: `sqrtf((a - b).squaredLength())`. The subtraction uses `operator-` on `sead::Vector3f`.
+
+**`sead::Vector3f::zero` and `sead::Vector3f::ex` for local/member init** — When the original initialises a local or member `Vector3f` to zero or the X-axis unit vector by loading from a global constant (visible in asm as `adrp` + `ldr x8, [x8, #...]` + `str x8, [sp/x0, #...]`), use `sead::Vector3f::zero` or `sead::Vector3f::ex` rather than `{0.0f, 0.0f, 0.0f}` or `{1.0f, 0.0f, 0.0f}`. The literal forms generate immediate-value stores and will not match the global-load pattern. Similarly for member variable initialisers in the class header.
+
+**`vec.setCross(a, b)` for cross products** — When IDA shows a manual cross-product computation (six multiplications then three subtractions), use `vec.setCross(a, b)` (`Vector3<T>::setCross` calls `Vector3CalcCommon::cross`). The inline expands to the same six-multiply / three-subtract schedule as the original. Writing the cross product inline as individual `vel.x = ...; vel.y = ...; vel.z = ...` expressions will produce a different instruction schedule and break the match.
+
+**`dir += a - b` for accumulating vector differences** — When building a direction vector by summing position differences, write `dir += getTrans(a) - getTrans(b)` using `operator+=` and `operator-`. Writing the accumulation component-by-component (`dir.x += ...; dir.y += ...; dir.z += ...`) generates individual `ldr`/`fadd`/`str` sequences instead of the `ldp`-based paired-load pattern the original uses, causing a size mismatch.
+
+**Sead "cleaner" forms that break matching** — Some idiomatic rewrites that look correct produce different code generation at `-O3`:
+- `(otherTrans - myTrans).length()` instead of `sqrtf(dx*dx + dy*dy + dz*dz)` — forming the subtraction as a named variable changes register pressure and breaks the match; keep the manual `dx`/`dy`/`dz` locals and `sqrtf`.
+- `-vel` (unary `operator-`) instead of `sead::Vector3f negVel = {-vel.x, -vel.y, -vel.z}` — the operator returns a temporary that the compiler may materialise on the stack differently; use the explicit struct literal.
+- `diff * scale` (`operator*`) to set all three components at once — changes the load/multiply schedule vs writing `vel.x = dx * scale; vel.y = dy * scale; vel.z = dz * scale` with the scalar temporaries kept live in registers.
 
 ## Code Style (summary)
 
