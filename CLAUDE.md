@@ -22,32 +22,17 @@ nix develop --command bash -c "source ../venv/bin/activate && <command>"
 nix develop --command bash -c "source ../venv/bin/activate && tools/check --no-pager --algorithm=difflib <sym>" | strings
 ```
 
-**Important**: `curl` may not work outside the nix environment due to glibc version mismatches. Call IDA MCP directly using Python's `urllib`:
+**IDA MCP tools are available directly** — use the MCP tool calls (e.g. `decompile`, `disasm`, `rename`, `set_type`, `py_eval`) without any curl or urllib wrappers. IDA MCP uses the `addr` parameter (not `name`) for address lookups. Addresses are `0x7100000000 + offset` where offset comes from `file_list.yml`. Example: offset `0x45a8b8` → addr `0x710045a8b8`.
 
-```python
-python3 -c "
-import urllib.request, json
-def ida(tool, args):
-    data = json.dumps({'jsonrpc':'2.0','id':1,'method':'tools/call','params':{'name':tool,'arguments':args}}).encode()
-    req = urllib.request.Request('http://127.0.0.1:13337/mcp', data=data, headers={'Content-Type':'application/json'})
-    resp = urllib.request.urlopen(req)
-    return json.loads(resp.read())['result']['content'][0]['text']
-print(ida('decompile', {'addr': '0x710XXXXXXXXX'}))
-"
-```
+**Improve the IDA database as you work** — use `rename`, `set_type`, `declare_type`, and `set_comments` to annotate the database with correct names, types, and comments as you discover them. This makes subsequent decompilations of related functions cleaner and more readable. For example: apply the correct struct type to a local variable, rename an opaque pointer to the class name, or add a comment explaining a field's role. A well-annotated database significantly reduces analysis time for later functions.
 
-Or, if curl works (e.g. inside a distrobox or with matching glibc):
+**Address formatting**: Never compute `0x7100000000 + offset` mentally — use `int_convert` to do it. Pass the offset as a decimal sum so the tool returns the correct hex address:
 
 ```
-curl -s -X POST http://127.0.0.1:13337/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"decompile","arguments":{"addr":"0x710XXXXXXXXX"}}}' \
-  | python3 -c "import sys,json; print(json.loads(sys.stdin.read())['result']['content'][0]['text'])"
+int_convert: text="0x7100000000 + 0x46d58"   →   0x7100046d58
 ```
 
-IDA MCP uses the `addr` parameter (not `name`) for address lookups. Addresses are `0x7100000000 + offset` where offset comes from `file_list.yml`. Example: offset `0x45a8b8` → addr `0x710045a8b8`.
-
-**Address formatting**: offsets are at most 6 hex digits, so the full address is always 10 hex digits total. Example: offset `0x046d58` → `0x7100046d58` (not `0x710046d58`). When in doubt, zero-pad the offset to 6 digits before prepending the base.
+Always use `int_convert` before any `decompile`, `disasm`, or other address-based call. This eliminates manual arithmetic errors entirely.
 
 **Reading raw bytes/strings**: use `py_eval` with `idaapi.get_bytes(addr, length)` to read raw data at an address. Useful for finding hardcoded string literals embedded in rodata (e.g. Japanese name strings passed to constructors).
 
@@ -153,6 +138,7 @@ Before writing any code, gather all the information you need:
 
 - Find the class in `data/file_list.yml` to get all function offsets and the object file path.
 - Compute full IDA addresses: `0x7100000000 + offset` (zero-pad offset to 6 hex digits).
+- **Read the sead math headers before analyzing any function.** Open `lib/sead/include/math/seadVector.h`, `seadQuat.h`, and `seadMatrix.h` so you have the full inline API in context. Missing an inline (e.g. `setCross`, `set`, `length`, `dot`, `normalize`, `makeVectorRotation`) is the most common source of first-pass mismatches. Do this once at survey time, not after a mismatch is found.
 - Decompile **all** functions up front in one pass using the IDA MCP. Batch multiple calls to save time.
 - Disassemble the constructor(s) to establish struct layout.
 - Find the class size by calling `xrefs_to` on the C1 constructor and looking for `operator new(0xNN)` immediately before the constructor call in the caller's disasm.
@@ -332,9 +318,28 @@ electricLine->shot(trans, offset);
 **Sead "cleaner" forms that break matching** — Some idiomatic rewrites that look correct produce different code generation at `-O3`:
 - `(otherTrans - myTrans).length()` (temporary, no named variable) instead of a named `sead::Vector3f diff = a - b; diff.length()` — use the named-variable form; the temporary form changes register pressure and breaks the match.
 - `-vel` (unary `operator-`) instead of `sead::Vector3f negVel = {-vel.x, -vel.y, -vel.z}` — the operator returns a temporary that the compiler may materialise on the stack differently; use the explicit struct literal.
-- `diff * scale` (`operator*`) to set all three components at once — changes the load/multiply schedule vs writing `vel.x = diff.x * scale; vel.y = diff.y * scale; vel.z = diff.z * scale` component-by-component.
+- `diff * scale` (`operator*`) to set all three components at once — changes the load/multiply schedule vs writing `vel.x = diff.x * scale; vel.y = diff.y * scale; vel.z = diff.z * scale` component-by-component. Exception: passing the result directly as a function argument (e.g. `shot(offset + trans, rotDir * 36.0f)`) works fine.
 
 **`sead::Mathf::deg2rad()` for radian literals** — When the original source used a degree value (e.g. `23.0f` degrees), the compiler stores the precomputed radian constant (e.g. `0.40143f`). Replace the raw radian literal with `sead::Mathf::deg2rad(N.0f)` — the compiler evaluates it at compile time, producing an identical constant while keeping the source readable.
+
+**`sead::Mathf::pi2()` for `6.2832f`** — The constant `6.2832f` is 2π; write it as `sead::Mathf::pi2()`. Similarly, `-0.083333f` (= -1/12) should be written as `-1.0f / 12.0f` for clarity.
+
+**`(u32)level < 3` for unsigned-comparison branch elimination** — When IDA emits a `cmp` + unsigned branch (e.g. `b.lo` / `b.hs`) after a modulo, write the condition as `(u32)level < 3` (cast to unsigned, then compare). This avoids the compiler optimising away the branch when it can prove the modulo result is always in range. Without the cast the compiler eliminates the `> 2` branch entirely, producing a mismatch. The fallthrough path should index the table directly (e.g. `return sGroundAttackTimeTable[2]`), not return a raw literal.
+
+**Constructor: local variable for `new DeriveActorGroup<>`** — When a constructor allocates a group and then uses it in a loop, store the result in a local variable and assign to the member immediately, then use the local in the loop body. This keeps a register holding the group pointer throughout the loop without reloading from the member field, matching the original's register allocation:
+```cpp
+al::DeriveActorGroup<Foo>* group = new al::DeriveActorGroup<Foo>("name", count);
+mGroup = group;
+for (s32 i = 0; i < group->getMaxActorCount(); i++) {
+    Foo* foo = new Foo("name");
+    al::initCreateActorNoPlacementInfo(foo, info);
+    group->registerActor(foo);
+}
+```
+
+**Shot functions: copy member `Vector3f` to local before early-return** — In shot functions that begin with an `isIntervalStep` guard, copy `mUpDir` to a local `sead::Vector3f upDir = mUpDir` *before* the early-return check. Then compute `upOffset = upDir * 50.0f` from the local. Pass the offset + trans and vel expressions directly as temporaries to `shot()` rather than storing them in named `origin`/`vel` variables. Keep using `mUpDir` (not `upDir`) for `rotateVectorDegree` calls.
+
+**Hex vs decimal in `calcNerveCosCycle` / `isIntervalStep`** — Use decimal literals (`160`, `115`) not hex (`0xA0`, `0x73`) for cycle/interval arguments; the original source used decimal. IDA may display them as hex but the source had decimal.
 
 ## Code Style (summary)
 
