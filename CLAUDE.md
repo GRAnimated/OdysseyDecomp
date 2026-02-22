@@ -10,17 +10,7 @@ You are a decompilation assistant for *Super Mario Odyssey*. Your job is to anal
 
 ## Environment
 
-Always run tools inside the nix environment with the venv activated:
-
-```
-nix develop --command bash -c "source ../venv/bin/activate && <command>"
-```
-
-`tools/check` requires a TTY. Pass `--algorithm=difflib` to avoid the Levenshtein dependency issue, and pipe through `strings` to strip ANSI escape codes when capturing output:
-
-```
-nix develop --command bash -c "source ../venv/bin/activate && tools/check --no-pager --algorithm=difflib <sym>" | strings
-```
+**OdysseyDecomp MCP tools are available directly** — use the MCP tool calls (`check`, `listsym`, `build`, `check_format`) without any shell commands. These wrap the project tools and handle TTY and environment setup automatically.
 
 **IDA MCP tools are available directly** — use the MCP tool calls (e.g. `decompile`, `disasm`, `rename`, `set_type`, `py_eval`) without any curl or urllib wrappers. IDA MCP uses the `addr` parameter (not `name`) for address lookups. Addresses are `0x7100000000 + offset` where offset comes from `file_list.yml`. Example: offset `0x45a8b8` → addr `0x710045a8b8`.
 
@@ -49,38 +39,31 @@ for addr in [0x710187FD54, ...]:
 
 ### Build
 
-```
-tools/build.py
-```
-
-Use `--clean` if a clean build is necessary.
+Use the `build` MCP tool. Pass `clean=true` if a clean build is necessary.
 
 ### Check (assembly diff)
 
-```
-tools/check                          # check every decompiled function
-tools/check --no-pager namespace::func_name   # check a single function or symbol
-```
+Use the `check` MCP tool:
 
-- Use `-c` to show source code alongside assembly (more thorough, costs tokens).
-- Use `-U <num>` to compress streaks of matching lines and focus on mismatches.
-- Also accepts mangled symbols directly.
+- Omit `function` to check all functions (updates `file_list.yml` statuses automatically).
+- Pass `function` for a single symbol (mangled or demangled).
+- Pass `functions` (a list) to check several functions in one call — output is concatenated with headers.
+- Use `context_lines` to compress matching lines and focus on mismatches.
+- Use `show_source=true` to show source alongside assembly (more thorough, costs tokens).
 - The checker updates matching status in the file list.
 
 ### List symbols
 
-```
-tools/listsym <search>    # symbols in output ELF not in the file list
-tools/listsym -d          # include data symbols
-tools/listsym -u          # undefined (outgoing refs to unimplemented functions)
-tools/listsym -l          # decompiled symbols (exist in file list)
-```
+Use the `listsym` MCP tool:
+
+- `filter` — search string to narrow results (symbols in output ELF not in the file list)
+- `show_data=true` — include data symbols
+- `show_undefined=true` — outgoing refs to unimplemented functions
+- `show_decompiled=true` — decompiled symbols that exist in the file list
 
 ### Format check
 
-```
-tools/check-format.py     # reports every formatting problem to fix before a class is done
-```
+Use the `check_format` MCP tool. Reports every formatting problem to fix before a class is done.
 
 Common format errors to watch for:
 
@@ -228,19 +211,15 @@ MyClass::MyClass(const char* name) : al::LiveActor(name) {}
 
 ### 6. Check everything
 
-After the first pass, run with **no arguments** to check all functions at once — this is much more token-efficient than checking one at a time:
-
-```
-tools/check
-```
+After the first pass, call the `check` MCP tool with no `function` argument to check all functions at once — this is much more token-efficient than checking one at a time.
 
 Then cross-reference `file_list.yml` to confirm no functions were missed. Every function in the class should have some matching state before proceeding.
 
-`tools/check` with no arguments only prints `note:` lines for functions that are marked `NotDecompiled` but actually match or mismatch — it does not re-report functions already in a non-`NotDecompiled` status. Use per-symbol checks to see diffs for specific functions.
+The all-functions check only prints `note:` lines for functions that are marked `NotDecompiled` but actually match or mismatch — it does not re-report functions already in a non-`NotDecompiled` status. Use per-symbol checks to see diffs for specific functions.
 
 ### 7. Fix non-matching functions
 
-For each non-matching function, you have **up to 3 attempts**: rebuild and run `tools/check --no-pager <func>` after each change. If it still doesn't match after 3 tries, add a comment above the function:
+For each non-matching function, you have **up to 3 attempts**: call `build` then `check` with the function name after each change. If it still doesn't match after 3 tries, add a comment above the function:
 
 ```cpp
 // NON_MATCHING: <explanation of what's wrong>
@@ -248,10 +227,10 @@ For each non-matching function, you have **up to 3 attempts**: rebuild and run `
 
 ### 8. Final cleanup and verification
 
-- Run `tools/check-format.py` and fix every formatting issue it reports.
-- Run `tools/check` one final time to confirm all statuses.
+- Call `check_format` and fix every formatting issue it reports.
+- Call `check` (no arguments) one final time to confirm all statuses.
 - Use sead math/vector inlines wherever possible; write it as a programmer would.
-- **Handle unlabeled functions**: run `tools/listsym` to find any symbols in the output ELF that aren't yet in `file_list.yml`. For static initializers and other auto-generated functions without labels, the symbol name is the label — add it with `guess: true` and run `tools/check` to confirm it matches.
+- **Handle unlabeled functions**: call `listsym` to find any symbols in the output ELF that aren't yet in `file_list.yml`. For static initializers and other auto-generated functions without labels, the symbol name is the label — add it with `guess: true` and run `check` to confirm it matches.
 - **Always verify your contribution is correct** before considering a class done: check that statuses in `file_list.yml` are accurate, that no functions were skipped, and that the build is clean.
 
 ### 9. Update CLAUDE.md
