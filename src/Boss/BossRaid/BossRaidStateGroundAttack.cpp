@@ -25,26 +25,35 @@ NERVES_MAKE_NOSTRUCT(BossRaidStateGroundAttack, FallSign, Fall, Attack, AttackEn
 
 static const s32 sGroundAttackTimeTable[3] = {240, 240, 290};
 
-// NON_MATCHING: instruction scheduling and store ordering differences
+// NON_MATCHING: initialization of last loop
 BossRaidStateGroundAttack::BossRaidStateGroundAttack(BossRaid* boss, const al::ActorInitInfo& info)
     : al::NerveStateBase("状態名"), mBossRaid(boss) {
     al::NerveExecutor::initNerve(&FallSign, 0);
     al::calcFrontDir(&mFrontDir, mBossRaid);
     al::calcUpDir(&mUpDir, mBossRaid);
-    mElectricList = new al::DeriveActorGroup<BossRaidElectric>("電撃リスト", 230);
-    for (s32 i = 0; i < mElectricList->getMaxActorCount(); i++) {
+
+    al::DeriveActorGroup<BossRaidElectric>* group =
+        new al::DeriveActorGroup<BossRaidElectric>("電撃リスト", 230);
+    mElectricList = group;
+
+    for (s32 i = 0; i < group->getMaxActorCount(); i++) {
         BossRaidElectric* electric = new BossRaidElectric("電撃");
         al::initCreateActorNoPlacementInfo(electric, info);
-        mElectricList->registerActor(electric);
+        group->registerActor(electric);
     }
-    mElectricLineList = new al::DeriveActorGroup<BossRaidElectricLine>("電撃ラインリスト", 8);
-    for (s32 i = 0; i < mElectricLineList->getMaxActorCount(); i++) {
+
+    al::DeriveActorGroup<BossRaidElectricLine>* lineGroup =
+        new al::DeriveActorGroup<BossRaidElectricLine>("電撃ラインリスト", 8);
+    mElectricLineList = lineGroup;
+
+    for (s32 i = 0; i < lineGroup->getMaxActorCount(); i++) {
         BossRaidElectricLine* line = new BossRaidElectricLine("電撃ライン本体用");
         al::initCreateActorNoPlacementInfo(line, info);
-        mElectricLineList->registerActor(line);
+        lineGroup->registerActor(line);
     }
-    for (s32 i = 0; i < mElectricLineList->getActorCount(); i++)
-        mElectricLineList->getDeriveActor(i)->setBulletList(mElectricList);
+
+    for (s32 i = 0; i < lineGroup->getActorCount(); i++)
+        lineGroup->getDeriveActor(i)->setBulletList(group);
 }
 
 BossRaidStateGroundAttack::~BossRaidStateGroundAttack() = default;
@@ -73,7 +82,6 @@ void BossRaidStateGroundAttack::exeFall() {
     }
 }
 
-// NON_MATCHING: extra callee-saved register; compiler eliminates level > 2 branch for attackTime
 void BossRaidStateGroundAttack::exeAttack() {
     if (al::isFirstStep(this)) {
         mBossRaid->startActionMain("GroundAttack");
@@ -84,9 +92,8 @@ void BossRaidStateGroundAttack::exeAttack() {
     if (al::isActionPlaying(mBossRaid, "GroundAttack") && al::isActionEnd(mBossRaid))
         mBossRaid->startActionMain("GroundAttackLoop");
 
-    s32 level = mBossRaid->getShotLevel() % 3;
-    s32 attackTime = (level > 2) ? 290 : sGroundAttackTimeTable[level];
-    if (al::isLessStep(this, attackTime)) {
+    s32 time = getGroundAttackTime();
+    if (al::isLessStep(this, time)) {
         switch (mBossRaid->getShotLevel()) {
         case 0:
             shotBulletLv1();
@@ -109,239 +116,178 @@ void BossRaidStateGroundAttack::exeAttack() {
         }
     }
 
-    s32 level2 = mBossRaid->getShotLevel() % 3;
-    s32 endTime = (level2 > 2) ? 350 : sGroundAttackTimeTable[level2] + 60;
-    if (al::isGreaterEqualStep(this, endTime))
+    s32 level = mBossRaid->getShotLevel() % 3;
+    if ((u32)level < 3) {
+        if (al::isGreaterEqualStep(this, sGroundAttackTimeTable[level] + 60))
+            al::setNerve(this, &AttackEnd);
+    } else if (al::isGreaterEqualStep(this, 350))
         al::setNerve(this, &AttackEnd);
 }
 
-// NON_MATCHING: compiler eliminates the level > 2 branch (getShotLevel() % 3 is always 0-2)
 s32 BossRaidStateGroundAttack::getGroundAttackTime() const {
     s32 level = mBossRaid->getShotLevel() % 3;
-    if (level > 2)
-        return 290;
-    return sGroundAttackTimeTable[level];
+    if ((u32)level < 3)
+        return sGroundAttackTimeTable[level];
+
+    return sGroundAttackTimeTable[2];
 }
 
-// NON_MATCHING: instruction scheduling differences (upDir component loads, origin/vel assignment order)
 void BossRaidStateGroundAttack::shotBulletLv1() {
+    sead::Vector3f upDir = mUpDir;
+
     if (!al::isIntervalStep(this, 8, 0))
         return;
 
-    sead::Vector3f upOffset = mUpDir * 50.0f;
-    f32 baseAngle = al::calcNerveCosCycle(this, 0xA0) * -45.0f;
-
     sead::Vector3f rotDir;
-    sead::Vector3f origin;
-    sead::Vector3f vel;
+    sead::Vector3f upOffset = upDir * 50.0f;
+    f32 baseAngle = al::calcNerveCosCycle(this, 160) * -45.0f;
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, baseAngle);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(0)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(0)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, baseAngle + 90.0f);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(1)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(1)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, baseAngle + -90.0f);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(2)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(2)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 }
 
-// NON_MATCHING: instruction scheduling differences
 void BossRaidStateGroundAttack::shotBulletLv2() {
+    sead::Vector3f upDir = mUpDir;
+
     if (!al::isIntervalStep(this, 8, 0))
         return;
 
-    sead::Vector3f upOffset = mUpDir * 50.0f;
-    f32 phase = al::calcNerveCosCycle(this, 0x73) * 24.0f;
-
     sead::Vector3f rotDir;
-    sead::Vector3f origin;
-    sead::Vector3f vel;
+    sead::Vector3f upOffset = upDir * 50.0f;
+    f32 phase = al::calcNerveCosCycle(this, 115) * 24.0f;
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, -120.0f - phase);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(0)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(0)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, phase + -72.0f);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(1)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(1)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, -24.0f - phase);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(2)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(2)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, phase + 24.0f);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(3)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(3)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, 72.0f - phase);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(4)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(4)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, phase + 120.0f);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(5)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(5)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 }
 
-// NON_MATCHING: instruction scheduling differences
 void BossRaidStateGroundAttack::shotBulletLv3() {
+    sead::Vector3f upDir = mUpDir;
     if (!al::isIntervalStep(this, 7, 0))
         return;
 
-    sead::Vector3f upOffset = mUpDir * 50.0f;
-    f32 phase =
-        sead::Mathf::sin(((f32)al::getNerveStep(this) / 115.0f - 1.0f / 12.0f) * sead::Mathf::pi2()) * 30.0f;
-
     sead::Vector3f rotDir;
-    sead::Vector3f origin;
-    sead::Vector3f vel;
+    sead::Vector3f upOffset = upDir * 50.0f;
+    f32 phase = sead::Mathf::sin(((f32)al::getNerveStep(this) / 115.0f - 1.0f / 12.0f) *
+                                 sead::Mathf::pi2()) *
+                30.0f;
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, -105.0f - phase);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 40.0f;
-    mElectricLineList->getDeriveActor(6)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(6)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 40.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, phase + -75.0f);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 40.0f;
-    mElectricLineList->getDeriveActor(0)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(0)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 40.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, -45.0f - phase);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 40.0f;
-    mElectricLineList->getDeriveActor(1)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(1)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 40.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, phase + -15.0f);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 40.0f;
-    mElectricLineList->getDeriveActor(2)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(2)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 40.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, 15.0f - phase);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 40.0f;
-    mElectricLineList->getDeriveActor(3)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(3)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 40.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, phase + 45.0f);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 40.0f;
-    mElectricLineList->getDeriveActor(4)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(4)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 40.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, 75.0f - phase);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 40.0f;
-    mElectricLineList->getDeriveActor(5)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(5)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 40.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, phase + 105.0f);
-    origin = upOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 40.0f;
-    mElectricLineList->getDeriveActor(7)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(7)->shot(upOffset + al::getTrans(mBossRaid), rotDir * 40.0f);
 }
 
-// NON_MATCHING: instruction scheduling differences
 void BossRaidStateGroundAttack::shotBulletLv4() {
     if (!al::isIntervalStep(this, 8, 0))
         return;
 
-    f32 baseAngle = al::calcNerveCosCycle(this, 0xA0) * -45.0f;
+    sead::Vector3f rotDir;
+    f32 baseAngle = al::calcNerveCosCycle(this, 160) * -45.0f;
+
     f32 dist1 = al::isIntervalOnOffStep(this, 8, 0) ? 50.0f : 350.0f;
     sead::Vector3f nearOffset = mUpDir * dist1;
+
     f32 dist2 = al::isIntervalOnOffStep(this, 8, 0) ? 350.0f : 50.0f;
     sead::Vector3f farOffset = mUpDir * dist2;
 
-    sead::Vector3f rotDir;
-    sead::Vector3f origin;
-    sead::Vector3f vel;
-
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, baseAngle);
-    origin = nearOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(0)->shot(origin, vel);
-    origin = farOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(0)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(0)->shot(nearOffset + al::getTrans(mBossRaid),
+                                               rotDir * 36.0f);
+    mElectricLineList->getDeriveActor(0)->shot(farOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, baseAngle + 90.0f);
-    origin = nearOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(1)->shot(origin, vel);
-    origin = farOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(1)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(1)->shot(nearOffset + al::getTrans(mBossRaid),
+                                               rotDir * 36.0f);
+    mElectricLineList->getDeriveActor(1)->shot(farOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, baseAngle + -90.0f);
-    origin = nearOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(2)->shot(origin, vel);
-    origin = farOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(2)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(2)->shot(nearOffset + al::getTrans(mBossRaid),
+                                               rotDir * 36.0f);
+    mElectricLineList->getDeriveActor(2)->shot(farOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 }
 
-// NON_MATCHING: instruction scheduling differences
 void BossRaidStateGroundAttack::shotBulletLv5() {
     if (!al::isIntervalStep(this, 12, 0))
         return;
 
-    f32 phase = al::calcNerveCosCycle(this, 0x73) * 24.0f;
+    sead::Vector3f rotDir;
+    f32 phase = al::calcNerveCosCycle(this, 115) * 24.0f;
+
     f32 dist1 = al::isIntervalOnOffStep(this, 12, 0) ? 50.0f : 350.0f;
     sead::Vector3f nearOffset = mUpDir * dist1;
+
     f32 dist2 = al::isIntervalOnOffStep(this, 12, 0) ? 350.0f : 50.0f;
     sead::Vector3f farOffset = mUpDir * dist2;
 
-    sead::Vector3f rotDir;
-    sead::Vector3f origin;
-    sead::Vector3f vel;
-
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, -120.0f - phase);
-    origin = nearOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(0)->shot(origin, vel);
-    origin = farOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(0)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(0)->shot(nearOffset + al::getTrans(mBossRaid),
+                                               rotDir * 36.0f);
+    mElectricLineList->getDeriveActor(0)->shot(farOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, phase + -72.0f);
-    origin = nearOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(1)->shot(origin, vel);
-    origin = farOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(1)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(1)->shot(nearOffset + al::getTrans(mBossRaid),
+                                               rotDir * 36.0f);
+    mElectricLineList->getDeriveActor(1)->shot(farOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, -24.0f - phase);
-    origin = nearOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(2)->shot(origin, vel);
-    origin = farOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(2)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(2)->shot(nearOffset + al::getTrans(mBossRaid),
+                                               rotDir * 36.0f);
+    mElectricLineList->getDeriveActor(2)->shot(farOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, phase + 24.0f);
-    origin = nearOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(3)->shot(origin, vel);
-    origin = farOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(3)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(3)->shot(nearOffset + al::getTrans(mBossRaid),
+                                               rotDir * 36.0f);
+    mElectricLineList->getDeriveActor(3)->shot(farOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 
     al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, 72.0f - phase);
-    origin = nearOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(4)->shot(origin, vel);
-    origin = farOffset + al::getTrans(mBossRaid);
-    vel = rotDir * 36.0f;
-    mElectricLineList->getDeriveActor(4)->shot(origin, vel);
+    mElectricLineList->getDeriveActor(4)->shot(nearOffset + al::getTrans(mBossRaid),
+                                               rotDir * 36.0f);
+    mElectricLineList->getDeriveActor(4)->shot(farOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
+
+    al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, phase + 120.0f);
+    mElectricLineList->getDeriveActor(5)->shot(nearOffset + al::getTrans(mBossRaid),
+                                               rotDir * 36.0f);
+    mElectricLineList->getDeriveActor(5)->shot(farOffset + al::getTrans(mBossRaid), rotDir * 36.0f);
 }
 
 void BossRaidStateGroundAttack::shotBulletLv6() {

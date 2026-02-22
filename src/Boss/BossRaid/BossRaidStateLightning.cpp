@@ -20,17 +20,20 @@ NERVES_MAKE_NOSTRUCT(BossRaidStateLightning, Lightning, LightningEnd);
 
 static const s32 sIntervalTable[3] = {70, 60, 35};
 
-// NON_MATCHING: extra callee-saved register (x28) vs target (only x27); wrong function size
 BossRaidStateLightning::BossRaidStateLightning(BossRaid* boss, const al::ActorInitInfo& info)
     : al::NerveStateBase("光輪攻撃"), mBossRaid(boss) {
-    mWheelList = new al::DeriveActorGroup<BossRaidWheel>("光輪リスト", 16);
-    for (s32 i = 0; i < mWheelList->getMaxActorCount(); i++) {
-        BossRaidWheel* wheel = new BossRaidWheel("光輪");
-        al::initCreateActorNoPlacementInfo(wheel, info);
-        mWheelList->registerActor(wheel);
-    }
     al::calcFrontDir(&mFrontDir, mBossRaid);
     al::calcUpDir(&mUpDir, mBossRaid);
+    al::DeriveActorGroup<BossRaidWheel>* group =
+        new al::DeriveActorGroup<BossRaidWheel>("光輪リスト", 16);
+
+    mWheelList = group;
+    for (s32 i = 0; i < group->getMaxActorCount(); i++) {
+        BossRaidWheel* wheel = new BossRaidWheel("光輪");
+        al::initCreateActorNoPlacementInfo(wheel, info);
+        group->registerActor(wheel);
+    }
+
     al::calcTransLocalOffset(&mLocalOffset, mBossRaid, sead::Vector3f::ez * 2500.0f);
     al::NerveExecutor::initNerve(&Lightning, 0);
 }
@@ -42,7 +45,6 @@ void BossRaidStateLightning::appear() {
     al::setNerve(this, &Lightning);
 }
 
-// NON_MATCHING: sIntervalTable adrp hoisted before cmp; extra mov x2/x0 in target before shotGround
 void BossRaidStateLightning::exeLightning() {
     if (al::isFirstStep(this)) {
         al::startAction(mBossRaid, "Lightning");
@@ -51,13 +53,10 @@ void BossRaidStateLightning::exeLightning() {
     if (al::isStep(this, 1))
         mBossRaid->resetChainAll();
 
-    s32 level = mBossRaid->getShotLevel() % 3;
-    s32 interval = (level > 2) ? 35 : sIntervalTable[level];
-    if (al::isIntervalStep(this, interval, 20)) {
-        BossRaidWheel* wheel =
-            (BossRaidWheel*)mWheelList->tryFindDeadActor();
+    if (al::isIntervalStep(this, getLightningInterval(), 20)) {
+        BossRaidWheel* wheel = (BossRaidWheel*)mWheelList->tryFindDeadActor();
         if (wheel) {
-                f32 angle = al::getRandom(-15.0f, 15.0f);
+            f32 angle = al::getRandom(-15.0f, 15.0f);
             switch (mShotIndex) {
             case 0:
                 angle += 30.0f;
@@ -79,13 +78,9 @@ void BossRaidStateLightning::exeLightning() {
             sead::Vector3f jointPos;
             sead::Vector3f target;
             al::rotateVectorDegree(&rotDir, mFrontDir, mUpDir, angle);
+            al::calcJointPos(&jointPos, mBossRaid, (mShotIndex & 1) ? "HandL" : "HandR");
 
-            const char* jointName = (mShotIndex & 1) ? "HandL" : "HandR";
-            al::calcJointPos(&jointPos, mBossRaid, jointName);
-
-            target.x = mLocalOffset.x - rotDir.x * 4000.0f;
-            target.y = mLocalOffset.y - rotDir.y * 4000.0f;
-            target.z = mLocalOffset.z - rotDir.z * 4000.0f;
+            target = mLocalOffset - rotDir * 4000.0f;
             wheel->shotGround(jointPos, target, 0.0f);
 
             mShotIndex = al::modi(mShotIndex + 5, 4);
@@ -96,12 +91,11 @@ void BossRaidStateLightning::exeLightning() {
         al::setNerve(this, &LightningEnd);
 }
 
-// NON_MATCHING: compiler eliminates the level > 2 branch (level = getShotLevel() % 3 is always 0-2)
 s32 BossRaidStateLightning::getLightningInterval() const {
     s32 level = mBossRaid->getShotLevel() % 3;
-    if (level > 2)
-        return 35;
-    return sIntervalTable[level];
+    if ((u32)level < 3)
+        return sIntervalTable[level];
+    return sIntervalTable[2];
 }
 
 void BossRaidStateLightning::exeLightningEnd() {
