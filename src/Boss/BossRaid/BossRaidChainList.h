@@ -12,8 +12,8 @@ public:
     void makeActorDead() override;
     void setRootPosPtr(const sead::Vector3f* pos);
     void setTipPosPtr(const sead::Vector3f* pos);
-    void calcRootAndTipPos(sead::Vector3f* outRoot, sead::Vector3f* outTip) const;
-    BossRaidChain* getChain(s32 index) const;
+    void calcRootAndTipPos(sead::Vector3f* outRoot, sead::Vector3f* outTip);
+    BossRaidChain* getChain(s32 index);
     void registerHostSubActorSyncClipping(al::LiveActor* actor);
     void resetChain();
     void resetChain(const sead::Vector3f& rootPos, const sead::Vector3f& tipPos);

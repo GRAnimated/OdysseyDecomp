@@ -36,6 +36,8 @@
 
 #include "Boss/BarrierField.h"
 #include "Boss/BossForest/BossForestWander.h"
+#include "Boss/BossRaid/BossRaidNpc.h"
+#include "Boss/BossRaid/BossRaidRivet.h"
 #include "Boss/Mofumofu/MofumofuScrap.h"
 #include "Camera/ScenarioStartCamera.h"
 #include "Enemy/Bubble.h"
@@ -158,8 +160,8 @@ const al::NameToCreator<al::ActorCreatorFunction> sProjectActorFactoryEntries[] 
     {"BossKnuckleFix", nullptr},
     {"BossMagma", nullptr},
     {"BossRaid", nullptr},
-    {"BossRaidNpc", nullptr},
-    {"BossRaidRivet", nullptr},
+    {"BossRaidNpc", al::createActorFunction<BossRaidNpc>},
+    {"BossRaidRivet", al::createActorFunction<BossRaidRivet>},
     {"BreakablePole", nullptr},
     {"Breeda", nullptr},
     {"Bubble", al::createActorFunction<Bubble>},

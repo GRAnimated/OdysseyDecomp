@@ -39,6 +39,8 @@ NERVE_IMPL(BossRaidRivet, Demo);
 NERVES_MAKE_NOSTRUCT(BossRaidRivet, Wait, PullOut, Electric, Pull, ElectricSign, ElectricEnd, Demo);
 }  // namespace
 
+const sead::Vector3f sCapPointPos = {15.0f, 0.0f, 5.0f};
+
 BossRaidRivet::BossRaidRivet(const char* name) : al::LiveActor(name) {}
 
 void BossRaidRivet::init(const al::ActorInitInfo& info) {
@@ -62,24 +64,21 @@ void BossRaidRivet::setConnect(al::LiveActor* actor, const char* jointName,
 }
 
 void BossRaidRivet::setChainRootConnect(al::LiveActor* actor, const char* jointName,
-                                        const sead::Vector3f& rotate,
-                                        const sead::Vector3f& trans) {
+                                        const sead::Vector3f& rotate, const sead::Vector3f& trans) {
     if (jointName)
         al::attachMtxConnectorToJoint(mChainRootMtxConnector, actor, jointName, rotate, trans);
     else
         al::attachMtxConnectorToActor(mChainRootMtxConnector, actor, rotate, trans);
 }
 
-// NON_MATCHING: regalloc (d8 saved for sqrtf result; operator new called before dist calc; vector literal stored via immediates vs global load)
+// NON_MATCHING: regalloc (d8 saved for sqrtf result; operator new called before dist calc; vector
+// literal stored via immediates vs global load)
 void BossRaidRivet::createChainAndPopn(al::LiveActor* actor, const al::ActorInitInfo& info) {
     calcAnim();
-    al::calcJointOffsetPos(&mCapPointPos, this, "CapPoint", {15.0f, 0.0f, 5.0f});
+    al::calcJointOffsetPos(&mCapPointPos, this, "CapPoint", sCapPointPos);
     al::calcConnectTrans(&mChainRootPos, mChainRootMtxConnector);
 
-    f32 dx = mCapPointPos.x - mChainRootPos.x;
-    f32 dy = mCapPointPos.y - mChainRootPos.y;
-    f32 dz = mCapPointPos.z - mChainRootPos.z;
-    f32 dist = sqrtf(dx * dx + dy * dy + dz * dz);
+    f32 dist = (mCapPointPos - mChainRootPos).length();
 
     f32 countF = (dist + 150.0f) / 100.0f;
     s32 count = (s32)countF;
@@ -100,16 +99,14 @@ void BossRaidRivet::createChainAndPopn(al::LiveActor* actor, const al::ActorInit
     mPopn->makeActorDead();
 }
 
-// NON_MATCHING: regalloc (larger stack frame used to pass vector literal via immediate stores vs global load; tail call of calcConnectTrans vs ret)
 void BossRaidRivet::calcAnim() {
     if (!al::isNerve(this, &PullOut))
         al::connectPoseQT(this, mMtxConnector);
     al::LiveActor::calcAnim();
-    al::calcJointOffsetPos(&mCapPointPos, this, "CapPoint", {15.0f, 0.0f, 5.0f});
+    al::calcJointOffsetPos(&mCapPointPos, this, "CapPoint", sCapPointPos);
     al::calcConnectTrans(&mChainRootPos, mChainRootMtxConnector);
 }
 
-// NON_MATCHING: regalloc (other/self swapped between x21/x22)
 bool BossRaidRivet::receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                                al::HitSensor* self) {
     if (rs::tryReceiveMsgInitCapTargetAndSetCapTargetInfo(message, mCapTargetInfo))
@@ -117,16 +114,13 @@ bool BossRaidRivet::receiveMsg(const al::SensorMsg* message, al::HitSensor* othe
     if (al::isMsgPlayerDisregard(message))
         return al::isNerve(this, &PullOut);
     if (al::isMsgPlayerTouch(message) && al::isNerve(this, &Electric)) {
-        al::sendMsgEnemyAttack(self, other);
+        al::sendMsgEnemyAttack(other, self);
         return true;
     }
     if (rs::isMsgCapReflect(message) && al::isNerve(this, &Electric))
         return true;
-    if (rs::isMsgCapKeepLockOn(message)) {
-        if (al::isNerve(this, &PullOut))
-            return al::isLessEqualStep(this, 5);
-        return true;
-    }
+    if (rs::isMsgCapKeepLockOn(message))
+        return isEnableCapKeepLockOn();
     if (rs::isMsgCapIgnoreCancelLockOn(message))
         return al::isNerve(this, &Pull);
     if (rs::isMsgCapCancelLockOn(message))
