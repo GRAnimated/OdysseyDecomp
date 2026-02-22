@@ -26,6 +26,9 @@ public:
     void exeMoveEnd();
     void exeBlowDown();
 
+    void setArchiveName(const char* name) { mArchiveName = name; }
+    void setAngry(bool angry) { mIsAngry = angry; }
+
 private:
     al::EnemyStateBlowDown* mStateBlowDown = nullptr;
     f32 mAwakeDistance = 1500.0f;
