@@ -321,7 +321,7 @@ electricLine->shot(trans, offset);
 
 **`sead::Mathf::maxNumber()` for float max** — When IDA shows a float constant of `3.4028235e+38` (FLT_MAX), write it as `sead::Mathf::maxNumber()` in source. This is `std::numeric_limits<float>::max()` wrapped in a sead helper. The header is available transitively via `<math/seadVector.h>` (included by `ActorPoseUtil.h` and `Library/Math/MathUtil.h`).
 
-**`squaredLength()` for distance comparisons** — When IDA shows manual dot-product distance code (`dx*dx + dy*dy + dz*dz` followed by `sqrtf`), use sead's `sead::Vector3f::squaredLength()` with a vector subtraction: `sqrtf((a - b).squaredLength())`. The subtraction uses `operator-` on `sead::Vector3f`.
+**`diff.length()` for distance comparisons** — When IDA shows manual dot-product distance code (`dx*dx + dy*dy + dz*dz` followed by `sqrtf`), use a named `sead::Vector3f diff = a - b` and call `diff.length()`. A named intermediate variable works and matches; the temporary form `(a - b).length()` (no named variable) changes register pressure and breaks the match. After computing `diff`, use `diff.x`, `diff.y`, `diff.z` directly instead of named `dx`/`dy`/`dz` locals.
 
 **`sead::Vector3f::zero` and `sead::Vector3f::ex` for local/member init** — When the original initialises a local or member `Vector3f` to zero or the X-axis unit vector by loading from a global constant (visible in asm as `adrp` + `ldr x8, [x8, #...]` + `str x8, [sp/x0, #...]`), use `sead::Vector3f::zero` or `sead::Vector3f::ex` rather than `{0.0f, 0.0f, 0.0f}` or `{1.0f, 0.0f, 0.0f}`. The literal forms generate immediate-value stores and will not match the global-load pattern. Similarly for member variable initialisers in the class header.
 
@@ -330,9 +330,11 @@ electricLine->shot(trans, offset);
 **`dir += a - b` for accumulating vector differences** — When building a direction vector by summing position differences, write `dir += getTrans(a) - getTrans(b)` using `operator+=` and `operator-`. Writing the accumulation component-by-component (`dir.x += ...; dir.y += ...; dir.z += ...`) generates individual `ldr`/`fadd`/`str` sequences instead of the `ldp`-based paired-load pattern the original uses, causing a size mismatch.
 
 **Sead "cleaner" forms that break matching** — Some idiomatic rewrites that look correct produce different code generation at `-O3`:
-- `(otherTrans - myTrans).length()` instead of `sqrtf(dx*dx + dy*dy + dz*dz)` — forming the subtraction as a named variable changes register pressure and breaks the match; keep the manual `dx`/`dy`/`dz` locals and `sqrtf`.
+- `(otherTrans - myTrans).length()` (temporary, no named variable) instead of a named `sead::Vector3f diff = a - b; diff.length()` — use the named-variable form; the temporary form changes register pressure and breaks the match.
 - `-vel` (unary `operator-`) instead of `sead::Vector3f negVel = {-vel.x, -vel.y, -vel.z}` — the operator returns a temporary that the compiler may materialise on the stack differently; use the explicit struct literal.
-- `diff * scale` (`operator*`) to set all three components at once — changes the load/multiply schedule vs writing `vel.x = dx * scale; vel.y = dy * scale; vel.z = dz * scale` with the scalar temporaries kept live in registers.
+- `diff * scale` (`operator*`) to set all three components at once — changes the load/multiply schedule vs writing `vel.x = diff.x * scale; vel.y = diff.y * scale; vel.z = diff.z * scale` component-by-component.
+
+**`sead::Mathf::deg2rad()` for radian literals** — When the original source used a degree value (e.g. `23.0f` degrees), the compiler stores the precomputed radian constant (e.g. `0.40143f`). Replace the raw radian literal with `sead::Mathf::deg2rad(N.0f)` — the compiler evaluates it at compile time, producing an identical constant while keeping the source readable.
 
 ## Code Style (summary)
 

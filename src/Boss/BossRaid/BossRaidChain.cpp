@@ -58,10 +58,8 @@ void BossRaidChain::updateVelocity(BossRaidChain* other) {
     const sead::Vector3f& otherTrans = al::getTrans(other);
     const sead::Vector3f& myTrans = al::getTrans(this);
 
-    f32 dx = otherTrans.x - myTrans.x;
-    f32 dy = otherTrans.y - myTrans.y;
-    f32 dz = otherTrans.z - myTrans.z;
-    f32 dist = sqrtf(dx * dx + dy * dy + dz * dz);
+    sead::Vector3f diff = otherTrans - myTrans;
+    f32 dist = diff.length();
 
     sead::Vector3f vel = sead::Vector3f::zero;
     if (al::isNearZero(dist)) {
@@ -69,20 +67,19 @@ void BossRaidChain::updateVelocity(BossRaidChain* other) {
     } else {
         if (dist < mMinDist) {
             f32 scale = (dist - mMinDist) * -0.2f / (dist * mMinDist);
-            vel.x = dx * scale;
-            vel.y = dy * scale;
-            vel.z = dz * scale;
+            vel.x = diff.x * scale;
+            vel.y = diff.y * scale;
+            vel.z = diff.z * scale;
         }
         if (dist > mMaxDist) {
             f32 scale = (dist - mMaxDist) / dist * 0.4f;
-            vel.x = dx * scale;
-            vel.y = dy * scale;
-            vel.z = dz * scale;
+            vel.x = diff.x * scale;
+            vel.y = diff.y * scale;
+            vel.z = diff.z * scale;
         }
     }
 
-    if (!mIsFix)
-        al::addVelocity(this, vel);
+    addVelocityChain(vel);
 
     sead::Vector3f negVel = {-vel.x, -vel.y, -vel.z};
     if (!other->mIsFix)
@@ -92,17 +89,11 @@ void BossRaidChain::updateVelocity(BossRaidChain* other) {
 void BossRaidChain::updateDirection(f32 yRate, f32 zRate) {
     sead::Vector3f dir = sead::Vector3f::zero;
 
-    if (mPrevChain != nullptr) {
-        const sead::Vector3f& myTrans = al::getTrans(this);
-        const sead::Vector3f& prevTrans = al::getTrans(mPrevChain);
-        dir += myTrans - prevTrans;
-    }
+    if (mPrevChain != nullptr)
+        dir += al::getTrans(this) - al::getTrans(mPrevChain);
 
-    if (mNextChain != nullptr) {
-        const sead::Vector3f& nextTrans = al::getTrans(mNextChain);
-        const sead::Vector3f& myTrans = al::getTrans(this);
-        dir += nextTrans - myTrans;
-    }
+    if (mNextChain != nullptr)
+        dir += al::getTrans(mNextChain) - al::getTrans(this);
 
     sead::Vector3f up = sead::Vector3f::ex;
     if (mPrevChain != nullptr)
@@ -180,7 +171,7 @@ void BossRaidChain::exeBlowDown() {
         al::setVelocitySeparateHV(this, randomDir, 25.0f, 35.0f);
     }
     sead::Quatf* quat = al::getQuatPtr(this);
-    al::rotateQuatRadian(quat, *quat, mBlowAxis, 0.40143f);
+    al::rotateQuatRadian(quat, *quat, mBlowAxis, sead::Mathf::deg2rad(23.0f));
     al::addVelocityToGravity(this, 2.0f);
     al::scaleVelocity(this, 0.99f);
     if (al::isGreaterEqualStep(this, 180))
