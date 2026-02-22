@@ -12,6 +12,7 @@
 #include "Player/IPlayerModelChanger.h"
 #include "Player/IUsePlayerCeilingCheck.h"
 #include "Player/PlayerAnimator.h"
+#include "Player/PlayerJointParamHandLegAngle.h"
 #include "Player/PlayerPushReceiver.h"
 #include "Util/PlayerCollisionUtil.h"
 #include "Util/SensorMsgFunction.h"
@@ -27,17 +28,6 @@ NERVE_IMPL(PlayerCarryKeeper, Carry);
 NERVES_MAKE_NOSTRUCT(PlayerCarryKeeper, Carry);
 NERVES_MAKE_STRUCT(PlayerCarryKeeper, Wait, Start, ThrowSwing, Throw, Release);
 }  // namespace
-
-// Observations:
-//
-// - Claude missed multiple inlines, most notably startRelease()
-//   in 4 functions and isThrow() in 3 functions
-//
-// - Claude placed the Carry nerve inside the struct at the end,
-//   causing a mismatch in PlayerCarryKeeper::exeStart
-//
-// - It chose to not create a struct for PlayerJointParamHandLegAngle,
-//   instead only interpreting it as an f32 array
 
 PlayerCarryKeeper::PlayerCarryKeeper(const al::LiveActor* player, al::HitSensor* carrySensor,
                                      PlayerAnimator* animator,
@@ -76,14 +66,13 @@ bool PlayerCarryKeeper::updateCollideLockUp(const IUsePlayerCollision* collider,
         return false;
     }
 
-    sead::Vector3f push_vec = sead::Vector3f::zero;
-    pushReceiver->calcOnlyCollidePushVec(&push_vec);
+    sead::Vector3f pushVec = sead::Vector3f::zero;
+    pushReceiver->calcOnlyCollidePushVec(&pushVec);
 
     const sead::Vector3f& gravity = al::getGravity(mPlayer);
 
-    if (al::isNearZero(push_vec, 0.001f) ||
-        (al::getTrans(mPlayer) - _60).squaredLength() > 900.0f || gravity.dot(push_vec) > 0.0f ||
-        gravity.dot(al::getVelocity(mPlayer)) < 0.0f) {
+    if (al::isNearZero(pushVec, 0.001f) || (al::getTrans(mPlayer) - _60).squaredLength() > 900.0f ||
+        gravity.dot(pushVec) > 0.0f || gravity.dot(al::getVelocity(mPlayer)) < 0.0f) {
         _5c = 0;
         _60 = al::getTrans(mPlayer);
         return false;
@@ -94,11 +83,8 @@ bool PlayerCarryKeeper::updateCollideLockUp(const IUsePlayerCollision* collider,
 }
 
 void PlayerCarryKeeper::updateHandJointAngle() {
-    auto* param = reinterpret_cast<f32*>(mHandLegAngleParam);
-    param[0] = _50.x;
-    param[1] = _50.y;
-    param[2] = _50.z;
-    reinterpret_cast<f32*>(mHandLegAngleParam)[6] = 0.5f;
+    mHandLegAngleParam->_0 = _50;
+    mHandLegAngleParam->_18 = 0.5f;
 }
 
 bool PlayerCarryKeeper::startCarry(al::HitSensor* heldSensor) {
@@ -156,14 +142,12 @@ void PlayerCarryKeeper::startCancelAndRelease() {
 }
 
 void PlayerCarryKeeper::startRelease() {
-    auto* param = reinterpret_cast<f32*>(mHandLegAngleParam);
-    param[0] = 0.0f;
-    param[1] = 0.0f;
-    param[2] = 0.0f;
-    param[3] = 0.0f;
-    param[4] = 0.0f;
-    param[5] = 0.0f;
-    param[6] = 1.0f;
+    PlayerJointParamHandLegAngle* param = mHandLegAngleParam;
+    param->_0 = {0.0f, 0.0f, 0.0f};
+    param->_c = 0.0f;
+    param->_10 = 0.0f;
+    param->_14 = 0.0f;
+    param->_18 = 1.0f;
     _50 = {0.0f, 0.0f, 0.0f};
     al::setNerve(this, &NrvPlayerCarryKeeper.Release);
 }
@@ -237,10 +221,8 @@ bool PlayerCarryKeeper::isThrow() const {
 }
 
 bool PlayerCarryKeeper::isThrowHandR() const {
-    if (!al::isNerve(this, &NrvPlayerCarryKeeper.Release) && mHeldSensor != nullptr &&
-        !mIsCarryAbove && isThrow() && mAnimator->isSubAnimPlaying()) {
+    if (isCarryFront() && isThrow() && mAnimator->isSubAnimPlaying())
         return mAnimator->isSubAnim(getCarryThrowAnimName());
-    }
     return false;
 }
 
@@ -309,14 +291,12 @@ void PlayerCarryKeeper::exeThrow() {
     if (al::isFirstStep(this)) {
         mAnimator->clearUpperBodyAnim();
         mAnimator->startSubAnim(getCarryThrowAnimName());
-        auto* param = reinterpret_cast<f32*>(mHandLegAngleParam);
-        param[0] = 0.0f;
-        param[1] = 0.0f;
-        param[2] = 0.0f;
-        param[3] = 0.0f;
-        param[4] = 0.0f;
-        param[5] = 0.0f;
-        param[6] = 1.0f;
+        PlayerJointParamHandLegAngle* param = mHandLegAngleParam;
+        param->_0 = {0.0f, 0.0f, 0.0f};
+        param->_c = 0.0f;
+        param->_10 = 0.0f;
+        param->_14 = 0.0f;
+        param->_18 = 1.0f;
     }
 
     if (mHeldSensor != nullptr && al::isGreaterEqualStep(this, getThrowReleaseFrame())) {
@@ -342,13 +322,13 @@ void PlayerCarryKeeper::exeThrow() {
 void PlayerCarryKeeper::exeRelease() {
     bool is2d = mModelChanger->is2DModel();
     mHeldSensor = nullptr;
-    if (is2d) {
+    if (!is2d) {
+        mAnimator->clearUpperBodyAnim();
+        _48 = 10;
+        mIsCarryAbove = false;
+        mIsCarryWallKeep = false;
         al::setNerve(this, &NrvPlayerCarryKeeper.Wait);
-        return;
+    } else {
+        al::setNerve(this, &NrvPlayerCarryKeeper.Wait);
     }
-    mAnimator->clearUpperBodyAnim();
-    _48 = 10;
-    mIsCarryAbove = false;
-    mIsCarryWallKeep = false;
-    al::setNerve(this, &NrvPlayerCarryKeeper.Wait);
 }

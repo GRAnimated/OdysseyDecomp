@@ -30,28 +30,26 @@ void PlayerJudgePreInputCapThrow::update() {
             mIsCooperate = false;
             mCooperateCapThrowDir = {0.0f, 0.0f};
             mCapThrowDir = {0.0f, 0.0f};
-            mThrowType = 4;
+            mThrowType = PlayerThrowType::DoubleHand;
             mCooperateCapThrowDir = mInput->getCapThrowDir();
             mPreInputFrame = mConst->getPreInputFrameCapThrow();
             mPreInputFrameSingle = mConst->getPreInputFrameCapThrow();
         } else if (mInput->isTriggerCapSingleHandThrow()) {
             if (mPreInputFrameSingle <= 0) {
                 mIsCooperate = false;
-                mThrowType = 0;
+                mThrowType = PlayerThrowType::SingleHandForward;
                 mCapThrowDir = {0.0f, 0.0f};
                 mCooperateCapThrowDir = {0.0f, 0.0f};
-                mThrowType = mInput->isTriggerSwingRightHand() ? 3 : 2;
+                mThrowType = mInput->isTriggerSwingRightHand() ? PlayerThrowType::SingleHandRight :
+                                                                 PlayerThrowType::SingleHandLeft;
                 mCapThrowDir = mInput->getCapThrowDir();
                 mPreInputFrame = mConst->getPreInputFrameCapThrow();
                 if (mInput->isEnableConsiderCapThrowDoubleSwing()) {
-                    bool is_spiral = mInput->isThrowTypeSpiral(mCapThrowDir);
-                    if (!is_spiral)
-                        is_spiral = mCapThrowDir.y > 0.0f;
-                    if (is_spiral) {
-                        sead::Vector2f old_dir = mCapThrowDir;
-                        mThrowType = 4;
+                    if (mInput->isThrowTypeSpiral(mCapThrowDir) || mCapThrowDir.y > 0.0f) {
+                        sead::Vector2f oldDir = mCapThrowDir;
+                        mThrowType = PlayerThrowType::DoubleHand;
                         mCapThrowDir = {0.0f, 0.0f};
-                        mCooperateCapThrowDir = old_dir;
+                        mCooperateCapThrowDir = oldDir;
                         mPreInputFrameSingle = mConst->getPreInputFrameCapThrow();
                     }
                 }
@@ -60,7 +58,7 @@ void PlayerJudgePreInputCapThrow::update() {
             mIsCooperate = false;
             mCooperateCapThrowDir = {0.0f, 0.0f};
             mCapThrowDir = {0.0f, 0.0f};
-            mThrowType = 1;
+            mThrowType = PlayerThrowType::SpinThrow;
             mPreInputFrame = mConst->getPreInputFrameCapThrow();
         }
     }
@@ -95,15 +93,14 @@ void PlayerJudgePreInputCapThrow::recordSeparateJudge() {
     mIsRecordedCooperate = false;
     mRecordedCooperateCapThrowDir = {0.0f, 0.0f};
     mRecordedCapThrowDir = {0.0f, 0.0f};
-    mRecordedThrowType = 1;
+    mRecordedThrowType = PlayerThrowType::SpinThrow;
 }
 
 // NON_MATCHING: ldr x8 + lsr x9 instead of ldp w8, w9 for loading mThrowType+mCapThrowDir.x pair
 void PlayerJudgePreInputCapThrow::recordCooperateAndReset() {
     mRecordedThrowType = mThrowType;
     mRecordedCapThrowDir = mCapThrowDir;
-    mRecordedCooperateCapThrowDir.x = mCooperateCapThrowDir.x;
-    mRecordedCooperateCapThrowDir.y = mCooperateCapThrowDir.y;
+    mRecordedCooperateCapThrowDir = mCooperateCapThrowDir;
     mIsRecordedCooperate = true;
     reset();
 }

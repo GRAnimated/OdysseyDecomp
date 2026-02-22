@@ -3,6 +3,7 @@
 #include <math/seadVector.h>
 
 #include "Player/IJudge.h"
+#include "Player/PlayerCapThrowType.h"
 
 class HackCap;
 class PlayerCarryKeeper;
@@ -28,11 +29,11 @@ private:
     const HackCap* mHackCap;
     s32 mPreInputFrame = 0;
     s32 mPreInputFrameSingle = 0;
-    s32 mThrowType = 0;
+    PlayerThrowType mThrowType = PlayerThrowType::SingleHandForward;
     sead::Vector2f mCapThrowDir = {0.0f, 0.0f};
     sead::Vector2f mCooperateCapThrowDir = {0.0f, 0.0f};
     bool mIsCooperate = false;
-    s32 mRecordedThrowType = 0;
+    PlayerThrowType mRecordedThrowType = PlayerThrowType::SingleHandForward;
     sead::Vector2f mRecordedCapThrowDir = {0.0f, 0.0f};
     sead::Vector2f mRecordedCooperateCapThrowDir = {0.0f, 0.0f};
     bool mIsRecordedCooperate = false;

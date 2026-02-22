@@ -13,8 +13,8 @@ class IUsePlayerCollision;
 class PlayerAnimator;
 class IPlayerModelChanger;
 class IUsePlayerCeilingCheck;
-class PlayerJointParamHandLegAngle;
 class PlayerPushReceiver;
+struct PlayerJointParamHandLegAngle;
 
 class PlayerCarryKeeper : public al::NerveExecutor {
 public:
