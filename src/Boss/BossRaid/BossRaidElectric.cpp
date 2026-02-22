@@ -115,7 +115,6 @@ void BossRaidElectric::exeWait() {
         al::setNerve(this, &Disappear);
 }
 
-// NON_MATCHING: when getting the up vector
 void BossRaidElectric::updateAnimAndJoint() {
     _144 = -500.0f;
     if (mNextBullet == nullptr) {
@@ -129,7 +128,6 @@ void BossRaidElectric::updateAnimAndJoint() {
         mFrontDir.set(sead::Vector3f::ez);
         return;
     }
-
     sead::Vector3f diff = al::getTrans(this) - al::getTrans(mNextBullet);
     f32 length = diff.length();
     if (!al::tryNormalizeOrZero(&mFrontDir, diff))
@@ -137,22 +135,14 @@ void BossRaidElectric::updateAnimAndJoint() {
 
     _144 = length - 500.0f;
 
-    f32 absY = sead::Mathf::abs(mFrontDir.y);
-    sead::Quatf* ptr = al::getQuatPtr(this);
-    sead::Vector3f up;  // should be a pointer I think
-
-    if (absY > 0.98f)
-        up = sead::Vector3f::ex;
+    if (sead::Mathf::abs(mFrontDir.y) > 0.98f)
+        al::makeQuatFrontUp(al::getQuatPtr(this), mFrontDir, sead::Vector3f::ex);
     else
-        up = sead::Vector3f::ey;
+        al::makeQuatFrontUp(al::getQuatPtr(this), mFrontDir, sead::Vector3f::ey);
 
-    al::makeQuatFrontUp(ptr, mFrontDir, up);
     al::lerpVec(&_12c, al::getTrans(this), al::getTrans(mNextBullet), 0.5f);
     al::setSensorRadius(this, "Attack", length * 0.5f + 50.0f);
-
-    sead::Vector3f scale(1.0f, length / 100.0f, 1.0f);
-    al::setEffectEmitterVolumeScale(this, "Spark", scale);
-    al::setEffectParticleScale(this, "Body", scale);
+    updateEffectScale(length);
 }
 
 bool BossRaidElectric::isAirAll() const {
