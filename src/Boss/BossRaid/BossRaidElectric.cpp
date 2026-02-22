@@ -95,82 +95,79 @@ void BossRaidElectric::shot(const sead::Vector3f& pos, const sead::Vector3f& dir
 
 void BossRaidElectric::updatePosition() {
     sead::Vector3f* trans = al::getTransPtr(this);
-    trans->x = trans->x + mMoveDir.x;
-    trans->y = trans->y + mMoveDir.y;
-    f32 z = trans->z;
-    trans->z = z + mMoveDir.z;
+    *trans += mMoveDir;
 }
 
-// NON_MATCHING: target pre-saves x20 for the IUseAreaObj* pointer, ours computes it inline
 void BossRaidElectric::exeWait() {
-    if (al::isFirstStep(this)) {
-        const char* actionName = mNextBullet != nullptr ? "Wait" : "Hide";
-        al::startAction(this, actionName);
-    }
+    if (al::isFirstStep(this))
+        al::startAction(this, mNextBullet != nullptr ? "Wait" : "Hide");
+
     updateAnimAndJoint();
     if (_148) {
-        const sead::Vector3f& trans = al::getTrans(this);
-        if (al::isInAreaObj(this, "BossRaidElectricArea", trans)) {
+        if (al::isInAreaObj(this, "BossRaidElectricArea", al::getTrans(this))) {
             if (_148)
                 return;
         } else {
             _148 = false;
         }
     }
-    if (mNextBullet == nullptr || !mNextBullet->_148)
+    if (isAirAll())
         al::setNerve(this, &Disappear);
 }
 
-// NON_MATCHING: target places if-branch effect scale calls after the else block (branch layout);
-// also diff stack slot at [sp] in target vs [sp+0x10] in ours
+// NON_MATCHING: when getting the up vector
 void BossRaidElectric::updateAnimAndJoint() {
     _144 = -500.0f;
-    if (mNextBullet != nullptr) {
-        const sead::Vector3f& thisTrans = al::getTrans(this);
-        const sead::Vector3f& nextTrans = al::getTrans(mNextBullet);
-        sead::Vector3f diff = thisTrans - nextTrans;
-        f32 length = sqrtf(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
-        if (!al::tryNormalizeOrZero(&mFrontDir, diff)) {
-            mFrontDir.set(sead::Vector3f::ez);
-        }
-        _144 = length + -500.0f;
-        sead::Quatf* quat = al::getQuatPtr(this);
-        const sead::Vector3f* up;
-        if (sead::Mathf::abs(mFrontDir.y) <= 0.98f)
-            up = &sead::Vector3f::ey;
-        else
-            up = &sead::Vector3f::ex;
-        al::makeQuatFrontUp(quat, mFrontDir, *up);
-        al::lerpVec(&_12c, al::getTrans(this), al::getTrans(mNextBullet), 0.5f);
-        al::setSensorRadius(this, "Attack", length * 0.5f + 50.0f);
-        sead::Vector3f scale(1.0f, length / 100.0f, 1.0f);
-        al::setEffectEmitterVolumeScale(this, "Spark", scale);
-        al::setEffectParticleScale(this, "Body", scale);
-    } else {
+    if (mNextBullet == nullptr) {
         _12c = al::getTrans(this);
         al::setSensorRadius(this, "Attack", 50.0f);
+
         sead::Vector3f scale(1.0f, 1.0f, 1.0f);
         al::setEffectEmitterVolumeScale(this, "Spark", scale);
         al::setEffectParticleScale(this, "Body", scale);
+
         mFrontDir.set(sead::Vector3f::ez);
+        return;
     }
+
+    sead::Vector3f diff = al::getTrans(this) - al::getTrans(mNextBullet);
+    f32 length = diff.length();
+    if (!al::tryNormalizeOrZero(&mFrontDir, diff))
+        mFrontDir.set(sead::Vector3f::ez);
+
+    _144 = length - 500.0f;
+
+    f32 absY = sead::Mathf::abs(mFrontDir.y);
+    sead::Quatf* ptr = al::getQuatPtr(this);
+    sead::Vector3f up;  // should be a pointer I think
+
+    if (absY > 0.98f)
+        up = sead::Vector3f::ex;
+    else
+        up = sead::Vector3f::ey;
+
+    al::makeQuatFrontUp(ptr, mFrontDir, up);
+    al::lerpVec(&_12c, al::getTrans(this), al::getTrans(mNextBullet), 0.5f);
+    al::setSensorRadius(this, "Attack", length * 0.5f + 50.0f);
+
+    sead::Vector3f scale(1.0f, length / 100.0f, 1.0f);
+    al::setEffectEmitterVolumeScale(this, "Spark", scale);
+    al::setEffectParticleScale(this, "Body", scale);
 }
 
-// NON_MATCHING: target uses cbz/ret pair for final bool check, ours uses cmp+cset
 bool BossRaidElectric::isAirAll() const {
     if (_148)
         return false;
-    if (mNextBullet == nullptr)
-        return true;
-    if (!mNextBullet->_148)
-        return true;
-    return false;
+    if (mNextBullet && mNextBullet->_148)
+        return false;
+    return true;
 }
 
 void BossRaidElectric::exeDisappear() {
     updateAnimAndJoint();
     f32 alpha = al::calcNerveEaseInOutValue(this, 39, 1.0f, 0.0f);
     al::setModelAlphaMask(this, alpha);
+
     if (al::isGreaterEqualStep(this, 40)) {
         al::hideModelIfShow(this);
         al::setNerve(this, &Hide);
@@ -180,6 +177,7 @@ void BossRaidElectric::exeDisappear() {
 void BossRaidElectric::exeHide() {
     if (!al::isNerve(this, &Hide))
         return;
+
     BossRaidElectric* next = mNextBullet;
     if (next == nullptr || al::isNerve(next, &Hide)) {
         BossRaidElectric* prev = mPrevBullet;
@@ -195,9 +193,11 @@ void BossRaidElectric::exeHide() {
 bool BossRaidElectric::isHideAll() const {
     if (!al::isNerve(this, &Hide))
         return false;
+
     BossRaidElectric* next = mNextBullet;
     if (next != nullptr && !al::isNerve(next, &Hide))
         return false;
+
     BossRaidElectric* prev = mPrevBullet;
     if (prev != nullptr && !al::isNerve(prev, &Hide))
         return false;
@@ -217,6 +217,7 @@ void BossRaidElectric::updateEffectScale(f32 scale) {
 void BossRaidElectric::calcNearPos(sead::Vector3f* outPos, const sead::Vector3f& targetPos) const {
     BossRaidElectric* next = mNextBullet;
     const sead::Vector3f& thisTrans = al::getTrans(this);
+
     if (next != nullptr) {
         const sead::Vector3f& nextTrans = al::getTrans(mNextBullet);
         al::calcClosestSegmentPoint(outPos, thisTrans, nextTrans, targetPos);
