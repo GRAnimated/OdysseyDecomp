@@ -13,6 +13,7 @@ public:
     void setTargetPos(const sead::Vector3f& pos);
     void setPowerRate(f32 rate);
     void setInterpoleRate(f32 rate);
+    void setBaseOffsetLocal(const sead::Vector3f& offset);
     void setLimitDegreeRect(f32 a, f32 b, f32 c, f32 d);
     void setEnableBackAim(bool enable);
 

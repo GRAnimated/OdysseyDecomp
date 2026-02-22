@@ -202,6 +202,7 @@ Find the class size from `operator new` xrefs in the caller. Use `xrefs_to` on t
 - If something doesn't exist in sead, do not add it.
 
 **Recognising inlined functions (critical):** When IDA shows direct field access instead of a function call, that callee was inlined. Examples:
+
 - `*(*(this+8) + 8)` instead of `getStringTop()` — use `getStringTop()` directly.
 - `sead::BufferedSafeStringBase::getStringTop()` — accesses `mStringTop` with no virtual call; use for inline string pointer access.
 - `sead::BufferedSafeStringBase::cstr()` — calls virtual `assureTerminationImpl_()` first; generates a real call.
@@ -284,17 +285,20 @@ These patterns come up repeatedly. Recognising them saves iteration time.
 **Adjacent f32 store coalescing** — When two adjacent `f32` fields are initialised in sequence (e.g. `mRotateSpeed = 5.0f; mRotateAngle = 0.0f`), the original compiler may merge them into a single 64-bit `str x8` where the upper 32 bits are zero. Our compiler emits two separate word stores. Fix: ensure both fields are written in the source (even if one is already zero) and try reordering them to match the target's store order. The coalescing is sensitive to declaration order and assignment order.
 
 **`sead::Vector3f` copy store ordering** — When the original copies a `sead::Vector3f` with the pattern:
+
 ```asm
 ldr w9, [x1, #0x8]       ; load source.z
 str w9, [x0, #offset+8]  ; store dest.z first
 ldr x9, [x1]             ; load source.x+y as 64-bit pair
 str x9, [x0, #offset]    ; store dest.x+y together
 ```
+
 use `mVec.set(other)` instead of `mVec = other`. The `set()` method produces a different store schedule (z stored first, then x+y coalesced as one 64-bit store) that matches the original. Using `mVec = other` emits individual x, y, z stores in field order and will not match.
 
 **Local `sead::Vector3f` stack slot ordering** — When a function has two local `sead::Vector3f` variables and the stack slots are swapped relative to the original, swap their declaration order. Declaring the output vector first (before the input) can swap their stack slot assignments to match the original. For example, if the original places `frontDir` at `sp+0x10` and `shotDir` at `sp+0x20`, declare `shotDir` before `frontDir` in source.
 
 **Load/store scheduling across call boundaries** — The original compiler sometimes hoists a field load or function call ahead of adjacent computation. For example, loading `mElectricLine` and calling `getTrans(this)` immediately after `rotateVectorDegree` (before computing the offset vector) matches the original's schedule. Add local variables to force evaluation order:
+
 ```cpp
 // Force the pointer load and getTrans before the multiply
 BossRaidElectricLine* electricLine = mElectricLine;
@@ -316,6 +320,7 @@ electricLine->shot(trans, offset);
 **`dir += a - b` for accumulating vector differences** — When building a direction vector by summing position differences, write `dir += getTrans(a) - getTrans(b)` using `operator+=` and `operator-`. Writing the accumulation component-by-component (`dir.x += ...; dir.y += ...; dir.z += ...`) generates individual `ldr`/`fadd`/`str` sequences instead of the `ldp`-based paired-load pattern the original uses, causing a size mismatch.
 
 **Sead "cleaner" forms that break matching** — Some idiomatic rewrites that look correct produce different code generation at `-O3`:
+
 - `(otherTrans - myTrans).length()` (temporary, no named variable) instead of a named `sead::Vector3f diff = a - b; diff.length()` — use the named-variable form; the temporary form changes register pressure and breaks the match.
 - `-vel` (unary `operator-`) instead of `sead::Vector3f negVel = {-vel.x, -vel.y, -vel.z}` — the operator returns a temporary that the compiler may materialise on the stack differently; use the explicit struct literal.
 - `diff * scale` (`operator*`) to set all three components at once — changes the load/multiply schedule vs writing `vel.x = diff.x * scale; vel.y = diff.y * scale; vel.z = diff.z * scale` component-by-component. Exception: passing the result directly as a function argument (e.g. `shot(offset + trans, rotDir * 36.0f)`) works fine.
@@ -327,6 +332,7 @@ electricLine->shot(trans, offset);
 **`(u32)level < 3` for unsigned-comparison branch elimination** — When IDA emits a `cmp` + unsigned branch (e.g. `b.lo` / `b.hs`) after a modulo, write the condition as `(u32)level < 3` (cast to unsigned, then compare). This avoids the compiler optimising away the branch when it can prove the modulo result is always in range. Without the cast the compiler eliminates the `> 2` branch entirely, producing a mismatch. The fallthrough path should index the table directly (e.g. `return sGroundAttackTimeTable[2]`), not return a raw literal.
 
 **Constructor: local variable for `new DeriveActorGroup<>`** — When a constructor allocates a group and then uses it in a loop, store the result in a local variable and assign to the member immediately, then use the local in the loop body. This keeps a register holding the group pointer throughout the loop without reloading from the member field, matching the original's register allocation:
+
 ```cpp
 al::DeriveActorGroup<Foo>* group = new al::DeriveActorGroup<Foo>("name", count);
 mGroup = group;
@@ -340,6 +346,16 @@ for (s32 i = 0; i < group->getMaxActorCount(); i++) {
 **Shot functions: copy member `Vector3f` to local before early-return** — In shot functions that begin with an `isIntervalStep` guard, copy `mUpDir` to a local `sead::Vector3f upDir = mUpDir` *before* the early-return check. Then compute `upOffset = upDir * 50.0f` from the local. Pass the offset + trans and vel expressions directly as temporaries to `shot()` rather than storing them in named `origin`/`vel` variables. Keep using `mUpDir` (not `upDir`) for `rotateVectorDegree` calls.
 
 **Hex vs decimal in `calcNerveCosCycle` / `isIntervalStep`** — Use decimal literals (`160`, `115`) not hex (`0xA0`, `0x73`) for cycle/interval arguments; the original source used decimal. IDA may display them as hex but the source had decimal.
+
+**`sead::Matrix34f::setTranslation()` for matrix column copy** — When a function copies a `sead::Vector3f` into the last column of a `sead::Matrix34f` (i.e. `m[0][3]`, `m[1][3]`, `m[2][3]`), write `mtx.setTranslation(vec)` instead of assigning the three fields individually. The method generates a single `ldp w8, w9` + `str` + `str` + `str` sequence matching the original's `ldp`-then-store pattern. Assigning fields individually generates `ldr` + `str` sequences and will not match.
+
+**`sead::Vector3f operator-` for `dir = trans - pos`** — When computing a direction vector as the difference of two `sead::Vector3f` values, write `sead::Vector3f dir = trans - pos` using `operator-`. This generates a paired-load (`ldp`) + subtract + `stp` pattern matching the original. Writing `dir.x = ...; dir.y = ...; dir.z = ...` individually generates sequential loads/subs/stores and will not match.
+
+**`LiveActor` vtable layout (no virtual destructor)** — The `al::LiveActor` vtable starts with `getNerveKeeper` at slot 0 (vptr offset 0x00). There is NO virtual destructor in the vtable. Slots: 0=`getNerveKeeper`, 1=`init`, 2=`initAfterPlacement`, 3=`appear` (0x18), 4=`makeActorAlive` (0x20), 5=`kill` (0x28), 6=`makeActorDead` (0x30). Use IDA vtable analysis to confirm which virtual is called when the disassembly shows an offset into vptr.
+
+**`mBreathActor->kill()` in state `appear()`** — When a state's `appear()` calls a virtual on a sub-actor with vtable offset `0x28`, that is `LiveActor::kill()` (not `makeActorAlive()`). Game states often kill sub-actors on appear to reset them, then call `appear()` inside `exeAttackSign` to bring them back. Similarly, the state's own `kill()` calls `kill()` on the sub-actor.
+
+**Load ordering for matching: load member pointers after bulk stores** — In `control()` style functions, load member pointers (e.g. `mBreathActor`) from the struct AFTER bulk matrix writes (e.g. `mLandingPointMtx.setTranslation()`), not before. Storing the pointer in a local variable before the bulk writes keeps it live across the stores and forces an extra callee-saved register, mismatching the frame size.
 
 ## Code Style (summary)
 
