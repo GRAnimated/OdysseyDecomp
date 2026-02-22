@@ -16,6 +16,7 @@ al::EventFlowExecutor* initEventFlowSuffix(al::LiveActor*, const al::ActorInitIn
                                            const char*, const char*);
 void startEventFlow(al::EventFlowExecutor*, const char*);
 bool updateEventFlow(al::EventFlowExecutor*);
+bool isDefinedEventCamera(const al::EventFlowExecutor*, const char*);
 void initEventCameraObject(al::EventFlowExecutor*, const al::ActorInitInfo&, const char*);
 void initEventCameraObjectAfterKeepPose(al::EventFlowExecutor*, const al::ActorInitInfo&,
                                         const char*);
