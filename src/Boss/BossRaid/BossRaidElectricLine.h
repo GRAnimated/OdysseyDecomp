@@ -18,6 +18,8 @@ public:
     void exeMove();
     void killForce();
 
+    void resetPrevBullet() { mPrevBullet = nullptr; }
+
 private:
     BossRaidElectric* mPrevBullet = nullptr;
     al::DeriveActorGroup<BossRaidElectric>* mActors = nullptr;
