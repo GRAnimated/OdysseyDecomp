@@ -50,20 +50,16 @@ void startBossBattle(const al::LiveActor* actor, s32 worldId) {
     setSceneStatusBossBattle(actor);
 }
 
-// NON_MATCHING: eor+tbnz instead of tbz for bool checks
 void endBossBattle(const al::LiveActor* actor, s32 worldId) {
     setSceneStatusBossBattleEndForPlayerAnim(actor);
 
-    bool isSky = GameDataFunction::isWorldSky(actor);
-    if ((worldId == 0 || worldId == 2) && isSky)
+    if (GameDataFunction::isWorldSky(actor) && (worldId == 0 || worldId == 2))
         setSceneStatusBossBattleEnd(actor);
 
-    bool isMoon = GameDataFunction::isWorldMoon(actor);
-    if (worldId == 12 && isMoon)
+    if (GameDataFunction::isWorldMoon(actor) && worldId == 12)
         setSceneStatusBossBattleEnd(actor);
 
-    bool isSpecial1 = GameDataFunction::isWorldSpecial1(actor);
-    if (worldId != 10 && isSpecial1)
+    if (GameDataFunction::isWorldSpecial1(actor) && worldId != 10)
         setSceneStatusBossBattleEnd(actor);
 }
 
