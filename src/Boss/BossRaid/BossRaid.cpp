@@ -11,14 +11,13 @@
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorAreaFunction.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
+#include "Library/LiveActor/ActorCollisionFunction.h"
 #include "Library/LiveActor/ActorFlagFunction.h"
 #include "Library/LiveActor/ActorInitFunction.h"
-#include "Library/LiveActor/ActorCollisionFunction.h"
 #include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorModelFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
 #include "Library/LiveActor/ActorPoseUtil.h"
-#include "Library/Player/PlayerUtil.h"
 #include "Library/LiveActor/ActorResourceFunction.h"
 #include "Library/LiveActor/ActorSceneFunction.h"
 #include "Library/LiveActor/ActorSensorUtil.h"
@@ -28,6 +27,7 @@
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Placement/PlacementFunction.h"
+#include "Library/Player/PlayerUtil.h"
 #include "Library/Stage/StageSwitchUtil.h"
 #include "Library/Thread/FunctorV0M.h"
 #include "Library/Yaml/ByamlIter.h"
@@ -72,108 +72,104 @@ void BossRaid::init(const al::ActorInitInfo& info) {
     al::initActorWithArchiveName(this, info, "BossRaid", nullptr);
     al::initNerve(this, &NrvBossRaid.BattleStartWait, 4);
     al::initJointControllerKeeper(this, 4);
+
     mLevel = 1;
     if (al::isObjectNameSubStr(info, "Lv2"))
         mLevel = 2;
+
     mStateTalkDemo = BossStateTalkDemo::createWithEventFlow(this, info, "BossRaid", "BossRaid");
     mStateTalkDemo->setEventReceiver(this);
+    mStateTalkDemo->setEnableSkipDemo(false);
+
     al::initNerveState(this, mStateTalkDemo, &NrvBossRaid.DemoBattleEnd, "終了デモ");
     mStateGroundAttack = new BossRaidStateGroundAttack(this, info);
+
     al::initNerveState(this, mStateGroundAttack, &NrvBossRaid.GroundAttack, "地面攻撃");
+
     mStateBreathAttack = new BossRaidStateBreathAttack(this, info);
     al::initNerveState(this, mStateBreathAttack, &NrvBossRaid.BreathAttack, "ブレス攻撃");
+
     mMtxConnector = new al::MtxConnector();
     mInitTrans = al::getTrans(this);
     mInitQuat = al::getQuat(this);
     mParabolicPath = new al::ParabolicPath();
+
     mArmorActor = al::tryGetSubActor(this, "アーマー");
     mArmorBodyActor = al::tryGetSubActor(this, "弱点");
     mArmorBrokenActor = al::tryGetSubActor(this, "アーマー壊れモデル");
     calcAnim();
     mArmorActor->calcAnim();
+
     initRivetList(info);
     mDemoCamera = al::initDemoAnimCamera(this, info, "Anim");
+
     if (!al::tryGetLinksQT(&mInitQuat, &mInitTrans, info, "DemoAfterPlayerPos")) {
-        sead::Vector3f offset = {0.0f, 0.0f, 3500.0f};
-        al::multVecPose(&mInitTrans, this, offset);
-        const sead::Quatf& actorQuat = al::getQuat(this);
-        f32 w = actorQuat.w;
-        f32 x = actorQuat.x;
-        f32 y = actorQuat.y;
-        f32 z = actorQuat.z;
-        mInitQuat.x = (w * 0.0f + w * 0.0f + x * 0.0f) - y;
-        mInitQuat.y = x * 0.0f + (y * 0.0f + z - w * 0.0f);
-        mInitQuat.z = y * 0.0f + (x * 0.0f + (z * 0.0f - w * 0.0f));
-        mInitQuat.w = (z * 0.0f - w * 0.0f) - x - y * 0.0f;
+        al::multVecPose(&mInitTrans, this, sead::Vector3f::ez * 3500.0f);
+        mInitQuat.setMul(al::getQuat(this), sead::Quatf(0.0f, 0.0f, 1.0f, 0.0f));
     }
+
     mShineActor = rs::tryInitLinkShine(info, "ShineActor", 0);
     al::registerAreaHostMtx(this, info);
     al::hideModelIfShow(this);
-    s32 rivetCount = mRivetList->getActorCount();
-    for (s32 i = 0; i < rivetCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-        rivet->killChain();
-        rivet->makeActorDead();
-    }
+
+    killRivetAll();
+
     al::invalidateCollisionParts(this);
     al::tryInvalidateCollisionPartsSubActorAll(this);
-    al::FunctorV0M<BossRaid*, void (BossRaid::*)()> functor(this,
-                                                             &BossRaid::startDemoBattleStart);
+
+    al::FunctorV0M<BossRaid*, void (BossRaid::*)()> functor(this, &BossRaid::startDemoBattleStart);
     if (al::listenStageSwitchOnStart(this, functor))
         makeActorDead();
     else
         startBattle();
 }
 
+// NON_MATCHING
 void BossRaid::initRivetList(const al::ActorInitInfo& info) {
     if (!al::isExistModelResourceYaml(this, "RivetList", nullptr))
         return;
+
     al::ByamlIter iter(al::getModelResourceYaml(this, "RivetList", nullptr));
     s32 size = iter.getSize();
     if (size < 1)
         return;
+
     al::LiveActorGroup* group = new al::LiveActorGroup("リベットリスト", size);
     mRivetList = group;
+
     for (s32 i = 0; i < group->getMaxActorCount(); i++) {
         BossRaidRivet* rivet = new BossRaidRivet("リベット");
         al::initCreateActorNoPlacementInfo(rivet, info);
         group->registerActor(rivet);
     }
-    for (s32 i = 0; i < group->getActorCount(); i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(group->getActor(i));
+
+    for (s32 i = 0; i < mRivetList->getActorCount(); i++) {
+        BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
+
         al::ByamlIter entryIter;
         iter.tryGetIterByIndex(&entryIter, i);
+
         sead::Vector3f rotate = sead::Vector3f::zero;
         sead::Vector3f trans = sead::Vector3f::zero;
         const char* joint = nullptr;
-        al::tryGetByamlV3f(&rotate, entryIter, "Rotate");
-        al::tryGetByamlV3f(&trans, entryIter, "Trans");
-        al::tryGetByamlString(&joint, entryIter, "Joint");
-        const char* followActorName = nullptr;
-        al::LiveActor* followActor = this;
-        if (al::tryGetByamlString(&followActorName, entryIter, "FollowActor")) {
-            al::LiveActor* sub = al::tryGetSubActor(this, followActorName);
-            if (sub)
-                followActor = sub;
-        }
+        al::LiveActor* followActor = nullptr;
+
+        tryGetFollowTargetInfo(&followActor, &trans, &rotate, &joint, entryIter);
         rivet->setConnect(followActor, joint, rotate, trans);
+
         al::ByamlIter chainIter;
         if (entryIter.tryGetIterByKey(&chainIter, "ChainRootPos")) {
             sead::Vector3f chainRotate = sead::Vector3f::zero;
             sead::Vector3f chainTrans = sead::Vector3f::zero;
             const char* chainJoint = nullptr;
-            al::tryGetByamlV3f(&chainRotate, chainIter, "Rotate");
-            al::tryGetByamlV3f(&chainTrans, chainIter, "Trans");
-            al::tryGetByamlString(&chainJoint, chainIter, "Joint");
-            const char* chainFollowActorName = nullptr;
-            al::LiveActor* chainFollowActor = this;
-            if (al::tryGetByamlString(&chainFollowActorName, chainIter, "FollowActor")) {
-                al::LiveActor* sub = al::tryGetSubActor(this, chainFollowActorName);
-                if (sub)
-                    chainFollowActor = sub;
-            }
+            al::LiveActor* chainFollowActor = nullptr;
+
+            tryGetFollowTargetInfo(&chainFollowActor, &chainTrans, &chainRotate, &chainJoint,
+                                   chainIter);
+
             rivet->setChainRootConnect(chainFollowActor, chainJoint, chainRotate, chainTrans);
         }
+
         rivet->createChainAndPopn(this, info);
         al::registerSubActorSyncClippingAndHide(this, rivet);
     }
@@ -181,7 +177,7 @@ void BossRaid::initRivetList(const al::ActorInitInfo& info) {
 
 void BossRaid::killRivetAll() {
     for (s32 i = 0; i < mRivetList->getActorCount(); i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+        BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
         rivet->killChain();
         rivet->makeActorDead();
     }
@@ -195,21 +191,13 @@ void BossRaid::invalidateCollisionAll() {
 void BossRaid::startDemoBattleStart() {
     if (rs::isActiveDemo(this))
         return;
+
     al::invalidateCollisionParts(this);
     al::tryInvalidateCollisionPartsSubActorAll(this);
     al::invalidateClipping(this);
     al::LiveActor::makeActorAlive();
-    s32 rivetCount = mRivetList->getActorCount();
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-        rivet->reset();
-    }
-    for (s32 i = 0; i < rivetCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-        rivet->killChain();
-        rivet->makeActorDead();
-    }
+    resetRivetAll();
+    killRivetAll();
     mArmorActor->makeActorDead();
     mArmorBodyActor->makeActorDead();
     al::setNerve(this, &PreDemoBattleStart);
@@ -219,29 +207,24 @@ void BossRaid::startDemoBattleStart() {
 void BossRaid::startBattle() {
     al::requestCaptureScreenCover(this, 3);
     rs::startBossBattle(this, 9);
-    s32 rivetCount = mRivetList->getActorCount();
-    for (s32 i = 0; i < rivetCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-        rivet->killChain();
-    }
+    killChainAll();
     al::resetPosition(this);
     al::tryOnStageSwitch(this, "SwitchBossBattleOn");
-    al::setNerve(this, &StartAttack);
+    startAttack();
 }
 
-void BossRaid::tryGetFollowTargetInfo(al::LiveActor** actor, sead::Vector3f* rotate,
-                                      sead::Vector3f* trans, const char** jointName,
-                                      const al::ByamlIter& iter) {
-    rotate->z = 0.0f;
-    rotate->x = 0.0f;
-    rotate->y = 0.0f;
+al::LiveActor* BossRaid::tryGetFollowTargetInfo(al::LiveActor** actor, sead::Vector3f* trans,
+                                                sead::Vector3f* rotate, const char** jointName,
+                                                const al::ByamlIter& iter) {
+    rotate->set(sead::Vector3f::zero);
     al::tryGetByamlV3f(rotate, iter, "Rotate");
-    trans->z = 0.0f;
-    trans->x = 0.0f;
-    trans->y = 0.0f;
+
+    trans->set(sead::Vector3f::zero);
     al::tryGetByamlV3f(trans, iter, "Trans");
+
     *jointName = nullptr;
     al::tryGetByamlString(jointName, iter, "Joint");
+
     const char* followActorName = nullptr;
     al::LiveActor* result = this;
     if (al::tryGetByamlString(&followActorName, iter, "FollowActor"))
@@ -250,6 +233,8 @@ void BossRaid::tryGetFollowTargetInfo(al::LiveActor** actor, sead::Vector3f* rot
         *actor = result;
     else
         *actor = this;
+
+    return result;
 }
 
 void BossRaid::endBattleStartDemo() {
@@ -265,9 +250,7 @@ void BossRaid::endBattleStartDemo() {
 }
 
 void BossRaid::attackSensor(al::HitSensor* self, al::HitSensor* other) {
-    if (al::isNerve(this, &NrvBossRaid.BreathAttack) || al::isNerve(this, &NrvBossRaid.Up) ||
-        (al::isNerve(this, &NrvBossRaid.GroundAttack) &&
-         mStateGroundAttack->isElectric())) {
+    if (isElectric()) {
         if (al::isSensorEnemyAttack(self))
             al::sendMsgEnemyAttack(other, self);
     }
@@ -283,23 +266,21 @@ bool BossRaid::isElectric() const {
     return false;
 }
 
-bool BossRaid::receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
-                          al::HitSensor* self) {
+bool BossRaid::receiveMsg(const al::SensorMsg* message, al::HitSensor* other, al::HitSensor* self) {
     if ((rs::isMsgPlayerHipDropDemoTrigger(message) || rs::isMsgCapHipDrop(message)) &&
-        al::isSensorHost(self, mArmorBodyActor) && !al::isAlive(mArmorActor) &&
-        (al::isNerve(this, &NrvBossRaid.Tired) || al::isNerve(this, &NrvBossRaid.UpSign))) {
+        al::isSensorHost(self, mArmorBodyActor) && isEnableDamage()) {
         al::setNerve(this, &NrvBossRaid.Damage);
         return true;
     }
+
     if (rs::isMsgPlayerDisregardHomingAttack(message) && al::isSensorHost(self, mArmorBodyActor))
         return true;
-    if (al::isMsgPlayerTouch(message) &&
-        (al::isNerve(this, &NrvBossRaid.BreathAttack) ||
-         al::isNerve(this, &NrvBossRaid.Up) ||
-         (al::isNerve(this, &NrvBossRaid.GroundAttack) && mStateGroundAttack->isElectric()))) {
+
+    if (al::isMsgPlayerTouch(message) && isElectric()) {
         al::sendMsgEnemyAttack(other, self);
         return true;
     }
+
     return false;
 }
 
@@ -344,108 +325,84 @@ void BossRaid::updatePlayerPose() {
     rs::replaceDemoPlayer(this, trans, quat);
 }
 
-// NON_MATCHING: extra callee-saved register x23 (compiler pre-loads getEnableRivetCount constants
-//               w21=4, w22=3 for two inline loops); branch direction at mHintWeakPointThreshold
+// NON_MATCHING: still needs cleanup
 void BossRaid::control() {
     mStateGroundAttack->updateBullet();
-    s32 enableCount = getEnableRivetCount();
-    s32 i = 0;
-    for (; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-        if (!rivet->isPullOut())
-            break;
-    }
-    if (i >= enableCount) {
+
+    const s32 enableCount = getEnableRivetCount();
+    if (enableCount > 0 && isPullOutRivetAll()) {
         if (al::isAlive(mArmorActor)) {
             al::startHitReaction(this, "兜破壊");
             mArmorBrokenActor->appear();
             mArmorActor->kill();
         }
     }
+
     if (al::isNerve(this, &NrvBossRaid.UpSign)) {
         if (al::isStep(this, 40) && !mHasShownHintElectricSign) {
             mHasShownHintElectricSign = true;
+
             if (mLevel <= 1)
-                rs::showCapMessageBossHint(this, "BossRaid_HintElectricSign", 90, 0);
+                rs::showCapMessageBossHint(this, "BossRaid_HintElectricSign", 90, 30);
         }
     }
-    if (!mHasShownHintRivet) {
-        if (mPhase == 3 && mDamageCount >= 2) {
-            s32 j = 0;
-            s32 enableCount2 = getEnableRivetCount();
-            for (; j < enableCount2; j++) {
-                BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(j));
-                if (rivet->isPullOut())
-                    break;
-            }
-            if (j >= enableCount2) {
-                if (al::isNerve(this, &NrvBossRaid.Tired)) {
-                    if (mLevel <= 1)
-                        rs::showCapMessageBossHint(this, "BossRaid_HintRivet", 90, 0);
-                    mHasShownHintRivet = true;
-                }
-            }
+
+    if (!mHasShownHintRivet && mPhase == 3 && mDamageCount >= 2) {
+        if (!isPullOutRivetAny() && al::isNerve(this, &NrvBossRaid.Tired)) {
+            if (mLevel <= 1)
+                rs::showCapMessageBossHint(this, "BossRaid_HintRivet", 90, 30);
+
+            mHasShownHintRivet = true;
         }
     }
-    if (mPhase == 3 && al::isDead(mArmorActor)) {
-        sead::Vector3f weakPointPos = sead::Vector3f::zero;
-        al::calcJointPos(&weakPointPos, this, "WeakPoint");
-        sead::Vector3f diff = al::getPlayerPos(this, 0) - weakPointPos;
-        if (diff.length() <= 500.0f) {
-            if (al::isNerve(this, &NrvBossRaid.Tired)) {
-                if (mHintWeakPointThreshold == -1) {
-                    if (mLevel < 2) {
-                        rs::showCapMessageBossHint(this, "BossRaid_HintWeakPoint", 90, 30);
-                    }
-                    mHintWeakPointThreshold = mDamageCount;
-                }
-                if (!mHasShownHintHipDrop && mHintWeakPointThreshold < mDamageCount) {
-                    if (mLevel <= 1)
-                        rs::showCapMessageBossHint(this, "BossRaid_HintHipDrop", 90, 30);
-                    mHasShownHintHipDrop = true;
-                }
+
+    if (mPhase == 3 && al::isDead(mArmorActor) && isNearWeakPoint()) {
+        if (al::isNerve(this, &NrvBossRaid.Tired)) {
+            if (mHintWeakPointThreshold == -1) {
+                if (mLevel < 2)
+                    rs::showCapMessageBossHint(this, "BossRaid_HintWeakPoint", 90, 30);
+
+                mHintWeakPointThreshold = mDamageCount;
+            }
+
+            if (!mHasShownHintHipDrop && mHintWeakPointThreshold < mDamageCount) {
+                if (mLevel <= 1)
+                    rs::showCapMessageBossHint(this, "BossRaid_HintHipDrop", 90, 30);
+
+                mHasShownHintHipDrop = true;
             }
         }
     }
-    if (!mHasShownHintLast && al::isDead(mArmorActor)) {
-        sead::Vector3f weakPointPos2 = sead::Vector3f::zero;
-        al::calcJointPos(&weakPointPos2, this, "WeakPoint");
-        sead::Vector3f diff2 = al::getPlayerPos(this, 0) - weakPointPos2;
-        if (diff2.length() <= 500.0f) {
-            if (al::isNerve(this, &NrvBossRaid.Tired) ||
-                al::isNerve(this, &NrvBossRaid.UpSign)) {
-                if (mPhase == 1) {
-                    if (mLevel <= 1)
-                        rs::showCapMessageBossHint(this, "BossRaid_HintLast", 90, 0);
-                    mHasShownHintLast = true;
-                }
-            }
+
+    if (!mHasShownHintLast && al::isDead(mArmorActor) && isNearWeakPoint()) {
+        if (mPhase == 1 &&
+            (al::isNerve(this, &NrvBossRaid.Tired) || al::isNerve(this, &NrvBossRaid.UpSign))) {
+            if (mLevel <= 1)
+                rs::showCapMessageBossHint(this, "BossRaid_HintLast", 90, 0);
+
+            mHasShownHintLast = true;
         }
     }
 }
 
 bool BossRaid::isPullOutRivetAll() const {
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-        if (!rivet->isPullOut())
+    for (s32 i = 0; i < getEnableRivetCount(); i++)
+        if (!((BossRaidRivet*)mRivetList->getActor(i))->isPullOut())
             return false;
-    }
     return true;
 }
 
 void BossRaid::hintCapMessage(const char* message, s32 unused) {
-    if (mLevel <= 1)
-        rs::showCapMessageBossHint(this, message, 90, unused);
+    if (mLevel > 1)
+        return;
+
+    rs::showCapMessageBossHint(this, message, 90, unused);
 }
 
 bool BossRaid::isPullOutRivetAny() const {
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-        if (rivet->isPullOut())
+    for (s32 i = 0; i < getEnableRivetCount(); i++)
+        if (((BossRaidRivet*)mRivetList->getActor(i))->isPullOut())
             return true;
-    }
     return false;
 }
 
@@ -493,6 +450,7 @@ void BossRaid::exeBattleStartWait() {}
 void BossRaid::exePreDemoBattleStart() {
     if (!al::isGreaterEqualStep(this, 60))
         return;
+
     if (rs::requestStartDemoWithPlayerCinemaFrame(this, false)) {
         rs::requestValidateDemoSkip(this, this);
         setUpDemoBattleStart();
@@ -506,12 +464,9 @@ void BossRaid::setUpDemoBattleStart() {
     al::showModelIfHide(mArmorBodyActor);
     mArmorActor->makeActorAlive();
     mArmorBodyActor->makeActorAlive();
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-        rivet->makeActorAlive();
-        al::showModelIfHide(rivet);
-    }
+
+    showRivetAll();
+
     mStateGroundAttack->killBulletAll();
     rs::addDemoSubActor(this);
     al::startAction(mArmorActor, "Wait");
@@ -527,32 +482,27 @@ void BossRaid::exeDemoBattleStart() {
         al::startAction(mArmorBodyActor, "DemoBattleStart");
         rs::startActionDemoPlayer(this, "BattleWait");
         al::startAction(mArmorActor, "DemoBattleStart");
-        s32 enableCount = getEnableRivetCount();
-        for (s32 i = 0; i < enableCount; i++) {
-            BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-            rivet->startAnim("DemoBattleStart");
-        }
+        for (s32 i = 0; i < getEnableRivetCount(); i++)
+            ((BossRaidRivet*)mRivetList->getActor(i))->startAnim("DemoBattleStart");
         rs::setDemoInfoDemoName(this, "バトル開始デモ(襲撃ボス)");
         rs::hideDemoPlayer(this);
     }
-    if (al::isStep(this, 1)) {
-        s32 enableCount = getEnableRivetCount();
-        for (s32 i = 0; i < enableCount; i++) {
-            BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-            rivet->resetChain();
-        }
+
+    if (al::isStep(this, 1))
+        resetChainAll();
+
+    if (al::isActionEnd(this)) {
+        // Even though this is exactly skipDemo(), it doesn't inline if called here
+        f32 frameMax = al::getActionFrameMax(this);
+        al::setActionFrame(this, frameMax);
+        rs::showDemoPlayer(this);
+        al::requestCancelCameraInterpole(this, 0);
+        rs::replaceDemoPlayer(this, mInitTrans, mInitQuat);
+        rs::requestEndDemoWithPlayerCinemaFrame(this);
+        al::endCamera(this, mDemoCamera, 0, false);
+        rs::saveShowDemoBossBattleStart(this, 9, mLevel);
+        startBattle();
     }
-    if (!al::isActionEnd(this))
-        return;
-    f32 frameMax = al::getActionFrameMax(this);
-    al::setActionFrame(this, frameMax);
-    rs::showDemoPlayer(this);
-    al::requestCancelCameraInterpole(this, 0);
-    rs::replaceDemoPlayer(this, mInitTrans, mInitQuat);
-    rs::requestEndDemoWithPlayerCinemaFrame(this);
-    al::endCamera(this, mDemoCamera, 0, false);
-    rs::saveShowDemoBossBattleStart(this, 9, mLevel);
-    startBattle();
 }
 
 void BossRaid::startActionMain(const char* actionName) {
@@ -560,34 +510,29 @@ void BossRaid::startActionMain(const char* actionName) {
     al::startAction(mArmorBodyActor, actionName);
 }
 
-// NON_MATCHING: mPhase load scheduled after count loads; w9/w10 register swap
 s32 BossRaid::getEnableRivetCount() const {
     s32 count = mRivetList->getActorCount();
-    s32 count4 = count <= 4 ? count : 4;
-    s32 count3 = count <= 3 ? count : 3;
+
     if (mPhase == 3)
-        return count3;
+        return std::min(count, 3);  // sead::Mathi::min does not match
+
     if (mPhase == 2)
-        return count4;
+        return std::min(count, 4);
+
     return count;
 }
 
 void BossRaid::resetChainAll() {
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+    for (s32 i = 0; i < getEnableRivetCount(); i++) {
+        BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
         rivet->resetChain();
     }
 }
 
-// NON_MATCHING: w10/w11 register rename in loop condition
 void BossRaid::exeStartAttack() {
     if (!al::isStep(this, 1))
         return;
-    for (s32 i = 0; i < getEnableRivetCount(); i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-        rivet->resetChain();
-    }
+    resetChainAll();
     al::setNerve(this, &NrvBossRaid.BreathAttack);
 }
 
@@ -609,9 +554,8 @@ void BossRaid::exeTired() {
         mDamageCount++;
     }
     if (al::isStep(this, 30)) {
-        s32 enableCount = getEnableRivetCount();
-        for (s32 i = 0; i < enableCount; i++) {
-            BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+        for (s32 i = 0; i < getEnableRivetCount(); i++) {
+            BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
             rivet->tryAppearPopn();
         }
     }
@@ -620,9 +564,8 @@ void BossRaid::exeTired() {
 }
 
 void BossRaid::appearRivetPopnAll() {
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+    for (s32 i = 0; i < getEnableRivetCount(); i++) {
+        BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
         rivet->tryAppearPopn();
     }
 }
@@ -632,9 +575,8 @@ void BossRaid::exeUpSign() {
         al::startAction(this, "UpSign");
         al::startAction(mArmorBodyActor, "UpSign");
         al::startAction(mArmorActor, "ElectricSign");
-        s32 enableCount = getEnableRivetCount();
-        for (s32 i = 0; i < enableCount; i++) {
-            BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+        for (s32 i = 0; i < getEnableRivetCount(); i++) {
+            BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
             rivet->startElectricSign();
         }
     }
@@ -644,9 +586,8 @@ void BossRaid::exeUpSign() {
 
 void BossRaid::startElectricSignParts() {
     al::startAction(mArmorActor, "ElectricSign");
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+    for (s32 i = 0; i < getEnableRivetCount(); i++) {
+        BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
         rivet->startElectricSign();
     }
 }
@@ -656,24 +597,19 @@ void BossRaid::exeUp() {
         al::startAction(this, "Up");
         al::startAction(mArmorBodyActor, "Up");
         al::startAction(mArmorActor, "Electric");
-        s32 enableCount = getEnableRivetCount();
-        for (s32 i = 0; i < enableCount; i++) {
-            BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-            rivet->tryKillPopn();
-        }
+        killRivetPopnAll();
     }
     if (al::isStep(this, 60)) {
         al::invalidateCollisionParts(this);
         al::tryInvalidateCollisionPartsSubActorAll(this);
     }
     if (al::isActionEnd(this))
-        al::setNerve(this, &StartAttack);
+        startAttack();
 }
 
 void BossRaid::killRivetPopnAll() {
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+    for (s32 i = 0; i < getEnableRivetCount(); i++) {
+        BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
         rivet->tryKillPopn();
     }
 }
@@ -684,36 +620,38 @@ void BossRaid::startAttack() {
 
 void BossRaid::exeDamage() {
     if (al::isFirstStep(this)) {
-        const char* actionName = mPhase >= 2 ? "Damage" : "DamageLast";
-        mPhase--;
+        const char* actionName;
+        if (--mPhase < 1)
+            actionName = "DamageLast";
+        else
+            actionName = "Damage";
         al::startAction(this, actionName);
         al::startAction(mArmorBodyActor, actionName);
-        if (mPhase == 1)
-            rs::showCapMessageBossDamage(this, "BossRaid_Damage2", 90, 0);
-        else if (mPhase == 2)
-            rs::showCapMessageBossDamage(this, "BossRaid_Damage1", 90, 0);
-        s32 enableCount = getEnableRivetCount();
-        for (s32 i = 0; i < enableCount; i++) {
-            BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-            rivet->tryKillPopn();
-        }
+
+        if (mPhase == 2)
+            rs::showCapMessageBossDamage(this, "BossRaid_Damage2", 90, 30);
+        else if (mPhase == 1)
+            rs::showCapMessageBossDamage(this, "BossRaid_Damage1", 90, 30);
+
+        killRivetPopnAll();
         mMtxConnector->clear();
         if (mPhase <= 0)
             al::stopAllBgm(this, -1);
     }
+
     if (al::isStep(this, 7))
         al::startHitReaction(this, "ダメージ");
+
     if (mPhase <= 0) {
-        if (!al::isActionEnd(this))
-            return;
-        al::setNerve(this, &NrvBossRaid.PreDemoBattleEnd);
+        if (al::isActionEnd(this))
+            al::setNerve(this, &NrvBossRaid.PreDemoBattleEnd);
         return;
     }
+
     if (al::isGreaterEqualStep(this, 11) && !rs::isActiveDemo(this) &&
         rs::requestStartDemoWithPlayer(this, false)) {
         if (rs::isPlayerOnActor(this)) {
-            const sead::Matrix34f* jointMtx = al::getJointMtxPtr(this, "ArmorPos");
-            mMtxConnector->init(jointMtx);
+            mMtxConnector->init(al::getJointMtxPtr(this, "ArmorPos"));
             mMtxConnector->setBaseQuatTrans(rs::getDemoPlayerQuat(this),
                                             rs::getDemoPlayerTrans(this));
         } else {
@@ -721,6 +659,7 @@ void BossRaid::exeDamage() {
         }
         rs::addDemoSubActor(this);
     }
+
     if (rs::isActiveDemo(this)) {
         if (al::isActionEnd(this))
             al::setNerve(this, &NrvBossRaid.RoarSign);
@@ -737,8 +676,6 @@ void BossRaid::exeRoarSign() {
         al::setNerve(this, &Roar);
 }
 
-// NON_MATCHING: extra callee-saved register x23 (compiler pre-loads getEnableRivetCount constants
-//               w21=4, w22=3 for multiple inline loops); loop body structural differences
 void BossRaid::exeRoar() {
     if (al::isFirstStep(this)) {
         al::startAction(this, "Roar");
@@ -751,9 +688,10 @@ void BossRaid::exeRoar() {
                                                       sead::Vector3f::ey, 2000.0f);
         } else if (al::isLessStep(this, 0xA8)) {
             mMtxConnector->clear();
+            al::ParabolicPath* path = mParabolicPath;
             f32 rate = al::calcNerveRate(this, 0x26, 168);
             sead::Vector3f pos;
-            mParabolicPath->calcPosition(&pos, rate);
+            path->calcPosition(&pos, rate);
             rs::replaceDemoPlayer(this, pos, mInitQuat);
         } else if (rs::isActiveDemo(this)) {
             rs::requestEndDemoWithPlayer(this);
@@ -761,23 +699,14 @@ void BossRaid::exeRoar() {
     }
     if (al::isStep(this, 60)) {
         mArmorActor->appear();
-        s32 enableCount = getEnableRivetCount();
-        for (s32 i = 0; i < enableCount; i++) {
-            BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+        for (s32 i = 0; i < getEnableRivetCount(); i++) {
+            BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
             rivet->reset();
         }
     }
     if (al::isStep(this, 61)) {
-        s32 enableCount = getEnableRivetCount();
-        for (s32 i = 0; i < enableCount; i++) {
-            BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-            rivet->resetChain();
-        }
-        al::startAction(mArmorActor, "Roar");
-        for (s32 i = 0; i < enableCount; i++) {
-            BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-            rivet->startAnim("Roar");
-        }
+        resetChainAll();
+        startRoarAnimParts();
     }
     if (al::isStep(this, 60)) {
         al::invalidateCollisionParts(this);
@@ -790,18 +719,16 @@ void BossRaid::exeRoar() {
 }
 
 void BossRaid::resetRivetAll() {
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+    for (s32 i = 0; i < getEnableRivetCount(); i++) {
+        BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
         rivet->reset();
     }
 }
 
 void BossRaid::startRoarAnimParts() {
     al::startAction(mArmorActor, "Roar");
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+    for (s32 i = 0; i < getEnableRivetCount(); i++) {
+        BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
         rivet->startAnim("Roar");
     }
 }
@@ -820,9 +747,8 @@ void BossRaid::setUpDemoBattleEnd() {
     al::showModelIfHide(mArmorBodyActor);
     mArmorActor->makeActorDead();
     mArmorBodyActor->makeActorAlive();
-    s32 rivetCount = mRivetList->getActorCount();
-    for (s32 i = 0; i < rivetCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+    for (s32 i = 0; i < mRivetList->getActorCount(); i++) {
+        BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
         rivet->killChain();
         rivet->makeActorDead();
     }
@@ -855,26 +781,22 @@ void BossRaid::exeEndTalk() {
     al::startAction(mArmorBodyActor, "BattleEndWait");
 }
 
-// NON_MATCHING: instruction scheduling differs; target defers csel after sub
 s32 BossRaid::getShotLevel() const {
-    s32 levelOffset = mLevel == 2 ? 3 : 0;
-    return 3 - mPhase + levelOffset;
+    return (3 - mPhase) + (mLevel == 2 ? 3 : 0);
 }
 
 void BossRaid::startElectricParts() {
     al::startAction(mArmorActor, "Electric");
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+    for (s32 i = 0; i < getEnableRivetCount(); i++) {
+        BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
         rivet->startElectric();
     }
 }
 
 void BossRaid::endElectricParts() {
     al::startAction(mArmorActor, "ElectricEnd");
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
+    for (s32 i = 0; i < getEnableRivetCount(); i++) {
+        BossRaidRivet* rivet = (BossRaidRivet*)mRivetList->getActor(i);
         rivet->endElectric();
     }
 }
@@ -892,26 +814,19 @@ void BossRaid::killElectoricAll() {
 }
 
 void BossRaid::killChainAll() {
-    s32 count = mRivetList->getActorCount();
-    for (s32 i = 0; i < count; i++) {
-        BossRaidRivet* rivet = static_cast<BossRaidRivet*>(mRivetList->getActor(i));
-        rivet->killChain();
-    }
+    for (s32 i = 0; i < mRivetList->getActorCount(); i++)
+        ((BossRaidRivet*)mRivetList->getActor(i))->killChain();
 }
 
 void BossRaid::appearAndHideRivetAll() {
-    s32 count = mRivetList->getActorCount();
-    for (s32 i = 0; i < count; i++) {
+    for (s32 i = 0; i < mRivetList->getActorCount(); i++)
         al::hideModelIfShow(mRivetList->getActor(i));
-    }
 }
 
 void BossRaid::showRivetAll() {
-    s32 enableCount = getEnableRivetCount();
-    for (s32 i = 0; i < enableCount; i++) {
-        al::LiveActor* rivet = mRivetList->getActor(i);
-        rivet->makeActorAlive();
-        al::showModelIfHide(rivet);
+    for (s32 i = 0; i < getEnableRivetCount(); i++) {
+        mRivetList->getActor(i)->makeActorAlive();
+        al::showModelIfHide(mRivetList->getActor(i));
     }
 }
 

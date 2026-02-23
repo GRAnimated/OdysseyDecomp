@@ -32,9 +32,9 @@ public:
     void invalidateCollisionAll();
     void startDemoBattleStart();
     void startBattle();
-    void tryGetFollowTargetInfo(al::LiveActor** actor, sead::Vector3f* rotate,
-                                sead::Vector3f* trans, const char** jointName,
-                                const al::ByamlIter& iter);
+    al::LiveActor* tryGetFollowTargetInfo(al::LiveActor** actor, sead::Vector3f* trans,
+                                          sead::Vector3f* rotate, const char** jointName,
+                                          const al::ByamlIter& iter);
     void endBattleStartDemo();
     void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
     bool isElectric() const;

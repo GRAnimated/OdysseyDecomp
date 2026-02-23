@@ -50,6 +50,8 @@ public:
     bool isStartActionTiming() const;
     const char* getStartActionName() const;
 
+    void setEnableSkipDemo(bool enable) { mIsEnableSkipDemo = enable; }
+
 private:
     al::EventFlowExecutor* mEventFlowExecutor = nullptr;
     const char* mDemoEntryName = nullptr;
