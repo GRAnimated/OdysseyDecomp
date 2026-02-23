@@ -43,6 +43,7 @@
               python-pkgs.watchdog
               python-pkgs.levenshtein
               python-pkgs.toml
+              python-pkgs.mcp
             ]))
             openssl
             ncurses5

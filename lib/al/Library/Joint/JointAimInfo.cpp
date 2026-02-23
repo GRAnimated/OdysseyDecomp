@@ -17,7 +17,8 @@ void JointAimInfo::makeTurnQuat(sead::Quatf* quat, const sead::Vector3f& targetD
     tryNormalizeOrZero(&dir, targetDir);
 
     if (!isNearZero(mBaseOffsetLocal)) {
-        f32 dot1 = mBaseOffsetLocal.x * mBaseAimLocalDir.x + mBaseOffsetLocal.y * mBaseAimLocalDir.y +
+        f32 dot1 = mBaseOffsetLocal.x * mBaseAimLocalDir.x +
+                   mBaseOffsetLocal.y * mBaseAimLocalDir.y +
                    mBaseOffsetLocal.z * mBaseAimLocalDir.z;
         f32 aimLenSq = mBaseAimLocalDir.x * mBaseAimLocalDir.x +
                        mBaseAimLocalDir.y * mBaseAimLocalDir.y +
@@ -53,10 +54,8 @@ void JointAimInfo::makeTurnQuat(sead::Quatf* quat, const sead::Vector3f& targetD
 
     switch (_60) {
     case 2: {
-        f32 angleUp =
-            calcAngleOnPlaneDegree(mBaseAimLocalDir, dir, mBaseSideLocalDir);
-        f32 angleSide =
-            calcAngleOnPlaneDegree(mBaseAimLocalDir, dir, mBaseUpLocalDir);
+        f32 angleUp = calcAngleOnPlaneDegree(mBaseAimLocalDir, dir, mBaseSideLocalDir);
+        f32 angleSide = calcAngleOnPlaneDegree(mBaseAimLocalDir, dir, mBaseUpLocalDir);
 
         f32 clampedUp = angleUp;
         if (clampedUp > _58)
@@ -71,10 +70,8 @@ void JointAimInfo::makeTurnQuat(sead::Quatf* quat, const sead::Vector3f& targetD
             clampedSide = -_54;
 
         *quat = sead::Quatf::unit;
-        rotateQuatRadian(quat, *quat, mBaseSideLocalDir,
-                             clampedUp * sead::Mathf::deg2rad(1.0f));
-        rotateQuatRadian(quat, *quat, mBaseUpLocalDir,
-                             clampedSide * sead::Mathf::deg2rad(1.0f));
+        rotateQuatRadian(quat, *quat, mBaseSideLocalDir, clampedUp * sead::Mathf::deg2rad(1.0f));
+        rotateQuatRadian(quat, *quat, mBaseUpLocalDir, clampedSide * sead::Mathf::deg2rad(1.0f));
         return;
     }
     case 1:
@@ -147,10 +144,8 @@ void JointAimInfo::makeTurnQuatRect(sead::Quatf* quat, const sead::Vector3f& tar
         clampedSide = -_54;
 
     *quat = sead::Quatf::unit;
-    rotateQuatRadian(quat, *quat, mBaseSideLocalDir,
-                         clampedUp * sead::Mathf::deg2rad(1.0f));
-    rotateQuatRadian(quat, *quat, mBaseUpLocalDir,
-                         clampedSide * sead::Mathf::deg2rad(1.0f));
+    rotateQuatRadian(quat, *quat, mBaseSideLocalDir, clampedUp * sead::Mathf::deg2rad(1.0f));
+    rotateQuatRadian(quat, *quat, mBaseUpLocalDir, clampedSide * sead::Mathf::deg2rad(1.0f));
 }
 
 void JointAimInfo::setBaseAimLocalDir(const sead::Vector3f& dir) {
