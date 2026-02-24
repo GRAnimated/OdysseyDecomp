@@ -24,6 +24,7 @@ public:
     void calcLockOnFollowTargetScale(sead::Vector3f* targetScale) const;
 
     void setPoseMatrix(sead::Matrix34f* mtx) { mPoseMatrix = mtx; }
+    void set74(bool value) { _74 = value; }
 
 private:
     friend CapTargetInfoFunction;

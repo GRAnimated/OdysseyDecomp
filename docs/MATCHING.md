@@ -50,11 +50,32 @@ _198.set(v2->_30);
 
 
 **Distance calculations**
+
+Symptom: `ldr s2` (z component) appears after the first two `fsub`s instead of before, and/or callee-saved float regs (`d8`/`d9`/`d10`) are missing from the frame.
+
+```asm
+; Target
+bl      getPlayerPos
+ldp     s8, s9, [x0]      ; load all 3 player pos components into callee-saved regs
+ldr     s10, [x0, #0x8]
+bl      getTrans
+ldp     s0, s1, [x0]      ; load all 3 trans components
+ldr     s2, [x0, #0x8]    ; <-- z loaded before any fsub
+fsub    s1, s9, s1
+fsub    s0, s8, s0
+fsub    s2, s10, s2
+```
+
 ```cpp
 // Wrong: temporary changes register pressure
 if ((a - b).length() < threshold) ...
-// Right
-sead::Vector3f diff = a - b;
+// Wrong: reference to getTrans delays load of z component
+sead::Vector3f playerPos = getPlayerPos(x);
+sead::Vector3f diff = playerPos - getTrans(x);
+// Right: copy both into plain locals so all components load before subtracting
+sead::Vector3f playerPos = getPlayerPos(x);
+sead::Vector3f trans = getTrans(x);
+sead::Vector3f diff = playerPos - trans;
 if (diff.length() < threshold) ...
 ```
 
