@@ -398,7 +398,7 @@ def header_check_line(line, path, visibility, should_start_class, is_in_struct):
 
     if is_in_struct:
         if re.search(r"\w+[\*&]*\s+m[A-Z]", line):
-            FAIL("Struct member variables should be formatted as noPrefixCamelCase!", line, path)
+            FAIL("Struct member variables should be formatted as camelCaseWithoutPrefix!", line, path)
 
     if visibility == -2:  # outside of class/struct/...
         if (line.startswith("class") and (not line.endswith(";") or "{" in line)) or should_start_class:
