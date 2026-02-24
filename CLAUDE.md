@@ -2,223 +2,96 @@
 
 ## Role
 
-You are a decompilation assistant for *Super Mario Odyssey*. Your job is to analyze and reimplement functions and classes as close as possible to the original C++ game code. When given a class to work on, work to fully match it using the tools described below.
+Decompilation assistant for *Super Mario Odyssey*. Reimplement functions and classes to match the original C++ as closely as possible. **Read `docs/MATCHING.md` before writing any source** — consult it actively while implementing, not only when a mismatch is found.
 
-**Headers matter.** They are shared by all contributors — write them carefully and completely. A good header makes the whole codebase easier to work on.
+**Never rename anything.** All symbol names come from `data/file_list.yml` or IDA. Use them exactly as given.
 
-**Never rename anything.** All symbol names come from `data/file_list.yml` or from IDA. Use them exactly as given. Do not rename, abbreviate, or "clean up" any identifier that was not invented by you.
+**Headers matter.** They are shared by all contributors — write them carefully and completely.
 
 ## Environment
 
-**OdysseyDecomp MCP tools are available directly** — use the MCP tool calls (`check`, `check_status`, `clangd_check`, `listsym`, `build`, `check_format`) without any shell commands. These wrap the project tools and handle TTY and environment setup automatically.
+- **nx-decomp-tools MCP**: `check`, `check_status`, `clangd_check`, `listsym`, `build`, `check_format` — use directly, no shell commands.
+- **IDA MCP**: `decompile`, `disasm`, `lookup_funcs`, `xrefs_to`, `py_eval`, etc. — use directly. `addr` parameter takes `0x7100000000 + offset`.
+- **Always use `int_convert` for addresses** — never compute `0x7100000000 + offset` mentally.
+  ```
+  int_convert: text="0x7100000000 + 0x46d58"  →  0x7100046d58
+  ```
+- **Reading floats**: IDA shows integer literals for floats. Use `struct.unpack('<f', struct.pack('<I', 0x40A00000))[0]` or `py_eval` for batches.
+- **Reading strings**: `py_eval` with `idaapi.get_bytes(addr, length)`. Always read enough bytes to capture the full string including any suffix.
 
-**IDA MCP tools are available directly** — use the MCP tool calls (e.g. `decompile`, `disasm`, `rename`, `set_type`, `py_eval`) without any curl or urllib wrappers. IDA MCP uses the `addr` parameter (not `name`) for address lookups. Addresses are `0x7100000000 + offset` where offset comes from `file_list.yml`. Example: offset `0x45a8b8` → addr `0x710045a8b8`.
+## File List
 
-**Improve the IDA database as you work** — use `rename`, `set_type`, `declare_type`, and `set_comments` to annotate the database with correct names, types, and comments as you discover them. This makes subsequent decompilations of related functions cleaner and more readable. For example: apply the correct struct type to a local variable, rename an opaque pointer to the class name, or add a comment explaining a field's role. A well-annotated database significantly reduces analysis time for later functions.
-
-**Address formatting**: Never compute `0x7100000000 + offset` mentally — use `int_convert` to do it. Pass the offset as a decimal sum so the tool returns the correct hex address:
-
-```
-int_convert: text="0x7100000000 + 0x46d58"   →   0x7100046d58
-```
-
-Always use `int_convert` before any `decompile`, `disasm`, or other address-based call. This eliminates manual arithmetic errors entirely.
-
-**Reading raw bytes/strings**: use `py_eval` with `idaapi.get_bytes(addr, length)` to read raw data at an address. Useful for finding hardcoded string literals embedded in rodata (e.g. Japanese name strings passed to constructors).
-
-**Reading float constants**: IDA often shows integer literals where floats are expected. Use Python's `struct.unpack` to convert: `struct.unpack('<f', struct.pack('<I', 0x40A00000))[0]` → `5.0`. Or use `py_eval` to read multiple globals at once:
-
-```python
-import idaapi, struct
-for addr in [0x710187FD54, ...]:
-    b = idaapi.get_bytes(addr, 4)
-    print(hex(addr), struct.unpack('<f', b)[0])
-```
-
-## Tools
-
-### Build
-
-Use the `build` MCP tool. Pass `clean=true` if a clean build is necessary.
-
-### Check (assembly diff)
-
-Use the `check` MCP tool:
-
-- Omit `function` to check all functions (updates `file_list.yml` statuses automatically).
-- Pass `function` for a single symbol (mangled or demangled).
-- Pass `functions` (a list) to check several functions in one call — output is concatenated with headers.
-- Use `context_lines` to compress matching lines and focus on mismatches.
-- Use `show_source=true` to show source alongside assembly (more thorough, costs tokens).
-- The checker updates matching status in the file list.
-
-### List symbols
-
-Use the `listsym` MCP tool:
-
-- `filter` — search string to narrow results (symbols in output ELF not in the file list)
-- `show_data=true` — include data symbols
-- `show_undefined=true` — outgoing refs to unimplemented functions
-- `show_decompiled=true` — decompiled symbols that exist in the file list
-
-### Check status (match summary without diff)
-
-Use the `check_status` MCP tool to get a compact OK/mismatch verdict plus diff statistics for one or more functions, without the full assembly diff output:
-
-- Pass `function` for a single symbol, or `functions` (a list) for several at once.
-- Returns one or two lines per function: verdict, instruction count, and a breakdown of differing lines (changed / imm-offset / regswap / deleted / added).
-- Use this when you want to know *how close* a function is without spending tokens on the full diff.
-
-Example output:
-```
-MyClass::foo(): mismatch (unknown reason)
-  127/193 lines match (65%), 88 differ: 10 changed, 40 imm/offset, 22 regswap, 10 deleted, 6 added
-```
-
-### clangd diagnostics (fast type/syntax check)
-
-Use the `clangd_check` MCP tool to run `clangd --check` on a source file and get compiler diagnostics without a full build. This is much faster than `build` and catches type errors, missing includes, and syntax mistakes during first-pass implementation.
-
-- Pass `file` as a path relative to the project root (e.g. `src/Foo/Bar.cpp`).
-- Requires `build/compile_commands.json` to exist (generated by a prior CMake configure or build).
-- Output is filtered: only real diagnostics and the summary line are shown; internal clangd noise is suppressed.
-
-Use this as the first check after writing a new `.cpp` file — if clangd reports 0 errors, the file is likely correct enough to proceed to `build` and `check`.
-
-### Format check
-
-Use the `check_format` MCP tool. Reports every formatting problem to fix before a class is done.
-
-Common format errors to watch for:
-
-- **`float` / `char16_t` forbidden** — use `f32` and `char16` everywhere, including in `reinterpret_cast<float*>` and in comments.
-- **Offset comments forbidden in headers** — `// 0x108` style comments on member declarations are rejected. Use a plain descriptive comment or none.
-- **String not found in binary** — every string literal in source must appear verbatim in the game binary. Always read the full null-terminated string with `idaapi.get_bytes` before writing it; the actual string may have suffixes like `"電撃ライン[ライトニング用]"` that you would miss by only reading the first few bytes.
-
-### File list
-
-`data/file_list.yml` — defines the offset, size, label (mangled symbol), and status of every function, and which object file it belongs to. Use this to find functions and to match source/header file directory structure.
-
-Each function entry has a `status` field with one of these values:
+`data/file_list.yml` — offsets, sizes, mangled symbols, statuses, and object file paths for every function.
 
 | Status | Meaning |
 |---|---|
-| `Matching` | Assembly matches the original exactly |
-| `NonMatchingMinor` | Minor differences only (regalloc, trivial reorderings) |
-| `NonMatchingMajor` | Significant structural differences remain |
+| `Matching` | Exact match |
+| `NonMatchingMinor` | Minor differences (regalloc, trivial reorderings) |
+| `NonMatchingMajor` | Significant structural differences |
 | `NotDecompiled` | Not yet implemented |
 | `Wip` | Work in progress |
-| `Library` | Comes from a library; not our code to decompile |
+| `Library` | Library code; not ours to decompile |
 
-Update statuses as you work. `tools/check` does this automatically for functions you check individually. Verify against `file_list.yml` to ensure nothing was missed.
+## Tools
 
-### IDA Pro (MCP)
+- **`build`** — compile. `clean=true` for clean build.
+- **`check`** — assembly diff. Omit `function` to check all (token-efficient). Pass `context_lines` to compress, `show_source=true` for side-by-side. **Prefer the mangled symbol** from `file_list.yml` for reliable matching.
+- **`check_status`** — compact OK/mismatch + diff stats without full diff. Use to gauge closeness cheaply. **Prefer the mangled symbol** from `file_list.yml`.
+- **`clangd_check file=src/Foo/Bar.cpp`** — fast type/syntax check without a full build. Run this first after writing a new file.
+- **`check_format`** — reports formatting errors. Fix all before finishing.
+- **`listsym`** — symbols in output ELF not yet in file list. Use `-show_decompiled`, `-show_undefined`, `-show_data` as needed.
 
-The base address for SMO in IDA is `0x7100000000`.
-
-ida-pro-mcp is your **main point of reference**. Key operations:
-
-- `decompile` — decompile a function to pseudocode (use heavily during implementation)
-- `disasm` — disassemble a function
-- `lookup_funcs` / `list_funcs` — find functions by address or name
-- `xrefs_to` — find callers of a function or address: `{"addrs": ["0x..."]}`
-- `xrefs_to_field` — find usages of a struct field
-- `list_globals` / `get_global_value` — inspect globals
-- `rename` — rename functions, locals, stack variables in IDA
-- `set_type` — apply types to functions/globals/locals
-- `declare_type` / `read_struct` / `search_structs` — manage struct types
-- `set_comments` — annotate the decompiler view to aid analysis
-- `int_convert` — **always use this** to convert number bases; never convert manually
-- `find_regex` / `find` / `find_bytes` — search the binary
-- `get_string` — read a string from an address: `{"addrs": ["0x..."]}`
-- `py_eval` — run arbitrary Python in IDA context: `{"code": "import idaapi; ..."}`
-
-**Trust the IDA decompile for vtable calls.** IDA resolves virtual dispatch from the vtables in the executable — the function names it shows are ground truth. If the pseudocode shows `v12->makeActorDead(this)`, that really is `makeActorDead()`. If you are unsure, use `set_type` in IDA to apply the correct type to the function and re-decompile for clarity.
-
-**Finding class size**: use `xrefs_to` on the C1 constructor address to find callers, then look for `operator new(0xNN)` immediately before the constructor call in the caller's disasm. The argument is the class size.
+### Format errors to watch for
+- `float` / `char16_t` forbidden — use `f32` and `char16` everywhere.
+- Offset comments (`// 0x108`) forbidden in headers.
+- String literals must match the binary exactly — read with `idaapi.get_bytes`.
 
 ## Decompilation Workflow
 
-### 1. Survey the class
+### 1. Survey
 
-Before writing any code, gather all the information you need:
+- Find the class in `file_list.yml` for all offsets and the object file path.
+- **Read sead math headers upfront**: `lib/sead/include/math/seadVector.h`, `seadQuat.h`, `seadMatrix.h`. Skipping this is the most common source of first-pass mismatches.
+- Decompile **all** functions in one batch with IDA MCP.
+- Disassemble the constructor to establish struct layout.
+- Find class size: `xrefs_to` on the C1 constructor → look for `operator new(0xNN)` in the caller's disasm.
+- Read Japanese string literals via `py_eval` + `idaapi.get_bytes`.
+- Grep `lib/al` for free-function headers before writing includes.
 
-- Find the class in `data/file_list.yml` to get all function offsets and the object file path.
-- Compute full IDA addresses: `0x7100000000 + offset` (zero-pad offset to 6 hex digits).
-- **Read the sead math headers before analyzing any function.** Open `lib/sead/include/math/seadVector.h`, `seadQuat.h`, and `seadMatrix.h` so you have the full inline API in context. Missing an inline (e.g. `setCross`, `set`, `length`, `dot`, `normalize`, `makeVectorRotation`) is the most common source of first-pass mismatches. Do this once at survey time, not after a mismatch is found.
-- Decompile **all** functions up front in one pass using the IDA MCP. Batch multiple calls to save time.
-- Disassemble the constructor(s) to establish struct layout.
-- Find the class size by calling `xrefs_to` on the C1 constructor and looking for `operator new(0xNN)` immediately before the constructor call in the caller's disasm.
-- Read any hardcoded string literals (Japanese names etc.) using `py_eval` + `idaapi.get_bytes`.
-- Look up free-function headers by grepping `lib/al` for the relevant function names before writing includes.
+### 2. Header
 
-### 2. Create the header
+- Mirror the object file's directory path from `file_list.yml`.
+- `#pragma once`. Forward-declare types unless the full definition is required.
+- Add `static_assert(sizeof(MyClass) == 0xNN)` if size is known.
+- Field naming: confident fields get real names; uncertain fields use `_5c`. Add a brief comment on uncertain fields explaining what you inferred.
+- Member prefixes: `m` (instance), `s` (static), `g` (global).
+- Functions in **ascending offset order** matching `file_list.yml`.
+- Forward declare `ActorInitInfo` as `struct ActorInitInfo;` (not `class`).
+- Free functions in a namespace, not a class with static methods.
+- Parameter names in declarations must match definitions exactly.
 
-- Mirror the object file's directory path from `file_list.yml` for all source/header files.
-- Start with `#pragma once`.
-- Fill in function declarations, includes, forward declarations, and inheritance.
-- **Always forward declare** types in headers when you don't need the full definition. Only `#include` what is strictly required by the header itself. This reduces compile times and keeps headers clean for other contributors.
-- If you know the class size (check `operator new` xrefs in the constructor), add a `static_assert` at the bottom. Omit the assert if the size cannot be determined:
+### 3. Struct layout from constructor asm
 
-```cpp
-static_assert(sizeof(MyClass) == 0x1D8);
-```
+Key store patterns:
+- `STP Xn, Xm, [X0, #off]` — two pointer-sized values at `off` and `off+8`
+- `STP XZR, XZR, [X0, #off]` — zeroes 16 bytes
+- `STUR XZR, [X0, #off]` — zeroes 8 bytes at unaligned offset (often spans a field + bool)
+- `STR WZR, [X0, #off]` — zeroes 4 bytes (s32/f32)
+- `STRB WZR, [X0, #off]` — zeroes 1 byte (bool)
+- `STR X8, [X0, #off]` from float constant — two adjacent f32 fields as one 64-bit write
 
-- Only name fields you are confident about; use filler names like `_0x58` otherwise. **Add a brief comment next to uncertain field names** explaining what they appear to do and how you inferred it (e.g. the function that uses it, or the value it's initialised to). Also comment fields whose names are correct but whose role isn't obvious from the name alone.
-- Use `= nullptr` / `= 0` / `= false` initializers on member variables where appropriate.
-- Member variables: `m` prefix + camelCase (e.g., `mAudioKeeper`). Static members: `s` prefix.
-- Use scoped `enum class` for typed enumerations; define them inside the class if they belong to it.
+Map every store to a byte range, union them, split at natural alignment boundaries.
 
-**Header placement rules (critical):**
+### 4. Implement
 
-- Every function belongs in the header whose `.o` file owns it per `file_list.yml`. Never put a function in a different header just because it's convenient — check the object file, find/create the matching `.h`.
-- Functions within a header must appear in **ascending offset order** (the same order they appear in the executable). Check `file_list.yml` offsets before inserting.
-- Forward declare `ActorInitInfo` as `struct ActorInitInfo;` (not `class`) to avoid `-Wmismatched-tags` warnings — it is declared as a struct elsewhere.
-- When a set of related free functions belongs together but has no class, use a `namespace` (e.g., `namespace PlayerDemoFunction { ... }`) — **not** a class with static methods.
-- Parameter names in header declarations must match the names used in the source definitions exactly.
+- First pass: decompile every function, clean up enough to compile.
+- Never copy-paste pseudocode — reimplement. No `goto`s.
+- Identify inlined functions and call the original inline (sead math inlines are very common).
+- Consult `docs/MATCHING.md` while writing — apply the correct patterns from the start.
 
-### 3. Determine struct layout from constructor asm
+**Recognising inlines**: IDA shows direct field access instead of a function call. `*(*(this+8)+8)` = `getStringTop()`. Field offsets in place of a named call = inline.
 
-Reading the constructor disassembly is the fastest and most reliable way to establish the field layout. Key patterns:
-
-- `STP Xn, Xm, [X0, #off]` — stores two pointer-sized values (args or vtable) at `off` and `off+8`
-- `STP XZR, XZR, [X0, #off]` — zeroes 16 bytes at `off` (two adjacent fields)
-- `STUR XZR, [X0, #off]` — zeroes 8 bytes at an **unaligned** offset; the compiler uses this to zero the tail of one field plus an adjacent bool/padding in one shot
-- `STR WZR, [X0, #off]` — zeroes 4 bytes (s32/f32 field)
-- `STRB WZR, [X0, #off]` — zeroes 1 byte (bool field)
-- `STR X8, [X0, #off]` where `W8` was set from a float constant — stores two adjacent 32-bit fields (e.g. `f32` + `f32`) as a single 64-bit write. Both fields must be declared in the struct; setting both in source will coalesce them back into the wide store.
-
-Overlapping STURs are common: e.g. `STP XZR,XZR,[X0,#0x30]` + `STUR XZR,[X0,#0x3D]` together zero bytes 0x30–0x44. Map every store to a byte range, take their union, and split into fields at natural alignment boundaries.
-
-Find the class size from `operator new` xrefs in the caller. Use `xrefs_to` on the C1 constructor address, then disassemble the caller and look for `operator new(0xNN)` immediately before the constructor call.
-
-### 4. Analyze fields thoroughly
-
-- Examine the most important functions (often all of them) to find every field usage.
-- Use IDA decompiler output for thoroughness; assembly for speed.
-- Create the corresponding IDA struct type to clean up the decompiler output.
-- Rename IDA variables and add comments to the decompiler view as you go.
-- If IDA's argument types look wrong for a call, fix them to match the decomp's equivalent.
-
-### 5. Implement the source file
-
-- Do a **first pass**: decompile every function with `decompile`, clean up the output enough to compile.
-- IDA may produce `goto`s, unrolled loops, and out-of-place logic — the original never used `goto`s. Reorder logic to be sensible without sacrificing the match.
-- Do **not** copy-paste pseudocode. Reimplement it. Stubs are fine for unimplemented callees.
-- Identify inlined functions and uninline them (call the original inline; let the compiler re-inline it). sead inlines are especially common — use math and vector inlines wherever applicable.
-- If something doesn't exist in sead, do not add it.
-
-**Recognising inlined functions (critical):** When IDA shows direct field access instead of a function call, that callee was inlined. Examples:
-
-- `*(*(this+8) + 8)` instead of `getStringTop()` — use `getStringTop()` directly.
-- `sead::BufferedSafeStringBase::getStringTop()` — accesses `mStringTop` with no virtual call; use for inline string pointer access.
-- `sead::BufferedSafeStringBase::cstr()` — calls virtual `assureTerminationImpl_()` first; generates a real call.
-- Always compare IDA output carefully: if it shows field offsets rather than a named call, an inline is hiding there.
-
-**IUseCamera cast pattern:** When IDA shows `mActor + 48` (or similar offset) being passed to a camera function, this is the compiler computing `(IUseCamera*)mActor` — the `IUseCamera` subobject sits at that offset inside `LiveActor`. In source, simply cast `mActor` to `IUseCamera*` (or pass it directly where the type is compatible) and the compiler will emit the same offset.
-
-**Nerve/state-machine pattern** (very common in this codebase): nerve declarations go in an anonymous namespace at the top of the `.cpp` file using `NERVE_IMPL` or `NERVE_ACTION_IMPL`, followed by `NERVES_MAKE_NOSTRUCT` or `NERVE_ACTIONS_MAKE_STRUCT`. Example:
-
+**Nerve/state-machine pattern**:
 ```cpp
 namespace {
 NERVE_IMPL(MyClass, Idle);
@@ -227,156 +100,38 @@ NERVES_MAKE_NOSTRUCT(MyClass, Idle, Move);
 }  // namespace
 ```
 
-**Constructor pattern**: single-expression constructors that only delegate to a base class are written on one line:
-
+**Single-delegation constructor**:
 ```cpp
 MyClass::MyClass(const char* name) : al::LiveActor(name) {}
 ```
 
-### 6. Check everything
+**IUseCamera cast**: `mActor + 48` in IDA = `(IUseCamera*)mActor`. Cast directly.
 
-After the first pass, call the `check` MCP tool with no `function` argument to check all functions at once — this is much more token-efficient than checking one at a time.
+### 5. Check & fix
 
-Then cross-reference `file_list.yml` to confirm no functions were missed. Every function in the class should have some matching state before proceeding.
+- Run `check` with no arguments to check all functions at once. This returns the changes made to the file list if improvement, and returns regressions without updating file list otherwise.
+- Assume every mismatch is fixable. Every mismatch can be fixed, although it may not always be worth your time. Cleaning up the function structurally and writing it like a programmer, not a tool, will always improve your matching score.
+- For mismatches, refer to `docs/MATCHING.md` and fix attempts (`check` every time) until you feel like you're wasting time.
+- Matches in inlined functions are more important to fix, as they affect the matching state of other functions as well.
+- After you think the mismatches are minor enough, or you spent enough time trying, add `// NON_MATCHING: <explanation>` above the function.
 
-The all-functions check only prints `note:` lines for functions that are marked `NotDecompiled` but actually match or mismatch — it does not re-report functions already in a non-`NotDecompiled` status. Use per-symbol checks to see diffs for specific functions.
+### 6. Final
 
-### 7. Fix non-matching functions
+- `check_format` — fix everything.
+- `check` (no args) — confirm all statuses.
+- `listsym` — find any unlabeled symbols not yet in `file_list.yml`. Do not add entries to the file list, but add function names and recheck if any are empty. Do not change existing entries' symbols. 
+- Update `CLAUDE.md` or `docs/MATCHING.md` with any new patterns discovered.
 
-For each non-matching function, you have **up to 3 attempts**: call `build` then `check` with the function name after each change. If it still doesn't match after 3 tries, add a comment above the function:
-
-```cpp
-// NON_MATCHING: <explanation of what's wrong>
-```
-
-### 8. Final cleanup and verification
-
-- Call `check_format` and fix every formatting issue it reports.
-- Call `check` (no arguments) one final time to confirm all statuses.
-- Use sead math/vector inlines wherever possible; write it as a programmer would.
-- **Handle unlabeled functions**: call `listsym` to find any symbols in the output ELF that aren't yet in `file_list.yml`. For static initializers and other auto-generated functions without labels, the symbol name is the label — add it with `guess: true` and run `check` to confirm it matches.
-- **Always verify your contribution is correct** before considering a class done: check that statuses in `file_list.yml` are accurate, that no functions were skipped, and that the build is clean.
-
-### 9. Update CLAUDE.md
-
-After finishing a class, update `CLAUDE.md` with any new patterns, pitfalls, or techniques you discovered. This keeps the instructions useful for future work. Add new patterns to the relevant section (e.g., **Common Non-Matching Patterns** or **Code Style**), and update the workflow steps if any tooling behaviour was surprising.
-
-## Common Non-Matching Patterns
-
-These patterns come up repeatedly. Recognising them saves iteration time.
-
-**`ldp w8, w9` vs `ldr x8` + `lsr x9`** — When copying adjacent `s32` + `f32` fields the original uses `ldp` (two 32-bit registers). Clang may instead do a 64-bit `ldr` + `lsr #0x20`. This is a one-instruction size mismatch (NonMatchingMinor). Reordering source assignments does not fix it — mark NON_MATCHING.
-
-**`stur xzr` zero-init ordering** — In constructors the original often schedules zero-init stores to fill instruction latency slots, producing a different order than C++ declaration order. Rearranging body assignments rarely helps because the compiler re-schedules them. Mark NON_MATCHING.
-
-**Branch layout / shared tail blocks** — The original compiler sometimes places a shared "LABEL" block at the end of a function, reached from two paths via fall-through and one conditional branch. Clang generates the same logic inline with an inverted branch, resulting in a longer function and missing the tail block. This produces a "wrong function size" error. It is NonMatchingMajor if 10+ instructions differ, NonMatchingMinor if only 1–2 instructions differ. Mark NON_MATCHING with a clear explanation.
-
-**`bool` field byte stores** — A `bool` field always generates `strb wzr` (1 byte). The original may instead use `stur xzr` covering the bool plus adjacent memory. You cannot force the wider store from C++; mark NON_MATCHING if it matters.
-
-**`reset()` clearing two fields** — If IDA shows `reset` zeroes a 64-bit slot (e.g. `str xzr, [x0, #0x28]`), the function clears two adjacent 32-bit fields together. The source should assign both to `0`.
-
-**Virtual `reset()` call from record functions** — `recordJudgeAndReset` / `recordCooperateAndReset` call `reset()` through the vtable (`br x1`). This is virtual dispatch, which matches as long as the class is not `final`. Do not devirtualize.
-
-**`*((_DWORD*)this + N)` offset arithmetic** — IDA uses dword (4-byte) indices. `*((_DWORD*)this + N)` = byte offset `N*4`. Qword index `*((_QWORD*)this + N)` = byte offset `N*8`. Always double-check by computing the byte offset; confusing the two is the most common layout mistake.
-
-**Register allocation / wrong function size** — The original compiler sometimes saves more callee-saved registers (e.g. x23/x24/x25) than our clang produces, making the stack frame larger and causing a "wrong function size" error even when the logic is identical. This is NonMatchingMinor. You cannot fix it from C++ source — mark NON_MATCHING and move on. Diagnosis: if the diff shows only register name differences and a frame size difference (e.g. `stp x24, x23` vs absent), it is purely register allocation.
-
-**`STRH` for two adjacent bool fields** — The original compiler sometimes emits a single `strh w8, [x0, #off]` (halfword store of 0x0101) to initialise two adjacent `bool` fields at once. Our compiler emits two `strb` instructions. This is NonMatchingMinor in constructors; mark NON_MATCHING.
-
-**Hardcoded Japanese name strings** — Some classes pass a hardcoded Japanese string literal as the `name` argument to their base class, to `initDemoAnimCamera`, or to `al::NerveExecutor`. These live in rodata and are visible in the constructor disassembly as `ADRL X1, byte_XXXXXXXX`. To find the string, use `py_eval` with `idaapi.get_bytes(addr, N)` and decode as UTF-8. **Always read enough bytes to see the full null terminator** — strings often have unexpected suffixes or brackets (e.g. `"電撃ライン[ライトニング用]"`) and the format checker will reject the source if any character is missing.
-
-**Adjacent f32 store coalescing** — When two adjacent `f32` fields are initialised in sequence (e.g. `mRotateSpeed = 5.0f; mRotateAngle = 0.0f`), the original compiler may merge them into a single 64-bit `str x8` where the upper 32 bits are zero. Our compiler emits two separate word stores. Fix: ensure both fields are written in the source (even if one is already zero) and try reordering them to match the target's store order. The coalescing is sensitive to declaration order and assignment order.
-
-**`sead::Vector3f` copy store ordering** — When the original copies a `sead::Vector3f` with the pattern:
-
-```asm
-ldr w9, [x1, #0x8]       ; load source.z
-str w9, [x0, #offset+8]  ; store dest.z first
-ldr x9, [x1]             ; load source.x+y as 64-bit pair
-str x9, [x0, #offset]    ; store dest.x+y together
-```
-
-use `mVec.set(other)` instead of `mVec = other`. The `set()` method produces a different store schedule (z stored first, then x+y coalesced as one 64-bit store) that matches the original. Using `mVec = other` emits individual x, y, z stores in field order and will not match.
-
-**Local `sead::Vector3f` stack slot ordering** — When a function has two local `sead::Vector3f` variables and the stack slots are swapped relative to the original, swap their declaration order. Declaring the output vector first (before the input) can swap their stack slot assignments to match the original. For example, if the original places `frontDir` at `sp+0x10` and `shotDir` at `sp+0x20`, declare `shotDir` before `frontDir` in source.
-
-**Load/store scheduling across call boundaries** — The original compiler sometimes hoists a field load or function call ahead of adjacent computation. For example, loading `mElectricLine` and calling `getTrans(this)` immediately after `rotateVectorDegree` (before computing the offset vector) matches the original's schedule. Add local variables to force evaluation order:
-
-```cpp
-// Force the pointer load and getTrans before the multiply
-BossRaidElectricLine* electricLine = mElectricLine;
-const sead::Vector3f& trans = al::getTrans(this);
-sead::Vector3f offset = mRadius * shotDir;  // multiply happens after
-electricLine->shot(trans, offset);
-```
-
-**Extra callee-saved register / wrong function size** — If the diff shows our function saving fewer callee-saved registers than the target (e.g. target saves `x21` but ours does not), the fix is often to remove a redundant local variable that is keeping the register live. For instance, caching a member field into a local `s32 timer = mField` and then using `timer` everywhere can force an extra register; using `mField` directly throughout instead lets the compiler reuse scratch registers without needing an extra save.
-
-**`sead::Mathf::maxNumber()` for float max** — When IDA shows a float constant of `3.4028235e+38` (FLT_MAX), write it as `sead::Mathf::maxNumber()` in source. This is `std::numeric_limits<float>::max()` wrapped in a sead helper. The header is available transitively via `<math/seadVector.h>` (included by `ActorPoseUtil.h` and `Library/Math/MathUtil.h`).
-
-**`diff.length()` for distance comparisons** — When IDA shows manual dot-product distance code (`dx*dx + dy*dy + dz*dz` followed by `sqrtf`), use a named `sead::Vector3f diff = a - b` and call `diff.length()`. A named intermediate variable works and matches; the temporary form `(a - b).length()` (no named variable) changes register pressure and breaks the match. After computing `diff`, use `diff.x`, `diff.y`, `diff.z` directly instead of named `dx`/`dy`/`dz` locals.
-
-**`sead::Vector3f::zero` and `sead::Vector3f::ex` for local/member init** — When the original initialises a local or member `Vector3f` to zero or the X-axis unit vector by loading from a global constant (visible in asm as `adrp` + `ldr x8, [x8, #...]` + `str x8, [sp/x0, #...]`), use `sead::Vector3f::zero` or `sead::Vector3f::ex` rather than `{0.0f, 0.0f, 0.0f}` or `{1.0f, 0.0f, 0.0f}`. The literal forms generate immediate-value stores and will not match the global-load pattern. Similarly for member variable initialisers in the class header.
-
-**`vec.setCross(a, b)` for cross products** — When IDA shows a manual cross-product computation (six multiplications then three subtractions), use `vec.setCross(a, b)` (`Vector3<T>::setCross` calls `Vector3CalcCommon::cross`). The inline expands to the same six-multiply / three-subtract schedule as the original. Writing the cross product inline as individual `vel.x = ...; vel.y = ...; vel.z = ...` expressions will produce a different instruction schedule and break the match.
-
-**`dir += a - b` for accumulating vector differences** — When building a direction vector by summing position differences, write `dir += getTrans(a) - getTrans(b)` using `operator+=` and `operator-`. Writing the accumulation component-by-component (`dir.x += ...; dir.y += ...; dir.z += ...`) generates individual `ldr`/`fadd`/`str` sequences instead of the `ldp`-based paired-load pattern the original uses, causing a size mismatch.
-
-**Sead "cleaner" forms that break matching** — Some idiomatic rewrites that look correct produce different code generation at `-O3`:
-
-- `(otherTrans - myTrans).length()` (temporary, no named variable) instead of a named `sead::Vector3f diff = a - b; diff.length()` — use the named-variable form; the temporary form changes register pressure and breaks the match.
-- `-vel` (unary `operator-`) instead of `sead::Vector3f negVel = {-vel.x, -vel.y, -vel.z}` — the operator returns a temporary that the compiler may materialise on the stack differently; use the explicit struct literal.
-- `diff * scale` (`operator*`) to set all three components at once — changes the load/multiply schedule vs writing `vel.x = diff.x * scale; vel.y = diff.y * scale; vel.z = diff.z * scale` component-by-component. Exception: passing the result directly as a function argument (e.g. `shot(offset + trans, rotDir * 36.0f)`) works fine.
-
-**`sead::Mathf::deg2rad()` for radian literals** — When the original source used a degree value (e.g. `23.0f` degrees), the compiler stores the precomputed radian constant (e.g. `0.40143f`). Replace the raw radian literal with `sead::Mathf::deg2rad(N.0f)` — the compiler evaluates it at compile time, producing an identical constant while keeping the source readable.
-
-**`sead::Mathf::pi2()` for `6.2832f`** — The constant `6.2832f` is 2π; write it as `sead::Mathf::pi2()`. Similarly, `-0.083333f` (= -1/12) should be written as `-1.0f / 12.0f` for clarity.
-
-**`(u32)level < 3` for unsigned-comparison branch elimination** — When IDA emits a `cmp` + unsigned branch (e.g. `b.lo` / `b.hs`) after a modulo, write the condition as `(u32)level < 3` (cast to unsigned, then compare). This avoids the compiler optimising away the branch when it can prove the modulo result is always in range. Without the cast the compiler eliminates the `> 2` branch entirely, producing a mismatch. The fallthrough path should index the table directly (e.g. `return sGroundAttackTimeTable[2]`), not return a raw literal.
-
-**Constructor: local variable for `new DeriveActorGroup<>`** — When a constructor allocates a group and then uses it in a loop, store the result in a local variable and assign to the member immediately, then use the local in the loop body. This keeps a register holding the group pointer throughout the loop without reloading from the member field, matching the original's register allocation:
-
-```cpp
-al::DeriveActorGroup<Foo>* group = new al::DeriveActorGroup<Foo>("name", count);
-mGroup = group;
-for (s32 i = 0; i < group->getMaxActorCount(); i++) {
-    Foo* foo = new Foo("name");
-    al::initCreateActorNoPlacementInfo(foo, info);
-    group->registerActor(foo);
-}
-```
-
-**Shot functions: copy member `Vector3f` to local before early-return** — In shot functions that begin with an `isIntervalStep` guard, copy `mUpDir` to a local `sead::Vector3f upDir = mUpDir` *before* the early-return check. Then compute `upOffset = upDir * 50.0f` from the local. Pass the offset + trans and vel expressions directly as temporaries to `shot()` rather than storing them in named `origin`/`vel` variables. Keep using `mUpDir` (not `upDir`) for `rotateVectorDegree` calls.
-
-**Hex vs decimal in `calcNerveCosCycle` / `isIntervalStep`** — Use decimal literals (`160`, `115`) not hex (`0xA0`, `0x73`) for cycle/interval arguments; the original source used decimal. IDA may display them as hex but the source had decimal.
-
-**`sead::Matrix34f::setTranslation()` for matrix column copy** — When a function copies a `sead::Vector3f` into the last column of a `sead::Matrix34f` (i.e. `m[0][3]`, `m[1][3]`, `m[2][3]`), write `mtx.setTranslation(vec)` instead of assigning the three fields individually. The method generates a single `ldp w8, w9` + `str` + `str` + `str` sequence matching the original's `ldp`-then-store pattern. Assigning fields individually generates `ldr` + `str` sequences and will not match.
-
-**`sead::Vector3f operator-` for `dir = trans - pos`** — When computing a direction vector as the difference of two `sead::Vector3f` values, write `sead::Vector3f dir = trans - pos` using `operator-`. This generates a paired-load (`ldp`) + subtract + `stp` pattern matching the original. Writing `dir.x = ...; dir.y = ...; dir.z = ...` individually generates sequential loads/subs/stores and will not match.
-
-**`LiveActor` vtable layout (no virtual destructor)** — The `al::LiveActor` vtable starts with `getNerveKeeper` at slot 0 (vptr offset 0x00). There is NO virtual destructor in the vtable. Slots: 0=`getNerveKeeper`, 1=`init`, 2=`initAfterPlacement`, 3=`appear` (0x18), 4=`makeActorAlive` (0x20), 5=`kill` (0x28), 6=`makeActorDead` (0x30). Use IDA vtable analysis to confirm which virtual is called when the disassembly shows an offset into vptr.
-
-**`mBreathActor->kill()` in state `appear()`** — When a state's `appear()` calls a virtual on a sub-actor with vtable offset `0x28`, that is `LiveActor::kill()` (not `makeActorAlive()`). Game states often kill sub-actors on appear to reset them, then call `appear()` inside `exeAttackSign` to bring them back. Similarly, the state's own `kill()` calls `kill()` on the sub-actor.
-
-**Load ordering for matching: load member pointers after bulk stores** — In `control()` style functions, load member pointers (e.g. `mBreathActor`) from the struct AFTER bulk matrix writes (e.g. `mLandingPointMtx.setTranslation()`), not before. Storing the pointer in a local variable before the bulk writes keeps it live across the stores and forces an extra callee-saved register, mismatching the frame size.
-
-## Code Style (summary)
+## Code Style
 
 Full details in `Contributing.md`. Key rules:
 
-- C++17. 4-space indent. Max 100 characters per line.
-- `#pragma once` for header guards.
-- `nullptr` not `NULL` or `0`.
-- Use `auto` only when type is obvious, too long, or doesn't matter.
-- Compare integers against zero explicitly: `if (value == 0)`, not `if (!value)`. (Booleans are exempt.)
-- Includes: angle brackets `<>` for system/sead/library headers; quotes `""` for al/rs/game headers. Three blocks separated by blank lines: `<>` first, then `al`/`Library`, then game-local.
-- Type names and compile-time constants: `UpperCamelCase`.
-- Function names: `camelCase`.
-- Local variables and parameters: `camelCase`.
-- Class member variables: `mCamelCase`. Static members: `sCamelCase`. Globals: `gCamelCase`.
-- Class member order: `public` → `protected` → `private`; constructor/destructor/operators/other functions, then non-static variables, statics before non-statics.
-- Use `override` not `virtual` when overriding. Mark `const` where applicable. No `this->` unless necessary.
-- `= default;` for empty constructors/destructors.
-- Virtual function order must match the original executable's vtable order.
-- Never use `float` or `char16_t` directly — use the sead equivalents `f32` and `char16`. The format checker enforces this. Similarly use `sead::Quatf` not `sead::Quat<float>`, `sead::Vector3f` not `sead::Vector3<float>`.
-- **No `snake_case` anywhere** — locals, parameters, everything is `camelCase`. There are no exceptions in this project.
+- C++17. 4-space indent. Max 100 chars per line.
+- `#pragma once`. `nullptr` not `NULL`. `= default` for empty ctors/dtors.
+- `auto` only when type is obvious, too long, or doesn't matter.
+- Integers: `if (value == 0)` not `if (!value)`. Booleans exempt.
+- Includes: `<>` for system/sead/library, `""` for al/rs/game. Three blocks separated by blank lines.
+- `UpperCamelCase` for types and compile-time constants. `camelCase` for everything else. No `snake_case`, no exceptions.
+- `override` not `virtual` when overriding. `const` where applicable. No `this->` unless necessary.
+- Virtual function order must match the executable's vtable order.
+- Never `float` or `char16_t` — use `f32` and `char16`. Never `sead::Quat<float>` or `sead::Vector3<float>` — use `sead::Quatf` and `sead::Vector3f`.
