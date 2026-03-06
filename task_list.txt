@@ -32,7 +32,7 @@
 [x] Npc/SphinxRideStateRevival.o
 [x] Npc/SphinxRideMiniGameNpc.o
 [x] Npc/SphinxRideEvent.o
-[ ] Npc/SphinxRideAim.o
+[x] Npc/SphinxRideAim.o
 [ ] Npc/SphinxRide.o
 [ ] Npc/SphinxQuizRouteKillExecutor.o
 [ ] Npc/SphinxQuiz.o
@@ -50,15 +50,6 @@
 [ ] Npc/ShibakenFunction.o
 [ ] Npc/Shibaken.o
 [ ] Npc/ShellActorStateReaction.o
-[ ] Npc/SessionMusicianWarpAgent.o
-[ ] Npc/SessionMusicianType.o
-[ ] Npc/SessionMusicianNpc.o
-[ ] Npc/SessionMusicianManager.o
-[ ] Npc/SessionMusicianLocalFunction.o
-[ ] Npc/SessionMusicianBgmCtrlObj.o
-[ ] Npc/SessionMusicianBgmController.o
-[ ] Npc/SessionMayorParam.o
-[ ] Npc/SessionMayorNpc.o
 [ ] Npc/RunAwayNpc.o
 [ ] Npc/RankingNpc.o
 [ ] Npc/RankingNameHolder.o
