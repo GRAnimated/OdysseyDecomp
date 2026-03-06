@@ -1,6 +1,7 @@
 #pragma once
 
 #include <basis/seadTypes.h>
+#include <math/seadVector.h>
 #include <prim/seadSafeString.h>
 
 namespace al {
@@ -44,6 +45,9 @@ void stopTrafficRailByTraffic(const al::LiveActor*);
 void restartTrafficRailByTraffic(const al::LiveActor*);
 bool tryPermitEnterTrafficNpcAndSyncDrawClipping(al::LiveActor*);
 bool isDefinedEventCamera(const al::EventFlowExecutor*, const char*);
+void initEventCameraFixActorAutoAroundFront(al::EventFlowExecutor*, const al::ActorInitInfo&,
+                                            const char*, const al::LiveActor*,
+                                            const sead::Vector3f*, f32, f32, f32, bool);
 void initEventCameraObject(al::EventFlowExecutor*, const al::ActorInitInfo&, const char*);
 void initEventQueryJudge(al::EventFlowExecutor*, const al::IEventFlowQueryJudge*);
 void initEventCameraObjectAfterKeepPose(al::EventFlowExecutor*, const al::ActorInitInfo&,

@@ -4,6 +4,7 @@
 #include <math/seadVector.h>
 
 namespace al {
+class HitSensor;
 class LiveActor;
 }  // namespace al
 
@@ -51,6 +52,7 @@ void setMarioDirectionalShadowMaskTypeSelf(const al::LiveActor* actor);
 void resetMarioDynamics(const al::LiveActor* actor);
 void keepMarioCapVisibilityEndDemo(const al::LiveActor* actor);
 void clearMarioFootPrint(const al::LiveActor* actor);
+void tryRegisterSphinxQuizRouteKillSensorAfterPlacement(al::HitSensor* sensor);
 }  // namespace rs
 
 namespace PlayerDemoFunction {
