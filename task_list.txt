@@ -1,31 +1,31 @@
-[ ] Npc/HelpNpc.o
-[ ] Npc/YukimaruStateMove.o
-[ ] Npc/YukimaruStateHack.o
-[ ] Npc/YukimaruRacerTiago.o
-[ ] Npc/YukimaruRacer.o
-[ ] Npc/Yukimaru.o
-[ ] Npc/WorldTravelingPeachWaitState.o
-[ ] Npc/WorldTravelingPeach.o
-[ ] Npc/WorldTravelingPartner.o
-[ ] Npc/WorldTravelingNpc.o
-[ ] Npc/TrafficRailWatcherDirector.o
-[ ] Npc/TrafficRailWatcher.o
-[ ] Npc/TokimekiMayorNpc.o
-[ ] Npc/TimeBalloonNpc.o
-[ ] Npc/Tiara.o
-[ ] Npc/TestAndoNpcIk.o
-[ ] Npc/TalkNpcSwitchWaitActionObj.o
-[ ] Npc/TalkNpcSwitchActionPlayerHolder.o
-[ ] Npc/TalkNpcSwitchActionPlayer.o
-[ ] Npc/TalkNpcStateEvent.o
-[ ] Npc/TalkNpcSceneEventSwitcher.o
-[ ] Npc/TalkNpcPartialAnimCtrl.o
-[ ] Npc/TalkNpcParamHolder.o
-[ ] Npc/TalkNpcParam.o
-[ ] Npc/TalkNpcFreeze.o
-[ ] Npc/TalkNpcEyeLineAnimParam.o
-[ ] Npc/TalkNpcCap.o
-[ ] Npc/TalkNpcActionAnimInfo.o
+[x] Npc/HelpNpc.o
+[x] Npc/YukimaruStateMove.o
+[x] Npc/YukimaruStateHack.o
+[x] Npc/YukimaruRacerTiago.o
+[x] Npc/YukimaruRacer.o
+[x] Npc/Yukimaru.o
+[x] Npc/WorldTravelingPeachWaitState.o
+[x] Npc/WorldTravelingPeach.o
+[x] Npc/WorldTravelingPartner.o
+[x] Npc/WorldTravelingNpc.o
+[x] Npc/TrafficRailWatcherDirector.o
+[x] Npc/TrafficRailWatcher.o
+[x] Npc/TokimekiMayorNpc.o
+[x] Npc/TimeBalloonNpc.o
+[x] Npc/Tiara.o
+[x] Npc/TestAndoNpcIk.o
+[x] Npc/TalkNpcSwitchWaitActionObj.o
+[x] Npc/TalkNpcSwitchActionPlayerHolder.o
+[x] Npc/TalkNpcSwitchActionPlayer.o
+[x] Npc/TalkNpcStateEvent.o
+[x] Npc/TalkNpcSceneEventSwitcher.o
+[x] Npc/TalkNpcPartialAnimCtrl.o
+[x] Npc/TalkNpcParamHolder.o
+[x] Npc/TalkNpcParam.o
+[x] Npc/TalkNpcFreeze.o
+[x] Npc/TalkNpcEyeLineAnimParam.o
+[x] Npc/TalkNpcCap.o
+[x] Npc/TalkNpcActionAnimInfo.o
 [ ] Npc/TalkNpc.o
 [ ] Npc/Squirrel.o
 [ ] Npc/SphinxRideStateStop.o

@@ -27,7 +27,7 @@ public:
     void resetControlAll();
     void addControlRateAll(f32);
     void subControlRateAll(f32);
-    s32 calcInitFileSpringControlJointNum(const LiveActor*, const char*);
+    static s32 calcInitFileSpringControlJointNum(const LiveActor*, const char*);
 
 private:
     JointSpringController** mJointSpringControllerEntries;

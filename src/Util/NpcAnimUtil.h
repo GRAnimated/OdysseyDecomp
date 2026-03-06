@@ -4,9 +4,14 @@
 #include <math/seadQuat.h>
 #include <math/seadVector.h>
 
+#include "System/GameDataHolderAccessor.h"
+
 namespace al {
+class EventFlowEventData;
+class EventFlowExecutor;
 class HitSensor;
 class IUseNerve;
+class IUseSceneObjHolder;
 class LiveActor;
 class MtxConnector;
 class SensorMsg;
@@ -16,9 +21,20 @@ class ActorStateReactionBase;
 class NpcJointLookAtController;
 class NpcStateReactionParam;
 class PlayerEyeSensorHitHolder;
+class TalkNpcActionAnimInfo;
 class TalkNpcParam;
 
+namespace sead {
+template <typename T>
+class BufferedSafeStringBase;
+}
+
 namespace rs {
+const char* makeNpcActionName(sead::BufferedSafeStringBase<char>*, const al::LiveActor*,
+                              const char*);
+bool isOneTimeNpcAction(const al::LiveActor*, const char*);
+void startNpcAction(al::LiveActor*, const char*);
+bool tryStartNpcActionIfNotPlaying(al::LiveActor*, const char*);
 bool tryApplyNpcMaterialAnimPresetFromPlacementInfo(al::LiveActor*, const al::ActorInitInfo&,
                                                     const TalkNpcParam*);
 void setNpcMaterialAnimFromPlacementInfo(al::LiveActor*, const al::ActorInitInfo&);
@@ -59,10 +75,25 @@ void animateCityMayorFace(al::LiveActor*, const char*, f32);
 ActorStateReactionBase* createNpcStateReaction(al::LiveActor*, const TalkNpcParam*,
                                                const NpcStateReactionParam*);
 bool isInvalidTrampleSensor(const al::HitSensor*, const TalkNpcParam*);
+bool isMsgPlayerDisregardHomingAttack(const al::SensorMsg*);
+void attackSensorNpcCommon(al::HitSensor*, al::HitSensor*);
+void sendMsgEventFlowScareCheck(al::HitSensor*, al::HitSensor*, al::EventFlowExecutor*);
+bool isNpcScareTiming(const al::EventFlowExecutor*);
+void calcPlayerWatchTrans(sead::Vector3f*, const al::LiveActor*, const TalkNpcParam*);
+bool checkGetShineForWorldTravelingPeach(GameDataHolderAccessor, const char*);
+bool checkEnableAppearMoonWorldTravelingPeach(const al::LiveActor*);
+bool checkEnableStartEventAndCancelReaction(al::LiveActor*, const TalkNpcParam*);
+void registerPlayerStartInfoToHolderForTimeBalloon(const al::IUseSceneObjHolder*,
+                                                   const al::ActorInitInfo&);
+bool isStartWorldTravelingPeach(const al::LiveActor*);
+bool isTalkWorldTravelingPeach(const al::LiveActor*);
+void talkWorldTravelingPeach(const al::LiveActor*);
 }  // namespace rs
 
 namespace TalkNpcFunction {
 bool tryGetHackingEventHackType(s32*, const al::ActorInitInfo&);
+bool receiveEventChangeWaitAction(TalkNpcActionAnimInfo*, const al::EventFlowEventData*,
+                                  const TalkNpcParam*);
 }
 
 namespace BirdFunction {

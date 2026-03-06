@@ -115,12 +115,14 @@ Before writing or modifying any code, determine what's blocking the match. Run `
 - Forward declare `ActorInitInfo` as `struct ActorInitInfo;` (not `class`).
 - Free functions in a namespace, not a class with static methods.
 - Parameter names in declarations must match definitions exactly.
+- **Move most/all member initializations into the header** (in-class member initializers). This avoids constructor mismatch issues caused by different initialization ordering or compiler expansion of inline default inits vs explicit constructor body stores.
 
 ### Step 3: Implement
 
 - Reimplement — never copy-paste pseudocode. No `goto`s.
 - Identify inlined functions and call the original inline.
 - Consult `docs/MATCHING.md` while writing — apply correct patterns from the start.
+- **Use sead vector operators** for vector math: `operator+`, `operator-`, `operator*`, `.length()`. Prefer `(*midpoint - al::getTrans(this)).length()` over manual component-by-component dx/dy/dz + `sqrtf`.
 
 **Recognising inlines**: IDA shows direct field access instead of a function call. `*(*(this+8)+8)` = `getStringTop()`. Field offsets in place of a named call = inline.
 
@@ -154,6 +156,7 @@ NERVES_MAKE_NOSTRUCT(MyClass, Idle, Move);
 - `check_format` — fix everything it reports.
 - `check` (no args) — confirm all statuses.
 - `listsym` — find unlabeled symbols. Add function names and recheck if any are empty. Do not change existing entries' symbols.
+- **Check for static initializer functions** (like `sub_I_XXX` or `_GLOBAL__sub_I_` entries in `file_list.yml`) — these are compiler-generated functions for global/static variable initialization. Fill in their labels in `file_list.yml` and verify they match.
 - Update `docs/MATCHING.md` with any new patterns discovered.
 
 ## Abort Rules

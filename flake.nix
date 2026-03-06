@@ -48,6 +48,7 @@
             openssl
             ncurses5
             ncurses6
+            bash
           ];
           env = {
             LD_LIBRARY_PATH = "${pkgs.lib.makeLibraryPath buildInputs}";
