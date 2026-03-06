@@ -60,6 +60,7 @@ void resetEventCharacterName(al::EventFlowExecutor*);
 void setEventBalloonFilterOnlyMiniGame(const al::LiveActor*);
 void resetEventBalloonFilter(const al::LiveActor*);
 bool tryStartEventCutSceneDemo(al::LiveActor*);
+void tryStartEventCutSceneKeepHackDemo(al::LiveActor*);
 void endEventCutSceneDemoOrTryEndEventCutSceneDemoBySkip(al::LiveActor*);
 void tryHideDemoPlayerIfRequested(al::LiveActor*, al::EventFlowExecutor*);
 void tryShowDemoPlayerIfRequested(al::LiveActor*, al::EventFlowExecutor*);

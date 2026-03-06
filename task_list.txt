@@ -36,8 +36,8 @@
 [x] Npc/SphinxRide.o
 [x] Npc/SphinxQuizRouteKillExecutor.o
 [x] Npc/SphinxQuiz.o
-[ ] Push to claude-testing to GitHub if you haven't already
-[ ] Npc/SnowManRaceNpc.o
+[x] Push to claude-testing to GitHub if you haven't already
+[x] Npc/SnowManRaceNpc.o
 [ ] Npc/SkeletonDynamics.o
 [ ] Npc/ShibakenStateWaitFar.o
 [ ] Npc/ShibakenStateWait.o
