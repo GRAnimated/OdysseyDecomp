@@ -23,17 +23,22 @@ void restartEventFlow(al::EventFlowExecutor*);
 void initEventCameraTalk(al::EventFlowExecutor*, const al::ActorInitInfo&, const char*, f32);
 void initEventMovement(al::EventFlowExecutor*, al::EventFlowMovement*, const al::ActorInitInfo&);
 void initEventMovementWait(al::EventFlowExecutor*, const al::ActorInitInfo&);
+void initEventMovementRail(al::EventFlowExecutor*, const al::ActorInitInfo&);
+void initEventMovementWander(al::EventFlowExecutor*, const al::ActorInitInfo&);
 void initEventMovementTurnSeparate(al::EventFlowExecutor*, const al::ActorInitInfo&);
 al::EventFlowExecutor* initEventFlow(al::LiveActor*, const al::ActorInitInfo&, const char*,
                                      const char*);
 al::EventFlowExecutor* initEventFlowSuffix(al::LiveActor*, const al::ActorInitInfo&, const char*,
                                            const char*, const char*);
+al::EventFlowExecutor* initEventFlowForSystem(al::LiveActor*, const al::ActorInitInfo&,
+                                              const char*, const char*, const char*);
 al::EventFlowExecutor* initEventFlowFromPlacementInfo(al::LiveActor*, const al::ActorInitInfo&,
                                                       const char*);
 void startEventFlow(al::EventFlowExecutor*, const char*);
 bool updateEventFlow(al::EventFlowExecutor*);
 bool isActiveEventDemo(const al::LiveActor*);
 bool isEqualEventDemoStartActor(const al::LiveActor*);
+bool isExistTrafficAreaDirector(const al::LiveActor*);
 void stopTrafficRailByTraffic(const al::LiveActor*);
 void restartTrafficRailByTraffic(const al::LiveActor*);
 bool tryPermitEnterTrafficNpcAndSyncDrawClipping(al::LiveActor*);
@@ -59,4 +64,10 @@ bool isPlayingNpcEventBalloonMessageVoice(const al::LiveActor*);
 bool isCloseNpcDemoEventTalkMessage(const al::LiveActor*);
 void requestSwitchTalkNpcEventVolleyBall(al::LiveActor*, s32);
 void skipEventDemo(al::EventFlowExecutor*);
+const char* tryGetTalkNpcVolleyBallEntryName(const al::LiveActor*);
+const char* tryGetTalkNpcJumpingRopeEntryName(const al::LiveActor*);
+const char* tryGetTalkNpcRadiconEntryName(const al::LiveActor*);
+void startWorldTravelingPeach(const al::LiveActor*);
+void tryInitItemKeeperByEvent(al::LiveActor*, const al::ActorInitInfo&,
+                              const al::EventFlowExecutor*);
 }  // namespace rs

@@ -11,6 +11,7 @@ class TalkNpcActionAnimInfo;
 class RandomActionUpdater : public al::NerveExecutor {
 public:
     RandomActionUpdater(al::LiveActor*, const TalkNpcActionAnimInfo*);
+    void initBalloonAction(const char* actionName);
     void update();
     void forceEnd();
     void restart();

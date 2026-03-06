@@ -71,6 +71,8 @@ bool isExistJoint(const LiveActor* actor, const char*);
 s32 getJointIndex(const LiveActor* actor, const char*);
 s32 getJointIndex(const ModelKeeper* keeper, const char*);
 const char* getJointName(const ModelKeeper* keeper, s32 jointIndex);
+s32 getJointNum(const ModelKeeper* keeper);
+s32 getParentJointIndex(const ModelKeeper* keeper, s32 jointIndex);
 sead::Matrix34f* getJointMtxPtr(const LiveActor* actor, const char*);  // return type might be const
 sead::Matrix34f* getJointMtxPtrByIndex(const LiveActor* actor, s32);
 void getJointLocalTrans(sead::Vector3f*, const LiveActor* actor, const char*);
