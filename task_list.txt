@@ -26,12 +26,12 @@
 [x] Npc/TalkNpcEyeLineAnimParam.o
 [x] Npc/TalkNpcCap.o
 [x] Npc/TalkNpcActionAnimInfo.o
-[ ] Npc/TalkNpc.o
-[ ] Npc/Squirrel.o
-[ ] Npc/SphinxRideStateStop.o
-[ ] Npc/SphinxRideStateRevival.o
-[ ] Npc/SphinxRideMiniGameNpc.o
-[ ] Npc/SphinxRideEvent.o
+[x] Npc/TalkNpc.o
+[x] Npc/Squirrel.o
+[x] Npc/SphinxRideStateStop.o
+[x] Npc/SphinxRideStateRevival.o
+[x] Npc/SphinxRideMiniGameNpc.o
+[x] Npc/SphinxRideEvent.o
 [ ] Npc/SphinxRideAim.o
 [ ] Npc/SphinxRide.o
 [ ] Npc/SphinxQuizRouteKillExecutor.o

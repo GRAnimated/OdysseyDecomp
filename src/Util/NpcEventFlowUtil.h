@@ -7,6 +7,7 @@ namespace al {
 struct ActorInitInfo;
 class EventFlowExecutor;
 class EventFlowMovement;
+class IEventFlowQueryJudge;
 class LiveActor;
 class MessageTagDataHolder;
 }  // namespace al
@@ -44,6 +45,7 @@ void restartTrafficRailByTraffic(const al::LiveActor*);
 bool tryPermitEnterTrafficNpcAndSyncDrawClipping(al::LiveActor*);
 bool isDefinedEventCamera(const al::EventFlowExecutor*, const char*);
 void initEventCameraObject(al::EventFlowExecutor*, const al::ActorInitInfo&, const char*);
+void initEventQueryJudge(al::EventFlowExecutor*, const al::IEventFlowQueryJudge*);
 void initEventCameraObjectAfterKeepPose(al::EventFlowExecutor*, const al::ActorInitInfo&,
                                         const char*);
 void initEventMessageTagDataHolder(al::EventFlowExecutor*, const al::MessageTagDataHolder*);

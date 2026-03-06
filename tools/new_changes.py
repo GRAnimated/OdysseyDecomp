@@ -5,9 +5,11 @@ import subprocess
 def run(cmd):
     return subprocess.check_output(cmd, shell=True, text=True)
 
-diff = run("git diff")
-for f in run("git ls-files --others --exclude-standard").splitlines():
-    diff += run(f"diff -u /dev/null '{f}' || true")
+BASE = "0dc7bc63a9a2fb5c158d58c59b33dfc7c3032207"
+diff = run(f"git diff {BASE}")
+for f in run(f"git diff --name-only --diff-filter=A {BASE}").splitlines():
+    if not run(f"git ls-files '{f}'").strip():
+        diff += run(f"diff -u /dev/null '{f}' || true")
 
 counts = {"Matching": 0, "NonMatchingMinor": 0, "NonMatchingMajor": 0}
 files = {}

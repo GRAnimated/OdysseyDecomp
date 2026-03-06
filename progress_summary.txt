@@ -1,0 +1,11 @@
+=== LAST UPDATED: WorldTravelingPartner complete ===
+Processed TUs: 9 | Current TU: Npc/WorldTravelingNpc.o
+HelpNpc.o: 17 functions — 17 Matching
+YukimaruStateMove.o: 24 functions — 15 Matching, 3 NonMatchingMinor, 6 NonMatchingMajor
+YukimaruStateHack.o: 37 functions — 36 Matching, 1 NonMatchingMinor
+YukimaruRacerTiago.o: 25 functions — 14 Matching, 4 NonMatchingMinor, 7 NonMatchingMajor
+YukimaruRacer.o: 20 functions — 13 Matching, 5 NonMatchingMinor, 2 NonMatchingMajor
+Yukimaru.o: 23 functions — 23 Matching
+WorldTravelingPeachWaitState.o: 25 functions — 25 Matching
+WorldTravelingPeach.o: 17 functions — 12 Matching, 5 NonMatching (ctors/init/control/receiveEvent)
+WorldTravelingPartner.o: 16 functions — 16 Matching
