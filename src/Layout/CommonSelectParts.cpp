@@ -76,6 +76,7 @@ CommonSelectParts::CommonSelectParts(const char* name, al::LayoutActor* layoutAc
 
 CommonSelectParts::~CommonSelectParts() = default;
 
+// NON_MATCHING: register allocation differs
 void CommonSelectParts::activateAll() {
     for (s32 i = 0; i < mStateCount; i++)
         mStateArray[i] = SelectPartsState::Active;
@@ -106,6 +107,7 @@ void CommonSelectParts::startSelectWithChoiceTable(const char16** textTable, s32
     al::setNerve(this, &AppearBefore);
 }
 
+// NON_MATCHING: register allocation differs
 void CommonSelectParts::startSelectWithChoiceTableWithoutPosAnim(const char16** textTable,
                                                                  s32 itemCount, s32 defaultIdx) {
     mWithoutPosAnim = true;
@@ -131,6 +133,7 @@ void CommonSelectParts::startSelectWithChoiceTableWithoutPosAnim(const char16** 
     al::setNerve(this, &NrvCommonSelectParts.SelectNoAppearAction);
 }
 
+// NON_MATCHING: register allocation differs
 void CommonSelectParts::startSelectWithChoiceInfo(const al::EventFlowChoiceInfo* choiceInfo) {
     mWithoutPosAnim = false;
     mItemCount = *(const s32*)((const char*)choiceInfo + 8);
@@ -191,6 +194,7 @@ void CommonSelectParts::reset() {
 
 void CommonSelectParts::exeHide() {}
 
+// NON_MATCHING: register allocation differs
 void CommonSelectParts::exeAppearBefore() {
     if (!al::isGreaterEqualStep(this, 10))
         return;
@@ -216,6 +220,7 @@ void CommonSelectParts::exeAppearBefore() {
     al::setNerve(this, &Appear);
 }
 
+// NON_MATCHING: register allocation differs
 void CommonSelectParts::exeAppear() {
     al::LayoutActor* cursorActor = mCursorActor;
     sead::Vector2f cursorPos = {};
@@ -226,6 +231,7 @@ void CommonSelectParts::exeAppear() {
         al::setNerve(this, &AppearAfter);
 }
 
+// NON_MATCHING: register allocation differs
 void CommonSelectParts::exeAppearAfter() {
     al::LayoutActor* cursorActor = mCursorActor;
     sead::Vector2f cursorPos = {};
@@ -235,6 +241,7 @@ void CommonSelectParts::exeAppearAfter() {
     al::setNerveAtGreaterEqualStep(this, &AppearCursor, 5);
 }
 
+// NON_MATCHING: register allocation differs
 void CommonSelectParts::exeAppearCursor() {
     if (al::isFirstStep(this))
         al::startAction(mCursorActor, "Appear");
@@ -248,6 +255,7 @@ void CommonSelectParts::exeAppearCursor() {
         al::setNerve(this, &Select);
 }
 
+// NON_MATCHING: register allocation differs
 void CommonSelectParts::exeSelect() {
     if (al::isFirstStep(this)) {
         if (!mWithoutPosAnim)
@@ -351,6 +359,7 @@ void CommonSelectParts::exeSelect() {
     }
 }
 
+// NON_MATCHING: register allocation differs
 void CommonSelectParts::exeDecideParts() {
     if (al::isFirstStep(this)) {
         al::startAction(mItemParts[mSelectedIdx], "Decide");
@@ -375,6 +384,7 @@ void CommonSelectParts::exeDecideDeactiveParts() {
     al::setNerve(this, &AppearCursor);
 }
 
+// NON_MATCHING: register allocation differs
 void CommonSelectParts::exeDecide() {
     if (al::isFirstStep(this))
         al::startAction(mLayoutActor, "SelectEnd", "Pos");

@@ -23,8 +23,7 @@ void ShopItemState::onBuyLifeUpItem() {
 
 // NON_MATCHING: branch layout differs (shared tail block placed differently)
 bool ShopItemState::isBuyAlreadyShineBeforeGameClear(const Shine* shine) const {
-    GameDataHolderAccessor accessor(static_cast<const al::IUseSceneObjHolder*>(shine));
-    if (GameDataFunction::isGameClear(accessor))
+    if (GameDataFunction::isGameClear(shine))
         return false;
     if (mIsBoughtShine)
         return true;
@@ -33,8 +32,7 @@ bool ShopItemState::isBuyAlreadyShineBeforeGameClear(const Shine* shine) const {
 
 // NON_MATCHING: branch layout differs (shared tail block placed differently)
 bool ShopItemState::isBuyAlreadyShineAfterGameClear(const Shine* shine) const {
-    GameDataHolderAccessor accessor(static_cast<const al::IUseSceneObjHolder*>(shine));
-    if (!GameDataFunction::isGameClear(accessor))
+    if (!GameDataFunction::isGameClear(shine))
         return false;
     if (mIsBoughtShine)
         return true;
@@ -42,6 +40,5 @@ bool ShopItemState::isBuyAlreadyShineAfterGameClear(const Shine* shine) const {
 }
 
 bool ShopItemState::isBuyAlreadyLifeUpItem(const al::LayoutActor* actor) const {
-    GameDataHolderAccessor accessor(static_cast<const al::IUseSceneObjHolder*>(actor));
-    return GameDataFunction::isPlayerHitPointMaxWithItem(accessor) || mIsBoughtLifeUp;
+    return GameDataFunction::isPlayerHitPointMaxWithItem(actor) || mIsBoughtLifeUp;
 }
