@@ -38,6 +38,7 @@ s32 getStageInfoMapNum(const Scene* scene);
 s32 getStageInfoDesignNum(const Scene* scene);
 s32 getStageInfoSoundNum(const Scene* scene);
 StageInfo* getStageInfoMap(const Scene* scene, s32 index);
+StageInfo* getStageInfoMap(const Scene* scene);
 StageInfo* getStageInfoDesign(const Scene* scene, s32 index);
 StageInfo* getStageInfoSound(const Scene* scene, s32 index);
 Resource* getStageResourceMap(const Scene* scene, s32 index);
@@ -93,6 +94,8 @@ void registerSwitchOnAreaGroup(Scene* scene, SwitchOnAreaGroup* switchOnAreaGrou
 void registerSwitchKeepOnAreaGroup(Scene* scene, SwitchKeepOnAreaGroup* switchKeepOnAreaGroup);
 void initGraphicsSystemInfo(Scene* scene, const char* name, s32 index);
 void initCameraDirector(Scene* scene, const CameraPoserFactory* cameraPoserFactory);
+void initCameraDirector(Scene* scene, const char* stageName, s32 scenarioNo,
+                        CameraPoserFactory* cameraPoserFactory);
 void initCameraDirectorWithoutStageResource(Scene* scene,
                                             const CameraPoserFactory* cameraPoserFactory);
 void initCameraDirectorFix(Scene* scene, const sead::Vector3f& pos, const sead::Vector3f& lookAtPos,
@@ -133,6 +136,8 @@ void initAudioDirector3D(Scene* scene, const SceneInitInfo& sceneInfo,
                          const sead::LookAtCamera* lookAtCamera, const Projection* projection,
                          AreaObjDirector* areaObjDirector);
 void initSceneAudioKeeper(Scene* scene, const SceneInitInfo& sceneInfo, const char* name);
+AudioDirectorInitInfo createAudioDirectorInitInfoForStageScene();
+void deactivateAudioEventController(const Scene* scene);
 void setIsSafeFinalizingInParallelThread(Scene* scene, bool isSafe);
 void updateKit(Scene* scene);
 void updateKitTable(Scene* scene, const char* name);

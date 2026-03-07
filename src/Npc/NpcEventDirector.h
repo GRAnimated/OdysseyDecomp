@@ -56,6 +56,10 @@ public:
 
     al::SceneObjHolder* getSceneObjHolder() const override { return mSceneObjHolder; }
 
+    NpcEventCtrlInfo* getNpcEventCtrlInfo() const { return mNpcEventCtrlInfo; }
+
+    EventDemoCtrl* getEventDemoCtrl() const { return mEventDemoCtrl; }
+
 private:
     NpcEventSceneInfo* mNpcEventSceneInfo;
     NpcEventCtrlInfo* mNpcEventCtrlInfo;

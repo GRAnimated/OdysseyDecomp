@@ -42,6 +42,8 @@ public:
 
     ClippingActorHolder* getClippingActorHolder() const { return mClippingActorHolder; }
 
+    const ClippingJudge* getClippingJudge() const { return mClippingJudge; }
+
 private:
     ClippingJudge* mClippingJudge = nullptr;
     ClippingFarAreaObserver* mFarAreaObserver = nullptr;

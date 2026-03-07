@@ -213,7 +213,11 @@ public:
 
     void set_49() { _49 = true; }
 
+    void reset_49() { _49 = false; }
+
     void set_4a() { _4a = true; }
+
+    void reset_4a() { _4a = false; }
 
     s64 getPlayTimeAcrossFile() const { return mPlayTimeAcrossFile; }
 
@@ -222,6 +226,10 @@ public:
     }
 
     void resetTemporaryScenarioCameraHolder() { mTemporaryScenarioCameraHolder = nullptr; }
+
+    void setTemporaryScenarioCameraHolder(TemporaryScenarioCameraHolder* holder) {
+        mTemporaryScenarioCameraHolder = holder;
+    }
 
     const sead::PtrArray<ShopItem::ItemInfo>& getClothList() const { return mItemCloth; }
 
@@ -280,6 +288,15 @@ public:
     GameSequenceInfo* getSequenceInfo() const { return mSequenceInfo; }
 
     GameConfigData* getGameConfigData() const { return mGameConfigData; }
+
+    QuestInfoHolder* getQuestInfoHolder() const { return mQuestInfoHolder; }
+
+    TimeBalloonSequenceInfo* getTimeBalloonSequenceInfo() const {
+        return mTimeBalloonSequenceInfo;
+    }
+
+    void setIsWaitingForStageStart(bool value);
+    void setUnkNumber(s32 value);
 
 private:
     al::MessageSystem* mMessageSystem;

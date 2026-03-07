@@ -4,6 +4,7 @@
 #include <math/seadMatrix.h>
 
 namespace al {
+class OcclusionCullingJudge;
 class Projection;
 
 struct SeDirectorInitInfo {
@@ -20,7 +21,7 @@ struct SeDirectorInitInfo {
     const sead::Matrix34f* cameraMatrix = nullptr;
     const Projection* cameraProjection = nullptr;
     const sead::Vector3f* cameraAt = nullptr;
-    void* field_58 = nullptr;
+    const OcclusionCullingJudge* occlusionCullingJudge = nullptr;
     f32 interiorSize = -1.0f;
     f32 pitchModifier = 1.0f;
 };

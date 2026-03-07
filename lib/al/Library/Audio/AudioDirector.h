@@ -51,6 +51,7 @@ public:
     void removeAudiioFrameProccess(aal::IAudioFrameProcess* process);
     void* getAudioMaximizer() const;  // unknown return type
     bool isPpausedSystem(const char* name) const;
+    SeDirector* getSeDirector() const { return mSeDirector; }
 
     void pauseSystem(bool, const char*, bool, f32, bool, bool, bool) override;
     AreaObjDirector* getAreaObjDirector() const override;

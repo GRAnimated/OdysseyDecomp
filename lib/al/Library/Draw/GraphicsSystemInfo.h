@@ -193,6 +193,8 @@ public:
 
     PostProcessingFilter* getPostProcessingFilter() const { return mPostProcessingFilter; }
 
+    SubCameraRenderer* getSubCameraRenderer() const { return mSubCameraRenderer; }
+
     GpuMemAllocator* getGpuMemAllocator() const { return mGpuMemAllocator; }
 
     ModelShaderHolder* getModelShaderHolder() const { return mModelShaderHolder; }
