@@ -73,6 +73,7 @@
 #include "Npc/NpcEventCtrlInfo.h"
 #include "Npc/NpcEventDirector.h"
 #include "Player/PlayerCameraTarget.h"
+#include "Player/PlayerActorBase.h"
 #include "Player/PlayerFactory.h"
 #include "Player/ProjectCameraInput.h"
 #include "Scene/BgmAnimeSyncDirector.h"
@@ -285,12 +286,14 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
         rs::isModeMovieRom() || GameDataFunction::isHomeShipStage(mGameDataHolder))
         alGraphicsFunction::invalidateCameraBlurSystem(this);
     al::NetworkSystem* networkSystem = initInfo.gameSystemInfo->networkSystem;
-    al::DataStoreDirector* dataStoreDir = networkSystem->getDataStoreDirector();
-    if (dataStoreDir)
-        al::setSceneObj(this, dataStoreDir, SceneObjID_alDataStoreDirector);
-    al::RankingDirector* rankingDir = networkSystem->getRankingDirector();
-    if (rankingDir)
-        al::setSceneObj(this, rankingDir, SceneObjID_alRankingDirector);
+    if (networkSystem) {
+        al::DataStoreDirector* dataStoreDir = networkSystem->getDataStoreDirector();
+        if (dataStoreDir)
+            al::setSceneObj(this, dataStoreDir, SceneObjID_alDataStoreDirector);
+        al::RankingDirector* rankingDir = networkSystem->getRankingDirector();
+        if (rankingDir)
+            al::setSceneObj(this, rankingDir, SceneObjID_alRankingDirector);
+    }
     ProjectItemDirector* itemDir = new ProjectItemDirector();
     al::initItemDirector(this, itemDir);
     mProjectItemDirector = itemDir;
@@ -708,7 +711,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
             al::LiveActor* player =
                 playerFactory.createActor(playerActorInitInfo, className);
 
-            s32 mainControllerPort = al::getMainControllerPort();
+            s32 mainControllerPort = static_cast<PlayerActorBase*>(player)->getPortNo();
             al::PadRumbleKeeper* padRumbleKeeper =
                 al::createPadRumbleKeeper(player, mainControllerPort);
             alPlayerFunction::registerPlayer(player, padRumbleKeeper);

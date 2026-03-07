@@ -4,6 +4,6 @@
 
 class OpeningStageStartDemo : public al::LiveActor {
 public:
-    bool isEnableStart() const;
+    virtual bool isEnableStart() const;
     void startDemo();
 };
