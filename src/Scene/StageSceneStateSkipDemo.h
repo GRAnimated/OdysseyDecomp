@@ -19,4 +19,9 @@ public:
                             PlayGuideSkip*, SceneAudioSystemPauseController*,
                             al::DemoSyncedEventKeeper*);
     void setWorldMapState(StageSceneStateWorldMap*);
+
+private:
+    u8 _padding[0x48];
 };
+
+static_assert(sizeof(StageSceneStateSkipDemo) == 0x68);

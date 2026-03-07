@@ -17,4 +17,9 @@ public:
                             SceneAudioSystemPauseController*, InputSeparator*,
                             NpcEventDirector*);
     void init();
+
+private:
+    u8 _padding[0x20];
 };
+
+static_assert(sizeof(StageSceneStateSnapShot) == 0x40);

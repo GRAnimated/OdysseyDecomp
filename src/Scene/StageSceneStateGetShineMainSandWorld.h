@@ -22,4 +22,9 @@ public:
     void setStateRecoverLife(StageSceneStateRecoverLife*);
     void setStateGetShineLast(StageSceneStateGetShineMainLast*);
     void setPyramid(Pyramid*);
+
+private:
+    unsigned char _padding[0x50 - 0x20];
 };
+
+static_assert(sizeof(StageSceneStateGetShineMainSandWorld) == 0x50);

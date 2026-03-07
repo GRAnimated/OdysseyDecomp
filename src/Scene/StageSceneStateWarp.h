@@ -15,4 +15,9 @@ public:
     StageSceneStateWarp(const char*, al::Scene*, al::WipeSimple*, GameDataHolder*,
                         LocationNameCtrl*);
     void init();
+
+private:
+    unsigned char _padding[0x48 - 0x20];
 };
+
+static_assert(sizeof(StageSceneStateWarp) == 0x48);

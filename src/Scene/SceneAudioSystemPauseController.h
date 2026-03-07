@@ -15,5 +15,7 @@ public:
     void resume(s32);
 
 private:
-    void* filler[2];
+    u8 _padding[0x10];
 };
+
+static_assert(sizeof(SceneAudioSystemPauseController) == 0x10);

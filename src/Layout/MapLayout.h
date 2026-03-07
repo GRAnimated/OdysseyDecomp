@@ -15,7 +15,12 @@ class PlayerHolder;
 class MapLayout : public al::ISceneObj {
 public:
     MapLayout(const al::LayoutInitInfo&, const al::PlayerHolder*, s32);
+
+private:
+    u8 _padding[0x290];
 };
+
+static_assert(sizeof(MapLayout) == 0x298);
 
 namespace rs {
 void calcTransOnMap(sead::Vector2f*, const sead::Vector3f&, const sead::Matrix44f&,

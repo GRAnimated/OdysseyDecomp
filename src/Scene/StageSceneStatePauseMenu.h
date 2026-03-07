@@ -112,3 +112,5 @@ private:
     SceneAudioSystemPauseController* mSceneAudioSystemPauseController = nullptr;
     al::HtmlViewer* mHtmlViewer = nullptr;
 };
+
+static_assert(sizeof(StageSceneStatePauseMenu) == 0xF0);

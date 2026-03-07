@@ -222,6 +222,7 @@ NERVES_MAKE_STRUCT(StageScene, StartStageBgm, CollectBgm, CollectionList, MiniGa
 
 void StageScene::init(const al::SceneInitInfo& initInfo) {
     mStageName = initInfo.initStageName;
+    mScenarioNo = initInfo.scenarioNo;
     initDrawSystemInfo(initInfo);
     al::initRandomSeedByString(mStageName.cstr());
     al::GameFrameworkNx* framework;
@@ -243,7 +244,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     initSceneObjHolder(sceneObjHolder);
     al::createSceneObj(this, SceneObjID_KidsModeLayoutAccessor);
     al::createSceneObj(this, SceneObjID_GuidePosInfoHolder);
-    al::createSceneObj(this, SceneObjID_RouteGuideDirector);
+    al::createSceneObj(this, SceneObjID_SceneEventNotifier);
     initAndLoadStageResource(mStageName.cstr(), initInfo.scenarioNo);
     GameDataHolder* dataHolder = (GameDataHolder*)initInfo.gameDataHolder;
     mGameDataHolder = dataHolder;
@@ -256,7 +257,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     al::setSceneObj(this, mGameDataHolder->getQuestInfoHolder(), SceneObjID_QuestInfoHolder);
     al::createSceneObj(this, SceneObjID_PaintObjHolder);
     al::createSceneObj(this, SceneObjID_FukankunZoomObjHolder);
-    al::createSceneObj(this, SceneObjID_SphinxQuizRouteKillExecutor);
+    al::createSceneObj(this, SceneObjID_alStageSyncCounter);
     al::createSceneObj(this, SceneObjID_GrowPlantDirector);
     al::createSceneObj(this, SceneObjID_CapManHeroDemoDirector);
     initScreenCoverCtrl();
@@ -296,7 +297,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     ProjectDemoDirector* demoDir = new ProjectDemoDirector(
         al::getScenePlayerHolder(this), getLiveActorKit()->getGraphicsSystemInfo());
     al::initDemoDirector(this, demoDir);
-    al::AudioDirectorInitInfo audioDirInitInfo = al::createAudioDirectorInitInfoForStageScene();
+    al::AudioDirectorInitInfo audioDirInitInfo;
     al::GraphicsSystemInfo* graphicsSysInfo = getLiveActorKit()->getGraphicsSystemInfo();
     if (graphicsSysInfo)
         audioDirInitInfo.seDirectorInitInfo.occlusionCullingJudge =
@@ -370,7 +371,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     mGameDataHolder->setUnkNumber(0);
     mLayoutTextureRenderer = new al::LayoutTextureRenderer();
     al::setSceneObj(this, mLayoutTextureRenderer, SceneObjID_alLayoutTextureRenderer);
-    al::createSceneObj(this, SceneObjID_NpcEventCtrlInfo);
+    al::createSceneObj(this, SceneObjID_HtmlViewerRequester);
     mHtmlViewer = initInfo.gameSystemInfo->htmlViewer;
     al::initCameraDirector(this, mStageName.cstr(), initInfo.scenarioNo,
                            new ProjectCameraPoserFactory());
@@ -382,6 +383,8 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     al::setCameraAspect(this, al::getSceneFrameBufferMainAspect(this),
                         al::getSceneFrameBufferMainAspect(this));
     al::initSnapShotCameraAudioKeeper(this, mSnapShotCameraCtrl);
+    ProjectAreaFactory* areaFactory = new ProjectAreaFactory();
+    al::initAreaObjDirector(this, areaFactory);
     EventFlowSceneExecuteCtrl* eventFlowExecCtrl = new EventFlowSceneExecuteCtrl();
     mNpcEventDirector =
         new NpcEventDirector(al::getScenePlayerHolder(this),
@@ -454,13 +457,13 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                                     "ShineStageName");
                 al::tryGetStringArg(&shineObjId, *areaObj->getPlacementInfo(), "ShineObjId");
                 al::tryGetArg(&shineGotOnOff, *areaObj->getPlacementInfo(), "ShineGotOnOff");
-                if (shineGotOnOff == 2) {
+                if (shineGotOnOff == 1) {
+                    if (!GameDataFunction::isGotShine(mGameDataHolder, shineStageName,
+                                                      shineObjId))
+                        areaObj->invalidate();
+                } else if (shineGotOnOff == 2) {
                     if (GameDataFunction::isGotShine(mGameDataHolder, shineStageName, shineObjId))
                         areaObj->invalidate();
-                } else if (shineGotOnOff == 1 &&
-                           !GameDataFunction::isGotShine(mGameDataHolder, shineStageName,
-                                                         shineObjId)) {
-                    areaObj->invalidate();
                 }
             }
         }
@@ -529,13 +532,22 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     al::initPlacementObjectMap(this, actorInitInfo, "CheckPointList");
     al::initPlacementObjectMap(this, actorInitInfo, "PlayerStartInfoList");
 
-    mShoppingWatcherGroup = new al::DeriveActorGroup<ShoppingWatcher>("ShoppingWatcherGroup", 26);
+    mShoppingWatcherGroup =
+        new al::DeriveActorGroup<ShoppingWatcher>("ショップ店員", 26);
     al::tryInitPlacementActorGroup(mShoppingWatcherGroup, this, actorInitInfo, 0,
                                    "SceneWatchObjList", "ShoppingWatcher");
 
-    al::LiveActorGroup doshiGroup("Doshi", 4);
-    al::tryInitPlacementActorGroup(&doshiGroup, this, actorInitInfo, 0, "SceneWatchObjList",
-                                   "Doshi");
+    al::LiveActorGroup doshiGroup("ドッシーグループ", 4);
+    if (al::tryInitPlacementActorGroup(&doshiGroup, this, actorInitInfo, 0, "SceneWatchObjList",
+                                       "Doshi")) {
+        for (s32 i = 0; i < doshiGroup.getActorCount(); i++) {
+            al::LiveActor* doshiActor = doshiGroup.getActor(i);
+            al::LiveActor* linked =
+                *(al::LiveActor**)((char*)doshiActor + 0x108);
+            if (linked)
+                mShoppingWatcherGroup->registerActor(linked);
+        }
+    }
 
     al::LiveActor* collectionList = al::tryInitPlacementSingleObject(this, actorInitInfo, 0,
                                                                       "SceneWatchObjList",
@@ -586,7 +598,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
         startId = playerStartId.cstr();
     }
 
-    s32 lastRaceRanking = GameDataFunction::getLastRaceRanking(mGameDataHolder);
+    s32 lastRaceRanking = GameDataFunction::getLastRaceRanking(GameDataHolderWriter(this));
     mGameDataHolder->reset_49();
     mGameDataHolder->reset_4a();
 
@@ -887,7 +899,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
 
     al::createSceneObj(this, SceneObjID_WipeHolderRequester);
 
-    s32 currentWorldId = GameDataFunction::getCurrentWorldId(mGameDataHolder);
+    s32 currentWorldId = GameDataFunction::getCurrentWorldId(GameDataHolderAccessor(this));
     mMapLayout = new MapLayout(layoutInitInfo, al::getScenePlayerHolder(this), currentWorldId);
     al::setSceneObj(this, mMapLayout, SceneObjID_MapLayout);
 
@@ -1148,11 +1160,11 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     if (GameDataFunction::isWarpCheckpoint(mGameDataHolder)) {
         al::setNerve(this, &NrvStageScene.ArriveAtCheckpoint);
     } else {
-        if (GameDataFunction::isPlayDemoWorldWarpHole(mGameDataHolder)) {
+        if (GameDataFunction::isPlayDemoWorldWarpHole(GameDataHolderAccessor(this))) {
             al::setNerve(this, &NrvStageScene.AppearFromWorldWarpHole);
         } else {
             s32 currentWorldIdNoDevelop =
-                GameDataFunction::getCurrentWorldIdNoDevelop(mGameDataHolder);
+                GameDataFunction::getCurrentWorldIdNoDevelop(GameDataHolderAccessor(this));
             if (!GameDataFunction::isUnlockedWorld(mGameDataHolder, currentWorldIdNoDevelop)) {
                 al::setNerve(this, &NrvStageScene.StartStageBgm);
             } else if (hasOpeningDemo) {
@@ -1163,7 +1175,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
             } else if (mOpeningStageStartDemo &&
                        ((OpeningStageStartDemo*)mOpeningStageStartDemo)->isEnableStart()) {
                 al::setNerve(this, &NrvStageScene.DemoStageStart);
-            } else if (GameDataFunction::isPlayDemoWorldWarp(mGameDataHolder) ||
+            } else if (GameDataFunction::isPlayDemoWorldWarp(GameDataHolderAccessor(this)) ||
                        mGameDataHolder->getGameDataFile()->getMainScenarioNoCurrent() == 2) {
                 rs::changeDemoCommonProc(this, mProjectItemDirector);
                 al::setNerve(this, &NrvStageScene.DemoWorldIntroCamera);
@@ -1172,16 +1184,16 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
             } else if (mStateScenarioCamera->tryStart()) {
                 al::resetRequestCaptureScreenCover(this);
                 al::setNerve(this, &NrvStageScene.DemoScenarioCamera);
-            } else if (GameDataFunction::isRaceStartYukimaru(mGameDataHolder)) {
+            } else if (GameDataFunction::isRaceStartYukimaru(GameDataHolderAccessor(this))) {
                 al::setNerve(this, &NrvStageScene.RaceYukimaru);
-            } else if (GameDataFunction::isRaceStartYukimaruTutorial(mGameDataHolder)) {
+            } else if (GameDataFunction::isRaceStartYukimaruTutorial(GameDataHolderAccessor(this))) {
                 al::setNerve(this, &NrvStageScene.RaceYukimaruTutorial);
             } else if (mStateRaceManRace) {
                 al::setNerve(this, &NrvStageScene.RaceManRace);
             } else if (GameDataFunction::isPlayDemoPlayerDownForBattleKoopaAfter(
-                           mGameDataHolder)) {
+                           GameDataHolderAccessor(this))) {
                 al::setNerve(this, &NrvStageScene.DemoPlayerDown);
-                GameDataFunction::disablePlayDemoPlayerDownForBattleKoopaAfter(mGameDataHolder);
+                GameDataFunction::disablePlayDemoPlayerDownForBattleKoopaAfter(GameDataHolderWriter(this));
             } else if (CapManHeroDemoUtil::isExistTalkDemoStageStart(this)) {
                 al::setNerve(this, &NrvStageScene.DemoStageStartCapManHeroTalk);
             } else if (CapManHeroDemoUtil::isExistTalkDemoAfterMoonRockBreakDemo(this)) {
@@ -1203,8 +1215,8 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     }
 
     if (al::isNerve(this, &NrvStageScene.DemoTalk) ||
-        al::isNerve(this, &NrvStageScene.Play))
-        _494 = true;
+        al::isNerve(this, &NrvStageScene.DemoReturnToHome))
+        mIsUpdateKitAndGraphics = true;
 
     if (mPyramid) {
         if (rs::isInvalidChangeStage(mPyramid)) {
@@ -1212,7 +1224,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
         } else {
             s32 scenarioNo = mScenarioNo;
             if (scenarioNo == 2) {
-                if (al::isNerve(this, &NrvStageScene.Play)) {
+                if (al::isNerve(this, &NrvStageScene.DemoReturnToHome)) {
                     ((Pyramid*)mPyramid)->resetAtOpenAndGround();
                     goto afterPyramidReset;
                 }
@@ -1249,7 +1261,7 @@ afterPyramidReset:
     if (rs::isShopStatusBuyShineMany(mDemoShine))
         mStateGetShine->setShopShine10();
     if (rs::isShopStatusBuyItem(mDemoShine))
-        _494 = true;
+        mIsUpdateKitAndGraphics = true;
     rs::setShopStatusNone(mDemoShine);
 
     if (al::isNerve(this, &NrvStageScene.DemoStageStart) ||
@@ -1293,7 +1305,7 @@ afterPyramidReset:
                                                 al::getSceneExecuteDirector(this),
                                                 getLiveActorKit()->getEffectSystem());
 
-    GameDataFunction::noPlayDemoWorldWarp(mGameDataHolder);
+    GameDataFunction::noPlayDemoWorldWarp(GameDataHolderWriter(this));
 }
 
 void StageScene::exeDemoGetLifeMaxUpItem() {

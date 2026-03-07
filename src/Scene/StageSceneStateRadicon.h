@@ -14,4 +14,9 @@ class StageSceneStateRadicon : public al::HostStateBase<al::Scene> {
 public:
     StageSceneStateRadicon(const char*, al::Scene*, StageSceneStateCollectionList*,
                            StageSceneStatePauseMenu*, StageSceneStateSnapShot*);
+
+private:
+    u8 _padding[0x20];
 };
+
+static_assert(sizeof(StageSceneStateRadicon) == 0x40);

@@ -22,4 +22,9 @@ public:
     void setScenarioStartCameraHolder(ScenarioStartCameraHolder*);
     void setScenarioStartLayout(al::SimpleLayoutAppearWaitEnd*);
     bool tryStart();
+
+private:
+    unsigned char _padding[0x50 - 0x20];
 };
+
+static_assert(sizeof(StageSceneStateScenarioCamera) == 0x50);

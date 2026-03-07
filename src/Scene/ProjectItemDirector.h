@@ -1,5 +1,7 @@
 #pragma once
 
+#include <basis/seadTypes.h>
+
 #include "Library/Scene/ItemDirectorBase.h"
 
 class GameDataHolder;
@@ -17,4 +19,9 @@ public:
     void declareItem(const char*, const al::ActorInitInfo&) override;
     void endInit() override;
     void initPlayerDeadCoin(GameDataHolder* holder, const al::ActorInitInfo& initInfo);
+
+private:
+    u8 _padding[0x60];
 };
+
+static_assert(sizeof(ProjectItemDirector) == 0x68);

@@ -19,4 +19,9 @@ public:
     void exeAppear();
     void exeWait();
     void exeEnd();
+
+private:
+    unsigned char _padding[0x130 - sizeof(al::LayoutActor)];
 };
+
+static_assert(sizeof(PlayGuideSkip) == 0x130);

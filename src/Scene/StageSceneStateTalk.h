@@ -26,4 +26,9 @@ public:
                         StageSceneStateSkipDemo*, StageSceneStateWorldMap*,
                         StageSceneStateGetShine*, StageSceneStateGetShineMain*,
                         StageSceneStateCollectionList*, GameDataHolder*, al::WipeSimple*);
+
+private:
+    u8 _padding[0x70];
 };
+
+static_assert(sizeof(StageSceneStateTalk) == 0x90);

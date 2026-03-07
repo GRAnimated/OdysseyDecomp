@@ -95,3 +95,5 @@ private:
     u16 _e0;
     s32 _e4;
 };
+
+static_assert(sizeof(ProjectDemoDirector) == 0xe8);

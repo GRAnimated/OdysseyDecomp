@@ -25,4 +25,9 @@ public:
                             al::LiveActor*, void*, GameDataHolder*, ProjectItemDirector*);
     void setLifeRecoverState(StageSceneStateRecoverLife*);
     void setShopShine10();
+
+private:
+    u8 _padding[0x108];
 };
+
+static_assert(sizeof(StageSceneStateGetShine) == 0x128);

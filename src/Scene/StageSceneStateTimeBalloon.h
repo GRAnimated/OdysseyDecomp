@@ -24,4 +24,9 @@ public:
                                TimeBalloonNpc*, s32, MiniGameMenu*, void*,
                                StageSceneStateWarp*);
     bool isAutoStart() const;
+
+private:
+    u8 _padding[0x138];
 };
+
+static_assert(sizeof(StageSceneStateTimeBalloon) == 0x158);

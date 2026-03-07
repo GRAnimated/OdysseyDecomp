@@ -19,3 +19,5 @@ public:
 private:
     StageSceneLayout* mLayout = nullptr;
 };
+
+static_assert(sizeof(StageSceneStateGetLifeMaxUpItem) == 0x28);

@@ -17,4 +17,9 @@ public:
                                     al::SimpleLayoutAppearWaitEnd*,
                                     al::SimpleLayoutAppearWaitEnd*, al::SimpleAudioUser*,
                                     StageSceneStateSkipDemo*);
+
+private:
+    unsigned char _padding[0x50 - 0x20];
 };
+
+static_assert(sizeof(StageSceneStateWorldIntroCamera) == 0x50);

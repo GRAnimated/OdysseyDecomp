@@ -25,4 +25,9 @@ public:
 
     al::LiveActor* getDemoShineActor() const;
     al::CameraTicket* getCameraTicket() const;
+
+private:
+    u8 _padding[0xb8];
 };
+
+static_assert(sizeof(StageSceneStateGetShineMain) == 0xd8);
