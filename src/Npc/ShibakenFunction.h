@@ -43,6 +43,9 @@ bool chaseToPlayerAndTryStop(Shibaken* shibaken);
 void chaseToTargetRun(Shibaken* shibaken, const sead::Vector3f& target);
 void chaseToTargetWalk(Shibaken* shibaken, const sead::Vector3f& target);
 void chaseToTargetWalkSniff(Shibaken* shibaken, const sead::Vector3f& target);
+void chaseToTarget(Shibaken* shibaken, const sead::Vector3f& target, f32 speed,
+                   bool limitToTarget, bool skipTurn);
+bool tryStartJump(al::IUseNerve* user, const Shibaken* shibaken, const al::Nerve* nerve);
 bool tryStartJump(al::HostStateBase<Shibaken>* state, const al::Nerve* nerve);
 bool executeFindTurnNerve(al::HostStateBase<Shibaken>* state, const sead::Vector3f& target,
                           sead::Quatf* quatA, sead::Quatf* quatB);
