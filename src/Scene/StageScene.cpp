@@ -265,9 +265,9 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     al::GraphicsInitArg graphicsInitArg(al::getSceneDrawContext(this),
                                         al::getSceneFrameBufferConsole(this));
     al::PlacementInfo placementInfos;
-    s32 placementInfoCount;
+    s32 placementInfoCount = 0;
     al::tryGetPlacementInfoAndCount(&placementInfos, &placementInfoCount,
-                                    al::getStageInfoMap(this), "ObjectList");
+                                    al::getStageInfoMap(this, 0), "ObjectList");
     bool foundMirror = false;
     if (placementInfoCount >= 1) {
         foundMirror = false;
@@ -279,6 +279,9 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
             i++;
         } while (i < placementInfoCount && !foundMirror);
     }
+    graphicsInitArg.atmosScatterViewNum = foundMirror;
+    graphicsInitArg._3c = 2;
+    graphicsInitArg._10 = 2 << (s32)foundMirror;
     initLiveActorKitWithGraphics(graphicsInitArg, initInfo, 5120, 4, 2);
     al::initGraphicsSystemInfo(this, mStageName.cstr(), mScenarioNo);
     if (rs::isModeJungleGymRom() || rs::isModeDiverRom() || rs::isModeE3MovieRom() ||

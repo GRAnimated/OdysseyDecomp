@@ -295,8 +295,8 @@ public:
         return mTimeBalloonSequenceInfo;
     }
 
-    void setIsWaitingForStageStart(bool value);
-    void setUnkNumber(s32 value);
+    void setIsWaitingForStageStart(bool value) { mIsExistKoopaShip = value; }
+    void setUnkNumber(s32 value) { mDeadPlayerCoinIdx = value; }
 
 private:
     al::MessageSystem* mMessageSystem;
