@@ -38,17 +38,17 @@
 [x] Npc/SphinxQuiz.o
 [x] Push to claude-testing to GitHub if you haven't already
 [x] Npc/SnowManRaceNpc.o
-[ ] Npc/SkeletonDynamics.o
-[ ] Npc/ShibakenStateWaitFar.o
-[ ] Npc/ShibakenStateWait.o
-[ ] Push to claude-testing to GitHub if you haven't already
-[ ] Npc/ShibakenStateTurn.o
-[ ] Npc/ShibakenStateSit.o
-[ ] Npc/ShibakenStatePointChase.o
+[x] Npc/SkeletonDynamics.o
+[x] Npc/ShibakenStateWaitFar.o
+[x] Npc/ShibakenStateWait.o
+[x] Push to claude-testing to GitHub if you haven't already
+[x] Npc/ShibakenStateTurn.o
+[x] Npc/ShibakenStateSit.o
+[x] Npc/ShibakenStatePointChase.o
 [ ] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/ShibakenStateJump.o
-[ ] Npc/ShibakenStateCapCatch.o
-[ ] Npc/ShibakenStateBark.o
+[x] Npc/ShibakenStateJump.o
+[x] Npc/ShibakenStateCapCatch.o
+[x] Npc/ShibakenStateBark.o
 [ ] Npc/ShibakenMoveAnimCtrl.o
 [ ] Push to claude-testing on GitHub if you haven't already
 [ ] Npc/ShibakenFunction.o

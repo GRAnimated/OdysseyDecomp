@@ -1,5 +1,6 @@
 #pragma once
 
+#include <container/seadPtrArray.h>
 #include <math/seadQuat.h>
 #include <math/seadVector.h>
 
@@ -10,6 +11,7 @@ class IDelegate1;
 
 namespace al {
 class LiveActor;
+class ModelKeeper;
 }  // namespace al
 
 struct SkeletonDynamicsCallbackInfo {
@@ -17,6 +19,9 @@ struct SkeletonDynamicsCallbackInfo {
     sead::Vector3f pos;
     sead::Quatf quat;
 };
+
+struct JointNode;
+struct SpringLink;
 
 class SkeletonDynamics {
 public:
@@ -30,7 +35,27 @@ public:
     void update();
 
 private:
-    u8 _0[0x40];
+    void updateAnimPose();
+    void calcAnimPoseInvRot();
+    void updateAnimPoseLocal();
+    void updateSpring();
+    void invokeDelegate();
+    void updateConstrainedJoint();
+    void clearForceAndTorque();
+    void updateForceAndTorque();
+    void updatePosAndRot();
+    void clearLengthConstraint();
+    f32 updateLengthConstraint();
+    void applyLengthConstraint();
+    void updateAnimJoint();
+    void updateAutoJoint();
+    void applyModel();
+
+    al::LiveActor* mActor;
+    sead::PtrArray<JointNode> mAllJoints;
+    sead::PtrArray<JointNode> mCtrlJoints;
+    sead::PtrArray<SpringLink> mLinks;
+    sead::IDelegate1<SkeletonDynamicsCallbackInfo*>* mDelegate = nullptr;
 };
 
 static_assert(sizeof(SkeletonDynamics) == 0x40);
