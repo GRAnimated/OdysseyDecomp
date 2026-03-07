@@ -266,8 +266,8 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                                         al::getSceneFrameBufferConsole(this));
     al::PlacementInfo placementInfos;
     s32 placementInfoCount;
-    al::tryGetPlacementInfoAndCount(&placementInfos, &placementInfoCount, al::getStageInfoMap(this),
-                                    "ObjectList");
+    al::tryGetPlacementInfoAndCount(&placementInfos, &placementInfoCount,
+                                    al::getStageInfoMap(this), "ObjectList");
     bool foundMirror = false;
     if (placementInfoCount >= 1) {
         foundMirror = false;
@@ -297,12 +297,14 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     ProjectDemoDirector* demoDir = new ProjectDemoDirector(
         al::getScenePlayerHolder(this), getLiveActorKit()->getGraphicsSystemInfo());
     al::initDemoDirector(this, demoDir);
-    al::AudioDirectorInitInfo audioDirInitInfo;
-    al::GraphicsSystemInfo* graphicsSysInfo = getLiveActorKit()->getGraphicsSystemInfo();
-    if (graphicsSysInfo)
-        audioDirInitInfo.seDirectorInitInfo.occlusionCullingJudge =
-            graphicsSysInfo->getOcclusionCullingJudge();
-    al::initAudioDirector3D(this, initInfo, audioDirInitInfo);
+    {
+        al::AudioDirectorInitInfo audioDirInitInfo;
+        al::GraphicsSystemInfo* graphicsSysInfo = getLiveActorKit()->getGraphicsSystemInfo();
+        if (graphicsSysInfo)
+            audioDirInitInfo.seDirectorInitInfo.occlusionCullingJudge =
+                graphicsSysInfo->getOcclusionCullingJudge();
+        al::initAudioDirector3D(this, initInfo, audioDirInitInfo);
+    }
     alAudioSystemFunction::enableAudioMaximizer(initInfo.gameSystemInfo);
     mAudioSystemPauseController =
         new SceneAudioSystemPauseController(getAudioDirector());
@@ -363,6 +365,8 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                                                      "Demo");
     al::initChildActorWithArchiveNameNoPlacementInfo(mDemoShine, actorInitInfo, "PowerStar",
                                                      "Demo");
+    mDemoShine->appear();
+    demoPowerStarActor->appear();
     mDemoDotShine = new al::LiveActor("デモ用ドットシャイン");
     al::initChildActorWithArchiveNameNoPlacementInfo(mDemoDotShine, actorInitInfo, "ShineDot",
                                                      "Demo");
@@ -537,11 +541,11 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     al::tryInitPlacementActorGroup(mShoppingWatcherGroup, this, actorInitInfo, 0,
                                    "SceneWatchObjList", "ShoppingWatcher");
 
-    al::LiveActorGroup doshiGroup("ドッシーグループ", 4);
-    if (al::tryInitPlacementActorGroup(&doshiGroup, this, actorInitInfo, 0, "SceneWatchObjList",
+    al::LiveActorGroup* doshiGroup = new al::LiveActorGroup("ドッシーグループ", 4);
+    if (al::tryInitPlacementActorGroup(doshiGroup, this, actorInitInfo, 0, "SceneWatchObjList",
                                        "Doshi")) {
-        for (s32 i = 0; i < doshiGroup.getActorCount(); i++) {
-            al::LiveActor* doshiActor = doshiGroup.getActor(i);
+        for (s32 i = 0; i < doshiGroup->getActorCount(); i++) {
+            al::LiveActor* doshiActor = doshiGroup->getActor(i);
             al::LiveActor* linked =
                 *(al::LiveActor**)((char*)doshiActor + 0x108);
             if (linked)
@@ -728,7 +732,8 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
 
     al::initPlacementByStageInfo(al::getStageInfoMap(this), "SkyList", actorInitInfo);
 
-    TemporaryScenarioCameraHolder tempScenarioCameraHolder(nullptr, 64);
+    ScenarioCameraRelationInfo scenarioCameraBuffer[64];
+    TemporaryScenarioCameraHolder tempScenarioCameraHolder(scenarioCameraBuffer, 64);
     mGameDataHolder->setTemporaryScenarioCameraHolder(&tempScenarioCameraHolder);
 
     al::initPlacementObjectMap(this, actorInitInfo, "ObjectList");
