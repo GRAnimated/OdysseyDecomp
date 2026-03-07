@@ -11,6 +11,7 @@ public:
     void kill() override;
 
     void emitGlowEffect();
+    bool tryUpdateHintTrans(const sead::Vector3f& trans);
 
     void* _108 = nullptr;
     bool _110 = false;

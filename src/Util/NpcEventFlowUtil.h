@@ -38,6 +38,8 @@ al::EventFlowExecutor* initEventFlowFromPlacementInfo(al::LiveActor*, const al::
                                                       const char*);
 void startEventFlow(al::EventFlowExecutor*, const char*);
 bool updateEventFlow(al::EventFlowExecutor*);
+al::EventFlowExecutor* initEventFlowForRunAwayNpc(al::LiveActor*, const al::ActorInitInfo&,
+                                                   const char*, const char*);
 bool isActiveEventDemo(const al::LiveActor*);
 bool isEqualEventDemoStartActor(const al::LiveActor*);
 bool isExistTrafficAreaDirector(const al::LiveActor*);
@@ -77,4 +79,5 @@ const char* tryGetTalkNpcRadiconEntryName(const al::LiveActor*);
 void startWorldTravelingPeach(const al::LiveActor*);
 void tryInitItemKeeperByEvent(al::LiveActor*, const al::ActorInitInfo&,
                               const al::EventFlowExecutor*);
+bool isExistTalkNpcParamHolder(const al::LiveActor*);
 }  // namespace rs

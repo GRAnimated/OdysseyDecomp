@@ -531,7 +531,7 @@ bool sendMsgHackBlowJump(al::HitSensor* receiver, al::HitSensor* sender, const s
 bool sendMsgGolemStampPushV(al::HitSensor* receiver, al::HitSensor* sender, f32 pVelocity);
 bool sendMsgGolemStampPushH(al::HitSensor* receiver, al::HitSensor* sender, f32 pVelocity);
 bool sendMsgRequestPlayerWaitAnimDigPoint(al::HitSensor* receiver, al::HitSensor* sender);
-void sendMsgEventFlowScareCheck(al::HitSensor* receiver, al::HitSensor* sender,
+bool sendMsgEventFlowScareCheck(al::HitSensor* receiver, al::HitSensor* sender,
                                 al::EventFlowExecutor* executor);
 bool sendMsgPlayerItemGetAll(al::HitSensor* receiver, al::HitSensor* sender);
 bool sendMsgPlayerItemGetAll2D(al::HitSensor* receiver, al::HitSensor* sender);

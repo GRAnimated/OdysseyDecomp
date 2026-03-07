@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Library/Nerve/NerveStateBase.h"
+#include "Npc/ActorStateReactionBase.h"
 
 namespace al {
 class HitSensor;
@@ -10,7 +10,7 @@ class SensorMsg;
 
 class NpcStateReactionParam;
 
-class NpcStateReaction : public al::ActorStateBase {
+class NpcStateReaction : public ActorStateReactionBase {
 public:
     NpcStateReaction(al::LiveActor*, bool);
 
@@ -21,12 +21,12 @@ public:
     void appear() override;
     void kill() override;
 
-    virtual bool receiveMsg(const al::SensorMsg*, al::HitSensor* self, al::HitSensor* other);
-    virtual bool receiveMsgWithoutTrample(const al::SensorMsg*, al::HitSensor* self,
-                                          al::HitSensor* other);
-    virtual bool receiveMsgNoReaction(const al::SensorMsg*, al::HitSensor* self,
-                                      al::HitSensor* other);
-    virtual bool isCapReaction() const;
+    bool receiveMsg(const al::SensorMsg*, al::HitSensor* self, al::HitSensor* other) override;
+    bool receiveMsgWithoutTrample(const al::SensorMsg*, al::HitSensor* self,
+                                  al::HitSensor* other) override;
+    bool receiveMsgNoReaction(const al::SensorMsg*, al::HitSensor* self,
+                              al::HitSensor* other) override;
+    bool isCapReaction() const override;
 
     void exeReaction();
     void exeCapReaction();

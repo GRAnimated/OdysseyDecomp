@@ -85,7 +85,7 @@ void ShibakenStatePointChase::kill() {
     mIsDead = true;
     mCurrentPoint = nullptr;
     mMoveAnimCtrl->endWalkSniff();
-    mMoveAnimCtrl->_24 = false;
+    mMoveAnimCtrl->mIsSniffing = false;
 }
 
 void ShibakenStatePointChase::startFirstWait(DigPoint* point) {
@@ -171,7 +171,7 @@ void ShibakenStatePointChase::exeChaseRun() {
     target.y = trans2.y + _70.y;
     target.z = trans2.z + _70.z;
     if (al::isNear(host, target, 600.0f)) {
-        mMoveAnimCtrl->_24 = true;
+        mMoveAnimCtrl->mIsSniffing = true;
         al::setNerve(this, &ChaseWalk);
     }
 }
@@ -249,7 +249,7 @@ void ShibakenStatePointChase::exeChaseWalkSniffNear() {
 
 void ShibakenStatePointChase::exeChaseFind() {
     if (al::isFirstStep(this))
-        mMoveAnimCtrl->_24 = false;
+        mMoveAnimCtrl->mIsSniffing = false;
     const sead::Vector3f& trans = al::getTrans(mCurrentPoint);
     if (ShibakenFunction::executeFindTurnNerve(this, trans, &_50, &_60))
         al::setNerve(this, &Sniff);

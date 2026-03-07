@@ -12,6 +12,7 @@
 #include "Library/Collision/KCollisionServer.h"
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorCollisionFunction.h"
+#include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorModelFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
 #include "Library/LiveActor/ActorPoseUtil.h"
@@ -19,8 +20,12 @@
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
+#include "Library/Placement/PlacementFunction.h"
+#include "Library/Placement/PlacementInfo.h"
 
+#include "MapObj/DigPoint.h"
 #include "Npc/ActorStateReactionBase.h"
+#include "Npc/NpcStateReactionParam.h"
 #include "Npc/Shibaken.h"
 #include "Npc/ShibakenStateBark.h"
 #include "Npc/ShibakenStateCapCatch.h"
@@ -55,6 +60,7 @@ NERVE_IMPL(Shibaken, PlayerChaseTurn);
 NERVES_MAKE_NOSTRUCT(Shibaken, FindTurn, Find, Sleep, SleepEnd);
 NERVES_MAKE_STRUCT(Shibaken, WaitInit, Wait, WaitFar, Reaction, PointChase, CapCatch, Bark, Jump,
                    Sit, Reset, PlayerChase, SleepStart, PlayerChaseTurn);
+}  // namespace
 
 class IsNotMoveLimit : public al::CollisionPartsFilterBase {
     bool isInvalidParts(al::CollisionParts* parts) override {
@@ -66,6 +72,45 @@ class IsNotMoveLimit : public al::CollisionPartsFilterBase {
 };
 
 IsNotMoveLimit sIsNotMoveLimit;
+
+NpcStateReactionParam sShibakenReactionParam("Reaction", "ReactionBall");
+
+void initShibakenDigPointLocater(ShibakenDigPointLocater* locater,
+                                 const al::ActorInitInfo& info,
+                                 const al::PlacementInfo& placementInfo) {
+    locater->childCount = 0;
+    locater->point = nullptr;
+    locater->children = nullptr;
+    locater->isValid = true;
+
+    auto* digPoint = new DigPoint(u8"忠犬専用ここ掘れポイント");
+    locater->point = digPoint;
+    al::initCreateActorWithPlacementInfo(digPoint, info, placementInfo);
+    locater->point->makeActorDead();
+
+    s32 childNum = al::calcLinkChildNum(placementInfo, "NextDigPoint");
+    locater->childCount = childNum;
+    if (childNum >= 1) {
+        locater->children = new ShibakenDigPointLocater*[childNum];
+        for (s32 i = 0; i < locater->childCount; i++) {
+            al::PlacementInfo childInfo;
+            al::getLinksInfoByIndex(&childInfo, placementInfo, "NextDigPoint", i);
+            auto* child =
+                static_cast<ShibakenDigPointLocater*>(::operator new(0x18));
+            initShibakenDigPointLocater(child, info, childInfo);
+            locater->children[i] = child;
+        }
+    }
+}
+
+void updateShibakenDigPointLocaterHintTrans(ShibakenDigPointLocater* locater,
+                                            const sead::Vector3f& trans) {
+    locater->point->tryUpdateHintTrans(trans);
+    for (s32 i = 0; i < locater->childCount; i++)
+        updateShibakenDigPointLocaterHintTrans(locater->children[i], trans);
+}
+
+namespace {
 
 sead::Vector3f sFitPoseForwardOffset = {0.0f, 0.0f, 30.0f};
 sead::Vector3f sFitPoseBackwardOffset = {0.0f, 0.0f, -30.0f};

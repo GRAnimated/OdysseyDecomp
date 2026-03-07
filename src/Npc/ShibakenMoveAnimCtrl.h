@@ -22,9 +22,14 @@ public:
     void exeWalkSniff();
     void exeWalkSniffEnd();
 
-    al::LiveActor* mActor = nullptr;
-    f32 _18 = 0;
-    f32 _1c = 0;
-    f32 _20 = 0;
-    bool _24 = false;
+    al::LiveActor* mActor;
+    f32 mWalkRunRatio;
+    f32 mWalkSniffRatio;
+    f32 mWalkSniffWalkRatio;
+    bool mIsSniffing;
+    const f32* mRunSpeed;
+    const f32* mWalkSpeed;
+    const f32* mMaxSpeed;
 };
+
+static_assert(sizeof(ShibakenMoveAnimCtrl) == 0x40);

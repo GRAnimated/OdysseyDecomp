@@ -52,8 +52,8 @@
 [x] Npc/ShibakenMoveAnimCtrl.o
 [x] Push to claude-testing on GitHub if you haven't already
 [x] Npc/ShibakenFunction.o
-[ ] Npc/Shibaken.o
-[ ] Npc/ShellActorStateReaction.o
+[x] Npc/Shibaken.o
+[x] Npc/ShellActorStateReaction.o
 [ ] Npc/RunAwayNpc.o
 [ ] Npc/RankingNpc.o
 [ ] Npc/RankingNameHolder.o

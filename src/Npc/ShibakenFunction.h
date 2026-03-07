@@ -5,9 +5,11 @@
 #include "Library/Nerve/NerveStateBase.h"
 
 namespace al {
+struct ActorInitInfo;
 class HitSensor;
 class IUseNerve;
 class Nerve;
+class PlacementInfo;
 class SensorMsg;
 }  // namespace al
 
@@ -21,6 +23,7 @@ using Vector3f = Vector3<f32>;
 }  // namespace sead
 
 class ActorStateReactionBase;
+class DigPoint;
 class Shibaken;
 
 namespace ShibakenFunction {
@@ -51,3 +54,16 @@ bool executeFindTurnNerve(al::HostStateBase<Shibaken>* state, const sead::Vector
                           sead::Quatf* quatA, sead::Quatf* quatB);
 
 }  // namespace ShibakenFunction
+
+struct ShibakenDigPointLocater {
+    DigPoint* point;
+    ShibakenDigPointLocater** children;
+    s32 childCount;
+    bool isValid;
+};
+
+void initShibakenDigPointLocater(ShibakenDigPointLocater* locater,
+                                 const al::ActorInitInfo& info,
+                                 const al::PlacementInfo& placementInfo);
+void updateShibakenDigPointLocaterHintTrans(ShibakenDigPointLocater* locater,
+                                            const sead::Vector3f& trans);

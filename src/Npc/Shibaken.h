@@ -28,6 +28,14 @@ public:
     Shibaken(const char* name);
 
     void init(const al::ActorInitInfo& info) override;
+    void initAfterPlacement() override;
+    void movement() override;
+    void control() override;
+    void startClipped() override;
+    void updateCollider() override;
+    void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
+    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
+                    al::HitSensor* self) override;
 
     void exeSit();
     void exeWaitInit();
@@ -63,7 +71,7 @@ public:
     ActorStateReactionBase* mStateReaction = nullptr;
     PlayerPushReceiver* mPushReceiver = nullptr;
     s32 mWorldMoonFlag = 0;
-    sead::Vector3f mInitTrans = sead::Vector3f::zero;
+    sead::Vector3f mInitTrans = {0, 0, 0};
     sead::Quatf mInitQuat = sead::Quatf::unit;
     sead::Quatf _1a0 = sead::Quatf::unit;
     sead::Quatf _1b0 = sead::Quatf::unit;

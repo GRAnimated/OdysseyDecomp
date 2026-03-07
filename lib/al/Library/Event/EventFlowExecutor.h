@@ -22,7 +22,7 @@ public:
     void initAfterPlacement();
     void start(const char*);
     void execute();
-    void attackSensor(HitSensor* self, HitSensor* other);
+    bool attackSensor(HitSensor* self, HitSensor* other);
     void stopMovement();
     void restartMovement();
     bool isExistEntry(const char*) const;
