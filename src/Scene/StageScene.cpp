@@ -270,14 +270,11 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                                     al::getStageInfoMap(this, 0), "ObjectList");
     bool foundMirror = false;
     if (placementInfoCount >= 1) {
-        foundMirror = false;
-        s32 i = 0;
-        do {
+        for (s32 i = 0; i < placementInfoCount; i++) {
             al::PlacementInfo placementInfo;
             al::getPlacementInfoByIndex(&placementInfo, placementInfos, i);
             foundMirror |= al::isObjectName(placementInfo, "Mirror");
-            i++;
-        } while (i < placementInfoCount && !foundMirror);
+        }
     }
     graphicsInitArg.atmosScatterViewNum = foundMirror;
     graphicsInitArg._3c = 2;
