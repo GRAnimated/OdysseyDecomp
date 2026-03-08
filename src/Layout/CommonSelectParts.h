@@ -47,6 +47,7 @@ public:
     void exeDecideEnd();
 
     s32 getSelectedIdx() const { return mSelectedIdx; }
+
     s32 getDecidedIdx() const { return mDecidedIdx; }
 
 private:
@@ -60,8 +61,8 @@ private:
     s32 mDefaultIdx = -1;
     s32 mScrollCounter = 0;
     s32 mSelectionCooldown = -1;
-    bool mIsWithoutPosAnim = false;
-    bool mIsAllowPauseCancel = false;
+    bool mWithoutPosAnim = false;
+    bool mAllowPauseCancel = false;
     s32 mStateCount = 0;
     SelectPartsState* mStateArray = nullptr;
 };

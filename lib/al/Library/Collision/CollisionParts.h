@@ -88,6 +88,8 @@ public:
 
     void setSpecialPurpose(const char* specialPurpose) { mSpecialPurpose = specialPurpose; }
 
+    const char* getSpecialPurpose() const { return mSpecialPurpose; }
+
     void setOptionalPurpose(const char* optionalPurpose) { mOptionalPurpose = optionalPurpose; }
 
     s32 get_15c() const { return _15c; }

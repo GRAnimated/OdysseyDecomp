@@ -60,3 +60,17 @@ private:
 };
 
 static_assert(sizeof(ChangeStageInfo) == 0x278, "ChangeStageInfo size");
+
+namespace al {
+class LiveActor;
+class PlacementInfo;
+}  // namespace al
+
+namespace rs {
+ChangeStageInfo* createChangeStageInfo(const al::LiveActor*, const al::PlacementInfo&);
+ChangeStageInfo* createChangeStageInfo(const al::LiveActor*, const al::PlacementInfo&,
+                                       const char*, const char*, bool, s32,
+                                       ChangeStageInfo::SubScenarioType);
+ChangeStageInfo* createChangeStageInfo(const al::LiveActor*, const char*, const char*, bool, s32,
+                                       ChangeStageInfo::SubScenarioType);
+}  // namespace rs

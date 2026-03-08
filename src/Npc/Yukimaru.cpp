@@ -197,7 +197,7 @@ bool Yukimaru::isEnableHack() const {
 }
 
 void Yukimaru::afterHack() {
-    mStateWaitParam->mAction = "RunEnemy";
+    mStateWaitParam->mWaitAction = "RunEnemy";
     mReactionParam->mReactionAnim = "ReactionRun";
     mReactionParam->mReactionEndAnim = "ReactionRun";
     _159 = true;
@@ -217,7 +217,7 @@ bool Yukimaru::receiveEvent(const al::EventFlowEventData* event) {
     }
 
     if (al::isEventName(event, "HackEnable")) {
-        mStateWaitParam->mAction = "NoGuardWait";
+        mStateWaitParam->mWaitAction = "NoGuardWait";
         mReactionParam->mReactionAnim = "NoGuardReaction";
         mReactionParam->mReactionEndAnim = "NoGuardReaction";
         mStateReaction->setCapReaction(true);

@@ -6,8 +6,8 @@
 #include "Library/Base/StringUtil.h"
 #include "Library/Controller/PadRumbleFunction.h"
 #include "Library/Layout/LayoutActionFunction.h"
-#include "Library/Layout/LayoutActorUtil.h"
 #include "Library/Layout/LayoutActor.h"
+#include "Library/Layout/LayoutActorUtil.h"
 #include "Library/Layout/LayoutInitInfo.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
@@ -85,7 +85,7 @@ void CommonSelectParts::activateAll() {
 void CommonSelectParts::startSelect2(const char16* text0, const char16* text1, s32 defaultIdx) {
     mItemCount = 2;
     mSelectedIdx = 0;
-    mIsWithoutPosAnim = false;
+    mWithoutPosAnim = false;
     mDefaultIdx = defaultIdx;
 
     al::setPaneString(mItemParts[0], "TxtContent", text0);
@@ -96,7 +96,7 @@ void CommonSelectParts::startSelect2(const char16* text0, const char16* text1, s
 
 void CommonSelectParts::startSelectWithChoiceTable(const char16** textTable, s32 itemCount,
                                                    s32 defaultIdx) {
-    mIsWithoutPosAnim = false;
+    mWithoutPosAnim = false;
     mItemCount = itemCount;
     mSelectedIdx = 0;
     mDefaultIdx = defaultIdx;
@@ -110,7 +110,7 @@ void CommonSelectParts::startSelectWithChoiceTable(const char16** textTable, s32
 // NON_MATCHING: register allocation differs
 void CommonSelectParts::startSelectWithChoiceTableWithoutPosAnim(const char16** textTable,
                                                                  s32 itemCount, s32 defaultIdx) {
-    mIsWithoutPosAnim = true;
+    mWithoutPosAnim = true;
     mItemCount = itemCount;
     mSelectedIdx = 0;
     mDefaultIdx = defaultIdx;
@@ -135,7 +135,7 @@ void CommonSelectParts::startSelectWithChoiceTableWithoutPosAnim(const char16** 
 
 // NON_MATCHING: register allocation differs
 void CommonSelectParts::startSelectWithChoiceInfo(const al::EventFlowChoiceInfo* choiceInfo) {
-    mIsWithoutPosAnim = false;
+    mWithoutPosAnim = false;
     mItemCount = *(const s32*)((const char*)choiceInfo + 8);
 
     if (!*((const u8*)choiceInfo + 32) || mDecidedIdx < 0 || mDecidedIdx >= mItemCount)
@@ -150,7 +150,7 @@ void CommonSelectParts::startSelectWithChoiceInfo(const al::EventFlowChoiceInfo*
 
     for (s32 i = 0; i < mItemCount; i++)
         al::setPaneString(mItemParts[i], "TxtContent",
-                         (*(const char16***)((const char*)choiceInfo + 16))[i]);
+                          (*(const char16***)((const char*)choiceInfo + 16))[i]);
 
     al::setNerve(this, &AppearBefore);
 }
@@ -188,8 +188,7 @@ void CommonSelectParts::reset() {
     mDefaultIdx = -1;
 
     for (s32 i = 0; i < mMaxItemCount; i++)
-        al::setPaneString(mItemParts[i], "TxtContent",
-                          reinterpret_cast<const char16*>(u""));
+        al::setPaneString(mItemParts[i], "TxtContent", reinterpret_cast<const char16*>(u""));
 }
 
 void CommonSelectParts::exeHide() {}
@@ -199,9 +198,8 @@ void CommonSelectParts::exeAppearBefore() {
     if (!al::isGreaterEqualStep(this, 10))
         return;
 
-    al::startAction(mLayoutActor, al::StringTmp<32>("%s%d", "Select", mItemCount).cstr(),
-                    "Select");
-    if (!mIsWithoutPosAnim)
+    al::startAction(mLayoutActor, al::StringTmp<32>("%s%d", "Select", mItemCount).cstr(), "Select");
+    if (!mWithoutPosAnim)
         al::startAction(mLayoutActor, "SelectAppear", "Pos");
 
     sead::Vector2f cursorPos;
@@ -231,7 +229,7 @@ void CommonSelectParts::exeAppear() {
         al::setNerve(this, &AppearAfter);
 }
 
-// NON_MATCHING: dead store elimination (zero-init of cursorPos before calcPaneTrans)
+// NON_MATCHING: register allocation differs
 void CommonSelectParts::exeAppearAfter() {
     al::LayoutActor* cursorActor = mCursorActor;
     sead::Vector2f cursorPos = {};
@@ -258,7 +256,7 @@ void CommonSelectParts::exeAppearCursor() {
 // NON_MATCHING: register allocation differs
 void CommonSelectParts::exeSelect() {
     if (al::isFirstStep(this)) {
-        if (!mIsWithoutPosAnim)
+        if (!mWithoutPosAnim)
             al::startAction(mLayoutActor, "SelectWait", "Pos");
         mScrollCounter = 0;
         mSelectedIdx = -1;
@@ -318,7 +316,7 @@ void CommonSelectParts::exeSelect() {
 
     if (mDefaultIdx >= 0) {
         bool doCancel = rs::isTriggerUiCancel(mLayoutActor);
-        bool doPause = mIsAllowPauseCancel && rs::isTriggerUiPause(mLayoutActor);
+        bool doPause = mAllowPauseCancel && rs::isTriggerUiPause(mLayoutActor);
         if (doCancel || doPause) {
             al::PadRumbleParam rumble;
             rumble.setVolumeByBalance(0.7f);
@@ -369,7 +367,7 @@ void CommonSelectParts::exeDecideParts() {
 
     if (al::isActionEnd(mItemParts[mSelectedIdx]) && al::isActionEnd(mCursorActor)) {
         al::startAction(mCursorActor, "Hide");
-        if (mIsWithoutPosAnim)
+        if (mWithoutPosAnim)
             al::setNerve(this, &NrvCommonSelectParts.DecideAfter);
         else
             al::setNerve(this, &NrvCommonSelectParts.Decide);

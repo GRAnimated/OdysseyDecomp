@@ -21,7 +21,7 @@ void ShopItemState::onBuyLifeUpItem() {
     mIsBoughtLifeUp = true;
 }
 
-// NON_MATCHING: branch layout differs - and w0,#1 placed in shared epilogue instead of before it
+// NON_MATCHING: branch layout differs (shared tail block placed differently)
 bool ShopItemState::isBuyAlreadyShineBeforeGameClear(const Shine* shine) const {
     if (GameDataFunction::isGameClear(shine))
         return false;
@@ -34,7 +34,9 @@ bool ShopItemState::isBuyAlreadyShineBeforeGameClear(const Shine* shine) const {
 bool ShopItemState::isBuyAlreadyShineAfterGameClear(const Shine* shine) const {
     if (!GameDataFunction::isGameClear(shine))
         return false;
-    return mIsBoughtShine || GameDataFunction::isGotShine(shine);
+    if (mIsBoughtShine)
+        return true;
+    return GameDataFunction::isGotShine(shine);
 }
 
 bool ShopItemState::isBuyAlreadyLifeUpItem(const al::LayoutActor* actor) const {

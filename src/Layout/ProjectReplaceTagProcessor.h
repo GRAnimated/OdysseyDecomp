@@ -13,6 +13,8 @@ public:
     u32 replaceProjectTag(char16* out, const al::MessageTag& tag,
                           const al::IUseMessageSystem* msgSys) const override;
 
+    u32 replace(char16_t* out, const al::IUseMessageSystem* msgSys, const char16_t* in) const;
+
 private:
     const al::IUseSceneObjHolder* mSceneObjHolder;
 };

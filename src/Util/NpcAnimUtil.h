@@ -33,6 +33,8 @@ namespace rs {
 const char* makeNpcActionName(sead::BufferedSafeStringBase<char>*, const al::LiveActor*,
                               const char*);
 bool isOneTimeNpcAction(const al::LiveActor*, const char*);
+bool isPlayingNpcAction(const al::LiveActor*, const char*);
+bool isExistNpcAction(const al::LiveActor*, const char*);
 void startNpcAction(al::LiveActor*, const char*);
 bool tryStartNpcActionIfNotPlaying(al::LiveActor*, const char*);
 bool tryApplyNpcMaterialAnimPresetFromPlacementInfo(al::LiveActor*, const al::ActorInitInfo&,
@@ -88,6 +90,7 @@ void registerPlayerStartInfoToHolderForTimeBalloon(const al::IUseSceneObjHolder*
 bool isStartWorldTravelingPeach(const al::LiveActor*);
 bool isTalkWorldTravelingPeach(const al::LiveActor*);
 void talkWorldTravelingPeach(const al::LiveActor*);
+void tryRegisterRadiConNpcToRadiConRaceWatcher(al::LiveActor*);
 }  // namespace rs
 
 namespace TalkNpcFunction {

@@ -6,8 +6,8 @@
 #include "Library/Base/StringUtil.h"
 #include "Library/Controller/PadRumbleFunction.h"
 #include "Library/Layout/LayoutActionFunction.h"
-#include "Library/Layout/LayoutActorUtil.h"
 #include "Library/Layout/LayoutActor.h"
+#include "Library/Layout/LayoutActorUtil.h"
 #include "Library/Layout/LayoutInitInfo.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
@@ -115,13 +115,11 @@ void CommonHorizontalList::initData(s32 itemCount) {
     if (itemCount > 0) {
         auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
         s32 count = mItemPartCount <= itemCount ? mItemPartCount : itemCount;
-        for (s32 i = 0; i < count; i++) {
+        for (s32 i = 0; i < count; i++)
             al::startAction(itemParts->at(i), "Wait");
-        }
 
-        if (mScrollBarParts) {
+        if (mScrollBarParts)
             mScrollBarParts->setupDataNum(mItemPartCount - 3, itemCount);
-        }
 
         mIsNewSelection = true;
     }
@@ -138,13 +136,11 @@ void CommonHorizontalList::initDataNoResetSelected(s32 itemCount) {
     if (itemCount > 0) {
         auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
         s32 count = mItemPartCount <= itemCount ? mItemPartCount : itemCount;
-        for (s32 i = 0; i < count; i++) {
+        for (s32 i = 0; i < count; i++)
             al::startAction(itemParts->at(i), "Wait");
-        }
 
-        if (mScrollBarParts) {
+        if (mScrollBarParts)
             mScrollBarParts->setupDataNum(mItemPartCount - 3, itemCount);
-        }
 
         mIsNewSelection = true;
     }
@@ -164,13 +160,11 @@ void CommonHorizontalList::initDataWithIdx(s32 itemCount, s32 scrollOffset, s32 
     if (itemCount > 0) {
         auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
         s32 count = mItemPartCount <= itemCount ? mItemPartCount : itemCount;
-        for (s32 i = 0; i < count; i++) {
+        for (s32 i = 0; i < count; i++)
             al::startAction(itemParts->at(i), "Wait");
-        }
 
-        if (mScrollBarParts) {
+        if (mScrollBarParts)
             mScrollBarParts->setupDataNum(mItemPartCount - 3, itemCount);
-        }
 
         mIsNewSelection = true;
     }
@@ -191,8 +185,7 @@ void CommonHorizontalList::setGroupAnimData(const sead::FixedSafeString<64>* gro
     mGroupAnimPartsName = partsName;
 }
 
-void CommonHorizontalList::setImageData(nn::ui2d::TextureInfo** imageArray,
-                                        const char* paneName) {
+void CommonHorizontalList::setImageData(nn::ui2d::TextureInfo** imageArray, const char* paneName) {
     mImageDataArray = imageArray;
     mImagePaneName = paneName;
 }
@@ -210,7 +203,7 @@ void CommonHorizontalList::setEnableData(const bool* enableData) {
 
 // NON_MATCHING: wrong function size; target saves x20 (passes mCursorPos addr directly vs stack)
 void CommonHorizontalList::calcCursorPos(sead::Vector2f* outPos) const {
-    __builtin_memcpy(outPos, &mCursorPos, sizeof(sead::Vector2f));
+    *outPos = mCursorPos;
 }
 
 bool CommonHorizontalList::isActive() const {
@@ -234,35 +227,38 @@ void CommonHorizontalList::update() {
 }
 
 // NON_MATCHING: wrong function size; register allocation and branch layout differ
-// NON_MATCHING: store ordering (str vs stp pairing at 0x3c) and mLayoutActor load scheduling
 void CommonHorizontalList::right() {
     if (mAnimTimer > 0)
         return;
 
     s32 prevSelectedIdx = mSelectedIdx;
     s32 prevScrollOffset = mScrollOffset;
+    s32 maxIdx = mItemCount - 1;
 
     mSelectedIdx = prevSelectedIdx + 1;
-    s32 maxIdx = mItemCount - 1;
-    al::LayoutActor* layoutActor = mLayoutActor;
-    mScrollOffsetPrev = prevScrollOffset;
     mScrollOffset = prevScrollOffset + 1;
+    mScrollOffsetPrev = prevScrollOffset;
 
+    al::IUseAudioKeeper* audioKeeper = nullptr;
+    if (mLayoutActor)
+        audioKeeper = mLayoutActor;
+
+    const char* seName;
     if (prevSelectedIdx >= maxIdx) {
         mSelectedIdx = maxIdx;
         mScrollOffset = prevScrollOffset;
-        al::IUseAudioKeeper* audioKeeper = layoutActor ? (al::IUseAudioKeeper*)layoutActor : nullptr;
-        al::tryStartSe(audioKeeper, sead::SafeString("ListEdge"));
+        seName = "ListEdge";
     } else {
-        al::IUseAudioKeeper* audioKeeper = layoutActor ? (al::IUseAudioKeeper*)layoutActor : nullptr;
-        al::tryStartSe(audioKeeper, sead::SafeString("ListRight"));
+        seName = "ListRight";
     }
+
+    al::tryStartSe(audioKeeper, sead::SafeString(seName));
 
     if (mScrollOffsetPrev != mScrollOffset)
         mAnimTimer = mAnimTimerMax;
 }
 
-// NON_MATCHING: store ordering (str vs stp pairing) and mLayoutActor load scheduling
+// NON_MATCHING: wrong function size; register allocation and branch layout differ
 void CommonHorizontalList::left() {
     if (mAnimTimer > 0)
         return;
@@ -271,19 +267,23 @@ void CommonHorizontalList::left() {
     s32 prevScrollOffset = mScrollOffset;
 
     mSelectedIdx = prevSelectedIdx - 1;
-    al::LayoutActor* layoutActor = mLayoutActor;
-    mScrollOffsetPrev = prevScrollOffset;
     mScrollOffset = prevScrollOffset - 1;
+    mScrollOffsetPrev = prevScrollOffset;
 
+    al::IUseAudioKeeper* audioKeeper = nullptr;
+    if (mLayoutActor)
+        audioKeeper = mLayoutActor;
+
+    const char* seName;
     if (prevSelectedIdx <= 0) {
         mSelectedIdx = 0;
         mScrollOffset = prevScrollOffset;
-        al::IUseAudioKeeper* audioKeeper = layoutActor ? (al::IUseAudioKeeper*)layoutActor : nullptr;
-        al::tryStartSe(audioKeeper, sead::SafeString("ListEdge"));
+        seName = "ListEdge";
     } else {
-        al::IUseAudioKeeper* audioKeeper = layoutActor ? (al::IUseAudioKeeper*)layoutActor : nullptr;
-        al::tryStartSe(audioKeeper, sead::SafeString("ListLeft"));
+        seName = "ListLeft";
     }
+
+    al::tryStartSe(audioKeeper, sead::SafeString(seName));
 
     if (mScrollOffsetPrev != mScrollOffset)
         mAnimTimer = mAnimTimerMax;
@@ -499,9 +499,8 @@ void CommonHorizontalList::updateParts() {
                                       mStringDataArray[j]->getStringTop());
                 }
 
-                if (mImageDataArray && mImageDataArray[dataIdx]) {
+                if (mImageDataArray && mImageDataArray[dataIdx])
                     al::setPaneTexture(partActor, mImagePaneName, mImageDataArray[dataIdx]);
-                }
 
                 if (mCursorVisualActor) {
                     if (dataIdx == mSelectedIdx) {
@@ -531,8 +530,8 @@ void CommonHorizontalList::updateParts() {
                     }
                 }
 
-                if (al::isNearZero(sead::Vector2f(t, 0.0f), 0.001f) &&
-                    dataIdx == mSelectedIdx && !al::isNerve(this, &Deactive)) {
+                if (al::isNearZero(sead::Vector2f(t, 0.0f), 0.001f) && dataIdx == mSelectedIdx &&
+                    !al::isNerve(this, &Deactive)) {
                     if (partActor && !al::isActionPlaying(partActor, "Select")) {
                         al::startAction(partActor, "Select");
                         if (mIsNewSelection) {
@@ -655,9 +654,11 @@ void CommonHorizontalList::updateCursorPos() {
     s32 cursorOff = mSelectedIdx - mScrollOffset;
     auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
     al::LayoutActor* cursorActor =
-        (u32)itemParts->size() > (u32)cursorOff ? itemParts->unsafeAt(cursorOff) : nullptr;
+        (u32)cursorOff < (u32)itemParts->capacity() ? itemParts->at(cursorOff) : nullptr;
 
-    al::calcPaneTrans(&mCursorPos, cursorActor, "Cursor");
+    sead::Vector2f panePos;
+    al::calcPaneTrans(&panePos, cursorActor, "Cursor");
+    mCursorPos = panePos;
     if (mCursorActor)
         al::setLocalTrans(mCursorActor, mCursorPos);
 }

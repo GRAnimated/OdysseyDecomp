@@ -65,19 +65,20 @@ void ShopLayoutFooter::tryStartSelect() {
         al::setNerve(this, &NrvShopLayoutFooter.FadeIn);
 }
 
+// NON_MATCHING: compiler schedules IUseLayout* subobject cast into x20 before
+// getSystemMessageString but our compiler schedules it inline at the setPaneString call site
 void ShopLayoutFooter::exeWait() {
     if (al::isFirstStep(this)) {
-        al::IUseLayout* layout = this;
         const char16* message = al::getSystemMessageString(this, "ShopMessage", mMessageId);
-        al::setPaneString(layout, "TxtGuide", message);
+        al::setPaneString(this, "TxtGuide", message);
     }
 }
 
+// NON_MATCHING: same IUseLayout* cast scheduling issue as exeWait (inlined into NrvFadeIn::execute)
 void ShopLayoutFooter::exeFadeIn() {
     if (al::isFirstStep(this)) {
-        al::IUseLayout* layout = this;
         const char16* message = al::getSystemMessageString(this, "ShopMessage", mMessageId);
-        al::setPaneString(layout, "TxtGuide", message);
+        al::setPaneString(this, "TxtGuide", message);
         al::startAction(this, "FadeIn");
     }
     if (al::isActionEnd(this))
