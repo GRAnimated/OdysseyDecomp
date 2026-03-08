@@ -2,6 +2,7 @@
 
 #include <math/seadQuat.h>
 #include <math/seadVector.h>
+#include <prim/seadSafeString.h>
 
 namespace al {
 class CameraTicket;
@@ -17,11 +18,14 @@ struct PlayerStartInfo {
     bool isEqualStartId(const char*) const;
     bool isEqualPlacementIdString(const char*) const;
 
-    unsigned char _0[0xA8];
-    void* _a8;
+    const al::PlacementInfo* placementInfo;
+    al::CameraTicket* cameraTicket;
+    sead::FixedSafeString<128> startId;
+    PlayerStartObj* playerStartObj;
     sead::Vector3f trans;
     sead::Quatf quat;
 };
 
 static_assert(offsetof(PlayerStartInfo, trans) == 0xB0);
 static_assert(offsetof(PlayerStartInfo, quat) == 0xBC);
+static_assert(sizeof(PlayerStartInfo) == 0xD0);

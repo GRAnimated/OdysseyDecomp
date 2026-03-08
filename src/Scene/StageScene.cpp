@@ -4,6 +4,7 @@
 #include "Library/Area/AreaObjDirector.h"
 #include "Library/Area/AreaObjGroup.h"
 #include "Library/Area/TrafficAreaDirector.h"
+#include "Library/Scene/DemoDirector.h"
 #include "Library/Audio/AudioDirector.h"
 #include "Library/Audio/AudioDirectorInitInfo.h"
 #include "Library/Audio/AudioFunction.h"
@@ -153,6 +154,16 @@
 #include "Util/StageInputFunction.h"
 
 namespace {
+
+class ProjectTrafficAreaUpdateJudge : public al::ITrafficAreaUpdateJudge {
+public:
+    ProjectTrafficAreaUpdateJudge(al::DemoDirector* demoDirector)
+        : mDemoDirector(demoDirector) {}
+    bool judge() const override { return !mDemoDirector->isActiveDemo(); }
+
+    al::DemoDirector* mDemoDirector;
+};
+
 NERVE_IMPL(StageScene, StartStageBgm);
 NERVE_IMPL(StageScene, CollectBgm);
 NERVE_IMPL(StageScene, CollectionList);
@@ -299,6 +310,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     ProjectItemDirector* itemDir = new ProjectItemDirector();
     al::initItemDirector(this, itemDir);
     mProjectItemDirector = itemDir;
+    al::initHitSensorDirector(this);
     ProjectDemoDirector* demoDir = new ProjectDemoDirector(
         al::getScenePlayerHolder(this), getLiveActorKit()->getGraphicsSystemInfo());
     al::initDemoDirector(this, demoDir);
@@ -422,9 +434,9 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     al::AreaObjDirector* areaObjDirector = al::getSceneAreaObjDirector(this);
     al::AreaObjGroup* trafficAreaGroup = areaObjDirector->getAreaObjGroup("TrafficArea");
     if (trafficAreaGroup) {
-        auto* trafficDir =
-            new al::TrafficAreaDirector(trafficAreaGroup,
-                                        (const al::ITrafficAreaUpdateJudge*)getLiveActorKit()->getNatureDirector());
+        auto* updateJudge =
+            new ProjectTrafficAreaUpdateJudge(getLiveActorKit()->getDemoDirector());
+        auto* trafficDir = new al::TrafficAreaDirector(trafficAreaGroup, updateJudge);
         al::registerExecutorUser(trafficDir, al::getSceneExecuteDirector(this), "フォロー");
         al::setSceneObj(this, trafficDir, SceneObjID_alTrafficAreaDirector);
     }
@@ -699,13 +711,6 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
             al::ActorInitInfo playerActorInitInfo;
             playerActorInitInfo.initViewIdSelf(&playerPlacementInfo, actorInitInfo);
 
-            const char* objectName = nullptr;
-            al::getObjectName(&objectName, playerActorInitInfo);
-            const char* className = nullptr;
-            al::getClassName(&className, playerActorInitInfo);
-            al::LiveActor* player =
-                playerFactory.createActor(playerActorInitInfo, className);
-
             PlayerInitInfo playerInitInfo;
             playerInitInfo.gamePadSystem = initInfo.gameSystemInfo->gamePadSystem;
             playerInitInfo.viewMtxPtr = al::getViewMtxPtr(this, 0);
@@ -725,6 +730,13 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
             if (*capTypeName2 != sead::SafeStringBase<char>::cNullChar) {
                 GameDataFunction::wearCap(mGameDataHolder, capTypeName2);
             }
+
+            const char* objectName = nullptr;
+            al::getObjectName(&objectName, playerActorInitInfo);
+            const char* className = nullptr;
+            al::getClassName(&className, playerActorInitInfo);
+            al::LiveActor* player =
+                playerFactory.createActor(playerActorInitInfo, className);
 
             static_cast<PlayerActorBase*>(player)->initPlayer(playerActorInitInfo,
                                                                playerInitInfo);
