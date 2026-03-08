@@ -137,7 +137,7 @@ void initAudioDirector3D(Scene* scene, const SceneInitInfo& sceneInfo,
                          AreaObjDirector* areaObjDirector);
 void initSceneAudioKeeper(Scene* scene, const SceneInitInfo& sceneInfo, const char* name);
 AudioDirectorInitInfo createAudioDirectorInitInfoForStageScene();
-void deactivateAudioEventController(const Scene* scene);
+void deactivateAudioEventController(const IUseAudioKeeper* keeper);
 void setIsSafeFinalizingInParallelThread(Scene* scene, bool isSafe);
 void updateKit(Scene* scene);
 void updateKitTable(Scene* scene, const char* name);

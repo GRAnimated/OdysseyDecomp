@@ -671,7 +671,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     al::PlacementInfo playerListPlacementInfo;
     s32 playerListCount = 0;
     al::tryGetPlacementInfoAndCount(&playerListPlacementInfo, &playerListCount,
-                                    al::getStageInfoMap(this), "PlayerList");
+                                    al::getStageInfoMap(this, 0), "PlayerList");
     if (playerListCount >= 1) {
         for (s32 i = 0; i < playerListCount; i++) {
             al::PlacementInfo playerPlacementInfo;
@@ -763,7 +763,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
         }
     }
 
-    al::initPlacementByStageInfo(al::getStageInfoMap(this), "SkyList", actorInitInfo);
+    al::initPlacementByStageInfo(al::getStageInfoMap(this, 0), "SkyList", actorInitInfo);
 
     ScenarioCameraRelationInfo scenarioCameraBuffer[64];
     TemporaryScenarioCameraHolder tempScenarioCameraHolder(scenarioCameraBuffer, 64);
