@@ -7,4 +7,5 @@ class LiveActor;
 namespace CapManHeroDemoUtil {
 void initCapManHeroTailJointController(al::LiveActor* actor);
 void invalidateDitherAnimIfExist(al::LiveActor* actor);
+void startCapManHeroCommonSettingAfterShowModel(al::LiveActor* actor);
 }  // namespace CapManHeroDemoUtil

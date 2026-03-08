@@ -23,6 +23,9 @@ public:
 
     void init(const al::ActorInitInfo& info) override;
     s32 getPriority() const;
+    bool operator<(const FukuwaraiFaceParts& other) const {
+        return getPriority() < other.getPriority();
+    }
     void control() override;
     bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                     al::HitSensor* self) override;
