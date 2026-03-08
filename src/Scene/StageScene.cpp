@@ -75,6 +75,7 @@
 #include "Player/PlayerCameraTarget.h"
 #include "Player/PlayerActorBase.h"
 #include "Player/PlayerFactory.h"
+#include "Player/PlayerInitInfo.h"
 #include "Player/ProjectCameraInput.h"
 #include "Scene/BgmAnimeSyncDirector.h"
 #include "Scene/BirdGatheringSpotDirector.h"
@@ -695,22 +696,35 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
             al::ActorInitInfo playerActorInitInfo;
             playerActorInitInfo.initViewIdSelf(&playerPlacementInfo, actorInitInfo);
 
-            const char* costumeName = mCostumeName.cstr();
-            const char* capTypeName = mCapTypeName.cstr();
-            if (*costumeName != sead::SafeStringBase<char>::cNullChar) {
-                GameDataFunction::wearCostume(mGameDataHolder, costumeName);
-                capTypeName = mCapTypeName.cstr();
-            }
-            if (*capTypeName != sead::SafeStringBase<char>::cNullChar) {
-                GameDataFunction::wearCap(mGameDataHolder, capTypeName);
-            }
-
             const char* objectName = nullptr;
             al::getObjectName(&objectName, playerActorInitInfo);
             const char* className = nullptr;
             al::getClassName(&className, playerActorInitInfo);
             al::LiveActor* player =
                 playerFactory.createActor(playerActorInitInfo, className);
+
+            PlayerInitInfo playerInitInfo;
+            playerInitInfo.gamePadSystem = initInfo.gameSystemInfo->gamePadSystem;
+            playerInitInfo.viewMtxPtr = al::getViewMtxPtr(this, 0);
+            playerInitInfo.controllerPort = al::getMainControllerPort();
+            playerInitInfo.costumeName = mCostumeName.cstr();
+            playerInitInfo.capTypeName = mCapTypeName.cstr();
+            playerInitInfo.trans = playerStartTrans;
+            __builtin_memcpy(&playerInitInfo.quat, &playerStartQuat_zw, sizeof(sead::Quatf));
+            playerInitInfo._44 = false;
+            playerInitInfo._45 = (mStateCloset != nullptr);
+
+            const char* costumeName = mCostumeName.cstr();
+            if (*costumeName != sead::SafeStringBase<char>::cNullChar) {
+                GameDataFunction::wearCostume(mGameDataHolder, costumeName);
+            }
+            const char* capTypeName2 = mCapTypeName.cstr();
+            if (*capTypeName2 != sead::SafeStringBase<char>::cNullChar) {
+                GameDataFunction::wearCap(mGameDataHolder, capTypeName2);
+            }
+
+            static_cast<PlayerActorBase*>(player)->initPlayer(playerActorInitInfo,
+                                                               playerInitInfo);
 
             s32 mainControllerPort = static_cast<PlayerActorBase*>(player)->getPortNo();
             al::PadRumbleKeeper* padRumbleKeeper =

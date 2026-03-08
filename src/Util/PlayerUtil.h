@@ -16,7 +16,7 @@ struct SklAnimRetargettingInfo;
 
 class CapTargetInfo;
 class PlayerActorBase;
-class PlayerInitInfo;
+struct PlayerInitInfo;
 
 namespace rs {
 

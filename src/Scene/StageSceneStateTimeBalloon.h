@@ -23,7 +23,7 @@ public:
                                GameDataHolder*, StageSceneLayout*, const al::ActorInitInfo&,
                                TimeBalloonNpc*, bool, MiniGameMenu*, void*,
                                StageSceneStateWarp*);
-    bool isAutoStart() const;
+    virtual bool isAutoStart() const;
 
 private:
     u8 _padding[0x138];

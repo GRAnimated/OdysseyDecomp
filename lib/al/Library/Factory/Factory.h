@@ -46,7 +46,7 @@ public:
         return -1;
     }
 
-private:
+protected:
     const char* mFactoryName;
     const NameToCreator<T>* mFactoryEntries;
     s32 mNumFactoryEntries;
