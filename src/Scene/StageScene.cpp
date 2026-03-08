@@ -522,7 +522,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     if (pyramid) {
         mPyramid = (Pyramid*)pyramid;
         mStateGetShineMainSandWorld =
-            new StageSceneStateGetShineMainSandWorld("ピラミッド上シャイン取得", this, actorInitInfo);
+            new StageSceneStateGetShineMainSandWorld("メインシャインゲットデモ[砂ワールド]", this, actorInitInfo);
     }
 
     al::initPlacementObjectMap(this, actorInitInfo, "RaceList");
@@ -535,7 +535,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     checkpointFlagWatcher->initStageInfo(mStageName.cstr(), mScenarioNo);
     al::setSceneObj(this, checkpointFlagWatcher, SceneObjID_CheckpointFlagWatcher);
     al::registerExecutorUser((al::IUseExecutor*)((char*)checkpointFlagWatcher + 16),
-                            al::getSceneExecuteDirector(this), "実行");
+                            al::getSceneExecuteDirector(this), "フォロー");
 
     al::initPlacementObjectMap(this, actorInitInfo, "CheckPointList");
     al::initPlacementObjectMap(this, actorInitInfo, "PlayerStartInfoList");
@@ -862,24 +862,23 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     mCinemaCaption = new CinemaCaption(layoutInitInfo);
 
     mSceneLayout = new StageSceneLayout(
-        "StageSceneLayout", layoutInitInfo, al::getScenePlayerHolder(this),
+        "シーン情報", layoutInitInfo, al::getScenePlayerHolder(this),
         getLiveActorKit()->getGraphicsSystemInfo()->getSubCameraRenderer());
 
-    mScenarioStartLayout = new al::SimpleLayoutAppearWaitEnd("ScenarioStartLayout",
-                                                              "StartScenario", layoutInitInfo,
-                                                              nullptr, false);
+    mScenarioStartLayout = new al::SimpleLayoutAppearWaitEnd("シナリオ開始", "StartScenario",
+                                                              layoutInitInfo, nullptr, false);
     mScenarioStartLayout->kill();
 
     mWorldStartCountryLayout = new al::SimpleLayoutAppearWaitEnd(
-        "WorldStartCountryLayout", "StartWorld", layoutInitInfo, nullptr, false);
+        "ワールド開始[国]", "StartWorld", layoutInitInfo, nullptr, false);
     mWorldStartCountryLayout->kill();
 
     mWorldStartRegionLayout = new al::SimpleLayoutAppearWaitEnd(
-        "WorldStartRegionLayout", "StartWorldRegion", layoutInitInfo, nullptr, false);
+        "ワールド開始[地域]", "StartWorldRegion", layoutInitInfo, nullptr, false);
     mWorldStartRegionLayout->kill();
 
     mControllerGuideSnapshotCtrl = new ControllerGuideSnapShotCtrl(
-        "ControllerGuideSnapShotCtrl", layoutInitInfo,
+        "スナップショットレイアウト更新", layoutInitInfo,
         getLiveActorKit()->getGraphicsSystemInfo()->getPostProcessingFilter());
 
     auto* inputSep = new InputSeparator(
@@ -896,25 +895,25 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
 
     mMiniGameMenu = new MiniGameMenu(layoutInitInfo);
 
-    mWipeSimple = new al::WipeSimple("WipeSimple", "WipeCircle", layoutInitInfo, nullptr);
+    mWipeSimple = new al::WipeSimple("丸ワイプ", "WipeCircle", layoutInitInfo, nullptr);
 
     if (!mWipeHolder) {
         auto* wipeHolder = new al::WipeHolder(6);
         mWipeHolder = wipeHolder;
         auto* wipeCircle =
-            new al::WipeSimple("WipeCircle", "WipeCircle", layoutInitInfo, nullptr);
+            new al::WipeSimple("ワープ用ワイプ", "WipeCircle", layoutInitInfo, nullptr);
         wipeHolder->registerWipe("WipeCircle", wipeCircle);
         auto* fadeBlack =
-            new al::WipeSimple("FadeBlack", "FadeBlack", layoutInitInfo, nullptr);
+            new al::WipeSimple("黒フェード", "FadeBlack", layoutInitInfo, nullptr);
         mWipeHolder->registerWipe("FadeBlack", fadeBlack);
         auto* fadeWhite =
-            new al::WipeSimple("FadeWhite", "FadeWhite", layoutInitInfo, nullptr);
+            new al::WipeSimple("白フェード", "FadeWhite", layoutInitInfo, nullptr);
         mWipeHolder->registerWipe("FadeWhite", fadeWhite);
         auto* wipeMiss =
-            new al::WipeSimple("WipeMiss", "WipeMiss", layoutInitInfo, nullptr);
+            new al::WipeSimple("ミスワイプ", "WipeMiss", layoutInitInfo, nullptr);
         mWipeHolder->registerWipe("WipeMiss", wipeMiss);
         auto* wipeSkip =
-            new al::WipeSimple("WipeSkip", "WipeSkip", layoutInitInfo, nullptr);
+            new al::WipeSimple("スキップワイプ", "WipeSkip", layoutInitInfo, nullptr);
         mWipeHolder->registerWipe("WipeSkip", wipeSkip);
     }
 
@@ -934,21 +933,21 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
         StageSceneStateMiniGameRanking::tryCreate(this, actorInitInfo, layoutInitInfo);
 
     mStateGetShine = new StageSceneStateGetShine(
-        "シャイン取得", this, mSceneLayout, &initInfo, actorInitInfo, layoutInitInfo, mDemoShine,
+        "シャインゲットデモ", this, mSceneLayout, &initInfo, actorInitInfo, layoutInitInfo, mDemoShine,
         mDemoDotShine, cageShineState, mGameDataHolder, mProjectItemDirector);
 
     auto* stateGetShineMain = new StageSceneStateGetShineMain(
-        "シャインメイン取得", this, mSceneLayout, &initInfo, actorInitInfo, layoutInitInfo,
+        "メインシャインゲットデモ", this, mSceneLayout, &initInfo, actorInitInfo, layoutInitInfo,
         mDemoShine, mScenarioStartCameraHolder, mGameDataHolder);
     mStateGetShineMain = stateGetShineMain;
 
     auto* stateGetShineMainLast = new StageSceneStateGetShineMainLast(
-        "シャインメインラスト取得", this,
+        "メインシャインゲットデモ最後", this,
         ((StageSceneStateGetShineMain*)stateGetShineMain)->getDemoShineActor(),
         ((StageSceneStateGetShineMain*)stateGetShineMain)->getCameraTicket());
 
     mStateGetShineGrand = new StageSceneStateGetShineGrand(
-        "グランドシャイン取得", this, &initInfo, actorInitInfo, layoutInitInfo);
+        "グランドシャインゲットデモ", this, &initInfo, actorInitInfo, layoutInitInfo);
 
     mStateSkipDemo = new StageSceneStateSkipDemo("デモスキップ", this, mWindowConfirm, mWipeHolder,
                                                   mPlayGuideSkip, mAudioSystemPauseController,
@@ -958,10 +957,10 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
         this, actorInitInfo, "CheckpointWarpArriveCamera", &mCheckpointWarpTargetPos,
         &mCheckpointWarpParabolicPathPos, nullptr);
     mStateCheckpointWarp = new StageSceneStateCheckpointWarp(
-        "チェックポイントワープ", this, mCheckpointWarpCapActor, mGameDataHolder,
+        "チェックポイントワープ到着デモ", this, mCheckpointWarpCapActor, mGameDataHolder,
         mCheckpointWarpArriveCamera, &mCheckpointWarpTargetPos, &mCheckpointWarpParabolicPathPos);
 
-    mStateCarryMeat = new StageSceneStateCarryMeat("肉運搬", this);
+    mStateCarryMeat = new StageSceneStateCarryMeat("肉運びデモ", this);
 
     mStagePauseMenu = new StageSceneStatePauseMenu(
         "ポーズメニュー", this, mPauseMenu, mGameDataHolder, initInfo, actorInitInfo,
@@ -976,7 +975,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     mStateSkipDemo->setWorldMapState(mStateWorldMap);
 
     mStateMiss = new StageSceneStateMiss(
-        "ミス", this, layoutInitInfo, mGameDataHolder, mSceneLayout,
+        "StageScene:ミス", this, layoutInitInfo, mGameDataHolder, mSceneLayout,
         getLiveActorKit()->getGraphicsSystemInfo()->getSubCameraRenderer());
 
     mStateShop = new StageSceneStateShop("ショップ", this, mSceneLayout);
@@ -996,7 +995,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                                                           mWipeHolder, mGameDataHolder);
 
     mStateScenarioCamera = new StageSceneStateScenarioCamera(
-        "シナリオカメラ", this, mStageName.cstr(), mScenarioNo,
+        "シナリオ開始", this, mStageName.cstr(), mScenarioNo,
         ((StageSceneStateGetShineMain*)mStateGetShineMain)->getDemoShineActor());
     mStateScenarioCamera->init();
     mStateScenarioCamera->setStateSkipDemo(mStateSkipDemo);
@@ -1005,7 +1004,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     mStateRecoverLife->init();
     mStateGetShine->setLifeRecoverState(mStateRecoverLife);
 
-    mStateTalk = new StageSceneStateTalk("トーク", this, eventFlowExecCtrl, mSceneLayout,
+    mStateTalk = new StageSceneStateTalk("会話", this, eventFlowExecCtrl, mSceneLayout,
                                           mCinemaCaption, mPlayGuideSkip, mStateMiniGameRanking,
                                           mStateSkipDemo, mStateWorldMap, mStateGetShine,
                                           mStateGetShineMain, mStateCollectionList, mGameDataHolder,
@@ -1016,7 +1015,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     mStateWarp->init();
 
     auto* stateGetLifeMaxUpItem =
-        new StageSceneStateGetLifeMaxUpItem("ライフアップ取得", this, mSceneLayout);
+        new StageSceneStateGetLifeMaxUpItem("最大ライフアップアイテム取得", this, mSceneLayout);
     stateGetLifeMaxUpItem->init();
 
     StageSceneStateGetShineMainWaterfallWorld* waterfallState =
@@ -1028,7 +1027,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
         mAudioSystemPauseController, mStateSnapShot);
 
     mStateWorldIntroCamera = new StageSceneStateWorldIntroCamera(
-        "ワールドイントロカメラ", actorInitInfo, this, mWorldStartCountryLayout,
+        "ワールド紹介カメラ", actorInitInfo, this, mWorldStartCountryLayout,
         mWorldStartRegionLayout, mStageStartAtmosSe, mStateSkipDemo);
 
     mStateRadicon = new StageSceneStateRadicon("ラジコン", this, mStateCollectionList,
@@ -1112,17 +1111,17 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     if (mStateCloset)
         al::initNerveState(this, mStateCloset, &NrvStageScene.Closet, "クローゼット");
 
-    al::initNerveState(this, mStateGetShine, &NrvStageScene.DemoShineGet, "シャイン取得");
-    al::initNerveState(this, mStateTalk, &NrvStageScene.DemoTalk, "トーク");
+    al::initNerveState(this, mStateGetShine, &NrvStageScene.DemoShineGet, "シャインゲットデモ");
+    al::initNerveState(this, mStateTalk, &NrvStageScene.DemoTalk, "会話");
     al::initNerveState(this, mStateRadicon, &NrvStageScene.Radicon, "ラジコン");
     al::addNerveState(this, mStateWarp, &NrvStageScene.Warp, "ワープ");
     al::addNerveState(this, stateGetLifeMaxUpItem, &NrvStageScene.DemoGetLifeMaxUpItem,
-                      "ライフアップ取得");
+                      "最大ライフアップアイテム取得");
     al::initNerveState(this, mStateWorldIntroCamera, &NrvStageScene.DemoWorldIntroCamera,
-                       "ワールドイントロカメラ");
+                       "ワールド紹介カメラ");
     al::addNerveState(this, mStateWorldIntroCamera,
                       &NrvStageScene.DemoWorldIntroCameraBeforeAppearElectricDemo,
-                      "ワールドイントロカメラ(電線出現デモ前)");
+                      "ワールド紹介カメラ[電線デモ前]");
     al::addNerveState(this, mStateSnapShot, &NrvStageScene.SnapShot, "スナップショット");
 
     if (mPyramid) {
@@ -1132,31 +1131,31 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
         mStateGetShineMainSandWorld->setStateGetShineLast(stateGetShineMainLast);
         mStateGetShineMainSandWorld->setPyramid(mPyramid);
         al::initNerveState(this, mStateGetShineMainSandWorld, &NrvStageScene.DemoShineMainGet,
-                           "ピラミッド上シャイン取得");
+                           "メインシャインゲットデモ[砂ワールド]");
     } else if (waterfallState) {
         waterfallState->setStateGetShine(mStateGetShineMain);
         waterfallState->setStateScenarioCamera(mStateScenarioCamera);
         waterfallState->setStateRecoverLife(mStateRecoverLife);
         waterfallState->setStateGetShineLast(stateGetShineMainLast);
         al::initNerveState(this, waterfallState, &NrvStageScene.DemoShineMainGet,
-                           "滝の国シャインメイン取得");
+                           "メインシャインゲットデモ[滝ワールド]");
     } else if (cageShineState) {
         cageShineState->setState(mStateGetShineMain, mStateScenarioCamera, mStateRecoverLife,
                                  stateGetShineMainLast);
         al::initNerveState(this, cageShineState, &NrvStageScene.DemoShineMainGet,
-                           "カゴシャインメイン取得");
+                           "メインシャインゲットデモ[ケージシャイン]");
     } else {
         al::initNerveState(this, mStateGetShineMain, &NrvStageScene.DemoShineMainGet,
-                           "シャインメイン取得");
+                           "メインシャインゲットデモ");
     }
 
     mStateGetShineMain->setScenarioCameraState(mStateScenarioCamera);
 
     al::initNerveState(this, mStateGetShineGrand, &NrvStageScene.DemoShineGrandGet,
-                       "グランドシャイン取得");
+                       "グランドシャインゲットデモ");
     al::initNerveState(this, mStateSkipDemo, &NrvStageScene.SkipDemo, "デモスキップ");
     al::initNerveState(this, mStateMiss, &NrvStageScene.Miss, "ミス");
-    al::initNerveState(this, mStateCarryMeat, &NrvStageScene.DemoCarryMeat, "肉運搬");
+    al::initNerveState(this, mStateCarryMeat, &NrvStageScene.DemoCarryMeat, "肉運び");
     mStateCarryMeat->setState(mStateSkipDemo);
 
     if (mStateYukimaruRace)
@@ -1167,17 +1166,16 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                            "ユキマルレースチュートリアル");
     if (mStateRaceManRace)
         al::initNerveState(this, mStateRaceManRace, &NrvStageScene.RaceManRace,
-                           "レースマンレース");
+                           "かけっこレース");
     if (mStateTitleLogo)
         al::initNerveState(this, mStateTitleLogo, &NrvStageScene.DemoTitleLogo, "タイトルロゴ");
     al::initNerveState(this, mStagePauseMenu, &NrvStageScene.Pause, "ポーズメニュー");
     al::initNerveState(this, mStateCheckpointWarp, &NrvStageScene.ArriveAtCheckpoint,
-                       "チェックポイントワープ");
+                       "中間ポイントワープ");
     if (mTimeBalloonNpc)
-        al::initNerveState(this, mStateTimeBalloon, &NrvStageScene.TimeBalloon,
-                           "タイムバルーン");
+        al::initNerveState(this, mStateTimeBalloon, &NrvStageScene.TimeBalloon, "風船ゲーム");
     al::addNerveState(this, mStateScenarioCamera, &NrvStageScene.DemoScenarioCamera,
-                      "シナリオカメラ");
+                      "シナリオ開始");
 
     mStateScenarioCamera->setScenarioStartCameraHolder(mScenarioStartCameraHolder);
     mStateScenarioCamera->setScenarioStartLayout(mScenarioStartLayout);
