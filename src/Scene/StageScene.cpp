@@ -283,7 +283,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     s32 placementInfoCount = 0;
     al::tryGetPlacementInfoAndCount(&placementInfos, &placementInfoCount,
                                     al::getStageInfoMap(this, 0), "ObjectList");
-    bool foundMirror = false;
+    s32 foundMirror = 0;
     if (placementInfoCount >= 1) {
         for (s32 i = 0; i < placementInfoCount; i++) {
             al::PlacementInfo placementInfo;
@@ -785,8 +785,8 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     mScenarioStartCameraHolder->init(this, actorInitInfo);
 
     s32 demoStageInfoMapNum = al::getStageInfoMapNum(this);
-    bool hasOpeningDemo = false;
-    bool hasWaterfallStartDemo = false;
+    s32 hasOpeningDemo = 0;
+    s32 hasWaterfallStartDemo = 0;
     if (demoStageInfoMapNum >= 1) {
         for (s32 i = 0; i < demoStageInfoMapNum; i++) {
             const al::StageInfo* demoStageInfoMap = al::getStageInfoMap(this, i);
@@ -821,9 +821,9 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                     } else if (al::isEqualString(demoObjName, "OpeningStageStartDemo")) {
                         mOpeningStageStartDemo = (OpeningStageStartDemo*)demoActor;
                         if (((OpeningStageStartDemo*)demoActor)->isEnableStart()) {
-                            hasOpeningDemo = true;
+                            hasOpeningDemo = 1;
                         } else {
-                            hasOpeningDemo = false;
+                            hasOpeningDemo = 0;
                             mOpeningStageStartDemo = nullptr;
                         }
                     } else if (!al::isEqualString(demoObjName, "StageTalkDemoNpcCap") &&
