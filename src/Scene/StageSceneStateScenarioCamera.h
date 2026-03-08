@@ -19,12 +19,21 @@ public:
     StageSceneStateScenarioCamera(const char*, al::Scene*, const char*, s32, al::LiveActor*);
     void init();
     void setStateSkipDemo(StageSceneStateSkipDemo*);
-    void setScenarioStartCameraHolder(ScenarioStartCameraHolder*);
-    void setScenarioStartLayout(al::SimpleLayoutAppearWaitEnd*);
+
+    void setScenarioStartCameraHolder(ScenarioStartCameraHolder* holder) {
+        mScenarioStartCameraHolder = holder;
+    }
+
+    void setScenarioStartLayout(al::SimpleLayoutAppearWaitEnd* layout) {
+        mScenarioStartLayout = layout;
+    }
+
     bool tryStart();
 
 private:
-    unsigned char _padding[0x50 - 0x20];
+    al::SimpleLayoutAppearWaitEnd* mScenarioStartLayout = nullptr;
+    ScenarioStartCameraHolder* mScenarioStartCameraHolder = nullptr;
+    unsigned char _padding2[0x50 - 0x30];
 };
 
 static_assert(sizeof(StageSceneStateScenarioCamera) == 0x50);

@@ -1,11 +1,14 @@
 #pragma once
 
+#include "Library/LiveActor/LiveActor.h"
+#include "Library/Scene/ISceneObj.h"
+
 namespace al {
 class StageInfo;
 struct ActorInitInfo;
 }  // namespace al
 
-class CapMessageMoonNotifier {
+class CapMessageMoonNotifier : public al::LiveActor, public al::ISceneObj {
 public:
-    static void initialize(const al::StageInfo*, const al::ActorInitInfo&);
+    void initialize(const al::StageInfo*, const al::ActorInitInfo&);
 };

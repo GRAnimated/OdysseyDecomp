@@ -571,8 +571,9 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     mStateCloset = StageSceneStateCloset::tryCreate(this);
 
     al::createSceneObj(this, SceneObjID_CapMessageDirector);
-    al::createSceneObj(this, SceneObjID_CapMessageMoonNotifier);
-    CapMessageMoonNotifier::initialize(al::getStageInfoMap(this), actorInitInfo);
+    auto* capMessageMoonNotifier = static_cast<CapMessageMoonNotifier*>(
+        al::createSceneObj(this, SceneObjID_CapMessageMoonNotifier));
+    capMessageMoonNotifier->initialize(al::getStageInfoMap(this, 0), actorInitInfo);
 
     auto* footPrintServer = new al::FootPrintServer(actorInitInfo, "FootPrint", 32);
     al::setSceneObj(this, (al::ISceneObj*)footPrintServer, SceneObjID_alFootPrintServer);
@@ -1016,10 +1017,9 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     if (mTimeBalloonNpc) {
         al::ISceneObj* timeBalloonDirObj =
             al::createSceneObj(this, SceneObjID_TimeBalloonDirector);
-        if (timeBalloonDirObj)
-            mTimeBalloonDirector = (TimeBalloonDirector*)((char*)timeBalloonDirObj - 8);
-        else
-            mTimeBalloonDirector = nullptr;
+        mTimeBalloonDirector = timeBalloonDirObj
+                                   ? (TimeBalloonDirector*)((char*)timeBalloonDirObj - 8)
+                                   : nullptr;
         mTimeBalloonDirector->init(actorInitInfo, mTimeBalloonNpc, mTimeBalloonSequenceInfo, 0, 0,
                                    mSceneLayout);
         mTimeBalloonSequenceInfo->setAccessor(
@@ -1027,7 +1027,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
 
         mStateTimeBalloon = new StageSceneStateTimeBalloon(
             this, mTimeBalloonDirector, mTimeBalloonSequenceInfo, mGameDataHolder, mSceneLayout,
-            actorInitInfo, mTimeBalloonNpc, 0, mMiniGameMenu,
+            actorInitInfo, mTimeBalloonNpc, false, mMiniGameMenu,
             (void*)((char*)mStateCollectionList + 56), mStateWarp);
         mTimeBalloonSequenceInfo->addHioNode();
     }
