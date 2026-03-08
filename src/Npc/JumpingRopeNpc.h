@@ -69,6 +69,7 @@ public:
     bool isNerveMiss() const;
 
 private:
+    friend class JumpingRopeLayout;
     sead::Vector3f mRopeCenter = sead::Vector3f::zero;
     f32 mHalfRopeLength = 0.0f;
     sead::Vector3f mHandTarget = sead::Vector3f::zero;
