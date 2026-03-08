@@ -3,12 +3,13 @@
 #include "Library/Nerve/NerveStateBase.h"
 
 namespace al {
+struct ActorInitInfo;
+class LayoutInitInfo;
 class Scene;
-}
-
-class StageScene;
+}  // namespace al
 
 class StageSceneStateCloset : public al::HostStateBase<al::Scene> {
 public:
-    static StageSceneStateCloset* tryCreate(StageScene*);
+    static StageSceneStateCloset* tryCreate(al::Scene*, const al::ActorInitInfo&,
+                                            const al::LayoutInitInfo&);
 };

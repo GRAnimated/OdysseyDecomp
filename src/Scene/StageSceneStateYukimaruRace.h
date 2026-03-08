@@ -7,9 +7,14 @@ struct ActorInitInfo;
 class Scene;
 }  // namespace al
 
-class StageScene;
+class SceneAudioSystemPauseController;
+class StageSceneLayout;
+class StageSceneStateSnapShot;
 
 class StageSceneStateYukimaruRace : public al::HostStateBase<al::Scene> {
 public:
-    static StageSceneStateYukimaruRace* tryCreate(StageScene*, const al::ActorInitInfo&);
+    static StageSceneStateYukimaruRace* tryCreate(al::Scene*, const al::ActorInitInfo&,
+                                                   StageSceneLayout*,
+                                                   SceneAudioSystemPauseController*,
+                                                   StageSceneStateSnapShot*);
 };

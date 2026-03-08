@@ -568,7 +568,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     if (timeBalloonNpc)
         mTimeBalloonNpc = (TimeBalloonNpc*)timeBalloonNpc;
 
-    mStateCloset = StageSceneStateCloset::tryCreate(this);
+    mStateCloset = StageSceneStateCloset::tryCreate(this, actorInitInfo, layoutInitInfo);
 
     al::createSceneObj(this, SceneObjID_CapMessageDirector);
     auto* capMessageMoonNotifier = static_cast<CapMessageMoonNotifier*>(
@@ -840,7 +840,8 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     mPlacementInfo = new al::PlacementInfo();
 
     if (!al::isPlayingBgm(mDemoShine, "CollectBgm")) {
-        // clear collect bgm info
+        mCollectBgmPlayer->_10 = nullptr;
+        mCollectBgmPlayer->_18 = nullptr;
     }
 
     mCollectBgmRegister =
@@ -871,7 +872,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
         getLiveActorKit()->getGraphicsSystemInfo()->getPostProcessingFilter());
 
     auto* inputSep = new InputSeparator(
-        mWorldStartCountryLayout ? (al::LayoutActor*)mWorldStartCountryLayout : nullptr, 0);
+        mWorldStartCountryLayout ? static_cast<const al::IUseSceneObjHolder*>(mWorldStartCountryLayout) : nullptr, false);
     mInputSeparator = inputSep;
 
     mLocationNameCtrl = new LocationNameCtrl(al::getSceneAreaObjDirector(this), mGameDataHolder,
@@ -916,8 +917,10 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                                                     false);
     mPauseMenu->kill();
 
-    mStateCollectBgm = StageSceneStateCollectBgm::tryCreate(this);
-    mStateMiniGameRanking = StageSceneStateMiniGameRanking::tryCreate(this);
+    mStateCollectBgm =
+        StageSceneStateCollectBgm::tryCreate(this, actorInitInfo, layoutInitInfo, mCollectBgmPlayer);
+    mStateMiniGameRanking =
+        StageSceneStateMiniGameRanking::tryCreate(this, actorInitInfo, layoutInitInfo);
 
     mStateGetShine = new StageSceneStateGetShine(
         "シャイン取得", this, mSceneLayout, &initInfo, actorInitInfo, layoutInitInfo, mDemoShine,
@@ -974,9 +977,12 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                                                   mNpcEventDirector);
     mStateSnapShot->init();
 
-    mStateYukimaruRace = StageSceneStateYukimaruRace::tryCreate(this, actorInitInfo);
-    mStateYukimaruRaceTutorial = StageSceneStateYukimaruRaceTutorial::tryCreate(this);
-    mStateTitleLogo = StageSceneStateTitleLogo::tryCreate(this);
+    mStateYukimaruRace = StageSceneStateYukimaruRace::tryCreate(
+        this, actorInitInfo, mSceneLayout, mAudioSystemPauseController, mStateSnapShot);
+    mStateYukimaruRaceTutorial = StageSceneStateYukimaruRaceTutorial::tryCreate(
+        this, actorInitInfo, layoutInitInfo, mGameDataHolder, mStateSnapShot);
+    mStateTitleLogo = StageSceneStateTitleLogo::tryCreate(this, actorInitInfo, layoutInitInfo,
+                                                          mWipeHolder, mGameDataHolder);
 
     mStateScenarioCamera = new StageSceneStateScenarioCamera(
         "シナリオカメラ", this, mStageName.cstr(), mScenarioNo,
@@ -1005,7 +1011,10 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     StageSceneStateGetShineMainWaterfallWorld* waterfallState =
         StageSceneStateGetShineMainWaterfallWorld::tryCreate(this, actorInitInfo);
 
-    mStateRaceManRace = StageSceneStateRaceManRace::tryCreate(this);
+    mStateRaceManRace = StageSceneStateRaceManRace::tryCreate(
+        this, mGameDataHolder, mSceneLayout, mStateMiss, mStateCollectionList,
+        stateGetLifeMaxUpItem, mStateWarp, actorInitInfo,
+        mAudioSystemPauseController, mStateSnapShot);
 
     mStateWorldIntroCamera = new StageSceneStateWorldIntroCamera(
         "ワールドイントロカメラ", actorInitInfo, this, mWorldStartCountryLayout,

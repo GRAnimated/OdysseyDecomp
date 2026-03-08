@@ -3,12 +3,12 @@
 #include <basis/seadTypes.h>
 
 namespace al {
-class LayoutActor;
+class IUseSceneObjHolder;
 }
 
 class InputSeparator {
 public:
-    InputSeparator(al::LayoutActor*, s32);
+    InputSeparator(const al::IUseSceneObjHolder*, bool);
 
 private:
     u8 _padding[0x18];
