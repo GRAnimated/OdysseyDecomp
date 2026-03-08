@@ -31,9 +31,9 @@ public:
 
 private:
     unsigned char _20[0x28];
-    al::CameraTicket* mCameraTicket;  // 0x48
+    al::CameraTicket* mCameraTicket;
     unsigned char _50[0x30];
-    al::LiveActor* mDemoShineActor;  // 0x80
+    al::LiveActor* mDemoShineActor;
     unsigned char _88[0x50];
 };
 

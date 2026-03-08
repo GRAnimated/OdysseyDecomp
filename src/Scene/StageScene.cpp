@@ -711,7 +711,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
             playerInitInfo.capTypeName = mCapTypeName.cstr();
             playerInitInfo.trans = playerStartTrans;
             __builtin_memcpy(&playerInitInfo.quat, &playerStartQuat_zw, sizeof(sead::Quatf));
-            playerInitInfo._44 = false;
+            playerInitInfo._44 = foundCactus;
             playerInitInfo._45 = (mStateCloset != nullptr);
 
             const char* costumeName = mCostumeName.cstr();
@@ -820,13 +820,10 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
 
     if (GameDataFunction::isFindKoopa(mGameDataHolder) ||
         al::isEqualString(mStageName, "TestKitazonoKoopaLv0Stage")) {
-        al::LiveActorGroup* actorGroup = getLiveActorKit()->getLiveActorGroupAllActors();
-        s32 actorCount = actorGroup->getActorCount();
-        for (s32 i = 0; i < actorCount; i++) {
-            al::LiveActor* actor = actorGroup->getActor(i);
-            const char* actorName = actor->getName();
-            if (al::isEqualString(actorName, "KoopaLv1")) {
-                mKoopaLv1 = (KoopaLv1*)actor;
+        al::LiveActorGroup* actorGroup = actorInitInfo.allActorsGroup;
+        for (s32 i = 0; i < actorGroup->getActorCount(); i++) {
+            if (al::isEqualString(actorGroup->getActor(i)->getName(), "KoopaLv1")) {
+                mKoopaLv1 = (KoopaLv1*)actorGroup->getActor(i);
                 break;
             }
         }
