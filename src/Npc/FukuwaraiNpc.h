@@ -1,14 +1,25 @@
 #pragma once
 
-#include <prim/seadSafeString.h>
 #include <math/seadQuat.h>
 #include <math/seadVector.h>
+#include <prim/seadSafeString.h>
 
 #include "Library/Event/IEventFlowEventReceiver.h"
 #include "Library/Event/IEventFlowQueryJudge.h"
 #include "Library/LiveActor/LiveActor.h"
 
+namespace al {
+class EventFlowExecutor;
+class MessageTagDataHolder;
+class PlacementId;
+}  // namespace al
+
+class FukuwaraiFaceParts;
 class FukuwaraiWatcher;
+class NpcJointLookAtController;
+class NpcStateReaction;
+class TalkNpcCap;
+class TalkNpcParam;
 
 class FukuwaraiNpc : public al::LiveActor,
                      public al::IEventFlowEventReceiver,
@@ -25,6 +36,17 @@ public:
     bool receiveEvent(const al::EventFlowEventData* data) override;
     const char* judgeQuery(const char* query) const override;
 
+    void exeWait();
+    void exeReaction();
+    void exePlay();
+    void exeMemorize();
+    void exeEventMemorize();
+    void exeEventStartResult();
+    void exeEventStartResultEnd();
+    void exeEventResult();
+    void exeEventEnd();
+
+    bool isCompleteKuriboMario() const;
     bool isSetStartPosition() const;
     bool isMemorize() const;
     bool isPlay() const;
@@ -39,25 +61,24 @@ public:
 
 private:
     sead::FixedSafeString<128> mEventFlowName;
-    void* _1b0 = nullptr;
-    al::LiveActor* mFace = nullptr;
+    al::EventFlowExecutor* mEventFlowExecutor = nullptr;
+    FukuwaraiWatcher* mWatcher = nullptr;
     void* _1c0 = nullptr;
     sead::Quatf mQuat = sead::Quatf::unit;
     sead::Vector3f mPosition = sead::Vector3f::zero;
-    s32 _1e4 = 0;
-    s32 _1e8 = 60;
-    s16 _1ec = 0;
-    bool _1ee = false;
-    u8 _1ef = 0;
-    void* _1f0 = nullptr;
-    void* _1f8 = nullptr;
+    s32 mScore = 0;
+    s32 mSuccessScore = 60;
+    bool _1ec = false;
+    bool mIsPlayedThisScene = false;
+    bool mIsPlayedThisSceneLv2 = false;
+    al::PlacementId* mShineActorPlacementId = nullptr;
+    al::PlacementId* mMoonLockPlacementId = nullptr;
     bool mIsMarioFace = false;
-    bool _201 = false;
-    u8 _202[6] = {};
-    void* _208 = nullptr;
-    void* _210 = nullptr;
-    void* _218 = nullptr;
-    void* _220 = nullptr;
+    bool mIsCompleteKuriboMario = false;
+    NpcStateReaction* mNpcStateReaction = nullptr;
+    TalkNpcParam* mTalkNpcParam = nullptr;
+    NpcJointLookAtController* mNpcJointLookAtController = nullptr;
+    TalkNpcCap* mTalkNpcCap = nullptr;
 };
 
 static_assert(sizeof(FukuwaraiNpc) == 0x228);
