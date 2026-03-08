@@ -615,7 +615,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
             al::tryGetPlacementId(&placementIdForCheckpoint, *checkpointRestartInfo);
             al::StringTmp<128> placementIdStr =
                 al::makeStringPlacementId(&placementIdForCheckpoint);
-            playerStartId.format("%s", placementIdStr.cstr());
+            playerStartId.copy(placementIdStr);
         }
         startId = playerStartId.cstr();
     }
