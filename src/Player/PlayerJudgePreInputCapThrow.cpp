@@ -7,7 +7,6 @@
 #include "Player/PlayerConst.h"
 #include "Player/PlayerInput.h"
 
-// NON_MATCHING: zero-init store scheduling differs (stur xzr vs strb wzr ordering)
 PlayerJudgePreInputCapThrow::PlayerJudgePreInputCapThrow(const PlayerConst* pConst,
                                                          const PlayerInput* input,
                                                          const PlayerCarryKeeper* carryKeeper,
@@ -81,8 +80,9 @@ bool PlayerJudgePreInputCapThrow::judge() const {
 
 // NON_MATCHING: ldr x8 + lsr x9 instead of ldp w8, w9 for loading mThrowType+mCapThrowDir.x pair
 void PlayerJudgePreInputCapThrow::recordJudgeAndReset() {
+    mRecordedCapThrowDir.x = mCapThrowDir.x;
     mRecordedThrowType = mThrowType;
-    mRecordedCapThrowDir = mCapThrowDir;
+    mRecordedCapThrowDir.y = mCapThrowDir.y;
     mRecordedCooperateCapThrowDir.x = mCooperateCapThrowDir.x;
     mRecordedCooperateCapThrowDir.y = mCooperateCapThrowDir.y;
     mIsRecordedCooperate = mIsCooperate;
@@ -96,10 +96,10 @@ void PlayerJudgePreInputCapThrow::recordSeparateJudge() {
     mRecordedThrowType = PlayerThrowType::SpinThrow;
 }
 
-// NON_MATCHING: ldr x8 + lsr x9 instead of ldp w8, w9 for loading mThrowType+mCapThrowDir.x pair
 void PlayerJudgePreInputCapThrow::recordCooperateAndReset() {
+    mRecordedCapThrowDir.x = mCapThrowDir.x;
     mRecordedThrowType = mThrowType;
-    mRecordedCapThrowDir = mCapThrowDir;
+    mRecordedCapThrowDir.y = mCapThrowDir.y;
     mRecordedCooperateCapThrowDir = mCooperateCapThrowDir;
     mIsRecordedCooperate = true;
     reset();

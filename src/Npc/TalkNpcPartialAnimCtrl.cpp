@@ -89,7 +89,7 @@ void TalkNpcPartialAnimCtrl::exeNone() {
             sead::Vector3f diff = playerPos - al::getTrans(actor);
             al::verticalizeVec(&diff, al::getGravity(actor), diff);
 
-            if (diff.length() <= 1500.0f) {
+            if (!(diff.length() > 1500.0f)) {
                 sead::Vector3f dir = diff;
                 if (al::tryNormalizeOrZero(&dir)) {
                     sead::Quatf quat = sead::Quatf::unit;
@@ -98,7 +98,7 @@ void TalkNpcPartialAnimCtrl::exeNone() {
                     frontDir.rotate(quat);
 
                     f32 dot = dir.dot(frontDir);
-                    if (dot >= sead::Mathf::cos(sead::Mathf::deg2rad(15.0f))) {
+                    if (!(dot < sead::Mathf::cos(sead::Mathf::deg2rad(15.0f)))) {
                         sead::Vector3f projected = diff;
                         al::verticalizeVec(&projected, frontDir, projected);
                         if (projected.length() < 800.0f) {

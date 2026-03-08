@@ -111,7 +111,7 @@ void TalkNpcActionAnimInfo::initWaitActionNameDirect(const al::LiveActor* actor,
     const NpcActionAnimParam* entry = sNpcActionAnimParamTable;
     const NpcActionAnimParam* found;
 #pragma clang loop unroll(disable)
-    for (s32 i = 0; i < 23; i++) {
+    for (s64 i = 0; i <= 22; i++) {
         bool match = al::isEqualString(entry->waitAction, waitAction);
         found = entry;
         if (match)
@@ -175,7 +175,7 @@ void TalkNpcActionAnimInfo::init(const al::LiveActor* actor, const al::ActorInit
         const NpcActionAnimParam* entry = sNpcActionAnimParamTable;
         const NpcActionAnimParam* found;
 #pragma clang loop unroll(disable)
-        for (s32 i = 0; i < 23; i++) {
+        for (s64 i = 0; i <= 22; i++) {
             bool match = al::isEqualString(entry->waitAction, waitAction);
             found = entry;
             if (match)

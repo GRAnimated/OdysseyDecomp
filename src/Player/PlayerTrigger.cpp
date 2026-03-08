@@ -91,6 +91,48 @@ bool PlayerTrigger::isOn(EMaterialChangeTrigger flag) const {
     return mMaterialChangeTrigger.isOnBit(flag);
 }
 
+bool PlayerTrigger::isOnUpperPunchHit() const {
+    return mCollisionTrigger.isOnBit(0) || mAttackSensorTrigger.isOnBit(4);
+}
+
+bool PlayerTrigger::isOnUpperPunchHitToss() const {
+    return mAttackSensorTrigger.isOnBit(4);
+}
+
+// NON_MATCHING: branchless CSEL chain structure differs; compiler merges receive bit 0 into bitwise
+bool PlayerTrigger::isOnAnyDamage() const {
+    if (mCollisionTrigger.isOn(0x44))
+        return true;
+    if (mReceiveSensorTrigger.isOnBit(0))
+        return true;
+    return mCollisionTrigger.isOn(0x18) || mReceiveSensorTrigger.isOnBit(1) ||
+           mActionTrigger.isOn(0x800000) || mReceiveSensorTrigger.isOn(0xC);
+}
+
+bool PlayerTrigger::isOnDamageFire() const {
+    return mCollisionTrigger.isOn(0x18) || mReceiveSensorTrigger.isOnBit(1);
+}
+
+bool PlayerTrigger::isOnEndHackWithDamage() const {
+    return mReceiveSensorTrigger.isOn(0xC);
+}
+
+bool PlayerTrigger::isOnNoDamageDown() const {
+    return mActionTrigger.isOnBit(10) || mPreMovementTrigger.isOnBit(4);
+}
+
+bool PlayerTrigger::isOnSpinMoveCapThrow() const {
+    return mActionTrigger.isOn(0x18000000);
+}
+
+bool PlayerTrigger::isOnHipDropCancelThrow() const {
+    return mActionTrigger.isOnBit(18);
+}
+
+bool PlayerTrigger::isOnCollisionExpandCheck() const {
+    return mActionTrigger.isOnBit(3);
+}
+
 bool PlayerTrigger::isOnYoshiHackEnd() const {
     return mCollisionTrigger.isOn(ECollisionTrigger_val1024);
 }

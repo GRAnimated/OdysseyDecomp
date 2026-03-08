@@ -225,7 +225,6 @@ const char* CapReactionJointCtrl::getCtrlTypeName() const {
     return u8"帽子リアクション中ののけぞり挙動";
 }
 
-// NON_MATCHING: regswap in cmp operand order for parentIndex check
 void countJointDescendants(s32* outCount, s32* outMaxDepth, al::LiveActor* actor,
                            const char* jointName) {
     const al::ModelKeeper* keeper = actor->getModelKeeper();
@@ -241,7 +240,7 @@ void countJointDescendants(s32* outCount, s32* outMaxDepth, al::LiveActor* actor
             continue;
 
         s32 parentIndex = al::getParentJointIndex(keeper, i);
-        if (parentIndex != targetIndex)
+        if (targetIndex != parentIndex)
             continue;
 
         s32 childCount = 0;
@@ -725,7 +724,7 @@ void TalkNpc::init(const al::ActorInitInfo& info) {
     al::trySyncStageSwitchAppearAndKill(this);
 }
 
-// NON_MATCHING: material code logic differs, vtable offset for kill()
+// NON_MATCHING: material code logic structure differs from target
 void TalkNpc::initAfterPlacement() {
     TalkNpcStateEvent* currentState = tryGetCurrentEventState();
     if (currentState) {
@@ -736,7 +735,7 @@ void TalkNpc::initAfterPlacement() {
 
     if (al::isValidStageSwitch(this, "SwitchForceVanishAfterInit") &&
         al::isOnStageSwitch(this, "SwitchForceVanishAfterInit")) {
-        kill();
+        makeActorDead();
         return;
     }
 
@@ -972,13 +971,12 @@ void TalkNpc::endClipped() {
         *(bool*)((char*)mBgmAnimeSynchronizer + 40) = true;
 }
 
-// NON_MATCHING: sendMsgEventFlowScareCheck return type void vs bool
 void TalkNpc::attackSensor(al::HitSensor* self, al::HitSensor* other) {
     if (al::isSensorEye(self)) {
         TalkNpcStateEvent* state = tryGetCurrentEventState();
         if (state && state->mEventFlowExecutor) {
-            rs::sendMsgEventFlowScareCheck(other, self, state->mEventFlowExecutor);
-            return;
+            if (rs::sendMsgEventFlowScareCheck(other, self, state->mEventFlowExecutor))
+                return;
         }
 
         if (!_236 && mPlayerEyeSensorHitHolder) {

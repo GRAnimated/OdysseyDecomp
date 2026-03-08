@@ -1,5 +1,6 @@
 #include "Npc/YukimaruStateMove.h"
 
+#include <cstring>
 #include <math/seadQuat.h>
 
 #include "Library/Effect/EffectSystemInfo.h"
@@ -35,14 +36,13 @@ NERVE_IMPL(YukimaruStateMove, Jump);
 NERVES_MAKE_NOSTRUCT(YukimaruStateMove, JumpEnd, RunStart, Run, Jump);
 }  // namespace
 
-// NON_MATCHING: regswap, vector load pattern (32-bit vs 64-bit), memcpy for mEffectMtx
 YukimaruStateMove::YukimaruStateMove(al::LiveActor* actor, YukimaruInput* input,
                                      sead::Quatf* quat)
     : ActorStateBase("ユキマル移動状態", actor), mInput(input), mQuat(quat) {
-    mEffectMtx = sead::Matrix34f::ident;
-    mVelocity = sead::Vector3f::zero;
-    mCollidedNormal = sead::Vector3f::ey;
-    mRotation = sead::Vector3f::zero;
+    std::memcpy(&mEffectMtx, &sead::Matrix34f::ident, sizeof(sead::Matrix34f));
+    mVelocity.set(sead::Vector3f::zero);
+    mCollidedNormal.set(sead::Vector3f::ey);
+    mRotation.set(sead::Vector3f::zero);
     mIsJumping = false;
     mIsHack = false;
     mSpeed = 0.0f;
@@ -63,34 +63,35 @@ void YukimaruStateMove::attackSensor(al::HitSensor* self, al::HitSensor* other) 
     YukimaruMovement::attackSensor(mActor, self, other);
 }
 
-// NON_MATCHING: regswap in early return path, tail call vs bl+return
+// clang-format off
 bool YukimaruMovement::attackSensor(al::LiveActor* actor, al::HitSensor* self, al::HitSensor* other) {
+// clang-format on
     if (al::getVelocity(actor).y < 0.0f &&
         rs::trySendMsgPlayerReflectOrTrample(actor, self, other)) {
         al::setVelocityOnlyV(actor, 24.0f);
         return true;
     }
 
-    if (rs::sendMsgYukimaruPush(self, other)) {
-        const sead::Vector3f& velSelf = al::getActorVelocity(other);
-        const sead::Vector3f& velOther = al::getActorVelocity(self);
+    if (rs::sendMsgYukimaruPush(other, self)) {
+        const sead::Vector3f& velSelf = al::getActorVelocity(self);
+        const sead::Vector3f& velOther = al::getActorVelocity(other);
         f32 dx = velSelf.x - velOther.x;
         f32 dy = velSelf.y - velOther.y;
         f32 dz = velSelf.z - velOther.z;
 
         sead::Vector3f dir;
-        al::calcDirBetweenSensors(&dir, other, self);
+        al::calcDirBetweenSensors(&dir, self, other);
 
         f32 dot = dx * dir.x + dy * dir.y + dz * dir.z;
         if (dot > 0.0f) {
             if (dot > 5.0f) {
-                al::startHitReactionHitEffect(actor, "接触", other, self);
-                al::LiveActor* otherHost = al::getSensorHost(self);
+                al::startHitReactionHitEffect(actor, "接触", self, other);
+                al::LiveActor* otherHost = al::getSensorHost(other);
                 al::startHitReaction(otherHost, "被接触");
             }
-            al::LiveActor* selfHost = al::getSensorHost(other);
+            al::LiveActor* selfHost = al::getSensorHost(self);
             al::addVelocityToDirection(selfHost, dir, dot * -1.3f);
-            al::LiveActor* otherHost2 = al::getSensorHost(self);
+            al::LiveActor* otherHost2 = al::getSensorHost(other);
             al::addVelocityToDirection(otherHost2, dir, dot * 1.3f);
         }
         return true;
@@ -131,11 +132,10 @@ bool YukimaruStateMove::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self
     return false;
 }
 
-// NON_MATCHING: vector load pattern (32-bit vs 64-bit for Vector3f::zero/ey)
 void YukimaruStateMove::startRun(bool isRunning) {
-    mVelocity = sead::Vector3f::zero;
-    mCollidedNormal = sead::Vector3f::ey;
-    mRotation = sead::Vector3f::zero;
+    mVelocity.set(sead::Vector3f::zero);
+    mCollidedNormal.set(sead::Vector3f::ey);
+    mRotation.set(sead::Vector3f::zero);
     mInputTimer = 0;
     mCollisionBounceTimer = 0;
     mSlideTimer = 0;
@@ -149,11 +149,10 @@ void YukimaruStateMove::startRun(bool isRunning) {
         al::setNerve(this, &RunStart);
 }
 
-// NON_MATCHING: vector load pattern (32-bit vs 64-bit for Vector3f::zero/ey)
 void YukimaruStateMove::resetInput() {
-    mVelocity = sead::Vector3f::zero;
-    mCollidedNormal = sead::Vector3f::ey;
-    mRotation = sead::Vector3f::zero;
+    mVelocity.set(sead::Vector3f::zero);
+    mCollidedNormal.set(sead::Vector3f::ey);
+    mRotation.set(sead::Vector3f::zero);
     mInputTimer = 0;
     mCollisionBounceTimer = 0;
     mSlideTimer = 0;
@@ -162,12 +161,9 @@ void YukimaruStateMove::resetInput() {
     mIsJumping = false;
 }
 
-// NON_MATCHING: regswap
 void YukimaruStateMove::exeRunStart() {
-    if (al::isFirstStep(this)) {
-        const char* action = mIsHack ? "RunStartHack" : "RunStartEnemy";
-        al::startAction(mActor, action);
-    }
+    if (al::isFirstStep(this))
+        al::startAction(mActor, mIsHack ? "RunStartHack" : "RunStartEnemy");
 
     updateMove(mInput);
 
@@ -182,12 +178,9 @@ void YukimaruStateMove::updateMove() {
     updateMove(mInput);
 }
 
-// NON_MATCHING: regswap
 void YukimaruStateMove::exeRun() {
-    if (al::isFirstStep(this)) {
-        const char* action = mIsHack ? "RunHack" : "RunEnemy";
-        al::startAction(mActor, action);
-    }
+    if (al::isFirstStep(this))
+        al::startAction(mActor, mIsHack ? "RunHack" : "RunEnemy");
 
     updateMove(mInput);
 
@@ -195,7 +188,7 @@ void YukimaruStateMove::exeRun() {
         al::setNerve(this, &Jump);
 }
 
-// NON_MATCHING: comparison order, csel merging, regswap
+// NON_MATCHING: comparison order (compiler checks case 1 before case 2), instruction scheduling
 void YukimaruStateMove::exeJump() {
     if (al::isFirstStep(this)) {
         sead::Vector3f rollMoment = sead::Vector3f::zero;
@@ -207,26 +200,22 @@ void YukimaruStateMove::exeJump() {
         al::calcMomentRollBall(&rollMoment, vel, up, 5.0f);
         al::tryNormalizeOrZero(&rollMoment);
 
-        const char* actionName;
         f32 scale;
+        const char* actionName;
 
         if (mJumpType == 2) {
             scale = 0.8f;
             actionName = mIsHack ? "JumpHackHigh" : "JumpEnemyHigh";
-        } else if (mJumpType != 1) {
-            scale = 0.5f;
-            actionName = mIsHack ? "JumpHack" : "JumpEnemy";
-        } else {
+        } else if (mJumpType == 1) {
             scale = 0.3f;
             actionName = mIsHack ? "JumpHackLow" : "JumpEnemyLow";
+        } else {
+            scale = 0.5f;
+            actionName = mIsHack ? "JumpHack" : "JumpEnemy";
         }
 
-        rollMoment.x *= scale;
-        rollMoment.y *= scale;
-        rollMoment.z *= scale;
-        mRotation.x += rollMoment.x;
-        mRotation.y += rollMoment.y;
-        mRotation.z += rollMoment.z;
+        rollMoment *= scale;
+        mRotation += rollMoment;
 
         al::startAction(mActor, actionName);
     }
@@ -237,7 +226,7 @@ void YukimaruStateMove::exeJump() {
         al::setNerve(this, &JumpEnd);
 }
 
-// NON_MATCHING: mIsHack/mJumpType extraction pattern, regswap
+// NON_MATCHING: compiler merges redundant mIsHack test instructions, ADRP scheduling
 void YukimaruStateMove::exeJumpEnd() {
     if (al::isFirstStep(this)) {
         s32 jumpType = mJumpType;
@@ -263,7 +252,7 @@ void YukimaruStateMove::updateMoveNoInput() {
     updateMove(&sNullInput);
 }
 
-// NON_MATCHING: regswap, instruction scheduling, stack frame size
+// NON_MATCHING: regswap, instruction scheduling, sead operator differences
 void YukimaruStateMove::updateMove(YukimaruInput* input) {
     mIsJumping = false;
 
@@ -309,30 +298,28 @@ void YukimaruStateMove::updateMove(YukimaruInput* input) {
 
     bool isOnGround = al::isOnGroundNoVelocity(mActor, 10);
 
-    f32 moveSpeed = al::normalize((f32)mBounceCount, 5.0f, 60.0f);
+    f32 moveSpeed = al::normalize(mBounceCount, 5, 60);
     moveSpeed = al::lerpValue(2.0f, 1.6f, moveSpeed);
     if (!isOnGround)
         moveSpeed = 0.8f;
 
-    f32 vx = (inputDir.x * moveSpeed) + mVelocity.x;
-    f32 vy = (moveSpeed * inputDir.y) + mVelocity.y;
-    f32 vz = ((moveSpeed * inputDir.z) + mVelocity.z) * 0.5f;
-    mVelocity.x = vx * 0.5f;
-    mVelocity.y = vy * 0.5f;
-    mVelocity.z = vz;
+    mVelocity = (inputDir * moveSpeed + mVelocity) * 0.5f;
 
-    sead::Vector3f horizVel = {mVelocity.x, 0.0f, mVelocity.z};
+    sead::Vector3f horizVel = mVelocity;
+    horizVel.y = 0.0f;
     if (!al::isNearZero(horizVel, 0.001f)) {
         sead::Quatf* quatPtr = al::getQuatPtr(mActor);
         al::makeQuatUpFront(quatPtr, sead::Vector3f::ey, horizVel);
     }
 
-    sead::Vector3f collNormal = {0.0f, 1.0f, 0.0f};
+    sead::Vector3f collNormal;
+    collNormal.set(sead::Vector3f::ey);
     al::calcCollidedNormalSum(mActor, &collNormal);
     if (!al::tryNormalizeOrZero(&collNormal))
-        collNormal = {0.0f, 1.0f, 0.0f};
+        collNormal.set(sead::Vector3f::ey);
 
-    sead::Vector3f collidedPos = sead::Vector3f::zero;
+    sead::Vector3f collidedPos;
+    collidedPos.set(sead::Vector3f::zero);
     if (al::tryGetCollidedPos(&collidedPos, mActor))
         al::makeMtxUpNoSupportPos(&mEffectMtx, collNormal, collidedPos);
 
@@ -346,17 +333,16 @@ void YukimaruStateMove::updateMove(YukimaruInput* input) {
         mBoundScaleController->startAndSetScaleY(scaleY);
 
         const char* reactionName;
+        const char* reactionBound = "バウンド[敵]";
+        const char* reactionWall = "壁バウンド[敵]";
         if (normalY >= 0.17365f) {
-            if (mIsHack)
-                reactionName = "バウンド";
-            else
-                reactionName = "バウンド[敵]";
-        } else {
-            if (mIsHack)
-                reactionName = "壁バウンド";
-            else
-                reactionName = "壁バウンド[敵]";
+            reactionBound = "バウンド";
+            reactionWall = "壁バウンド";
         }
+        if (mIsHack)
+            reactionName = reactionBound;
+        else
+            reactionName = reactionWall;
         al::startHitReaction(mActor, reactionName);
     }
 
@@ -386,23 +372,16 @@ void YukimaruStateMove::updateMove(YukimaruInput* input) {
         al::calcMomentRollBall(&rollSmall, mRotation, up, 5.0f);
 
         const sead::Vector3f& vel2 = al::getVelocity(mActor);
-        f32 speed = sead::Mathf::max(
-            sead::Mathf::sqrt(vel2.x * vel2.x + vel2.y * vel2.y + vel2.z * vel2.z), 60.0f);
+        f32 speed = sead::Mathf::max(vel2.length(), 60.0f);
 
         const sead::Vector3f& vel3 = al::getVelocity(mActor);
-        f32 invSpeed = 1.0f / speed;
-        f32 diffX = vel3.x * invSpeed - inputDir.x;
-        f32 diffY = vel3.y * invSpeed - inputDir.y;
-        f32 diffZ = vel3.z * invSpeed - inputDir.z;
+        sead::Vector3f diff = vel3 * (1.0f / speed) - inputDir;
 
-        f32 diffLen =
-            sead::Mathf::sqrt(diffX * diffX + diffY * diffY + diffZ * diffZ);
-        f32 inputLen = sead::Mathf::sqrt(
-            inputDir.x * inputDir.x + inputDir.y * inputDir.y + inputDir.z * inputDir.z);
+        f32 diffLen = diff.length();
+        f32 inputLen = inputDir.length();
 
         slipAmount = al::normalize(diffLen * inputLen, 0.6f, 1.2f);
-        f32 rotLen = sead::Mathf::sqrt(
-            mVelocity.x * mVelocity.x + mVelocity.y * mVelocity.y + mVelocity.z * mVelocity.z);
+        f32 rotLen = mVelocity.length();
         f32 blendT = al::lerpValue(rotLen, 0.0f, 1.5f, 0.0f, 1.0f);
         al::lerpVec(&mRotation, rollBig, rollSmall, blendT);
 
@@ -418,18 +397,11 @@ void YukimaruStateMove::updateMove(YukimaruInput* input) {
         gravityFactor = al::easeInOut(gravityFactor);
         f32 rollScale = gravityFactor * 0.1f;
 
-        rollMoment.x *= rollScale;
-        rollMoment.y *= rollScale;
-        rollMoment.z *= rollScale;
-
-        mRotation.x += rollMoment.x;
-        mRotation.y += rollMoment.y;
-        mRotation.z += rollMoment.z;
+        rollMoment *= rollScale;
+        mRotation += rollMoment;
 
         f32 damping = input->isHoldJump() ? 0.97f : 0.95f;
-        mRotation.x *= damping;
-        mRotation.y *= damping;
-        mRotation.z *= damping;
+        mRotation *= damping;
     }
 
     if (normalizedSpeed <= 0.1f || mCollisionBounceTimer < 1)
@@ -437,10 +409,7 @@ void YukimaruStateMove::updateMove(YukimaruInput* input) {
     else
         al::tryEmitEffect(mActor, "Ground", nullptr);
 
-    f32 rollingSpeed = al::normalize(
-        sead::Mathf::sqrt(
-            mRotation.x * mRotation.x + mRotation.y * mRotation.y + mRotation.z * mRotation.z),
-        0.0f, 0.4f);
+    f32 rollingSpeed = al::normalize(mRotation.length(), 0.0f, 0.4f);
     al::tryHoldSeWithParam(mActor, "RollingLv", rollingSpeed, "回転速度");
 
     if (slipAmount <= 0.0f) {
@@ -454,36 +423,26 @@ void YukimaruStateMove::updateMove(YukimaruInput* input) {
 
     if (mInputTimer >= 1 && mCollisionBounceTimer >= 1) {
         sead::Vector3f normal = mCollidedNormal;
-        f32 normalZ = normal.z;
 
-        if (normal.x * mVelocity.x + normal.y * mVelocity.y + normalZ * mVelocity.z < 0.0f) {
+        if (normal.dot(mVelocity) < 0.0f) {
             sead::Vector3f vertVec;
             if (al::tryNormalizeOrZero(&vertVec, mRotation))
                 al::verticalizeVec(&normal, vertVec, normal);
-            normalZ = normal.z;
         }
 
-        sead::Vector3f jumpVel;
-        jumpVel.x = normal.x * 24.0f;
-        jumpVel.y = normal.y * 24.0f;
-        jumpVel.z = normalZ * 24.0f;
+        sead::Vector3f jumpVel = normal * 24.0f;
         al::addVelocity(mActor, jumpVel);
 
         const sead::Vector3f& curVel = al::getVelocity(mActor);
-        f32 dotVel =
-            normal.x * curVel.x + normal.y * curVel.y + normal.z * curVel.z;
+        f32 dotVel = normal.dot(curVel);
         mSpeed = dotVel;
 
         if (dotVel < 40.0f) {
             f32 boost = 40.0f - dotVel;
-            sead::Vector3f boostVel;
-            boostVel.x = normal.x * boost;
-            boostVel.y = boost * normal.y;
-            boostVel.z = boost * normalZ;
+            sead::Vector3f boostVel = normal * boost;
             al::addVelocity(mActor, boostVel);
             const sead::Vector3f& newVel = al::getVelocity(mActor);
-            dotVel =
-                normal.x * newVel.x + normal.y * newVel.y + normal.z * newVel.z;
+            dotVel = normal.dot(newVel);
             mSpeed = dotVel;
         }
 
@@ -495,9 +454,7 @@ void YukimaruStateMove::updateMove(YukimaruInput* input) {
 
         mInputTimer = 0;
         mCollisionBounceTimer = 0;
-        mRotation.x *= 0.5f;
-        mRotation.y *= 0.5f;
-        mRotation.z *= 0.5f;
+        mRotation *= 0.5f;
         mSlideTimer = 30;
         mGravityTimer = 45;
         mIsJumping = true;
@@ -508,12 +465,9 @@ void YukimaruStateMove::updateMove(YukimaruInput* input) {
     mScaleController->update();
     mBoundScaleController->update();
 
-    const sead::Vector3f& scaleY = mScaleController->getScale();
+    f32 sy = mScaleController->getScale().y;
     const sead::Vector3f& boundScale = mBoundScaleController->getScale();
-    sead::Vector3f finalScale;
-    finalScale.x = scaleY.y * boundScale.x;
-    finalScale.y = scaleY.y * boundScale.y;
-    finalScale.z = scaleY.y * boundScale.z;
+    sead::Vector3f finalScale = {sy * boundScale.x, sy * boundScale.y, sy * boundScale.z};
     al::setScale(mActor, finalScale);
 }
 
@@ -537,7 +491,6 @@ void YukimaruStateMove::reactionBound(f32 speed, bool isUpward) {
     al::startHitReaction(mActor, reactionName);
 }
 
-// NON_MATCHING: instruction scheduling (stp before/after ldr)
 void YukimaruStateMove::updateScale() {
     mScaleController->update();
     mBoundScaleController->update();

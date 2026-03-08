@@ -189,3 +189,97 @@ sead::Vector3f shotDir;
 **IDA dword/qword index arithmetic**:
 `*((_DWORD*)this + N)` = byte offset `N×4`
 `*((_QWORD*)this + N)` = byte offset `N×8`
+
+**Pre-compute IUseCollision / IUseCamera cast before function calls**
+
+When the target assembly pre-computes the multiple-inheritance pointer adjustment
+(`add xN, x19, #0x38`) before a preceding `bl` call, but our compiler delays it
+until right before the call that uses it:
+
+```cpp
+// Wrong: compiler defers the cast
+sead::Vector3f arrowStart = al::getTrans(this) + sArrowCheckOffset;
+alCollisionUtil::checkStrikeArrow(this, arrowStart, ...);
+
+// Right: pre-compute the cast so the add appears before getTrans
+const al::IUseCollision* collision = this;
+sead::Vector3f arrowStart = al::getTrans(this) + sArrowCheckOffset;
+alCollisionUtil::checkStrikeArrow(collision, arrowStart, ...);
+```
+
+The target compiler generates `cmp x19, #0; add x8, x19, #0x38; csel xN, xzr, x8, eq`
+for the null-safe pointer adjustment, and caches the result in a callee-saved register
+before calling `getTrans`. Storing the cast result in a local variable forces our
+compiler to do the same.
+
+**Pre-load member address before function calls**
+
+When the target hoists `add xN, x19, #offset` before a `bl` call but our
+compiler delays it until after:
+
+```cpp
+// Wrong: compiler delays the address computation
+al::calcJointQuat(&quat, actor, jointName);
+sead::Vector3f frontDir = mByeByeLocalAxisFront;  // add comes after bl
+
+// Right: bind the reference early
+const sead::Vector3f& frontRef = mByeByeLocalAxisFront;
+al::calcJointQuat(&quat, actor, jointName);
+sead::Vector3f frontDir = frontRef;
+```
+
+Look for diff signature: a `deleted` add instruction before a `bl`, and an
+`added` add instruction after the `bl`, targeting the same member offset.
+
+**Inline ternary string argument instead of named local**
+
+Named `const char*` locals assigned from ternaries cause extra register allocation:
+
+```cpp
+// Wrong: named variable keeps string pointer in a register too long
+const char* action = mIsHack ? "RunHack" : "RunEnemy";
+al::startAction(mActor, action);
+
+// Right: inline the ternary
+al::startAction(mActor, mIsHack ? "RunHack" : "RunEnemy");
+```
+
+**`makeActorAlive()` / `makeActorDead()` vs `appear()` / `kill()`**
+
+These call different vtable slots. If the target uses vtable offset 0x20/0x30,
+use `makeActorAlive()`/`makeActorDead()` directly instead of `appear()`/`kill()`.
+
+| Method | Vtable offset |
+|---|---|
+| `appear()` | 0x18 |
+| `makeActorAlive()` | 0x20 |
+| `kill()` | 0x28 |
+| `makeActorDead()` | 0x30 |
+
+## Return type fixes — void → bool
+
+Some al/rs utility functions are declared `void` in our headers but actually return
+`bool` in the binary. When the caller tests the return value (e.g. `tbnz w0, #0`
+after the `bl`), the mismatch causes a tail-call optimization difference — the
+compiler turns a `bl` + `ret` into a single `b` (tail call) when the return value
+is unused.
+
+**How to detect:**  
+Disassemble the **caller** in the target binary. If you see `tbnz w0` / `cbz w0`
+right after the `bl` to a function we declare as `void`, that function actually
+returns `bool`.
+
+**Example:** `rs::sendMsgEventFlowScareCheck` was `void` but actually returns
+`bool`. Fixing the return type and adding `if (rs::sendMsgEventFlowScareCheck(…)) return;`
+in `TalkNpc::attackSensor` promoted it to Matching.
+
+**Checklist when fixing:**
+1. Change the return type in every header that declares the function.
+2. Change the implementation (`.cpp`) — add `return` in front of the inner call.
+3. Update every call site that should test the return value.
+4. Rebuild and `check` — verify no regressions in any caller.
+
+## sead::Vector3f dot product
+
+Use `a.dot(b)` instead of `a.x * b.x + a.y * b.y + a.z * b.z`. The sead inline
+generates the same code but keeps the source cleaner for future matching work.

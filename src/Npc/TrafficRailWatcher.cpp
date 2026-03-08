@@ -21,7 +21,6 @@ bool TrafficRailWatcher::isExist(const al::LiveActor* actor) const {
     return false;
 }
 
-// NON_MATCHING: 4 regswap differences
 bool TrafficRailWatcher::tryStopByOtherNpc(const al::LiveActor* actor) {
     TrafficRailActorInfo* actorInfo = nullptr;
     for (s32 i = 0; i < mActorCount; i++) {

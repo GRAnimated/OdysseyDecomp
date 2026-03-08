@@ -89,9 +89,9 @@ void SphinxQuiz::init(const al::ActorInitInfo& info) {
         mShineIndex = GameDataFunction::tryFindLinkedShineIndexByLinkName(this, info, "ShineActor");
 
     if (rs::isOnSaveObjInfo(mSaveObjInfo)) {
+        al::KeyPoseKeeper* keeper = mKeyPoseKeeper;
         sead::Quatf quat = sead::Quatf::unit;
         sead::Vector3f trans(0.0f, 0.0f, 0.0f);
-        al::KeyPoseKeeper* keeper = mKeyPoseKeeper;
         al::calcSlerpKeyQuat(&quat, keeper, 1.0f);
         al::calcLerpKeyTrans(&trans, keeper, 1.0f);
         al::resetQuatPosition(this, quat, trans);
@@ -101,9 +101,9 @@ void SphinxQuiz::init(const al::ActorInitInfo& info) {
     }
 
     if (rs::isOnSaveObjInfo(mKeyMoveSaveObjInfo)) {
+        al::KeyPoseKeeper* keeper = mKeyPoseKeeper;
         sead::Quatf quat = sead::Quatf::unit;
         sead::Vector3f trans(0.0f, 0.0f, 0.0f);
-        al::KeyPoseKeeper* keeper = mKeyPoseKeeper;
         al::calcSlerpKeyQuat(&quat, keeper, 1.0f);
         al::calcLerpKeyTrans(&trans, keeper, 1.0f);
         al::resetQuatPosition(this, quat, trans);

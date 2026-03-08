@@ -1,38 +1,46 @@
-[x] Npc/HelpNpc.o
-[x] Npc/YukimaruStateMove.o
-[x] Npc/YukimaruStateHack.o
-[x] Npc/YukimaruRacerTiago.o
-[x] Npc/YukimaruRacer.o
-[x] Npc/Yukimaru.o
-[x] Npc/WorldTravelingPeachWaitState.o
-[x] Npc/WorldTravelingPeach.o
-[x] Npc/WorldTravelingPartner.o
-[x] Npc/WorldTravelingNpc.o
-[x] Npc/TrafficRailWatcherDirector.o
-[x] Npc/TrafficRailWatcher.o
-[x] Npc/TokimekiMayorNpc.o
-[x] Npc/TimeBalloonNpc.o
-[x] Npc/Tiara.o
-[x] Npc/TestAndoNpcIk.o
-[x] Npc/TalkNpcSwitchWaitActionObj.o
-[x] Npc/TalkNpcSwitchActionPlayerHolder.o
-[x] Npc/TalkNpcSwitchActionPlayer.o
-[x] Npc/TalkNpcStateEvent.o
-[x] Npc/TalkNpcSceneEventSwitcher.o
-[x] Npc/TalkNpcPartialAnimCtrl.o
-[x] Npc/TalkNpcParamHolder.o
-[x] Npc/TalkNpcParam.o
-[x] Npc/TalkNpcFreeze.o
-[x] Npc/TalkNpcEyeLineAnimParam.o
-[x] Npc/TalkNpcCap.o
-[x] Npc/TalkNpcActionAnimInfo.o
-[x] Npc/TalkNpc.o
-[x] Npc/Squirrel.o
-[x] Npc/SphinxRideStateStop.o
-[x] Npc/SphinxRideStateRevival.o
-[x] Npc/SphinxRideMiniGameNpc.o
-[x] Npc/SphinxRideEvent.o
-[x] Npc/SphinxRideAim.o
-[x] Npc/SphinxRide.o
-[x] Npc/SphinxQuizRouteKillExecutor.o
-[x] Npc/SphinxQuiz.o
+NOTE: Every mismatch is fixable given enough time. The compiler is exactly the same build with the exact flags. Do not assume it is impossible from the source code, it is possible.
+NOTE: Write like a developer for the best chance of matching.
+SUPER SUPER IMPORTANT: EVERY REGSWAP IS FIXABLE. And read below:
+[ Vector3f 64-bit copy pattern IS FIXABLE. IT IS FIXABLE. You are likely dealing with pointers. Find a different strategy, look at other matching examples. ] Npc/HelpNpc.o
+You are allowed to work on fixing mismatches in other places around the repo as well.
+
+[x] Npc/YukimaruStateMove.o (4 promoted to Matching, 3 remain NonMatching)
+[x] Npc/YukimaruStateHack.o (ctor blocked by ActorStateBase inline issue)
+[ ] Npc/YukimaruRacerTiago.o
+[ ] Npc/YukimaruRacer.o
+[ ] Npc/Yukimaru.o
+[ ] Npc/WorldTravelingPeachWaitState.o
+[ ] Npc/WorldTravelingPeach.o
+[ ] Npc/WorldTravelingPartner.o
+[ ] Npc/WorldTravelingNpc.o
+[ ] Npc/TrafficRailWatcherDirector.o
+[ ] Npc/TrafficRailWatcher.o
+[ ] Npc/TokimekiMayorNpc.o
+[ ] Npc/TimeBalloonNpc.o
+[ ] Npc/Tiara.o
+[ ] Npc/TestAndoNpcIk.o
+[ ] Npc/TalkNpcSwitchWaitActionObj.o
+[ ] Npc/TalkNpcSwitchActionPlayerHolder.o
+[ ] Npc/TalkNpcSwitchActionPlayer.o
+[ ] Npc/TalkNpcStateEvent.o
+[ ] Npc/TalkNpcSceneEventSwitcher.o
+[ ] Npc/TalkNpcPartialAnimCtrl.o
+[ ] Npc/TalkNpcParamHolder.o
+[ ] Npc/TalkNpcParam.o
+[ ] Npc/TalkNpcFreeze.o
+[ ] Npc/TalkNpcEyeLineAnimParam.o
+[ ] Npc/TalkNpcCap.o
+[ ] Npc/TalkNpcActionAnimInfo.o
+[ ] Npc/TalkNpc.o
+[ ] Npc/Squirrel.o
+[ ] Npc/SphinxRideStateStop.o
+[ ] Npc/SphinxRideStateRevival.o
+[ ] Npc/SphinxRideMiniGameNpc.o
+[ ] Npc/SphinxRideEvent.o
+[ ] Npc/SphinxRideAim.o
+[ ] Npc/SphinxRide.o
+[ ] Npc/SphinxQuizRouteKillExecutor.o
+[ ] Npc/SphinxQuiz.o
+
+After these, continue finding mismatches in the game's code to fix. Never stop. There are always mismatches in the game code to fix.
+Add to task list whenever you find more to work on.

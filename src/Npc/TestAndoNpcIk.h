@@ -11,11 +11,11 @@ class TestAndoNpcIk : public al::LiveActor {
 public:
     struct MyJoint {
         const char* name = nullptr;
-        sead::Quatf initLocalQ = sead::Quatf::unit;
-        sead::Quatf localQ = sead::Quatf::unit;
-        sead::Vector3f localTranslation = sead::Vector3f::zero;
-        sead::Quatf worldQ = sead::Quatf::unit;
-        sead::Vector3f worldPos = sead::Vector3f::zero;
+        sead::Quatf initLocalQ = {0, 0, 0, 1};
+        sead::Quatf localQ = {0, 0, 0, 1};
+        sead::Vector3f localTranslation = {0, 0, 0};
+        sead::Quatf worldQ = {0, 0, 0, 1};
+        sead::Vector3f worldPos = {0, 0, 0};
         MyJoint* parent = nullptr;
         MyJoint* child = nullptr;
         bool hasJointCtrl = false;
@@ -29,7 +29,7 @@ public:
 
     TestAndoNpcIk(const char* name);
     void init(const al::ActorInitInfo& initInfo) override;
-    inline MyJoint* createJoint(const char* jointName);
+    MyJoint* createJoint(const char* jointName);
     void linkJoint(MyJoint* parent, MyJoint* child);
     void createJointCtrl(MyJoint* joint);
     void initAfterPlacement() override;
@@ -38,7 +38,7 @@ public:
     void control() override;
     void calcCCD(MyJoint* tip, MyJoint* root, const sead::Vector3f& target);
     void applyModel(MyJoint* root);
-    inline MyJoint* createEmptyJoint(const char* jointName);
+    MyJoint* createEmptyJoint(const char* jointName);
     void rotateJoint(MyJoint* start, MyJoint* pivot, const sead::Quatf& rot);
     void extendBone(MyJoint* root, f32 scale);
     void backLocalPose(MyJoint* root);

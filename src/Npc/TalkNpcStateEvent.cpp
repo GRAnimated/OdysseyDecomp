@@ -206,7 +206,6 @@ void TalkNpcStateEvent::endActive() {
         mPartialAnimCtrl->forceEndAndInvalidateReaction();
 }
 
-// NON_MATCHING: extra mov x1, x19 before isEnableReactionRestartEvent call (dead regalloc)
 void TalkNpcStateEvent::exeReaction() {
     if (al::isFirstStep(this)) {
         if (mPartialAnimCtrl)

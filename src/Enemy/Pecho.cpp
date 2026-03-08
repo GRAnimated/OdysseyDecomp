@@ -226,7 +226,6 @@ bool Pecho::tryStartFind() {
     return true;
 }
 
-// NON_MATCHING: regswap (https://decomp.me/scratch/D3wWz)
 void Pecho::updateVelocityEscapeWallAndFall(f32 force, f32 velocity) {
     sead::Vector3f direction = sead::Vector3f::zero;
     s32 hitCount = 0;

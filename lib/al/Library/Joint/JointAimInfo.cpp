@@ -69,7 +69,7 @@ void JointAimInfo::makeTurnQuat(sead::Quatf* quat, const sead::Vector3f& targetD
         if (clampedSide < -_54)
             clampedSide = -_54;
 
-        *quat = sead::Quatf::unit;
+        __builtin_memcpy(quat, &sead::Quatf::unit, sizeof(sead::Quatf));
         rotateQuatRadian(quat, *quat, mBaseSideLocalDir, clampedUp * sead::Mathf::deg2rad(1.0f));
         rotateQuatRadian(quat, *quat, mBaseUpLocalDir, clampedSide * sead::Mathf::deg2rad(1.0f));
         return;
@@ -78,7 +78,7 @@ void JointAimInfo::makeTurnQuat(sead::Quatf* quat, const sead::Vector3f& targetD
         makeTurnQuatOval(quat, dir);
         return;
     case 0:
-        *quat = sead::Quatf::unit;
+        __builtin_memcpy(quat, &sead::Quatf::unit, sizeof(sead::Quatf));
         turnQuat(quat, *quat, mBaseAimLocalDir, dir, _50 * sead::Mathf::deg2rad(1.0f));
         return;
     }
@@ -87,7 +87,7 @@ void JointAimInfo::makeTurnQuat(sead::Quatf* quat, const sead::Vector3f& targetD
 // NON_MATCHING: target copies sead::Quatf::unit as two 8-byte loads (z,w first then x,y);
 // our compiler generates four 32-bit word copies
 void JointAimInfo::makeTurnQuatCircle(sead::Quatf* quat, const sead::Vector3f& targetDir) const {
-    *quat = sead::Quatf::unit;
+    __builtin_memcpy(quat, &sead::Quatf::unit, sizeof(sead::Quatf));
     turnQuat(quat, *quat, mBaseAimLocalDir, targetDir, _50 * sead::Mathf::deg2rad(1.0f));
 }
 
@@ -103,7 +103,7 @@ void JointAimInfo::makeTurnQuatOval(sead::Quatf* quat, const sead::Vector3f& tar
     f32 sum = dotSideSq + dotUpSq;
 
     if (isNearZero(sum)) {
-        *quat = sead::Quatf::unit;
+        __builtin_memcpy(quat, &sead::Quatf::unit, sizeof(sead::Quatf));
         return;
     }
 
@@ -121,7 +121,7 @@ void JointAimInfo::makeTurnQuatOval(sead::Quatf* quat, const sead::Vector3f& tar
                 sead::Mathf::deg2rad(1.0f);
     }
 
-    *quat = sead::Quatf::unit;
+    __builtin_memcpy(quat, &sead::Quatf::unit, sizeof(sead::Quatf));
     turnQuat(quat, *quat, mBaseAimLocalDir, targetDir, angle);
 }
 
@@ -143,7 +143,7 @@ void JointAimInfo::makeTurnQuatRect(sead::Quatf* quat, const sead::Vector3f& tar
     if (clampedSide < -_54)
         clampedSide = -_54;
 
-    *quat = sead::Quatf::unit;
+    __builtin_memcpy(quat, &sead::Quatf::unit, sizeof(sead::Quatf));
     rotateQuatRadian(quat, *quat, mBaseSideLocalDir, clampedUp * sead::Mathf::deg2rad(1.0f));
     rotateQuatRadian(quat, *quat, mBaseUpLocalDir, clampedSide * sead::Mathf::deg2rad(1.0f));
 }
@@ -172,15 +172,8 @@ void JointAimInfo::setTargetPos(const sead::Vector3f& pos) {
     mTargetPos.set(pos);
 }
 
-// NON_MATCHING: target uses branch-based clamp; our compiler generates fmin + fcsel
 void JointAimInfo::setPowerRate(f32 rate) {
-    if (rate < 0.0f) {
-        mPowerRate = 0.0f;
-        return;
-    }
-    if (rate > 1.0f)
-        rate = 1.0f;
-    mPowerRate = rate;
+    mPowerRate = sead::Mathf::clamp(rate, 0.0f, 1.0f);
 }
 
 void JointAimInfo::setLimitDegreeCircle(f32 degree) {
@@ -211,28 +204,12 @@ void JointAimInfo::setEnableBackAim(bool enable) {
     mIsEnableBackAim = enable;
 }
 
-// NON_MATCHING: target uses branch-based clamp; our compiler generates fmin + fcsel
 void JointAimInfo::addPowerRate(f32 rate) {
-    f32 newRate = mPowerRate + rate;
-    if (newRate < 0.0f) {
-        mPowerRate = 0.0f;
-        return;
-    }
-    if (newRate > 1.0f)
-        newRate = 1.0f;
-    mPowerRate = newRate;
+    mPowerRate = sead::Mathf::clamp(mPowerRate + rate, 0.0f, 1.0f);
 }
 
-// NON_MATCHING: target uses branch-based clamp; our compiler generates fmin + fcsel
 void JointAimInfo::subPowerRate(f32 rate) {
-    f32 newRate = mPowerRate - rate;
-    if (newRate < 0.0f) {
-        mPowerRate = 0.0f;
-        return;
-    }
-    if (newRate > 1.0f)
-        newRate = 1.0f;
-    mPowerRate = newRate;
+    mPowerRate = sead::Mathf::clamp(mPowerRate - rate, 0.0f, 1.0f);
 }
 
 void JointAimInfo::setInterpoleRate(f32 rate) {

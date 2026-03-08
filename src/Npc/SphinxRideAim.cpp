@@ -10,7 +10,6 @@
 #include "Npc/SphinxRide.h"
 #include "Util/PlayerUtil.h"
 
-// NON_MATCHING: instruction scheduling of zero vector init relative to pointer loads
 SphinxRideAim::SphinxRideAim(SphinxRide* sphinxRide) : mSphinxRide(sphinxRide) {
     mHeadAimInfo = new al::JointAimInfo();
     mHeadAimInfo->setPowerRate(0.0f);
@@ -18,8 +17,7 @@ SphinxRideAim::SphinxRideAim(SphinxRide* sphinxRide) : mSphinxRide(sphinxRide) {
     mHeadAimInfo->setBaseAimLocalDir(sead::Vector3f::ex);
     mHeadAimInfo->setBaseUpLocalDir(sead::Vector3f::ez);
     mHeadAimInfo->setBaseSideLocalDir(sead::Vector3f::ey);
-    sead::Vector3f zero = {0.0f, 0.0f, 0.0f};
-    mHeadAimInfo->setBaseOffsetLocal(zero);
+    mHeadAimInfo->setBaseOffsetLocal({0.0f, 0.0f, 0.0f});
     mHeadAimInfo->setLimitDegreeRect(0.0f, 0.0f, 150.0f, 150.0f);
     mHeadAimInfo->setEnableBackAim(true);
     al::initJointAimController(mSphinxRide, mHeadAimInfo, "Head");
@@ -30,8 +28,7 @@ SphinxRideAim::SphinxRideAim(SphinxRide* sphinxRide) : mSphinxRide(sphinxRide) {
     mNeckAimInfo->setBaseAimLocalDir(sead::Vector3f::ex);
     mNeckAimInfo->setBaseUpLocalDir(sead::Vector3f::ez);
     mNeckAimInfo->setBaseSideLocalDir(sead::Vector3f::ey);
-    zero = {0.0f, 0.0f, 0.0f};
-    mNeckAimInfo->setBaseOffsetLocal(zero);
+    mNeckAimInfo->setBaseOffsetLocal({0.0f, 0.0f, 0.0f});
     mNeckAimInfo->setLimitDegreeRect(0.0f, 0.0f, 90.0f, 90.0f);
     mNeckAimInfo->setEnableBackAim(true);
     al::initJointAimController(mSphinxRide, mNeckAimInfo, "Neck");
@@ -42,8 +39,7 @@ SphinxRideAim::SphinxRideAim(SphinxRide* sphinxRide) : mSphinxRide(sphinxRide) {
     mSpineAimInfo->setBaseAimLocalDir(sead::Vector3f::ex);
     mSpineAimInfo->setBaseUpLocalDir(sead::Vector3f::ez);
     mSpineAimInfo->setBaseSideLocalDir(sead::Vector3f::ey);
-    zero = {0.0f, 0.0f, 0.0f};
-    mSpineAimInfo->setBaseOffsetLocal(zero);
+    mSpineAimInfo->setBaseOffsetLocal({0.0f, 0.0f, 0.0f});
     mSpineAimInfo->setLimitDegreeRect(0.0f, 0.0f, 90.0f, 90.0f);
     mSpineAimInfo->setEnableBackAim(true);
     al::initJointAimController(mSphinxRide, mSpineAimInfo, "Spine2");
@@ -114,19 +110,12 @@ void SphinxRideAim::updateTarget() {
         f32 sign = sideDot < 0.0f ? -1.0f : 1.0f;
 
         f32 clampDist = dist < 200.0f ? dist : 200.0f;
-        f32 ox = clampDist * (dir.x * sign);
-        f32 oy = clampDist * (dir.y * sign);
-        f32 oz = clampDist * (dir.z * sign);
+        sead::Vector3f offset = dir * (clampDist * sign);
 
         const sead::Vector3f& st = al::getTrans(sphinxRide);
-        mTargetPos.x = st.x + ox;
-        mTargetPos.y = st.y + oy;
-        mTargetPos.z = st.z + oz;
+        mTargetPos = st + offset;
     } else {
-        const sead::Vector3f& ppos = rs::getPlayerPos(sphinxRide);
-        mTargetPos.x = ppos.x;
-        mTargetPos.y = ppos.y;
-        mTargetPos.z = ppos.z;
+        mTargetPos = rs::getPlayerPos(sphinxRide);
     }
 }
 

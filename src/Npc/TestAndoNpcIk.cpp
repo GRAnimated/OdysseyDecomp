@@ -32,8 +32,9 @@ static void quatToEulerDegrees(sead::Vector3f* out, const sead::Quatf* initQ,
 
 TestAndoNpcIk::TestAndoNpcIk(const char* name) : al::LiveActor(name) {}
 
+// NON_MATCHING: store scheduling across member boundaries differs
 TestAndoNpcIk::MyJoint* TestAndoNpcIk::createJoint(const char* jointName) {
-    MyJoint* joint = new MyJoint();
+    MyJoint* joint = new MyJoint;
     joint->name = jointName;
     al::calcJointPos(&joint->worldPos, this, jointName);
     al::calcJointQuat(&joint->worldQ, this, jointName);
@@ -46,9 +47,10 @@ void TestAndoNpcIk::linkJoint(MyJoint* parentJoint, MyJoint* childJoint) {
 }
 
 void TestAndoNpcIk::createJointCtrl(MyJoint* joint) {
+    f32* localRotX = &joint->localRotX;
     al::initJointLocalZRotator(this, &joint->localRotZ, joint->name);
     al::initJointLocalYRotator(this, &joint->localRotY, joint->name);
-    al::initJointLocalXRotator(this, &joint->localRotX, joint->name);
+    al::initJointLocalXRotator(this, localRotX, joint->name);
     joint->hasJointCtrl = true;
 }
 
@@ -144,18 +146,18 @@ void TestAndoNpcIk::init(const al::ActorInitInfo& initInfo) {
                          sead::Vector3f{130, 0, 0}, "FootL");
 }
 
-// NON_MATCHING: regswap in Quatf copy (64-bit ldp vs 32-bit ldp)
+// NON_MATCHING: missing mov x0,x19 before 2nd/3rd calcLocalPose calls (IPA optimization)
 void TestAndoNpcIk::initAfterPlacement() {
     calcLocalPose(mLeftArmRoot);
     calcLocalPose(mRightArmRoot);
     calcLocalPose(mLegRoot);
 
     for (MyJoint* j = mLeftArmRoot; j; j = j->child)
-        j->initLocalQ = j->localQ;
+        __builtin_memcpy(&j->initLocalQ, &j->localQ, sizeof(sead::Quatf));
     for (MyJoint* j = mRightArmRoot; j; j = j->child)
-        j->initLocalQ = j->localQ;
+        __builtin_memcpy(&j->initLocalQ, &j->localQ, sizeof(sead::Quatf));
     for (MyJoint* j = mLegRoot; j; j = j->child)
-        j->initLocalQ = j->localQ;
+        __builtin_memcpy(&j->initLocalQ, &j->localQ, sizeof(sead::Quatf));
 }
 
 // NON_MATCHING: regswap in rotate inline and setInverse
@@ -180,10 +182,9 @@ void TestAndoNpcIk::calcLocalPose(MyJoint* root) {
     }
 }
 
-// NON_MATCHING: regswap in Quatf copy (64-bit ldp vs 32-bit ldp)
 void TestAndoNpcIk::setInitQ(MyJoint* root) {
     for (MyJoint* j = root; j; j = j->child)
-        j->initLocalQ = j->localQ;
+        __builtin_memcpy(&j->initLocalQ, &j->localQ, sizeof(sead::Quatf));
 }
 
 // NON_MATCHING: regswap in rotate inlines and scheduling differences
@@ -196,9 +197,7 @@ void TestAndoNpcIk::control() {
 
     sead::Vector3f shoulderPos;
     al::calcJointPos(&shoulderPos, this, "ShoulderR");
-    shoulderPos.x += forward.x * 60.0f;
-    shoulderPos.y += forward.y * 60.0f;
-    shoulderPos.z += forward.z * 60.0f;
+    shoulderPos += forward * 60.0f;
 
     sead::Quatf zRot;
     al::makeQuatZDegree(&zRot, (f32)mFrameCounter * 360.0f / 80.0f);
@@ -211,9 +210,7 @@ void TestAndoNpcIk::control() {
     up.rotate(combinedQ);
 
     shoulderPos += up;
-    shoulderPos.x -= sead::Vector3f::ey.x * 50.0f;
-    shoulderPos.y -= sead::Vector3f::ey.y * 50.0f;
-    shoulderPos.z -= sead::Vector3f::ey.z * 50.0f;
+    shoulderPos -= sead::Vector3f::ey * 50.0f;
 
     mFrameCounter++;
 
@@ -248,27 +245,18 @@ void TestAndoNpcIk::control() {
 // NON_MATCHING: regswap throughout rotate and setMul inlines
 void TestAndoNpcIk::calcCCD(MyJoint* tip, MyJoint* root,
                              const sead::Vector3f& target) {
-    sead::Vector3f goalDir;
-    goalDir.x = target.x - tip->worldPos.x;
-    goalDir.y = target.y - tip->worldPos.y;
-    goalDir.z = target.z - tip->worldPos.z;
+    sead::Vector3f goalDir = target - tip->worldPos;
 
-    f32 distSq = goalDir.x * goalDir.x + goalDir.y * goalDir.y +
-                 goalDir.z * goalDir.z;
+    f32 distSq = goalDir.dot(goalDir);
     if (distSq > 400.0f) {
         f32 dist = sqrtf(distSq);
         if (dist > 0.0f) {
             f32 scale = 20.0f / dist;
-            goalDir.x *= scale;
-            goalDir.y *= scale;
-            goalDir.z *= scale;
+            goalDir *= scale;
         }
     }
 
-    sead::Vector3f goalPos;
-    goalPos.x = goalDir.x + tip->worldPos.x;
-    goalPos.y = goalDir.y + tip->worldPos.y;
-    goalPos.z = goalDir.z + tip->worldPos.z;
+    sead::Vector3f goalPos = goalDir + tip->worldPos;
 
     for (u32 iter = 0; iter < 10; iter++) {
         MyJoint* j = tip->parent;
@@ -277,10 +265,7 @@ void TestAndoNpcIk::calcCCD(MyJoint* tip, MyJoint* root,
             if (!al::tryNormalizeOrZero(&toGoal))
                 return;
 
-            sead::Vector3f toTip;
-            toTip.x = tip->worldPos.x - j->worldPos.x;
-            toTip.y = tip->worldPos.y - j->worldPos.y;
-            toTip.z = tip->worldPos.z - j->worldPos.z;
+            sead::Vector3f toTip = tip->worldPos - j->worldPos;
             if (!al::tryNormalizeOrZero(&toTip)) {
                 j = j->parent;
                 continue;
@@ -362,8 +347,9 @@ void TestAndoNpcIk::applyModel(MyJoint* root) {
     }
 }
 
+// NON_MATCHING: store scheduling across member boundaries differs
 TestAndoNpcIk::MyJoint* TestAndoNpcIk::createEmptyJoint(const char* jointName) {
-    MyJoint* joint = new MyJoint();
+    MyJoint* joint = new MyJoint;
     joint->name = jointName;
     return joint;
 }
@@ -392,9 +378,7 @@ void TestAndoNpcIk::rotateJoint(MyJoint* start, MyJoint* pivot,
 
 void TestAndoNpcIk::extendBone(MyJoint* root, f32 scale) {
     for (MyJoint* j = root; j; j = j->child) {
-        j->localTranslation.x *= scale;
-        j->localTranslation.y *= scale;
-        j->localTranslation.z *= scale;
+        j->localTranslation *= scale;
     }
 }
 
@@ -414,8 +398,8 @@ void TestAndoNpcIk::backLocalPose(MyJoint* root) {
             j->worldPos.y = j->parent->worldPos.y + t.y;
             j->worldPos.z = j->parent->worldPos.z + t.z;
         } else {
-            j->worldQ = j->localQ;
-            j->worldPos = j->localTranslation;
+            __builtin_memcpy(&j->worldQ, &j->localQ, sizeof(sead::Quatf));
+            __builtin_memcpy(&j->worldPos, &j->localTranslation, sizeof(sead::Vector3f));
         }
     }
 }
@@ -442,29 +426,21 @@ void TestAndoNpcIk2::callback(SkeletonDynamicsCallbackInfo* info) {
     if (!al::isEqualString(info->name, "HandL"))
         return;
 
-    sead::Vector3f toPlayer;
     const sead::Vector3f& headPos = rs::getPlayerHeadPos(this);
-    toPlayer.x = headPos.x - info->pos.x;
-    toPlayer.y = headPos.y - info->pos.y;
-    toPlayer.z = headPos.z - info->pos.z;
+    sead::Vector3f toPlayer = headPos - info->pos;
 
-    f32 distSq = toPlayer.x * toPlayer.x + toPlayer.y * toPlayer.y +
-                 toPlayer.z * toPlayer.z;
+    f32 distSq = toPlayer.dot(toPlayer);
     if (sqrtf(distSq) > 300.0f) {
         f32 dist = sqrtf(distSq);
         if (dist > 0.0f) {
             f32 scale = 300.0f / dist;
-            toPlayer.x *= scale;
-            toPlayer.y *= scale;
-            toPlayer.z *= scale;
+            toPlayer *= scale;
         }
     }
 
-    info->pos.x = toPlayer.x + info->pos.x;
-    info->pos.y = toPlayer.y + info->pos.y;
-    info->pos.z = toPlayer.z + info->pos.z;
+    info->pos = toPlayer + info->pos;
 
-    sead::Vector3f dir = {toPlayer.x, toPlayer.y, toPlayer.z};
+    sead::Vector3f dir = toPlayer;
     if (!al::tryNormalizeOrZero(&dir))
         return;
 

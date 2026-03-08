@@ -41,7 +41,6 @@ static NpcStateReactionParam sReactionParam("Reaction", "ReactionCap");
 static NpcEventStateScareActionParam sScareParam("Scared");
 }  // namespace
 
-// NON_MATCHING: store ordering for NpcFacialAnimCache fields; GameDataHolderAccessor stack slot
 void TimeBalloonNpc::init(const al::ActorInitInfo& info) {
     al::initActorWithArchiveName(this, info, "Luigi", nullptr);
     al::startAction(this, "Wait");
@@ -58,8 +57,8 @@ void TimeBalloonNpc::init(const al::ActorInitInfo& info) {
         rs::tryCreateAndAppendNpcJointLookAtController(this, mTalkNpcParam, 2000.0f);
 
     auto* cache = new NpcFacialAnimCache;
-    cache->actor = this;
     cache->talkNpcParam = mTalkNpcParam;
+    cache->actor = this;
     cache->cachedAnimName = nullptr;
     cache->isEnabled = true;
     cache->cachedIsValid = true;
@@ -109,8 +108,7 @@ void TimeBalloonNpc::init(const al::ActorInitInfo& info) {
     rs::registerPlayerStartInfoToHolderForTimeBalloon(this, info);
     al::tryGetLinksTrans(&mPlayerRestartTrans, info, "PlayerRestartPos");
 
-    GameDataHolderAccessor accessor(this);
-    GameDataFunction::setTimeBalloonTrans(accessor, al::getTrans(this));
+    GameDataFunction::setTimeBalloonTrans(GameDataHolderAccessor(this), al::getTrans(this));
 
     mMtxConnector = al::tryCreateMtxConnector(this, info);
 

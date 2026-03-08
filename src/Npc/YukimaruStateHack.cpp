@@ -35,7 +35,6 @@ NERVES_MAKE_NOSTRUCT(YukimaruStateHack, HackStart);
 NERVES_MAKE_NOSTRUCT(YukimaruStateHack, Move, Cancel, Damage, Kill, TalkDemo);
 }  // namespace
 
-// NON_MATCHING: ActorStateBase ctor not inlined (target calls NerveStateBase directly)
 YukimaruStateHack::YukimaruStateHack(Yukimaru* yukimaru)
     : ActorStateBase("憑依", yukimaru) {
     initNerve(&Move, 1);

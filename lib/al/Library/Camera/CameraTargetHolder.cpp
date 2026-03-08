@@ -105,9 +105,10 @@ CameraSubTargetBase* CameraTargetHolder::getTopSubTarget() const {
     return mTopSubTarget;
 }
 
-// NON_MATCHING: Depends on removeSubTarget
 void CameraTargetHolder::addSubTarget(CameraSubTargetBase* subTarget) {
-    removeSubTarget(subTarget);
+    s32 index = mSubTargetArray.indexOf(subTarget);
+    if (index > -1)
+        mSubTargetArray.erase(index);
     subTarget->enableTarget();
     mSubTargetArray.pushFront(subTarget);
 }
@@ -120,9 +121,10 @@ void CameraTargetHolder::removeSubTarget(CameraSubTargetBase* subTarget) {
     subTarget->disableTarget();
 }
 
-// NON_MATCHING: Depends on removePlacementSubTarget
 void CameraTargetHolder::addPlacementSubTarget(CameraSubTargetBase* subTarget) {
-    removePlacementSubTarget(subTarget);
+    s32 index = mPlacementSubTargetArray.indexOf(subTarget);
+    if (index > -1)
+        mPlacementSubTargetArray.erase(index);
     subTarget->enableTarget();
     mPlacementSubTargetArray.pushFront(subTarget);
 }

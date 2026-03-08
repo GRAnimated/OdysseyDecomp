@@ -1,6 +1,7 @@
 #include "Npc/YukimaruRacer.h"
 
 #include <cmath>
+#include <math/seadMathCalcCommon.h>
 #include <math/seadQuat.h>
 #include <math/seadVector.h>
 
@@ -30,11 +31,10 @@ NERVE_IMPL(YukimaruRacer, Run);
 NERVES_MAKE_NOSTRUCT(YukimaruRacer, Wait, Run);
 }  // namespace
 
-// NON_MATCHING: sead::Quatf/Vector3f operator= generates word-sized stores instead of doubleword
 YukimaruRacer::YukimaruRacer(const char* name) : al::LiveActor(name) {
-    mRotation = sead::Quatf::unit;
+    mRotation.set(sead::Quatf::unit);
     mStateMove = nullptr;
-    mMoveVec = sead::Vector3f::zero;
+    mMoveVec.set(sead::Vector3f::zero);
     _134 = false;
 }
 
@@ -61,9 +61,9 @@ void YukimaruRacer::init(const al::ActorInitInfo& initInfo) {
         al::tryGetArg(&_134, initInfo, "IsDemoRun");
         if (_134)
             al::setNerve(this, &Run);
-        appear();
+        makeActorAlive();
     } else {
-        kill();
+        makeActorDead();
     }
 }
 
@@ -169,7 +169,6 @@ bool YukimaruRacer::isHoldJump() const {
     return al::isInAreaObj(this, "YukimaruRacerHoldJumpArea", al::getTrans(this));
 }
 
-// NON_MATCHING: sead::Vector3f operator= generates word-sized stores instead of doubleword
 void YukimaruRacer::calcInputVec(sead::Vector3f* out) const {
-    *out = mMoveVec;
+    out->set(mMoveVec);
 }

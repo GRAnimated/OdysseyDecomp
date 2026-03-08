@@ -77,7 +77,7 @@ ActorStateReactionBase* createNpcStateReaction(al::LiveActor*, const TalkNpcPara
 bool isInvalidTrampleSensor(const al::HitSensor*, const TalkNpcParam*);
 bool isMsgPlayerDisregardHomingAttack(const al::SensorMsg*);
 void attackSensorNpcCommon(al::HitSensor*, al::HitSensor*);
-void sendMsgEventFlowScareCheck(al::HitSensor*, al::HitSensor*, al::EventFlowExecutor*);
+bool sendMsgEventFlowScareCheck(al::HitSensor*, al::HitSensor*, al::EventFlowExecutor*);
 bool isNpcScareTiming(const al::EventFlowExecutor*);
 void calcPlayerWatchTrans(sead::Vector3f*, const al::LiveActor*, const TalkNpcParam*);
 bool checkGetShineForWorldTravelingPeach(GameDataHolderAccessor, const char*);

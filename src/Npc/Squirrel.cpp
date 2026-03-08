@@ -51,20 +51,21 @@ bool isNearPlayerOrCap(const al::LiveActor* actor, f32 findDistance) {
         return true;
 
     sead::Vector3f capPos = {0.0f, 0.0f, 0.0f};
-    if (!rs::tryGetFlyingCapPos(&capPos, actor))
-        return false;
-
-    sead::Vector3f trans = al::getTrans(actor);
-    sead::Vector3f diff = capPos - trans;
-    al::verticalizeVec(&diff, al::getGravity(actor), diff);
-    return diff.length() < findDistance;
+    if (rs::tryGetFlyingCapPos(&capPos, actor)) {
+        sead::Vector3f trans = al::getTrans(actor);
+        sead::Vector3f diff = capPos - trans;
+        al::verticalizeVec(&diff, al::getGravity(actor), diff);
+        if (diff.length() < findDistance)
+            return true;
+    }
+    return false;
 }
 
 void calcRunawayDir(sead::Vector3f* outDir, bool* isLeftRight, const al::LiveActor* actor) {
     sead::Vector3f downDir = {0.0f, 0.0f, 0.0f};
     al::calcDownDir(&downDir, actor);
 
-    sead::Vector3f trans = al::getTrans(actor);
+    const sead::Vector3f& trans = al::getTrans(actor);
     sead::Vector3f playerPos = rs::getPlayerPos(actor);
     sead::Vector3f diff = trans - playerPos;
 
@@ -72,12 +73,12 @@ void calcRunawayDir(sead::Vector3f* outDir, bool* isLeftRight, const al::LiveAct
     if (!al::tryNormalizeOrZero(outDir))
         al::calcBackDir(outDir, actor);
 
-    sead::Vector3f upDir = {-downDir.x, -downDir.y, -downDir.z};
+    diff = {-downDir.x, -downDir.y, -downDir.z};
     f32 angle = al::getRandom(15.0f, 45.0f);
     f32 sign = 1.0f;
     if (*isLeftRight)
         sign = -1.0f;
-    al::rotateVectorDegree(outDir, *outDir, upDir, angle * sign);
+    al::rotateVectorDegree(outDir, *outDir, diff, angle * sign);
     *isLeftRight ^= true;
 }
 
@@ -101,9 +102,9 @@ void updateRunawayMove(al::LiveActor* actor, const f32* params) {
         al::updatePoseQuat(actor, quat);
 
         if (al::isExistShadowMaskCtrl(actor)) {
-            sead::Vector3f shadowDir = {0.0f, 0.0f, 0.0f};
-            al::calcDownDir(&shadowDir, actor);
-            al::setShadowMaskDropDir(actor, shadowDir);
+            upDir = {0.0f, 0.0f, 0.0f};
+            al::calcDownDir(&upDir, actor);
+            al::setShadowMaskDropDir(actor, upDir);
         }
     }
 
@@ -129,13 +130,12 @@ Squirrel::Squirrel(const char* name) : al::LiveActor(name) {
     mIsLeftRight = al::isHalfProbability();
 }
 
-// NON_MATCHING: Vector3f copy pattern (64+32 vs 3×32 bit); 95% match
 void Squirrel::init(const al::ActorInitInfo& info) {
     al::initActor(this, info);
     al::initNerve(this, &NrvSquirrel.Wait, 0);
     al::offCollide(this);
 
-    mInitTrans = al::getTrans(this);
+    mInitTrans.set(al::getTrans(this));
     al::calcQuat(&mInitQuat, this);
 
     bool turnL = al::isExistAction(this, "TurnL");
@@ -191,19 +191,18 @@ void Squirrel::init(const al::ActorInitInfo& info) {
     al::trySyncStageSwitchAppear(this);
 }
 
-// NON_MATCHING: instruction reordering in f32 computation; regswap
 void Squirrel::initAfterPlacement() {
     sead::Vector3f hitPos = {0.0f, 0.0f, 0.0f};
     sead::Vector3f upDir = {0.0f, 0.0f, 0.0f};
     al::calcUpDir(&upDir, this);
 
     al::Triangle triangle;
+    const al::IUseCollision* collision = this;
     const sead::Vector3f& trans = al::getTrans(this);
-    sead::Vector3f startPos = {trans.x + upDir.x * 50.0f, trans.y + upDir.y * 50.0f,
-                               trans.z + upDir.z * 50.0f};
-    sead::Vector3f dir = {upDir.x * -150.0f, upDir.y * -150.0f, upDir.z * -150.0f};
+    sead::Vector3f startPos = trans + upDir * 50.0f;
+    sead::Vector3f dir = upDir * -150.0f;
 
-    alCollisionUtil::getFirstPolyOnArrow(this, &hitPos, &triangle, startPos, dir, nullptr,
+    alCollisionUtil::getFirstPolyOnArrow(collision, &hitPos, &triangle, startPos, dir, nullptr,
                                          nullptr);
     al::resetPosition(this, hitPos);
     al::attachMtxConnectorToCollisionParts(mConnector, triangle.getCollisionParts());
@@ -226,30 +225,30 @@ void Squirrel::kill() {
     al::LiveActor::kill();
 }
 
-// NON_MATCHING: stack layout differs; regswap; instruction reordering
 bool Squirrel::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
     if (rs::isMsgPlayerDisregardHomingAttack(msg))
         return true;
 
     if (al::isNerve(this, &NrvSquirrel.Wait) && rs::isMsgBlowDown(msg)) {
-        sead::Vector3f diff;
         sead::Vector3f downDir = {0.0f, 0.0f, 0.0f};
         al::calcDownDir(&downDir, this);
 
+        sead::Vector3f* runDir = &mRunawayDir;
         const sead::Vector3f& selfTrans = al::getActorTrans(self);
         const sead::Vector3f& otherTrans = al::getActorTrans(other);
-        diff = selfTrans - otherTrans;
-
-        al::verticalizeVec(&mRunawayDir, downDir, diff);
-        if (!al::tryNormalizeOrZero(&mRunawayDir))
-            al::calcBackDir(&mRunawayDir, this);
+        {
+            sead::Vector3f diff = selfTrans - otherTrans;
+            al::verticalizeVec(runDir, downDir, diff);
+        }
+        if (!al::tryNormalizeOrZero(runDir))
+            al::calcBackDir(runDir, this);
 
         sead::Vector3f upDir = {-downDir.x, -downDir.y, -downDir.z};
         f32 angle = al::getRandom(15.0f, 45.0f);
         f32 sign = 1.0f;
         if (mIsLeftRight)
             sign = -1.0f;
-        al::rotateVectorDegree(&mRunawayDir, mRunawayDir, upDir, angle * sign);
+        al::rotateVectorDegree(runDir, *runDir, upDir, angle * sign);
         mIsLeftRight ^= true;
         al::setNerve(this, &NrvSquirrel.Turn);
     }
@@ -289,7 +288,6 @@ void Squirrel::exeAppear() {
     }
 }
 
-// NON_MATCHING: one fadd vs mov mismatch in modf argument setup
 void Squirrel::exeWait() {
     if (al::isFirstStep(this)) {
         if (mIsExistWaitAB) {
@@ -327,7 +325,7 @@ void Squirrel::exeWait() {
             f32 frame = al::getActionFrame(this);
             f32 nextFrame = frame + al::getActionFrameRate(this);
             f32 maxFrame = al::getActionFrameMax(this, al::getActionName(this));
-            f32 wrappedFrame = al::modf(nextFrame, maxFrame) + 0.0f;
+            f32 wrappedFrame = al::modf(nextFrame + maxFrame, maxFrame) + 0.0f;
             if (wrappedFrame < al::getActionFrame(this)) {
                 f32 rnd = al::getRandom();
                 if (mIsExistWaitRandom) {
@@ -354,7 +352,6 @@ void Squirrel::exeWait() {
     }
 }
 
-// NON_MATCHING: cross product/dot product scheduling differs; regswap
 void Squirrel::exeTurn() {
     if (al::isFirstStep(this)) {
         al::onCollide(this);
@@ -368,12 +365,9 @@ void Squirrel::exeTurn() {
             al::calcDownDir(&downDir, this);
 
             sead::Vector3f cross;
-            cross.setCross(downDir, frontDir);
+            cross.setCross(frontDir, mRunawayDir);
 
-            if (al::isNearZero(cross, 0.001f) ||
-                cross.x * mRunawayDir.x + cross.y * mRunawayDir.y +
-                        cross.z * mRunawayDir.z <
-                    0.0f)
+            if (al::isNearZero(cross, 0.001f) || cross.dot(downDir) < 0.0f)
                 al::startAction(this, "TurnL");
             else
                 al::startAction(this, "TurnR");
@@ -404,7 +398,6 @@ void Squirrel::exeTurn() {
     }
 }
 
-// NON_MATCHING: Vector3f copy pattern (64+32 vs 3×32 bit)
 void Squirrel::exeRunaway() {
     if (al::isFirstStep(this))
         al::startAction(this, "Move");
@@ -433,7 +426,7 @@ void Squirrel::exeRunaway() {
                 al::turnVecToVecDegree(&mRunawayDir, mRunawayDir, normal, 15.0f);
                 al::normalize(&mRunawayDir);
             } else {
-                mRunawayDir = normal;
+                mRunawayDir.set(normal);
             }
             al::setNerve(this, &NrvSquirrel.Turn);
         } else {

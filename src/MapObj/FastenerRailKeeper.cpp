@@ -238,11 +238,11 @@ bool FastenerRailKeeper::tryGetRailPointFastenerMoveLimitAreaFlag(s32* out, s32 
 // NON_MATCHING: instruction scheduling on second tryGetArg call
 bool FastenerRailKeeper::tryGetRailPointUv(sead::Vector2f* out, s32 index) const {
     al::PlacementInfo* info = getRailPointInfo(index);
-    if (!al::tryGetArg(&out->x, *info, "TexCoordU"))
-        return false;
-    if (!al::tryGetArg(&out->y, *info, "TexCoordV"))
-        return false;
-    return true;
+    if (al::tryGetArg(&out->x, *info, "TexCoordU")) {
+        if (al::tryGetArg(&out->y, *info, "TexCoordV"))
+            return true;
+    }
+    return false;
 }
 
 bool FastenerRailKeeper::tryGetRailPointFront(sead::Vector3f* out, s32 index) const {

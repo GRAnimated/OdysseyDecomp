@@ -25,7 +25,6 @@ NERVE_IMPL(BossStateTalkDemo, DemoTalk);
 NERVES_MAKE_NOSTRUCT(BossStateTalkDemo, Demo, Skip, End, DemoTalkFirst, DemoTalk);
 }  // namespace
 
-// NON_MATCHING: register allocation (compiler saves x23 as extra callee-saved register)
 BossStateTalkDemo* BossStateTalkDemo::createWithEventFlow(al::LiveActor* owner,
                                                           const al::ActorInitInfo& initInfo,
                                                           const char* eventFlowName,
@@ -35,7 +34,6 @@ BossStateTalkDemo* BossStateTalkDemo::createWithEventFlow(al::LiveActor* owner,
     return state;
 }
 
-// NON_MATCHING: register allocation (compiler saves x23 as extra callee-saved register)
 BossStateTalkDemo* BossStateTalkDemo::createWithEventFlow(al::LiveActor* owner,
                                                           const al::ActorInitInfo& initInfo,
                                                           const char* eventFlowName) {
@@ -46,9 +44,10 @@ BossStateTalkDemo* BossStateTalkDemo::createWithEventFlow(al::LiveActor* owner,
 
 // NON_MATCHING: register allocation (compiler saves x25/x24/x23 as extra callee-saved registers)
 //               and bool field initialization uses strh for two fields at once
-BossStateTalkDemo::BossStateTalkDemo(const char* name, al::LiveActor* owner,
-                                     const al::ActorInitInfo& initInfo,
-                                     al::EventFlowExecutor* executor)
+__attribute__((noinline)) BossStateTalkDemo::BossStateTalkDemo(const char* name,
+                                                               al::LiveActor* owner,
+                                                               const al::ActorInitInfo& initInfo,
+                                                               al::EventFlowExecutor* executor)
     : al::ActorStateBase(name, owner), mEventFlowExecutor(executor) {
     mIsRequestedDemo = true;
     mIsEnableSkipDemo = true;

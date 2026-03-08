@@ -208,7 +208,7 @@ bool verifiByaml(const u8* data) {
            (afterStringOffset <= rootOffset || !stringOffset || !rootOffset);
 }
 
-// NON_MATCHING: missing & 0xFFFF (https://decomp.me/scratch/dRP3R)
+// NON_MATCHING: compiler uses add+0xFFFF instead of sub 1 when 16-bit mask present
 bool verifiByamlHeader(const u8* data) {
     const al::ByamlHeader* header = reinterpret_cast<const al::ByamlHeader*>(data);
     return header->getTag() == BYAML_BE_TAG && (u32)(header->getVersion() - 1) < 3;

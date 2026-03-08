@@ -34,20 +34,19 @@ NERVE_IMPL(YukimaruRacerTiago, Run);
 NERVES_MAKE_NOSTRUCT(YukimaruRacerTiago, Wait, Run);
 }  // namespace
 
-// NON_MATCHING: sead::Quatf/Vector3f operator= generates word-sized stores instead of
-// doubleword; vtable offsets differ
+// NON_MATCHING: regswap in vtable offset stores, instruction scheduling
 YukimaruRacerTiago::YukimaruRacerTiago(const char* name) : al::LiveActor(name) {
-    mRotation = sead::Quatf::unit;
+    mRotation.set(sead::Quatf::unit);
     mStateMove = nullptr;
     mRailErrorScale = 0.0f;
     mBaseSpeedPerLap = nullptr;
     mNumLaps = 0;
     _13c = 0;
     mIntelligence = 1.0f;
-    mMoveVec = sead::Vector3f::zero;
-    mFilterError = sead::Vector3f::zero;
-    mFilterPrev = sead::Vector3f::zero;
-    mFilterOutput = sead::Vector3f::zero;
+    mMoveVec.set(sead::Vector3f::zero);
+    mFilterError.set(sead::Vector3f::zero);
+    mFilterPrev.set(sead::Vector3f::zero);
+    mFilterOutput.set(sead::Vector3f::zero);
     mUpdateInterval = 30;
     mReactionX = 0.0f;
     mReactionZ = 0.0f;
@@ -55,7 +54,7 @@ YukimaruRacerTiago::YukimaruRacerTiago(const char* name) : al::LiveActor(name) {
     _184 = true;
 }
 
-// NON_MATCHING: vtable offset differences at appear/kill; stack addressing sp vs x29
+// NON_MATCHING: stack addressing sp vs x29 for StringTmp local
 void YukimaruRacerTiago::init(const al::ActorInitInfo& initInfo) {
     al::initActorWithArchiveName(this, initInfo, "SnowManRacer", "Racer");
 
@@ -89,13 +88,13 @@ void YukimaruRacerTiago::init(const al::ActorInitInfo& initInfo) {
     al::tryGetArg(&mIdealDistanceFromPlayer, initInfo, "IdealDistanceFromPlayer");
 
     if (!al::isExistRail(initInfo, "Rail")) {
-        kill();
+        makeActorDead();
         return;
     }
 
     al::setRailPosToNearestPos(this, al::getTrans(this));
     mRailErrorScale = al::getRailTotalLength(this) * 0.01;
-    appear();
+    makeActorAlive();
 }
 
 void YukimaruRacerTiago::initAfterPlacement() {
@@ -151,7 +150,7 @@ void YukimaruRacerTiago::updateMoveVec() {
     f32 dz = railPos.z - trans.z;
 
     f32 errorX;
-    if (fabsf(dx) <= 10.0f) {
+    if (!(fabsf(dx) > 10.0f)) {
         errorX = sead::Vector3f::zero.x;
     } else {
         f32 offset = dx > 0.0f ? -10.0f : 10.0f;
@@ -159,7 +158,7 @@ void YukimaruRacerTiago::updateMoveVec() {
     }
 
     f32 errorZ;
-    if (fabsf(dz) <= 10.0f) {
+    if (!(fabsf(dz) > 10.0f)) {
         errorZ = sead::Vector3f::zero.z;
     } else {
         f32 offset = dz > 0.0f ? -10.0f : 10.0f;
@@ -195,8 +194,10 @@ void YukimaruRacerTiago::updateMoveVec() {
     mFilterOutput.x = newOutX;
     mFilterOutput.y = newOutY;
 
-    sead::Vector3f correction = {corrX, corrY, corrZ};
-    mMoveVec = calcMoveVector(correction);
+    railPos.x = corrX;
+    railPos.y = corrY;
+    railPos.z = corrZ;
+    mMoveVec = calcMoveVector(railPos);
 }
 
 // NON_MATCHING: regswap in IIR filter computation
@@ -244,12 +245,14 @@ sead::Vector3f YukimaruRacerTiago::calcError(const sead::Vector3f& pos) const {
     f32 zeroZ = sead::Vector3f::zero.z;
 
     f32 offsetX = dx > 0.0f ? -10.0f : 10.0f;
+    f32 absDx = fabsf(dx);
     f32 adjustedX = dx + offsetX;
-    f32 errorX = fabsf(dx) > 10.0f ? adjustedX : zeroX;
+    f32 errorX = !(absDx > 10.0f) ? zeroX : adjustedX;
 
     f32 offsetZ = dz > 0.0f ? -10.0f : 10.0f;
+    f32 absDz = fabsf(dz);
     f32 adjustedZ = dz + offsetZ;
-    f32 errorZ = fabsf(dz) > 10.0f ? adjustedZ : zeroZ;
+    f32 errorZ = !(absDz > 10.0f) ? zeroZ : adjustedZ;
 
     return {errorX, zeroY, errorZ};
 }
@@ -336,14 +339,14 @@ f32 YukimaruRacerTiago::calcMaxPerturbation(bool* isBehind, f32* distance) {
         f32 errorDist = progressDiff * mRailErrorScale;
         f32 threshold = mIdealDistanceFromPlayer;
 
-        if (fabsf(errorDist) <= threshold) {
+        if (!(fabsf(errorDist) > threshold)) {
             mReactionX = 0.0f;
             mReactionZ = 0.0f;
         } else {
             f64 intPart;
             f32 frac = (f32)modf((f64)(errorDist / threshold), &intPart);
             f32 behind = 0.0f;
-            f32 ahead = (f32)(progressDiff >= 0.0f);
+            f32 ahead = (s32)(progressDiff >= 0.0f);
             if (progressDiff < 0.0f)
                 behind = 1.0f;
             f32 scaled = frac * -0.0f;
@@ -361,7 +364,7 @@ f32 YukimaruRacerTiago::calcMaxPerturbation(bool* isBehind, f32* distance) {
     if (*isBehind)
         bias = 0.0f;
     f32 adjusted = mReactionX + (mIntelligence + truncProg * 0.0f + bias);
-    if (adjusted >= 0.0f) {
+    if (!(adjusted < 0.0f)) {
         result = adjusted;
         if (adjusted > 1.0f)
             result = 1.0f;
@@ -375,14 +378,14 @@ void YukimaruRacerTiago::calcReactionToPlayer(f32 progressDiff) {
         f32 errorDist = mRailErrorScale * progressDiff;
         f32 threshold = mIdealDistanceFromPlayer;
 
-        if (fabsf(errorDist) <= threshold) {
+        if (!(fabsf(errorDist) > threshold)) {
             mReactionX = 0.0f;
             mReactionZ = 0.0f;
         } else {
             f64 intPart;
             f32 frac = (f32)modf((f64)(errorDist / threshold), &intPart);
             f32 behind = 0.0f;
-            f32 ahead = (f32)(progressDiff >= 0.0f);
+            f32 ahead = (s32)(progressDiff >= 0.0f);
             if (progressDiff < 0.0f)
                 behind = 1.0f;
             f32 scaled = frac * -0.0f;
@@ -402,9 +405,8 @@ bool YukimaruRacerTiago::isHoldJump() const {
     return al::isInAreaObj(this, "YukimaruRacerHoldJumpArea", al::getTrans(this));
 }
 
-// NON_MATCHING: sead::Vector3f operator= prevents 64-bit copy optimization
 void YukimaruRacerTiago::calcInputVec(sead::Vector3f* out) const {
-    *out = mMoveVec;
+    out->set(mMoveVec);
 }
 
 void YukimaruRacerTiago::outputInfo() {}

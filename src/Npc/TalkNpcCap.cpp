@@ -61,9 +61,8 @@ static CapTypeData sCapTypeTable[] = {
     sShoppingCapData,
 };
 
-TalkNpcCap::TalkNpcCap(const CapTypeData* capInfo) : al::LiveActor(capInfo->japaneseName) {
-    mCapInfo = capInfo;
-}
+TalkNpcCap::TalkNpcCap(const CapTypeData* capInfo)
+    : al::LiveActor(capInfo->japaneseName), mCapInfo(capInfo) {}
 
 TalkNpcCap* TalkNpcCap::tryCreate(const al::LiveActor* parentActor,
                                   const al::ActorInitInfo& initInfo) {
@@ -112,24 +111,23 @@ TalkNpcCap* TalkNpcCap::createForHintNpc(const al::LiveActor* parentActor,
     return cap;
 }
 
-// NON_MATCHING: regswap in null-init register
 TalkNpcCap* TalkNpcCap::createForShibaken(const al::LiveActor* parentActor,
                                           const al::ActorInitInfo& initInfo) {
     s32 capType = -1;
-    const CapTypeData* capInfo = nullptr;
+    TalkNpcCap* cap = nullptr;
     if (al::tryGetArg(&capType, initInfo, "CapType") && (u32)capType <= 35) {
+        const CapTypeData* capInfo;
         if (al::isEqualString(sCapTypeTable[capType].name, "CowboyCap"))
             capInfo = &sShibakenCapData;
         else
             capInfo = &sCapTypeTable[capType];
+        cap = new TalkNpcCap(capInfo);
+        al::initCreateActorNoPlacementInfo(cap, initInfo);
+        cap->initAttach(parentActor);
     }
-    TalkNpcCap* cap = new TalkNpcCap(capInfo);
-    al::initCreateActorNoPlacementInfo(cap, initInfo);
-    cap->initAttach(parentActor);
     return cap;
 }
 
-// NON_MATCHING: mCapInfo store scheduled at different position relative to mScale
 TalkNpcCap* TalkNpcCap::createForShoppingNpc(const al::LiveActor* parentActor,
                                              const al::ActorInitInfo& initInfo) {
     TalkNpcCap* cap = new TalkNpcCap(&sShoppingCapData);

@@ -6,10 +6,14 @@
 
 #include "Layout/KidsModeLayoutAccessor.h"
 #include "Layout/StageSceneLayout.h"
+#include "Scene/StageSceneStateRadicon.h"
+#include "Scene/StageSceneStateSkipDemo.h"
+#include "Scene/StageSceneStateWarp.h"
 #include "System/GameDataFunction.h"
 #include "System/GameDataHolderAccessor.h"
 #include "Util/AmiiboUtil.h"
 #include "Util/DemoUtil.h"
+#include "Util/InputInterruptTutorialUtil.h"
 #include "Util/PlayerUtil.h"
 
 namespace {
@@ -126,4 +130,117 @@ void StageScene::exeDemoHackStart() {
     }
 
     al::updateKitListPostOnNerveEnd(this);
+}
+
+void StageScene::exeRaceYukimaru() {
+    if (al::updateNerveState(this)) {
+        kill();
+        return;
+    }
+    al::updateKitListPostOnNerveEnd(this);
+}
+
+void StageScene::exeRaceYukimaruTutorial() {
+    if (al::updateNerveState(this)) {
+        kill();
+        return;
+    }
+    al::updateKitListPostOnNerveEnd(this);
+}
+
+void StageScene::exeRaceManRace() {
+    if (al::updateNerveState(this)) {
+        kill();
+        return;
+    }
+    al::updateKitListPostOnNerveEnd(this);
+}
+
+void StageScene::exeSnapShot() {
+    bool updated = al::updateNerveState(this);
+    al::updateKitListPostOnNerveEnd(this);
+    if (updated)
+        al::setNerve(this, &NrvStageScene.Play);
+}
+
+void StageScene::exeDemoSceneStartPlayerWalk() {
+    updatePlay();
+    rs::updateDemoSystemOnly(this);
+    if (rs::isActiveDemo(this)) {
+        al::updateKitListPostOnNerveEnd(this);
+        return;
+    }
+    rs::endDemoCommonProc(this, mProjectItemDirector);
+    al::updateKitListPostOnNerveEnd(this);
+    al::setNerve(this, &NrvStageScene.StartStageBgm);
+}
+
+void StageScene::exeMiniGameRanking() {
+    al::updateKitListPrev(this);
+    al::updateDemoActorForPauseEffect(this);
+    al::updateKitList(this, u8"サウンド制御");
+    al::updateKitList(this, u8"２Ｄ");
+    al::updateKitList(this, u8"２Ｄ（ポーズ無視）");
+    al::updateKitListPostDemoWithPauseNormalEffect(this);
+    al::updateKitListPostOnNerveEnd(this);
+    al::updateNerveStateAndNextNerve(this, &NrvStageScene.DemoWithPlayer);
+}
+
+void StageScene::exeDemoCarryMeat() {
+    if (al::isFirstStep(this))
+        mSceneLayout->end();
+    if (al::updateNerveState(this)) {
+        mStateSkipDemo->tryEndForNoSkip();
+        al::updateKitListPostOnNerveEnd(this);
+        al::setNerve(this, &NrvStageScene.Play);
+    } else {
+        al::updateKitListPostOnNerveEnd(this);
+    }
+}
+
+void StageScene::exeWaitStartWarpForSession() {
+    updatePlay();
+    if (rs::tryChangeNextStage(mGameDataHolder, this)) {
+        kill();
+        return;
+    }
+    if (mStateWarp->tryStartWarp())
+        al::setNerve(this, &NrvStageScene.Warp);
+    al::updateKitListPostOnNerveEnd(this);
+}
+
+void StageScene::exeDemoTitleLogo() {
+    if (al::isFirstStep(this)) {
+        rs::tryCloseHackTutorial(this);
+        mSceneLayout->end();
+        rs::endPlayTalkMsgTimeBalloonLayout(this);
+        if (_408)
+            static_cast<u8*>(_408)[48] = 0;
+    }
+    if (al::updateNerveState(this))
+        kill();
+}
+
+void StageScene::exeRadicon() {
+    if (!al::updateNerveState(this)) {
+        al::updateKitListPostOnNerveEnd(this);
+        return;
+    }
+    if (mStateRadicon->_38) {
+        kill();
+        return;
+    }
+    al::updateKitListPostOnNerveEnd(this);
+    al::setNerve(this, &NrvStageScene.Play);
+}
+
+void StageScene::exeWarp() {
+    if (!al::updateNerveState(this)) {
+        al::updateKitListPostOnNerveEnd(this);
+        return;
+    }
+    bool changed = tryChangeDemo();
+    al::updateKitListPostOnNerveEnd(this);
+    if (!changed)
+        al::setNerve(this, &NrvStageScene.Play);
 }

@@ -60,8 +60,8 @@ private:
     s32 mDefaultIdx = -1;
     s32 mScrollCounter = 0;
     s32 mSelectionCooldown = -1;
-    bool mWithoutPosAnim = false;
-    bool mAllowPauseCancel = false;
+    bool mIsWithoutPosAnim = false;
+    bool mIsAllowPauseCancel = false;
     s32 mStateCount = 0;
     SelectPartsState* mStateArray = nullptr;
 };

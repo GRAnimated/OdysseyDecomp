@@ -140,15 +140,10 @@ static bool calcSlopeProjectedFront(sead::Vector3f* out, al::LiveActor* actor) {
     sead::Vector3f frontDir;
     al::calcFrontDir(&frontDir, actor);
 
-    sead::Vector3f cross1;
-    cross1.x = normal.y * frontDir.z - normal.z * frontDir.y;
-    cross1.y = normal.z * frontDir.x - normal.x * frontDir.z;
-    cross1.z = normal.x * frontDir.y - normal.y * frontDir.x;
+    sead::Vector3f cross1 = normal.cross(frontDir);
     al::tryNormalizeOrDirZ(&cross1);
 
-    out->x = cross1.y * normal.z - cross1.z * normal.y;
-    out->y = cross1.z * normal.x - cross1.x * normal.z;
-    out->z = cross1.x * normal.y - cross1.y * normal.x;
+    *out = cross1.cross(normal);
     al::tryNormalizeOrDirZ(out);
     return true;
 }
@@ -785,9 +780,10 @@ void SphinxRide::exeStandby() {
     }
     al::addVelocityToGravityNaturalOrFittedGround(this, 1.0f);
 
+    const al::IUseCollision* collision = this;
     sead::Vector3f arrowStart = al::getTrans(this) + sArrowCheckOffset;
-    if (alCollisionUtil::checkStrikeArrow(this, arrowStart, sArrowCheckDir, nullptr, nullptr) ==
-            0 &&
+    if (alCollisionUtil::checkStrikeArrow(collision, arrowStart, sArrowCheckDir, nullptr,
+                                          nullptr) == 0 &&
         !al::isOnGround(this, 15)) {
         al::setNerve(this, &NrvSphinxRide.Fall);
         return;
@@ -838,23 +834,15 @@ void SphinxRide::trySlipOnMoveLimit() {
     if (angle <= 30.0f)
         return;
 
-    // cross = ey × normal
-    sead::Vector3f cross;
-    cross.x = 1.0f * normal.x - normal.y * 0.0f;
-    cross.y = normal.y * 0.0f - normal.z * 1.0f;
-    cross.z = normal.z * 0.0f - 0.0f * normal.x;
+    sead::Vector3f cross = sead::Vector3f::ey.cross(normal);
     if (al::isNearZero(cross, 0.001f))
         return;
 
     al::tryNormalizeOrDirZ(&cross);
 
-    // slip = normal × cross
-    sead::Vector3f slip;
-    slip.x = normal.y * cross.z - normal.z * cross.y;
-    slip.y = normal.z * cross.x - cross.z * normal.x;
-    slip.z = cross.y * normal.x - normal.y * cross.x;
+    sead::Vector3f slip = normal.cross(cross);
 
-    sead::Vector3f slipVel = {slip.x * 6.0f, slip.y * 6.0f, slip.z * 6.0f};
+    sead::Vector3f slipVel = slip * 6.0f;
     al::addVelocity(this, slipVel);
     al::limitVelocityDir(this, slip, 300.0f);
 }
@@ -901,8 +889,10 @@ void SphinxRide::exeGetOnStart() {
 }
 
 void SphinxRide::exeGetOnStartOn() {
-    if (al::isFirstStep(this))
-        rs::startPuppetAction(mPlayerPuppet, "SphinxRideRideOn");
+    if (al::isFirstStep(this)) {
+        if (mPlayerPuppet)
+            rs::startPuppetAction(mPlayerPuppet, "SphinxRideRideOn");
+    }
 
     f32 frameMax = rs::getPuppetAnimFrameMax(mPlayerPuppet);
     if (al::isGreaterEqualStep(this, (s32)frameMax))
@@ -1095,9 +1085,10 @@ void SphinxRide::updateRun(f32 turnRate) {
         return;
     }
 
+    const al::IUseCollision* collision = this;
     sead::Vector3f arrowStart = al::getTrans(this) + sArrowCheckOffset;
-    if (alCollisionUtil::checkStrikeArrow(this, arrowStart, sArrowCheckDir, nullptr, nullptr) ==
-            0 &&
+    if (alCollisionUtil::checkStrikeArrow(collision, arrowStart, sArrowCheckDir, nullptr,
+                                          nullptr) == 0 &&
         !al::isOnGround(this, 15)) {
         al::setNerve(this, &NrvSphinxRide.Fall);
         return;
@@ -1244,8 +1235,9 @@ void SphinxRide::exeStop() {
         if (!*(reinterpret_cast<bool*>(mStateStop) + 52))
             al::setNerve(this, &NrvSphinxRide.Run);
     } else {
+        const al::IUseCollision* collision = this;
         sead::Vector3f arrowStart = al::getTrans(this) + sArrowCheckOffset;
-        if (alCollisionUtil::checkStrikeArrow(this, arrowStart, sArrowCheckDir, nullptr,
+        if (alCollisionUtil::checkStrikeArrow(collision, arrowStart, sArrowCheckDir, nullptr,
                                               nullptr) == 0 &&
             !al::isOnGround(this, 15))
             al::setNerve(this, &NrvSphinxRide.Fall);
@@ -1349,8 +1341,10 @@ void SphinxRide::exeGetOff() {
     }
     al::addVelocityToGravityNaturalOrFittedGround(this, 1.0f);
 
+    const al::IUseCollision* collision = this;
     sead::Vector3f arrowStart = al::getTrans(this) + sArrowCheckOffset;
-    if (alCollisionUtil::checkStrikeArrow(this, arrowStart, sArrowCheckDir, nullptr, nullptr) ||
+    if (alCollisionUtil::checkStrikeArrow(collision, arrowStart, sArrowCheckDir, nullptr,
+                                          nullptr) ||
         al::isOnGround(this, 15)) {
         trySlipOnMoveLimit();
         if (!al::isActionEnd(this))
@@ -1453,11 +1447,10 @@ bool SphinxRide::calcCheckCollidedWallCommon(sead::Vector3f* wallPos, sead::Vect
     return true;
 }
 
-// NON_MATCHING: vtable offset for makeActorAlive (0x18 vs 0x20)
 void SphinxRide::startStandby(const sead::Vector3f& trans, const sead::Vector3f& front) {
     if (al::isDead(this)) {
         al::showModelIfHide(this);
-        makeActorAlive();
+        appear();
     }
     al::resetRotatePosition(this, trans, front);
     al::calcUpDir(&mUpDir, this);

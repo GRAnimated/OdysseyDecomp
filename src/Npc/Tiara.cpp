@@ -1,5 +1,6 @@
 #include "Npc/Tiara.h"
 
+#include <cstring>
 #include <math/seadQuat.h>
 
 #include "Library/Joint/JointControllerKeeper.h"
@@ -127,7 +128,6 @@ void Tiara::endPeachWorldHomeCastleCapDemo() {
         al::setNerve(this, &NrvTiara.Wait);
 }
 
-// NON_MATCHING: Vector3f copy coalesced to 64-bit+32-bit in target, element-wise in ours
 void Tiara::exeWait() {
     if (al::isFirstStep(this)) {
         al::startAction(this, mWaitActionName);
@@ -139,11 +139,11 @@ void Tiara::exeWait() {
         sead::Vector3f dir = playerPos - trans;
         al::verticalizeVec(&dir, al::getGravity(this), dir);
         if (!al::tryNormalizeOrZero(&dir))
-            dir = mFrontDir;
+            dir.set(mFrontDir);
         al::turnVecToVecRate(&dir, mFrontDir, dir, 0.2f);
         if (al::calcAngleDegree(dir, mFrontDir) > 2.0f)
             al::turnVecToVecDegree(&dir, mFrontDir, dir, 2.0f);
-        mFrontDir = dir;
+        mFrontDir.set(dir);
         sead::Vector3f frontDir = {0.0f, 0.0f, 0.0f};
         al::calcFrontDir(&frontDir, this);
         al::turnVecToVecRate(&frontDir, frontDir, mFrontDir, 0.1f);
@@ -174,7 +174,6 @@ void Tiara::exeReaction() {
     al::updateNerveStateAndNextNerve(this, &NrvTiara.Wait);
 }
 
-// NON_MATCHING: &mTurnDir address pre-computation scheduling differs
 void Tiara::exeTurnToHost() {
     if (al::isFirstStep(this))
         al::startAction(this, "Turn");
@@ -186,8 +185,9 @@ void Tiara::exeTurnToHost() {
         al::setNerve(this, &StopToHost);
         return;
     }
+    const sead::Vector3f& turnDir = mTurnDir;
     f32 rate = al::calcNerveRate(this, mTurnStep);
-    al::turnVecToVecRate(&dir, mTurnDir, dir, rate);
+    al::turnVecToVecRate(&dir, turnDir, dir, rate);
     al::normalize(&dir);
     sead::Quatf quat = sead::Quatf::unit;
     const sead::Vector3f& gravity = al::getGravity(this);
@@ -208,7 +208,6 @@ void Tiara::exeStopAction() {
         al::setNerve(this, &StopToHost);
 }
 
-// NON_MATCHING: &mTurnDir address pre-computation scheduling differs
 void Tiara::exeFindTurn() {
     if (al::isFirstStep(this)) {
         al::startAction(this, "FindTurn");
@@ -220,11 +219,12 @@ void Tiara::exeFindTurn() {
     al::verticalizeVec(&dir, al::getGravity(this), dir);
     if (!al::tryNormalizeOrZero(&dir))
         al::calcFrontDir(&dir, this);
+    const sead::Vector3f& turnDir = mTurnDir;
     f32 frame = al::getActionFrame(this);
     const char* actionName = al::getActionName(this);
     f32 frameMax = al::getActionFrameMax(this, actionName);
     f32 rate = al::normalize(frame, 0.0f, frameMax);
-    al::turnVecToVecRate(&dir, mTurnDir, dir, rate);
+    al::turnVecToVecRate(&dir, turnDir, dir, rate);
     al::normalize(&dir);
     sead::Quatf quat = sead::Quatf::unit;
     const sead::Vector3f& gravity = al::getGravity(this);

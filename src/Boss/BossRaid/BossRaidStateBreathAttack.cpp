@@ -84,12 +84,20 @@ void BossRaidStateBreathAttack::appear() {
     mAttackCount = 0;
     switch (mBossRaid->getShotLevel()) {
     case 0:
+        mAttackMax = 2;
+        break;
     case 1:
-    case 3:
-    case 4:
         mAttackMax = 2;
         break;
     case 2:
+        mAttackMax = 1;
+        break;
+    case 3:
+        mAttackMax = 2;
+        break;
+    case 4:
+        mAttackMax = 2;
+        break;
     case 5:
         mAttackMax = 1;
         break;
@@ -167,8 +175,9 @@ void BossRaidStateBreathAttack::updateAttackSignLv2() {
 // NON_MATCHING: extra callee-saved register x20 for mBossRaid; frame size differs
 void BossRaidStateBreathAttack::updateAttackSignLv3() {
     if (al::isFirstStep(this)) {
-        const sead::Vector3f& playerPos = rs::getPlayerPos(mBossRaid);
-        bool isLeft = al::isLeftTarget(mBossRaid, playerPos);
+        BossRaid* boss = mBossRaid;
+        const sead::Vector3f& playerPos = rs::getPlayerPos(boss);
+        bool isLeft = al::isLeftTarget(boss, playerPos);
         mIsLeftTarget = isLeft;
         sead::Vector3f frontDir = sead::Vector3f::ez;
         f32 degree = isLeft ? -15.0f : 15.0f;

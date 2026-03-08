@@ -72,7 +72,8 @@ void WorldTravelingNpc::init(const al::ActorInitInfo& info) {
     auto* partner = new WorldTravelingPartner(u8"世界旅行の相棒");
     mPartner = partner;
     al::initLinksActor(partner, info, "Partner", 0);
-    mPartner->mEventFlowData = mEventFlowExecutor;
+    WorldTravelingPartner* p = mPartner;
+    p->mEventFlowData = mEventFlowExecutor;
     al::invalidateClipping(mPartner);
     al::registerSubActorSyncClipping(this, mPartner);
 
@@ -130,7 +131,8 @@ bool WorldTravelingNpc::receiveMsg(const al::SensorMsg* message, al::HitSensor* 
     return rs::receiveMsgNpcCommonNoReaction(message, other, self);
 }
 
-// NON_MATCHING: watchParam address computation scheduled differently from target
+// NON_MATCHING: compiler defers watchParam load to join point via address computation,
+// target loads eagerly in each branch — 5 cycles attempted, no progress
 bool WorldTravelingNpc::receiveEvent(const al::EventFlowEventData* data) {
     if (TalkNpcFunction::receiveEventChangeWaitAction(mTalkNpcActionAnimInfo, data,
                                                       mTalkNpcParam))
@@ -142,8 +144,8 @@ bool WorldTravelingNpc::receiveEvent(const al::EventFlowEventData* data) {
         return true;
     }
 
-    al::LiveActor* watchActor = this;
     const TalkNpcParam* watchParam;
+    al::LiveActor* watchActor = this;
 
     if (al::isEventName(data, "PartnerWait")) {
         mPartner->startWait();

@@ -25,7 +25,7 @@ This workflow is for **matching cleanup** — not first-time decompilation. The 
 
 ## Task List
 
-Read `task_list.txt`. Work top-to-bottom. Skip lines marked `[x]`. When you finish all functions in a TU (fixed or logged as skipped), mark it `[x]` and continue.
+Read `task_list.txt`. Work top-to-bottom. Only go back to lines marked `[x]` after you're done the unmarked ones. When you finish all functions in a TU (fixed or logged as skipped), mark it `[x]` and continue.
 
 Format:
 ```
@@ -305,4 +305,6 @@ Skipped TUs (data section): SnowManRaceNpc
 4. **Wrong local variable declaration order** — Stack slot order follows declaration order. Swap to match.
 5. **Missing intermediate local** — Sometimes you need an explicit local to force a load to happen before a computation (see distance pattern in MATCHING.md).
 
-Only log as skipped after genuinely exhausting these options (5 cycles).
+Only log as skipped after genuinely exhausting these options **5** times (5 cycles x 5 loops).
+
+Do not stop until every function in task_list's TUs are matched.

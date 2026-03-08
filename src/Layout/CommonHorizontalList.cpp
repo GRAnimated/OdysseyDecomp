@@ -210,7 +210,7 @@ void CommonHorizontalList::setEnableData(const bool* enableData) {
 
 // NON_MATCHING: wrong function size; target saves x20 (passes mCursorPos addr directly vs stack)
 void CommonHorizontalList::calcCursorPos(sead::Vector2f* outPos) const {
-    *outPos = mCursorPos;
+    __builtin_memcpy(outPos, &mCursorPos, sizeof(sead::Vector2f));
 }
 
 bool CommonHorizontalList::isActive() const {
@@ -234,38 +234,35 @@ void CommonHorizontalList::update() {
 }
 
 // NON_MATCHING: wrong function size; register allocation and branch layout differ
+// NON_MATCHING: store ordering (str vs stp pairing at 0x3c) and mLayoutActor load scheduling
 void CommonHorizontalList::right() {
     if (mAnimTimer > 0)
         return;
 
     s32 prevSelectedIdx = mSelectedIdx;
     s32 prevScrollOffset = mScrollOffset;
-    s32 maxIdx = mItemCount - 1;
 
     mSelectedIdx = prevSelectedIdx + 1;
-    mScrollOffset = prevScrollOffset + 1;
+    s32 maxIdx = mItemCount - 1;
+    al::LayoutActor* layoutActor = mLayoutActor;
     mScrollOffsetPrev = prevScrollOffset;
+    mScrollOffset = prevScrollOffset + 1;
 
-    al::IUseAudioKeeper* audioKeeper = nullptr;
-    if (mLayoutActor)
-        audioKeeper = mLayoutActor;
-
-    const char* seName;
     if (prevSelectedIdx >= maxIdx) {
         mSelectedIdx = maxIdx;
         mScrollOffset = prevScrollOffset;
-        seName = "ListEdge";
+        al::IUseAudioKeeper* audioKeeper = layoutActor ? (al::IUseAudioKeeper*)layoutActor : nullptr;
+        al::tryStartSe(audioKeeper, sead::SafeString("ListEdge"));
     } else {
-        seName = "ListRight";
+        al::IUseAudioKeeper* audioKeeper = layoutActor ? (al::IUseAudioKeeper*)layoutActor : nullptr;
+        al::tryStartSe(audioKeeper, sead::SafeString("ListRight"));
     }
-
-    al::tryStartSe(audioKeeper, sead::SafeString(seName));
 
     if (mScrollOffsetPrev != mScrollOffset)
         mAnimTimer = mAnimTimerMax;
 }
 
-// NON_MATCHING: wrong function size; register allocation and branch layout differ
+// NON_MATCHING: store ordering (str vs stp pairing) and mLayoutActor load scheduling
 void CommonHorizontalList::left() {
     if (mAnimTimer > 0)
         return;
@@ -274,23 +271,19 @@ void CommonHorizontalList::left() {
     s32 prevScrollOffset = mScrollOffset;
 
     mSelectedIdx = prevSelectedIdx - 1;
-    mScrollOffset = prevScrollOffset - 1;
+    al::LayoutActor* layoutActor = mLayoutActor;
     mScrollOffsetPrev = prevScrollOffset;
+    mScrollOffset = prevScrollOffset - 1;
 
-    al::IUseAudioKeeper* audioKeeper = nullptr;
-    if (mLayoutActor)
-        audioKeeper = mLayoutActor;
-
-    const char* seName;
     if (prevSelectedIdx <= 0) {
         mSelectedIdx = 0;
         mScrollOffset = prevScrollOffset;
-        seName = "ListEdge";
+        al::IUseAudioKeeper* audioKeeper = layoutActor ? (al::IUseAudioKeeper*)layoutActor : nullptr;
+        al::tryStartSe(audioKeeper, sead::SafeString("ListEdge"));
     } else {
-        seName = "ListLeft";
+        al::IUseAudioKeeper* audioKeeper = layoutActor ? (al::IUseAudioKeeper*)layoutActor : nullptr;
+        al::tryStartSe(audioKeeper, sead::SafeString("ListLeft"));
     }
-
-    al::tryStartSe(audioKeeper, sead::SafeString(seName));
 
     if (mScrollOffsetPrev != mScrollOffset)
         mAnimTimer = mAnimTimerMax;
@@ -661,13 +654,10 @@ void CommonHorizontalList::exeRejectEnd() {
 void CommonHorizontalList::updateCursorPos() {
     s32 cursorOff = mSelectedIdx - mScrollOffset;
     auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
-    al::LayoutActor* cursorActor = (u32)cursorOff < (u32)itemParts->capacity()
-                                       ? itemParts->at(cursorOff)
-                                       : nullptr;
+    al::LayoutActor* cursorActor =
+        (u32)itemParts->size() > (u32)cursorOff ? itemParts->unsafeAt(cursorOff) : nullptr;
 
-    sead::Vector2f panePos;
-    al::calcPaneTrans(&panePos, cursorActor, "Cursor");
-    mCursorPos = panePos;
+    al::calcPaneTrans(&mCursorPos, cursorActor, "Cursor");
     if (mCursorActor)
         al::setLocalTrans(mCursorActor, mCursorPos);
 }

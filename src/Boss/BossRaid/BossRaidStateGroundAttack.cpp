@@ -25,7 +25,6 @@ NERVES_MAKE_NOSTRUCT(BossRaidStateGroundAttack, FallSign, Fall, Attack, AttackEn
 
 static const s32 sGroundAttackTimeTable[3] = {240, 240, 290};
 
-// NON_MATCHING: initialization of last loop
 BossRaidStateGroundAttack::BossRaidStateGroundAttack(BossRaid* boss, const al::ActorInitInfo& info)
     : al::NerveStateBase("状態名"), mBossRaid(boss) {
     al::NerveExecutor::initNerve(&FallSign, 0);
