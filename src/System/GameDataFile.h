@@ -599,6 +599,7 @@ public:
     s32 getCurrentWorldIdNoDevelop() const { return sead::Mathi::max(mCurrentWorldId, 0); }
 
     bool isPlayDemoWorldWarp() const { return _9f8 == 1; }
+    s32 getPlayDemoWorldWarpState() const { return _9f8; }
 
     bool isPlayDemoReturnToHome() const { return mIsPlayDemoReturnToHome; }
 

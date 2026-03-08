@@ -241,7 +241,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     al::initRandomSeedByString(mStageName.cstr());
     al::GameFrameworkNx* framework;
     u32 vBlankWaitInterval;
-    if (rs::isModeE3MovieRom() || rs::isModeMovieRom()) {
+    if (__builtin_expect(rs::isModeE3MovieRom() || rs::isModeMovieRom(), 1)) {
         framework =
             sead::DynamicCast<al::GameFrameworkNx>(Application::instance()->getGameFramework());
         vBlankWaitInterval = 2;
@@ -1217,7 +1217,7 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                        ((OpeningStageStartDemo*)mOpeningStageStartDemo)->isEnableStart()) {
                 al::setNerve(this, &NrvStageScene.DemoStageStart);
             } else if (GameDataFunction::isPlayDemoWorldWarp(GameDataHolderAccessor(this)) ||
-                       mGameDataHolder->getGameDataFile()->getMainScenarioNoCurrent() == 2) {
+                       mGameDataHolder->getGameDataFile()->getPlayDemoWorldWarpState() == 2) {
                 rs::changeDemoCommonProc(this, mProjectItemDirector);
                 al::setNerve(this, &NrvStageScene.DemoWorldIntroCamera);
             } else if (tryChangeDemo()) {
