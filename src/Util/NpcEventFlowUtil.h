@@ -76,6 +76,7 @@ bool isPlayingNpcEventBalloonMessageVoice(const al::LiveActor*);
 bool isCloseNpcDemoEventTalkMessage(const al::LiveActor*);
 void startCloseNpcDemoEventTalkMessage(al::LiveActor*);
 void requestSwitchTalkNpcEventVolleyBall(al::LiveActor*, s32);
+void requestSwitchTalkNpcEventJumpingRope(al::LiveActor*, s32);
 void skipEventDemo(al::EventFlowExecutor*);
 const char* tryGetTalkNpcVolleyBallEntryName(const al::LiveActor*);
 const char* tryGetTalkNpcJumpingRopeEntryName(const al::LiveActor*);
