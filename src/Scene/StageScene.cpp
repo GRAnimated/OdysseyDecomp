@@ -57,6 +57,7 @@
 #include "Layout/CapMessageMoonNotifier.h"
 #include "Layout/CinemaCaption.h"
 #include "MapObj/Pyramid.h"
+#include "MapObj/PlayerStartInfo.h"
 #include "Layout/CollectBgmRegister.h"
 #include "Layout/ControllerGuideSnapShotCtrl.h"
 #include "Layout/InputSeparator.h"
@@ -369,8 +370,8 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                                                      "Demo");
     al::initChildActorWithArchiveNameNoPlacementInfo(mDemoShine, actorInitInfo, "PowerStar",
                                                      "Demo");
-    mDemoShine->appear();
-    demoPowerStarActor->appear();
+    mDemoShine->kill();
+    demoPowerStarActor->kill();
     mDemoDotShine = new al::LiveActor("デモ用ドットシャイン");
     al::initChildActorWithArchiveNameNoPlacementInfo(mDemoDotShine, actorInitInfo, "ShineDot",
                                                      "Demo");
@@ -673,23 +674,25 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                                         playerPlacementInfo.getZoneIter());
             }
 
-            s32 playerStartFlags = 0;
-            const char* playerStartFlagName = nullptr;
-            s64 playerStartQuat_xy = 0x3F80000000000000LL;
-            s64 playerStartQuat_zw = 0;
-            sead::Vector3f playerStartTrans = sead::Vector3f::zero;
+            struct {
+                sead::Vector3f trans;
+                sead::Quatf quat;
+            } playerStartInfo;
+            playerStartInfo.trans = sead::Vector3f::zero;
+            playerStartInfo.quat.x = 0.0f;
+            playerStartInfo.quat.y = 0.0f;
+            playerStartInfo.quat.z = 0.0f;
+            playerStartInfo.quat.w = 1.0f;
             if (playerRestartInfo) {
-                playerStartFlags = *(s32*)((const char*)playerRestartInfo + 184);
-                playerStartFlagName = *(const char**)((const char*)playerRestartInfo + 176);
-                playerStartQuat_xy = *(s64*)((const char*)playerRestartInfo + 196);
-                playerStartQuat_zw = *(s64*)((const char*)playerRestartInfo + 188);
+                playerStartInfo.trans = playerRestartInfo->trans;
+                playerStartInfo.quat = playerRestartInfo->quat;
             } else {
                 if (restartPlacementInfo.getPlacementIter().isValid()) {
-                    al::getTrans(&playerStartTrans, restartPlacementInfo);
-                    al::getQuat((sead::Quatf*)&playerStartQuat_zw, restartPlacementInfo);
+                    al::getTrans(&playerStartInfo.trans, restartPlacementInfo);
+                    al::getQuat(&playerStartInfo.quat, restartPlacementInfo);
                 } else {
-                    al::getTrans(&playerStartTrans, playerPlacementInfo);
-                    al::getQuat((sead::Quatf*)&playerStartQuat_zw, playerPlacementInfo);
+                    al::getTrans(&playerStartInfo.trans, playerPlacementInfo);
+                    al::getQuat(&playerStartInfo.quat, playerPlacementInfo);
                 }
             }
 
@@ -709,8 +712,8 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
             playerInitInfo.controllerPort = al::getMainControllerPort();
             playerInitInfo.costumeName = mCostumeName.cstr();
             playerInitInfo.capTypeName = mCapTypeName.cstr();
-            playerInitInfo.trans = playerStartTrans;
-            __builtin_memcpy(&playerInitInfo.quat, &playerStartQuat_zw, sizeof(sead::Quatf));
+            playerInitInfo.trans = playerStartInfo.trans;
+            playerInitInfo.quat = playerStartInfo.quat;
             playerInitInfo._44 = foundCactus;
             playerInitInfo._45 = (mStateCloset != nullptr);
 
@@ -1276,8 +1279,8 @@ afterPyramidReset:
     if (!al::isNerve(this, &NrvStageScene.StartStageBgm)) {
         rs::offRouteGuideSystem(this);
         rs::endPlayTalkMsgTimeBalloonLayout(this);
-        if (mTimeBalloonSequenceInfo)
-            mTimeBalloonSequenceInfo->disableLayout();
+        if (_408)
+            ((TimeBalloonSequenceInfo*)_408)->disableLayout();
     }
 
     if (GameDataFunction::isMissEndPrevStageForInit(mGameDataHolder))
