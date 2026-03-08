@@ -246,8 +246,8 @@ private:
     ProjectSeNamedList* mSeNamedList = nullptr;
     void* _3f0 = nullptr;
     TimeBalloonDirector* mTimeBalloonDirector = nullptr;
+    void* _400 = nullptr;
     TimeBalloonSequenceInfo* mTimeBalloonSequenceInfo = nullptr;
-    void* _408 = nullptr;
     al::CameraTicket* mCheckpointWarpArriveCamera = nullptr;
     sead::Vector3f mCheckpointWarpTargetPos = {0.0f, 0.0f, 0.0f};
     sead::Vector3f mCheckpointWarpParabolicPathPos = {0.0f, 0.0f, 0.0f};
