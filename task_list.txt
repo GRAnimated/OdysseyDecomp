@@ -93,20 +93,20 @@
 [x] Npc/NpcEventBalloonInfo.o
 [ ] Npc/MoveHomeNpc.o
 [x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/JumpingRopeNpc.o
-[ ] Npc/JumpingRopeLayout.o
-[ ] Npc/HomeCapStateMoveSouvenir.o
-[ ] Npc/HomeCapStateMoveChair.o
+[x] Npc/JumpingRopeNpc.o
+[x] Npc/JumpingRopeLayout.o
+[x] Npc/HomeCapStateMoveSouvenir.o
+[x] Npc/HomeCapStateMoveChair.o
 [x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/HomeCap.o
-[ ] Npc/HintNpc.o
-[ ] Npc/HideAndSeekCapMan.o
-[ ] Npc/GhostPlayer.o
+[x] Npc/HomeCap.o
+[x] Npc/HintNpc.o
+[x] Npc/HideAndSeekCapMan.o
+[x] Npc/GhostPlayer.o
 [x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/FukuwaraiWatcher.o
-[ ] Npc/FukuwaraiNpc.o
-[ ] Npc/FrogStateWaitWander.o
-[ ] Npc/FrogStateWaitJump.o
+[x] Npc/FukuwaraiWatcher.o
+[x] Npc/FukuwaraiNpc.o
+[x] Npc/FrogStateWaitWander.o
+[x] Npc/FrogStateWaitJump.o
 [ ] Npc/FrogStateHack.o
 [ ] Npc/Frog.o
 [x] Push to claude-testing on GitHub if you haven't already
