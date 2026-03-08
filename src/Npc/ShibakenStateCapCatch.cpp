@@ -33,12 +33,12 @@ ShibakenStateCapCatch::ShibakenStateCapCatch(const char* name, Shibaken* shibake
 }
 
 void ShibakenStateCapCatch::appear() {
-    mIsDead = false;
+    al::NerveStateBase::appear();
     _2c = 0;
 }
 
 void ShibakenStateCapCatch::kill() {
-    mIsDead = true;
+    al::NerveStateBase::kill();
     _28 = false;
 }
 
@@ -51,7 +51,7 @@ bool ShibakenStateCapCatch::tryStart() {
 }
 
 bool ShibakenStateCapCatch::tryStartByReceiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                                                  al::HitSensor* self) {
+                                                 al::HitSensor* self) {
     if (!rs::isMsgCapStartLockOn(msg))
         return false;
 
@@ -76,7 +76,7 @@ bool ShibakenStateCapCatch::tryStartByReceiveMsg(const al::SensorMsg* msg, al::H
 bool ShibakenStateCapCatch::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
                                        al::HitSensor* self) {
     if (rs::isMsgCapKeepLockOn(msg) || rs::isMsgCapIgnoreCancelLockOn(msg))
-        return !mIsDead;
+        return !isDead();
     return tryStartByReceiveMsg(msg, other, self);
 }
 
@@ -84,8 +84,7 @@ void ShibakenStateCapCatch::exeChase() {
     if (al::isFirstStep(this))
         al::tryStartActionIfNotPlaying(mShibaken, "Move");
 
-    if (ShibakenFunction::tryStartJump(
-            reinterpret_cast<al::HostStateBase<Shibaken>*>(this), &Jump))
+    if (ShibakenFunction::tryStartJump(reinterpret_cast<al::HostStateBase<Shibaken>*>(this), &Jump))
         return;
 
     sead::Vector3f capPos = {0.0f, 0.0f, 0.0f};
@@ -128,8 +127,7 @@ void ShibakenStateCapCatch::exeChase() {
         return;
     }
 
-    f32 deltaLen =
-        sead::Mathf::sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
+    f32 deltaLen = sead::Mathf::sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
     if (!(deltaLen < 250.0f)) {
         ShibakenFunction::chaseToTargetRun(mShibaken, capPos);
         return;
@@ -174,11 +172,10 @@ void ShibakenStateCapCatch::exeJump() {
     if (!al::updateNerveState(this))
         return;
 
-    if (_28) {
+    if (_28)
         al::setNerve(this, &Back);
-    } else if (rs::isPlayerCapSpinOrFlying(mShibaken)) {
+    else if (rs::isPlayerCapSpinOrFlying(mShibaken))
         al::setNerve(this, &Chase);
-    } else {
+    else
         kill();
-    }
 }

@@ -77,12 +77,12 @@ ShibakenStatePointChase::ShibakenStatePointChase(const char* name, Shibaken* shi
 }
 
 void ShibakenStatePointChase::appear() {
-    mIsDead = false;
+    al::NerveStateBase::appear();
     _7c = 0;
 }
 
 void ShibakenStatePointChase::kill() {
-    mIsDead = true;
+    al::NerveStateBase::kill();
     mCurrentPoint = nullptr;
     mMoveAnimCtrl->endWalkSniff();
     mMoveAnimCtrl->mIsSniffing = false;
@@ -149,7 +149,8 @@ void ShibakenStatePointChase::exePointTurn() {
     al::updateNerveStateAndNextNerve(this, &ChaseRun);
 }
 
-// NON_MATCHING: vector math uses individual loads instead of ldp pairs; host not paired with mCurrentPoint
+// NON_MATCHING: vector math uses individual loads instead of ldp pairs; host not paired with
+// mCurrentPoint
 void ShibakenStatePointChase::exeChaseRun() {
     if (al::isFirstStep(this))
         al::startAction(getHost(), "Move");
@@ -218,8 +219,7 @@ void ShibakenStatePointChase::exeChaseWalkSniff() {
 
     mMoveAnimCtrl->endWalkSniff();
 
-    if (al::isNerve(this, &ChaseWalkSniffNear) ||
-        al::isNear(getHost(), mCurrentPoint, 160.0f)) {
+    if (al::isNerve(this, &ChaseWalkSniffNear) || al::isNear(getHost(), mCurrentPoint, 160.0f)) {
         al::setNerve(this, &ChaseFind);
         return;
     }

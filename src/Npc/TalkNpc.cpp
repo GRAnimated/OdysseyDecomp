@@ -31,6 +31,7 @@
 #include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/LiveActor/LiveActorFunction.h"
 #include "Library/Math/MathUtil.h"
+#include "Library/Model/ModelShapeUtil.h"
 #include "Library/Nature/NatureUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -173,18 +174,14 @@ void CapReactionJointCtrl::calcJointCallback(s32 jointId, sead::Matrix34f* mtx) 
     mtx->toQuat(mtxQuat);
 
     sead::Quatf result;
-    result.x =
-        mtxQuat.w * rotQuat.x + mtxQuat.x * rotQuat.w +
-        mtxQuat.y * rotQuat.z - mtxQuat.z * rotQuat.y;
-    result.y =
-        mtxQuat.w * rotQuat.y - mtxQuat.x * rotQuat.z +
-        mtxQuat.y * rotQuat.w + mtxQuat.z * rotQuat.x;
-    result.z =
-        mtxQuat.w * rotQuat.z + mtxQuat.x * rotQuat.y -
-        mtxQuat.y * rotQuat.x + mtxQuat.z * rotQuat.w;
-    result.w =
-        mtxQuat.w * rotQuat.w - mtxQuat.x * rotQuat.x -
-        mtxQuat.y * rotQuat.y - mtxQuat.z * rotQuat.z;
+    result.x = mtxQuat.w * rotQuat.x + mtxQuat.x * rotQuat.w + mtxQuat.y * rotQuat.z -
+               mtxQuat.z * rotQuat.y;
+    result.y = mtxQuat.w * rotQuat.y - mtxQuat.x * rotQuat.z + mtxQuat.y * rotQuat.w +
+               mtxQuat.z * rotQuat.x;
+    result.z = mtxQuat.w * rotQuat.z + mtxQuat.x * rotQuat.y - mtxQuat.y * rotQuat.x +
+               mtxQuat.z * rotQuat.w;
+    result.w = mtxQuat.w * rotQuat.w - mtxQuat.x * rotQuat.x - mtxQuat.y * rotQuat.y -
+               mtxQuat.z * rotQuat.z;
 
     f32 savedTx = (*mtx)(0, 3);
     f32 savedTy = (*mtx)(1, 3);
@@ -208,10 +205,9 @@ void CapReactionJointCtrl::calcJointCallback(s32 jointId, sead::Matrix34f* mtx) 
         f32 baseTy = (*mBaseMtx)(1, 3);
         f32 baseTz = (*mBaseMtx)(2, 3);
 
-        f32 dist = sead::Mathf::sqrt(
-            (baseTx - savedTx) * (baseTx - savedTx) +
-            (baseTy - savedTy) * (baseTy - savedTy) +
-            (baseTz - savedTz) * (baseTz - savedTz));
+        f32 dist = sead::Mathf::sqrt((baseTx - savedTx) * (baseTx - savedTx) +
+                                     (baseTy - savedTy) * (baseTy - savedTy) +
+                                     (baseTz - savedTz) * (baseTz - savedTz));
 
         f32 tanVal = sead::Mathf::tan(offset * 0.017453f);
 
@@ -279,8 +275,7 @@ s32 initMovementType(al::EventFlowExecutor* eventExec, al::LiveActor* actor,
                      const TalkNpcActionAnimInfo* animInfo) {
     if (al::isExistRail(actor)) {
         if (rs::isExistTrafficAreaDirector(actor)) {
-            auto* movement =
-                new EventActorMovementRailTraffic(u8"交通レール移動", actor);
+            auto* movement = new EventActorMovementRailTraffic(u8"交通レール移動", actor);
             rs::initEventMovement(eventExec, movement, info);
             return 6;
         }
@@ -407,8 +402,8 @@ void TalkNpc::init(const al::ActorInitInfo& info) {
     mRandomActionUpdater = new RandomActionUpdater(this, mActionAnimInfo);
     mSwitchActionPlayerHolder =
         TalkNpcSwitchActionPlayerHolder::tryCreate(mRandomActionUpdater, info);
-    TalkNpcSwitchWaitActionObj::tryCreate(mTalkNpcParam, mActionAnimInfo,
-                                          mRandomActionUpdater, info);
+    TalkNpcSwitchWaitActionObj::tryCreate(mTalkNpcParam, mActionAnimInfo, mRandomActionUpdater,
+                                          info);
 
     sead::Quatf frontQuat = sead::Quatf::unit;
     const sead::Vector3f& front = al::getFront(this);
@@ -705,8 +700,7 @@ void TalkNpc::init(const al::ActorInitInfo& info) {
             mTalkNpcParam->tryGetByeByeBaseJointName(this)) {
             sead::Vector3f byeByeAxis;
             mTalkNpcParam->getByeByeLocalAxisFront(&byeByeAxis);
-            mPartialAnimCtrl->mByeByeBaseJointName =
-                mTalkNpcParam->tryGetByeByeBaseJointName(this);
+            mPartialAnimCtrl->mByeByeBaseJointName = mTalkNpcParam->tryGetByeByeBaseJointName(this);
             mPartialAnimCtrl->mByeByeLocalAxisFront = byeByeAxis;
         }
 
@@ -1001,8 +995,7 @@ bool TalkNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::Hit
     if (al::isMsgPlayerDisregard(msg))
         return mTalkNpcParam->isPlayerWatchDisregard(self);
 
-    if (mPartialAnimCtrl && mPartialAnimCtrl->mReactionParam &&
-        mPartialAnimCtrl->isReactionCap()) {
+    if (mPartialAnimCtrl && mPartialAnimCtrl->mReactionParam && mPartialAnimCtrl->isReactionCap()) {
         if (rs::checkMsgNpcTrampleReactionAll(msg, other, self, false)) {
             auto* hip = (TrampleReactionJointCtrl*)mHipJointController;
             hip->mAnimFrame = 0;

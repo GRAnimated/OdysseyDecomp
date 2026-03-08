@@ -97,7 +97,6 @@ f32 normalize(f32 x, f32 min, f32 max);
 f32 normalize(s32 x, s32 min, s32 max);
 f32 sign(f32 x);
 s32 sign(s32 x);
-bool isSameSign(f32 a, f32 b);
 f32 cubeRoot(f32 x);
 void clampV3f(sead::Vector3f* out, const sead::Vector3f& min, const sead::Vector3f& max);
 void clampV2f(sead::Vector2f* out, const sead::Vector2f& min, const sead::Vector2f& max);

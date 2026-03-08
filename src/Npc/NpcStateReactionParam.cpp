@@ -55,7 +55,7 @@ NpcStateReaction::NpcStateReaction(al::LiveActor* actor, bool isCapReaction)
 }
 
 void NpcStateReaction::appear() {
-    mIsDead = false;
+    al::NerveStateBase::appear();
     if (al::isInvalidClipping(mActor))
         mWasClippingInvalid = true;
     else {
@@ -65,7 +65,7 @@ void NpcStateReaction::appear() {
 }
 
 void NpcStateReaction::kill() {
-    mIsDead = true;
+    al::NerveStateBase::kill();
     if (!mWasClippingInvalid)
         al::validateClipping(mActor);
     mWasClippingInvalid = false;
@@ -79,10 +79,10 @@ bool NpcStateReaction::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other
     if (rs::isPlayerBinding(mActor))
         return false;
 
-    if (!mIsDead && al::isNerve(this, &Reaction) && al::isLessStep(this, 2))
+    if (!isDead() && al::isNerve(this, &Reaction) && al::isLessStep(this, 2))
         return false;
 
-    if (mIsDead || !al::isNerve(this, &Reaction) || al::isGreaterEqualStep(this, 8)) {
+    if (isDead() || !al::isNerve(this, &Reaction) || al::isGreaterEqualStep(this, 8)) {
         if (!_29)
             rs::requestHitReactionToAttacker(msg, self, other);
     }
@@ -98,10 +98,10 @@ bool NpcStateReaction::receiveMsgWithoutTrample(const al::SensorMsg* msg, al::Hi
         if (mIsCapReaction && rs::isMsgCapReflect(msg))
             return false;
 
-        if (rs::isMsgKillerAttackNoExplode(msg) && !mIsDead && al::isNerve(this, &CapReaction))
+        if (rs::isMsgKillerAttackNoExplode(msg) && !isDead() && al::isNerve(this, &CapReaction))
             return false;
 
-        if (!mIsDead && al::isNerve(this, &CapReaction)) {
+        if (!isDead() && al::isNerve(this, &CapReaction)) {
             if (rs::isMsgPlayerObjectWallHit(msg))
                 return false;
             if (ActorStateReactionUtil::isInvalidRestartCapReaction(msg, this))
@@ -149,6 +149,5 @@ void NpcStateReaction::exeCapReaction() {
 NpcStateReactionParam::NpcStateReactionParam()
     : mReactionAnim("Reaction"), mReactionEndAnim("ReactionCap") {}
 
-NpcStateReactionParam::NpcStateReactionParam(const char* reactionAnim,
-                                             const char* reactionEndAnim)
+NpcStateReactionParam::NpcStateReactionParam(const char* reactionAnim, const char* reactionEndAnim)
     : mReactionAnim(reactionAnim), mReactionEndAnim(reactionEndAnim) {}

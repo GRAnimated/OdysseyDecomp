@@ -45,7 +45,7 @@ bool NpcEventStateScare::tryStart(const al::EventFlowExecutor* executor) {
 }
 
 void NpcEventStateScare::kill() {
-    mIsDead = true;
+    al::NerveStateBase::kill();
     _20 = nullptr;
 }
 

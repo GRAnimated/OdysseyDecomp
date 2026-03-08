@@ -34,7 +34,8 @@ ShibakenStateWaitFar::ShibakenStateWaitFar(const char* name, Shibaken* shibaken)
     al::initNerveState(this, mStateSit, &Sit, "座り");
 }
 
-// NON_MATCHING: compiler optimizes Vector3f copy to 64-bit LDR+STR for x,y; ours does 3 separate 32-bit copies
+// NON_MATCHING: compiler optimizes Vector3f copy to 64-bit LDR+STR for x,y; ours does 3 separate
+// 32-bit copies
 bool ShibakenStateWaitFar::tryStart() {
     if (ShibakenFunction::checkStopChaseByFaceWall(mShibaken)) {
         mWallNormal = al::getCollidedWallNormal(mShibaken);
@@ -50,7 +51,7 @@ bool ShibakenStateWaitFar::tryStart() {
 
 void ShibakenStateWaitFar::appear() {
     ShibakenStateTurn* stateTurn = mStateTurn;
-    mIsDead = false;
+    al::NerveStateBase::appear();
     const sead::Vector3f& playerPos = rs::getPlayerPos(mShibaken);
     if (stateTurn->tryStartTurn(playerPos))
         al::setNerve(this, &Turn);

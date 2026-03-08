@@ -18,6 +18,7 @@
 #include "Library/LiveActor/ActorSensorUtil.h"
 #include "Library/LiveActor/LiveActor.h"
 #include "Library/Math/MathUtil.h"
+#include "Library/Model/ModelShapeUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Yaml/ByamlIter.h"
 #include "Library/Yaml/ByamlUtil.h"
@@ -90,9 +91,8 @@ void TalkNpcParam::init(const al::LiveActor* actor, const char* suffix) {
         s32 size = jointLookAtIter.getSize();
         mJointLookAtCount = size;
         auto** params = new al::JointLookAtParam*[size];
-        if (size != 0) {
+        if (size != 0)
             memset(params, 0, sizeof(al::JointLookAtParam*) * size);
-        }
         mJointLookAtParams = params;
         for (s32 i = 0; i < mJointLookAtCount; i++) {
             al::ByamlIter entryIter;
@@ -139,12 +139,9 @@ void TalkNpcParam::init(const al::LiveActor* actor, const char* suffix) {
             entry->presetName = presetName;
             entry->mclAnim = nullptr;
             mAnimPresets[i] = entry;
-            mAnimPresets[i]->mclAnim =
-                al::tryGetByamlKeyStringOrNULL(entryIter, "MclAnim");
-            mAnimPresets[i]->mtpAnim =
-                al::tryGetByamlKeyStringOrNULL(entryIter, "MtpAnim");
-            mAnimPresets[i]->visAnim =
-                al::tryGetByamlKeyStringOrNULL(entryIter, "VisAnim");
+            mAnimPresets[i]->mclAnim = al::tryGetByamlKeyStringOrNULL(entryIter, "MclAnim");
+            mAnimPresets[i]->mtpAnim = al::tryGetByamlKeyStringOrNULL(entryIter, "MtpAnim");
+            mAnimPresets[i]->visAnim = al::tryGetByamlKeyStringOrNULL(entryIter, "VisAnim");
         }
     }
 
@@ -180,8 +177,7 @@ bool TalkNpcParam::isEqualSuffixName(const char* suffix) const {
 
 al::JointLookAtController*
 TalkNpcParam::createAndAppendJointLookAtController(al::LiveActor* actor) const {
-    al::JointLookAtController* controller =
-        al::initJointLookAtController(actor, mJointLookAtCount);
+    al::JointLookAtController* controller = al::initJointLookAtController(actor, mJointLookAtCount);
     for (s32 i = 0; i < mJointLookAtCount; i++) {
         auto* info = new al::JointLookAtInfo();
         info->param = mJointLookAtParams[i];
@@ -194,8 +190,7 @@ void TalkNpcParam::createJointGroundSmoothController(al::LiveActor* actor) const
     al::initJointGroundSmoothController(actor, mJointGroundSmoothName);
 }
 
-void TalkNpcParam::applyMaterialAnimPreset(al::LiveActor* actor,
-                                           const char* presetName) const {
+void TalkNpcParam::applyMaterialAnimPreset(al::LiveActor* actor, const char* presetName) const {
     for (s32 i = 0; i < mAnimPresetCount; i++) {
         if (al::isEqualString(mAnimPresets[i]->presetName, presetName)) {
             AnimPresetEntry* entry = mAnimPresets[i];
@@ -294,10 +289,9 @@ void TalkNpcParam::calcBirdGlideMtx(sead::Matrix34f* out, const al::LiveActor* a
 }
 
 bool TalkNpcParam::isInvalidJointLookSklAnim(const char* animName) const {
-    for (s32 i = 0; i < mInvalidJointLookAtSklAnimCount; i++) {
+    for (s32 i = 0; i < mInvalidJointLookAtSklAnimCount; i++)
         if (al::isEqualString(animName, mInvalidJointLookAtSklAnimNames[i]))
             return true;
-    }
     return false;
 }
 
@@ -310,8 +304,7 @@ bool TalkNpcParam::isInvalidChangeAllAnimFromWait(const char* animName) const {
 bool TalkNpcParam::isInvalidChangeTurnAnimFromWait(const char* animName) const {
     if (al::isEqualString("Dance", animName) || al::isEqualString("Excited", animName) ||
         al::isEqualString("ExcitedLadlePan", animName) ||
-        al::isEqualString("ExcitedMax", animName) ||
-        al::isEqualString("ExcitedMaxJump", animName))
+        al::isEqualString("ExcitedMax", animName) || al::isEqualString("ExcitedMaxJump", animName))
         return true;
     return al::isEqualString("ExcitedPan", animName);
 }
@@ -320,8 +313,7 @@ bool TalkNpcParam::isPlayerWatchDisregard(const al::HitSensor* sensor) const {
     return !mEventFlowWatchParam->isWatchSensor(sensor);
 }
 
-void TalkNpcParam::calcPlayerWatchTrans(sead::Vector3f* out,
-                                        const al::LiveActor* actor) const {
+void TalkNpcParam::calcPlayerWatchTrans(sead::Vector3f* out, const al::LiveActor* actor) const {
     mEventFlowWatchParam->calcWatchTrans(out, actor);
 }
 
@@ -350,9 +342,8 @@ void TalkNpcParam::manualInitLookAtJoint(const char* fileName, const char* key,
     s32 size = jointLookAtIter.getSize();
     mJointLookAtCount = size;
     auto** params = new al::JointLookAtParam*[size];
-    if (size != 0) {
+    if (size != 0)
         memset(params, 0, sizeof(al::JointLookAtParam*) * size);
-    }
     mJointLookAtParams = params;
     for (s32 i = 0; i < mJointLookAtCount; i++) {
         al::ByamlIter entryIter;

@@ -25,7 +25,7 @@ ShellActorStateReaction::ShellActorStateReaction(al::LiveActor* actor)
     initNerve(&NrvShellActorStateReaction.ReactionStart, 0);
 }
 
-// NON_MATCHING: branch direction inversion on mIsDead check (cbz vs cbnz) causes layout diff
+// NON_MATCHING: branch direction inversion on isDead() check (cbz vs cbnz) causes layout diff
 bool ShellActorStateReaction::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
                                          al::HitSensor* self) {
     if (!rs::checkMsgNpcTrampleReactionAll(msg, other, self, false))
@@ -33,7 +33,7 @@ bool ShellActorStateReaction::receiveMsg(const al::SensorMsg* msg, al::HitSensor
 
     rs::requestHitReactionToAttacker(msg, self, other);
 
-    if (mIsDead) {
+    if (isDead()) {
         al::setVelocityZero(mActor);
         al::setNerve(this, &NrvShellActorStateReaction.ReactionStart);
     } else if (al::isNerve(this, &NrvShellActorStateReaction.ReactionWait) ||
@@ -48,17 +48,16 @@ bool ShellActorStateReaction::receiveMsg(const al::SensorMsg* msg, al::HitSensor
     return true;
 }
 
-// NON_MATCHING: branch direction inversion on mIsDead check (cbz vs cbnz) causes layout diff
+// NON_MATCHING: branch direction inversion on isDead() check (cbz vs cbnz) causes layout diff
 bool ShellActorStateReaction::receiveMsgWithoutTrample(const al::SensorMsg* msg,
-                                                       al::HitSensor* other,
-                                                       al::HitSensor* self) {
+                                                       al::HitSensor* other, al::HitSensor* self) {
     if (!rs::isMsgNpcCapReactionAll(msg) && !rs::isMsgKillerAttackNoExplode(msg) &&
         !rs::isMsgSphinxRideAttackReflect(msg) && !rs::isMsgTankBulletNoReaction(msg))
         return false;
 
     rs::requestHitReactionToAttacker(msg, self, other);
 
-    if (rs::isMsgKillerAttackNoExplode(msg) && !mIsDead) {
+    if (rs::isMsgKillerAttackNoExplode(msg) && !isDead()) {
         if (al::isNerve(this, &NrvShellActorStateReaction.ReactionCap) ||
             al::isNerve(this, &NrvShellActorStateReaction.ReactionWait) ||
             al::isNerve(this, &NrvShellActorStateReaction.ReactionShell) ||
@@ -68,7 +67,7 @@ bool ShellActorStateReaction::receiveMsgWithoutTrample(const al::SensorMsg* msg,
         }
     }
 
-    if (mIsDead) {
+    if (isDead()) {
         al::setVelocityZero(mActor);
         al::setNerve(this, &NrvShellActorStateReaction.ReactionCap);
         return true;

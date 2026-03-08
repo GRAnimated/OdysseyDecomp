@@ -7,6 +7,40 @@
 #include "Library/Placement/PlacementInfo.h"
 #include "Library/Rail/RailUtil.h"
 
+TrafficRailWatcher::TrafficRailWatcher(const al::PlacementInfo& placementInfo)
+    : mPlacementId(nullptr), mActorCount(0), mActors(nullptr) {
+    mPlacementId = al::createPlacementId(placementInfo);
+    mActors = new TrafficRailActorInfo*[32];
+    for (s32 i = 0; i < 32; i++)
+        mActors[i] = nullptr;
+}
+
+void TrafficRailWatcher::registerActor(const al::LiveActor* actor) {
+    auto* info = new TrafficRailActorInfo;
+    info->actor = actor;
+    info->status = 0;
+    mActors[mActorCount] = info;
+    mActorCount++;
+}
+
+void TrafficRailWatcher::stopByTraffic(const al::LiveActor* actor) {
+    TrafficRailActorInfo** p = mActors;
+    TrafficRailActorInfo* info;
+    do {
+        info = *p++;
+    } while (info->actor != actor);
+    info->status = 1;
+}
+
+void TrafficRailWatcher::restartByTraffic(const al::LiveActor* actor) {
+    TrafficRailActorInfo** p = mActors;
+    TrafficRailActorInfo* info;
+    do {
+        info = *p++;
+    } while (info->actor != actor);
+    info->status = 0;
+}
+
 bool TrafficRailWatcher::isEqual(const al::PlacementInfo& placementInfo) const {
     al::PlacementId placementId;
     al::getPlacementId(&placementId, placementInfo);
@@ -14,10 +48,9 @@ bool TrafficRailWatcher::isEqual(const al::PlacementInfo& placementInfo) const {
 }
 
 bool TrafficRailWatcher::isExist(const al::LiveActor* actor) const {
-    for (s32 i = 0; i < mActorCount; i++) {
+    for (s32 i = 0; i < mActorCount; i++)
         if (mActors[i]->actor == actor)
             return true;
-    }
     return false;
 }
 

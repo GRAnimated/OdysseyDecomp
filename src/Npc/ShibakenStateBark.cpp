@@ -38,7 +38,7 @@ ShibakenStateBark::ShibakenStateBark(const char* name, Shibaken* shibaken,
 }
 
 void ShibakenStateBark::kill() {
-    mIsDead = true;
+    al::NerveStateBase::kill();
     mEnemySensor = nullptr;
 }
 
@@ -124,8 +124,7 @@ void ShibakenStateBark::exeWalk() {
 
     const sead::Vector3f& enemyPos = al::getActorTrans(mEnemySensor);
     const sead::Vector3f& myPos = al::getTrans(mShibaken);
-    sead::Vector3f delta = {enemyPos.x - myPos.x, enemyPos.y - myPos.y,
-                            enemyPos.z - myPos.z};
+    sead::Vector3f delta = {enemyPos.x - myPos.x, enemyPos.y - myPos.y, enemyPos.z - myPos.z};
 
     al::calcUpDir(&upDir, mShibaken);
     al::calcFrontDir(&frontDir, mShibaken);

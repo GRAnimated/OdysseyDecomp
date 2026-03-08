@@ -1,8 +1,8 @@
 #include "Npc/SkeletonDynamics.h"
 
 #include <cmath>
-#include <cstring>
 #include <container/seadPtrArray.h>
+#include <cstring>
 #include <math/seadMatrix.h>
 #include <math/seadQuat.h>
 #include <math/seadVector.h>
@@ -12,6 +12,7 @@
 #include "Library/LiveActor/ActorModelFunction.h"
 #include "Library/LiveActor/LiveActor.h"
 #include "Library/Math/MathUtil.h"
+#include "Library/Model/ModelShapeUtil.h"
 
 namespace alModelJointFunction {
 void setDirectJointMtx(al::ModelKeeper* keeper, s32 jointIndex, const sead::Matrix34f& mtx);
@@ -130,15 +131,13 @@ SkeletonDynamics::SkeletonDynamics(al::LiveActor* actor) : mActor(actor) {
         node->name = al::getJointName(modelKeeper, i);
 
         s32 parentIndex = al::getParentJointIndex(modelKeeper, i);
-        if (parentIndex >= 0 && (u32)parentIndex < (u32)mAllJoints.size()) {
+        if (parentIndex >= 0 && (u32)parentIndex < (u32)mAllJoints.size())
             node->parent = mAllJoints[parentIndex];
-        } else {
+        else
             node->parent = nullptr;
-        }
 
-        if (node->parent) {
+        if (node->parent)
             node->parent->childCountInit++;
-        }
 
         node->childCountInit = 0;
         al::calcJointPos(&node->pos, actor, node->name);
@@ -347,14 +346,11 @@ void SkeletonDynamics::updateAnimPoseLocal() {
         f32 t3 = iw * dz + (ix * dy - iy * dx);
         f32 t4 = -(dx * ix) - iy * dy - dz * iz;
 
-        node->localPos.x =
-            (iy * t3 + (iw * t1 - iz * t2)) - ix * t4;
-        node->localPos.y =
-            (t1 * par->animInvQuat.z + t2 * par->animInvQuat.w) -
-            t3 * par->animInvQuat.x - t4 * par->animInvQuat.y;
+        node->localPos.x = (iy * t3 + (iw * t1 - iz * t2)) - ix * t4;
+        node->localPos.y = (t1 * par->animInvQuat.z + t2 * par->animInvQuat.w) -
+                           t3 * par->animInvQuat.x - t4 * par->animInvQuat.y;
         node->localPos.z =
-            (t2 * par->animInvQuat.x - t1 * par->animInvQuat.y +
-             t3 * par->animInvQuat.w) -
+            (t2 * par->animInvQuat.x - t1 * par->animInvQuat.y + t3 * par->animInvQuat.w) -
             t4 * par->animInvQuat.z;
 
         // localRot = parent.animInvQuat * node.animQuat
@@ -421,14 +417,11 @@ void SkeletonDynamics::updateSpring() {
         f32 t3 = iw * dz + (ix * dy - iy * dx);
         f32 t4 = -(dx * ix) - iy * dy - dz * iz;
 
-        link->localPos.x =
-            (iy * t3 + (iw * t1 - iz * t2)) - ix * t4;
-        link->localPos.y =
-            (t1 * nodeB->animInvQuat.z + t2 * nodeB->animInvQuat.w) -
-            t3 * nodeB->animInvQuat.x - t4 * nodeB->animInvQuat.y;
+        link->localPos.x = (iy * t3 + (iw * t1 - iz * t2)) - ix * t4;
+        link->localPos.y = (t1 * nodeB->animInvQuat.z + t2 * nodeB->animInvQuat.w) -
+                           t3 * nodeB->animInvQuat.x - t4 * nodeB->animInvQuat.y;
         link->localPos.z =
-            (t2 * nodeB->animInvQuat.x - t1 * nodeB->animInvQuat.y +
-             t3 * nodeB->animInvQuat.w) -
+            (t2 * nodeB->animInvQuat.x - t1 * nodeB->animInvQuat.y + t3 * nodeB->animInvQuat.w) -
             t4 * nodeB->animInvQuat.z;
 
         // localRot = nodeB.animInvQuat * nodeA.animQuat
@@ -610,12 +603,12 @@ void SkeletonDynamics::updateForceAndTorque() {
 
             // Apply spring torque for each axis
             sead::Vector3f torqueX, torqueY, torqueZ;
-            link->springRotX = calcSpringTorque(&torqueX, &nodeA->rot, &targetRot, 1.0f, 0.0f,
-                                                0.0f, link->springRotX);
-            link->springRotY = calcSpringTorque(&torqueY, &nodeA->rot, &targetRot, 0.0f, 1.0f,
-                                                0.0f, link->springRotY);
-            link->springRotZ = calcSpringTorque(&torqueZ, &nodeA->rot, &targetRot, 0.0f, 0.0f,
-                                                1.0f, link->springRotZ);
+            link->springRotX = calcSpringTorque(&torqueX, &nodeA->rot, &targetRot, 1.0f, 0.0f, 0.0f,
+                                                link->springRotX);
+            link->springRotY = calcSpringTorque(&torqueY, &nodeA->rot, &targetRot, 0.0f, 1.0f, 0.0f,
+                                                link->springRotY);
+            link->springRotZ = calcSpringTorque(&torqueZ, &nodeA->rot, &targetRot, 0.0f, 0.0f, 1.0f,
+                                                link->springRotZ);
 
             // Sum torques
             f32 totalY = torqueX.y + torqueY.y + torqueZ.y;
@@ -668,8 +661,7 @@ void SkeletonDynamics::updatePosAndRot() {
             node->angVelocity.y = newAngY;
             f32 newAngZ = angZ + torZ;
             f32 halfZ = newAngZ * 0.5f;
-            f32 len =
-                std::sqrt(halfZ * halfZ + (halfX * halfX + 1.0f + halfY * halfY));
+            f32 len = std::sqrt(halfZ * halfZ + (halfX * halfX + 1.0f + halfY * halfY));
             node->angVelocity.z = newAngZ;
 
             f32 qw;
@@ -709,8 +701,7 @@ void SkeletonDynamics::updatePosAndRot() {
             node->rot.y = ny;
 
             // Normalize rot
-            f32 rotLen = std::sqrt(
-                (nw * nw + nx * nx + ny * ny) + nz * nz);
+            f32 rotLen = std::sqrt((nw * nw + nx * nx + ny * ny) + nz * nz);
             if (rotLen > 0.0f) {
                 f32 inv = 1.0f / rotLen;
                 node->rot.x = inv * node->rot.x;
@@ -838,8 +829,7 @@ void SkeletonDynamics::applyLengthConstraint() {
         if (node->posAttr == 0) {
             f32 totalZ = node->lengthForceMin.z + node->lengthForceMax.z;
             f32 totalY = (node->lengthForceMin.y + node->lengthForceMax.y) + node->pos.y;
-            node->pos.x =
-                (node->lengthForceMin.x + node->lengthForceMax.x) + node->pos.x;
+            node->pos.x = (node->lengthForceMin.x + node->lengthForceMax.x) + node->pos.x;
             node->pos.y = totalY;
             node->pos.z = totalZ + node->pos.z;
         }
@@ -886,8 +876,7 @@ void SkeletonDynamics::applyLengthConstraint() {
             node->rot.x = nx;
             node->rot.y = nz;
 
-            f32 rotLen = std::sqrt(
-                ny * ny + (nw * nw + nx * nx + nz * nz));
+            f32 rotLen = std::sqrt(ny * ny + (nw * nw + nx * nx + nz * nz));
             if (rotLen > 0.0f) {
                 f32 inv = 1.0f / rotLen;
                 node->rot.x = inv * node->rot.x;
@@ -924,11 +913,9 @@ void SkeletonDynamics::updateAnimJoint() {
 
             f32 rpx = (ry * t3 + (rw * t1 - rz * t2)) - rx * t4;
             node->pos.x = rpx;
-            f32 rpy = (t1 * par->rot.z + t2 * par->rot.w) - t3 * par->rot.x -
-                       t4 * par->rot.y;
+            f32 rpy = (t1 * par->rot.z + t2 * par->rot.w) - t3 * par->rot.x - t4 * par->rot.y;
             node->pos.y = rpy;
-            f32 rpz = (t2 * par->rot.x - t1 * par->rot.y + t3 * par->rot.w) -
-                       t4 * par->rot.z;
+            f32 rpz = (t2 * par->rot.x - t1 * par->rot.y + t3 * par->rot.w) - t4 * par->rot.z;
             node->pos.z = rpz;
 
             node->pos.x = rpx + par->pos.x;
@@ -1050,18 +1037,14 @@ void SkeletonDynamics::updateAutoJoint() {
 
         // Triangle solution using cosine rule
         f32 cosAngle = ((distToChild * distToChild) - (distToParent * distToParent) +
-                         (parentChildDist * parentChildDist)) /
-                        (parentChildDist + parentChildDist);
-        f32 sinDist = std::sqrt(
-            std::fmax(distToChild * distToChild - cosAngle * cosAngle, 0.0f));
+                        (parentChildDist * parentChildDist)) /
+                       (parentChildDist + parentChildDist);
+        f32 sinDist = std::sqrt(std::fmax(distToChild * distToChild - cosAngle * cosAngle, 0.0f));
 
         f32 ratio = cosAngle / parentChildDist;
-        f32 newPosX =
-            (pdx * ratio + child->pos.x) + sinDist * planeNormal.x;
-        f32 newPosY =
-            (pdy * ratio + child->pos.y) + sinDist * planeNormal.y;
-        f32 newPosZ =
-            (pdz * ratio + child->pos.z) + sinDist * planeNormal.z;
+        f32 newPosX = (pdx * ratio + child->pos.x) + sinDist * planeNormal.x;
+        f32 newPosY = (pdy * ratio + child->pos.y) + sinDist * planeNormal.y;
+        f32 newPosZ = (pdz * ratio + child->pos.z) + sinDist * planeNormal.z;
 
         node->pos.x = newPosX;
         node->pos.y = newPosY;
@@ -1094,12 +1077,9 @@ void SkeletonDynamics::updateAutoJoint() {
         f32 d3 = prw * animDir.z + (prx * animDir.y - pry * animDir.x);
         f32 d4 = -(animDir.x * prx) - pry * animDir.y - animDir.z * prz;
 
-        animDir.x =
-            (pry * d3 + (prw * d1 - prz * d2)) - prx * d4;
-        animDir.y =
-            (d1 * par->rot.z + d2 * par->rot.w) - d3 * par->rot.x - d4 * par->rot.y;
-        animDir.z =
-            (d2 * par->rot.x - d1 * par->rot.y + d3 * par->rot.w) - d4 * par->rot.z;
+        animDir.x = (pry * d3 + (prw * d1 - prz * d2)) - prx * d4;
+        animDir.y = (d1 * par->rot.z + d2 * par->rot.w) - d3 * par->rot.x - d4 * par->rot.y;
+        animDir.z = (d2 * par->rot.x - d1 * par->rot.y + d3 * par->rot.w) - d4 * par->rot.z;
 
         // Make quaternion rotation from animDir to dir
         sead::Quatf deltaRot;
@@ -1113,8 +1093,7 @@ void SkeletonDynamics::updateAutoJoint() {
 
         f32 nw = deltaRot.w * qw - deltaRot.x * qx - deltaRot.y * qy - deltaRot.z * qz;
         f32 nx = deltaRot.w * qx + deltaRot.x * qw + deltaRot.y * qz - deltaRot.z * qy;
-        f32 ny = deltaRot.z * qx +
-                 (deltaRot.w * qy + deltaRot.y * qw - deltaRot.x * qz);
+        f32 ny = deltaRot.z * qx + (deltaRot.w * qy + deltaRot.y * qw - deltaRot.x * qz);
         f32 nz = deltaRot.z * qw + (deltaRot.x * qy + deltaRot.w * qz - deltaRot.y * qx);
 
         node->rot.x = nx;

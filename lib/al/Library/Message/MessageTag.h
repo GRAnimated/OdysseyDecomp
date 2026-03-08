@@ -11,8 +11,8 @@ namespace al {
 
 class MessageTag {
 public:
-    explicit MessageTag(const char16* str);
-    explicit MessageTag(const nn::font::PrintContext<char16>* context);
+    MessageTag(const char16* str);
+    MessageTag(const nn::font::PrintContext<char16>* context);
 
     s32 getSkipLength() const;
     s32 getParam8(s32 idx) const;

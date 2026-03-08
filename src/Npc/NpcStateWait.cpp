@@ -8,6 +8,7 @@
 #include "Library/LiveActor/LiveActor.h"
 #include "Library/Movement/RumbleCalculator.h"
 #include "Library/Nerve/NerveSetupUtil.h"
+#include "Library/Nerve/NerveStateBase.h"
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Player/PlayerUtil.h"
 #include "Library/Stage/StageSwitchUtil.h"
@@ -65,27 +66,25 @@ NpcStateWait::NpcStateWait(al::LiveActor* actor, const al::ActorInitInfo& initIn
 
 void NpcStateWait::setWaitAfter() {
     mIsWaitAfter = true;
-    if (al::isNerve(this, &NrvNpcStateWait.Wait) ||
-        al::isNerve(this, &NrvNpcStateWait.WaitAfter))
+    if (al::isNerve(this, &NrvNpcStateWait.Wait) || al::isNerve(this, &NrvNpcStateWait.WaitAfter))
         al::setNerve(this, &NrvNpcStateWait.WaitAfter);
 }
 
 void NpcStateWait::setWait() {
     mIsWaitAfter = false;
-    if (al::isNerve(this, &NrvNpcStateWait.Wait) ||
-        al::isNerve(this, &NrvNpcStateWait.WaitAfter))
+    if (al::isNerve(this, &NrvNpcStateWait.Wait) || al::isNerve(this, &NrvNpcStateWait.WaitAfter))
         al::setNerve(this, &NrvNpcStateWait.Wait);
 }
 
 void NpcStateWait::appear() {
-    mIsDead = false;
-    al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait
-                                     : (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
+    al::NerveStateBase::appear();
+    al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait :
+                                       (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
 }
 
 void NpcStateWait::startWait() {
-    al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait
-                                     : (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
+    al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait :
+                                       (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
 }
 
 // NON_MATCHING: instruction scheduling for Vector3f add (ldp vs individual ldr)
@@ -115,8 +114,8 @@ void NpcStateWait::control() {
 void NpcStateWait::invalidateTurn() {
     mIsTurnInvalid = true;
     if (al::isNerve(this, &NrvNpcStateWait.Turn))
-        al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait
-                                         : (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
+        al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait :
+                                           (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
 }
 
 void NpcStateWait::exeWait() {
@@ -132,8 +131,8 @@ bool NpcStateWait::tryStartTurn(const NpcStateTurnParam* param) {
     if (!param || mIsTurnInvalid)
         return false;
 
-    if (!param->mIsEnable || (al::isNerve(this, &NrvNpcStateWait.Wait) &&
-                              param->mIsOnlyFromWaitAfter))
+    if (!param->mIsEnable ||
+        (al::isNerve(this, &NrvNpcStateWait.Wait) && param->mIsOnlyFromWaitAfter))
         return false;
 
     al::LiveActor* player = al::getPlayerActor(mActor, 0);
@@ -182,8 +181,8 @@ void NpcStateWait::startTurnEnd() {
     if (mTurnParam->mTurnEndStep > 0)
         al::setNerve(this, &NrvNpcStateWait.TurnEnd);
     else
-        al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait
-                                         : (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
+        al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait :
+                                           (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
 }
 
 void NpcStateWait::exeTurnEnd() {
@@ -191,8 +190,8 @@ void NpcStateWait::exeTurnEnd() {
         return;
 
     if (al::isGreaterEqualStep(this, mTurnParam->mTurnEndStep))
-        al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait
-                                         : (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
+        al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait :
+                                           (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
 }
 
 void NpcStateWait::exeTrampled() {
@@ -200,8 +199,8 @@ void NpcStateWait::exeTrampled() {
         al::startAction(mActor, mWaitParam->mTrampledAction);
 
     if (al::isActionEnd(mActor))
-        al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait
-                                         : (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
+        al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait :
+                                           (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
 }
 
 // NON_MATCHING: pre-increment addressing, 8-byte vector copy vs member-by-member

@@ -29,8 +29,7 @@ f32 calcStopInputSpeed(SphinxRide* sphinx, IUsePlayerPuppet* puppet) {
     al::calcFrontDir(&frontDir, sphinx);
 
     const sead::Vector2f& stick = rs::getPuppetMoveStick(puppet);
-    al::calcVecViewInput(&viewInput, stick, sead::Vector3f::ey,
-                         al::getViewMtxPtr(sphinx, 0));
+    al::calcVecViewInput(&viewInput, stick, sead::Vector3f::ey, al::getViewMtxPtr(sphinx, 0));
 
     f32 angle;
     if (!al::tryCalcAngleDegree(&angle, frontDir, viewInput) || angle <= 30.0f)
@@ -54,7 +53,7 @@ SphinxRideStateStop::SphinxRideStateStop(SphinxRide* host, const SphinxRideParam
 }
 
 void SphinxRideStateStop::appear() {
-    mIsDead = false;
+    al::NerveStateBase::appear();
     mIsGetOff = false;
     mButtonFrame = 0;
     mSwingFrame = 0;
@@ -62,7 +61,7 @@ void SphinxRideStateStop::appear() {
 }
 
 void SphinxRideStateStop::kill() {
-    mIsDead = true;
+    al::NerveStateBase::kill();
     mIsSwingStop = false;
 }
 
@@ -93,8 +92,7 @@ void SphinxRideStateStop::exeStopStart() {
     rs::requestCameraTurnToFront(getHost(), lerpResult * 0.4f, lerpResult * 0.1f, 0);
 
     if (al::isActionEnd(getHost()))
-        al::setNerve(this,
-                     mIsSwingStop ? (al::Nerve*)&StopSwing : (al::Nerve*)&StopButton);
+        al::setNerve(this, mIsSwingStop ? (al::Nerve*)&StopSwing : (al::Nerve*)&StopButton);
 }
 
 // NON_MATCHING: kill block placement, cmp canonicalization (0xb2 gt vs 0xb3 ge), eor+tbnz vs tbz

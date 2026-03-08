@@ -37,14 +37,13 @@ void TrafficRailWatcherDirector::registerActor(const al::LiveActor* actor,
     mCount++;
 }
 
-TrafficRailWatcher* TrafficRailWatcherDirector::findActorRailWatcher(
-    const al::LiveActor* actor) const {
+TrafficRailWatcher*
+TrafficRailWatcherDirector::findActorRailWatcher(const al::LiveActor* actor) const {
     for (s32 i = 0; i < mCount; i++) {
         auto* watcher = mEntries[i];
-        for (s32 j = 0; j < watcher->mActorCount; j++) {
+        for (s32 j = 0; j < watcher->mActorCount; j++)
             if (watcher->mActors[j]->actor == actor)
                 return watcher;
-        }
     }
     return nullptr;
 }
@@ -55,17 +54,16 @@ const char* TrafficRailWatcherDirector::getSceneObjName() const {
 
 namespace rs {
 
-void registerTrafficRailWatcher(const al::LiveActor* actor,
-                                const al::ActorInitInfo& initInfo) {
+void registerTrafficRailWatcher(const al::LiveActor* actor, const al::ActorInitInfo& initInfo) {
     if (!al::isExistSceneObj(actor, SceneObjID_TrafficRailWatcher))
-        al::setSceneObj(actor, new TrafficRailWatcherDirector(),
-                        SceneObjID_TrafficRailWatcher);
+        al::setSceneObj(actor, new TrafficRailWatcherDirector(), SceneObjID_TrafficRailWatcher);
 
     auto* director = static_cast<TrafficRailWatcherDirector*>(
         al::getSceneObj(actor, SceneObjID_TrafficRailWatcher));
     director->registerActor(actor, initInfo);
 }
 
+// NON_MATCHING: for some reason
 void stopTrafficRailByTraffic(const al::LiveActor* actor) {
     auto* director = static_cast<TrafficRailWatcherDirector*>(
         al::getSceneObj(actor, SceneObjID_TrafficRailWatcher));
@@ -73,6 +71,7 @@ void stopTrafficRailByTraffic(const al::LiveActor* actor) {
     watcher->stopByTraffic(actor);
 }
 
+// NON_MATCHING: for some reason
 void restartTrafficRailByTraffic(const al::LiveActor* actor) {
     auto* director = static_cast<TrafficRailWatcherDirector*>(
         al::getSceneObj(actor, SceneObjID_TrafficRailWatcher));

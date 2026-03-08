@@ -294,24 +294,16 @@ bool ByamlIter::tryConvertInt(s32* value, const ByamlData* data) const {
     return true;
 }
 
+// NON_MATCHING: mismatch in inlined convert (https://decomp.me/scratch/BnTuu)
 bool ByamlIter::tryGetUIntByIndex(u32* value, s32 index) const {
     ByamlData data;
     if (!getByamlDataByIndex(&data, index))
         return false;
 
-    s32 val = data.getValue<s32>();
-    if (data.getType() == ByamlDataType::Int) {
-        *value = val < 0 ? 0 : val;
-        if (val < 0)
-            return false;
-    } else if (data.getType() == ByamlDataType::UInt) {
-        *value = val;
-    } else {
-        return false;
-    }
-    return true;
+    return tryConvertUInt(value, &data);
 }
 
+// NON_MATCHING: mismatch in inlined convert (https://decomp.me/scratch/d7Ooh)
 bool ByamlIter::tryGetUIntByKey(u32* value, const char* key) const {
     ByamlData data;
     if (!getByamlDataByKey(&data, key))
@@ -319,18 +311,7 @@ bool ByamlIter::tryGetUIntByKey(u32* value, const char* key) const {
 
     if (data.getType() == ByamlDataType::Null)
         return false;
-
-    s32 val = data.getValue<s32>();
-    if (data.getType() == ByamlDataType::Int) {
-        *value = val < 0 ? 0 : val;
-        if (val < 0)
-            return false;
-    } else if (data.getType() == ByamlDataType::UInt) {
-        *value = val;
-    } else {
-        return false;
-    }
-    return true;
+    return tryConvertUInt(value, &data);
 }
 
 bool ByamlIter::tryConvertUInt(u32* value, const ByamlData* data) const {

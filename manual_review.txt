@@ -1,0 +1,271 @@
+// NOTE FOR LLMs: Do not touch this file!
+// This is for human consumption only!
+[X] Library/Camera/CameraTargetHolder.cpp // undid changes
+[X] Library/Collision/CollisionParts.h // For ShibakenFunction.cpp
+[X] Library/Demo/DemoFunction.h // Changes requested
+[X] Library/Event/EventFlowActorParamHolder.h
+[X] Library/Event/EventFlowChoiceInfo.h
+[X] Library/Event/EventFlowEventData.h
+[X] Library/Event/EventFlowExecutor.h
+[X] Library/Event/EventFlowExecutorHolder.h
+[X] Library/Event/EventFlowMovement.h
+[X] Library/Event/EventFlowMovementRailBlend.h
+[X] Library/Event/EventFlowUtil.h
+[X] Library/Event/EventFlowWatchParam.h
+[X] Library/Event/IEventFlowQueryJudge.h
+[X] Library/Joint/JointAimInfo.cpp
+[X] Library/Joint/JointControllerKeeper.h
+[X] Library/Joint/JointLookAtController.h
+[X] Library/Joint/JointLookAtInfo.h
+[X] Library/Joint/JointLookAtParam.h
+[X] Library/Joint/JointSpringControllerHolder.h
+[X] Library/Layout/BalloonOrderGroupHolder.h
+[X] Library/Layout/LayoutActorGroup.h
+[X] Library/Layout/ReplaceTagProcessor.h
+[X] Library/LiveActor/ActorAnimFunction.h
+[X] Library/LiveActor/ActorModelFunction.h
+[X] Library/LiveActor/ActorVariableFrameRateSkeletalAnimator.h
+[X] Library/Math/MathUtil.h
+[X] Library/Message/CustomTagProcessor.h
+[X] Library/Message/MessageTag.h
+[X] Library/Message/ReplaceTagProcessorBase.h
+[X] Library/Movement/RumbleCalculator.h
+[X] Library/Nerve/NerveStateBase.h
+[X] Library/Yaml/ByamlData.cpp
+[X] Library/Yaml/ByamlHeader.cpp
+[X] Library/Yaml/ByamlIter.cpp
+[X] Project/Item/ActorScoreKeeper.cpp
+[ ] Boss/BossRaid/BossRaidStateBreathAttack.cpp
+[ ] Boss/BossRaid/BossRaidStateGroundAttack.cpp
+[ ] Boss/BossUtil/BossStateTalkDemo.cpp
+[ ] Enemy/EnemyStateReset.h
+[ ] Enemy/Pecho.cpp
+[ ] Layout/CommonHorizontalList.cpp
+[ ] Layout/CommonHorizontalList.h
+[ ] Layout/CommonSelectParts.cpp
+[ ] Layout/CommonSelectParts.h
+[ ] Layout/DecideIconLayoutParts.cpp
+[ ] Layout/DecideIconLayoutParts.h
+[ ] Layout/ProjectReplaceTagProcessor.cpp
+[ ] Layout/ProjectReplaceTagProcessor.h
+[ ] Layout/ScrollBarParts.h
+[ ] Layout/ShopLayoutFooter.cpp
+[ ] Layout/ShopLayoutFooter.h
+[ ] Layout/TalkMessage.h
+[ ] MapObj/DigPoint.h
+[ ] MapObj/FastenerRailKeeper.cpp
+[ ] MapObj/GoalMark.h
+[ ] MapObj/ShopStateInShop.cpp
+[ ] MapObj/ShopStateInShop.h
+[ ] MapObj/TrampleSwitch.cpp
+[ ] Npc/ActorStateReactionBase.h
+[ ] Npc/ActorStateReactionUtil.h
+[ ] Npc/BgmAnimeSynchronizer.h
+[ ] Npc/BirdMtxGlideCtrl.h
+[ ] Npc/CityManRhythmInfo.h
+[ ] Npc/CyclicCoordinateDescentIk.h
+[ ] Npc/EventActorMovementRailTraffic.h
+[ ] Npc/EventActorMovementTurn.h
+[ ] Npc/EventActorStateDemoTalk.h
+[ ] Npc/EventDemoCtrl.h
+[ ] Npc/EventFlowSceneExecuteCtrl.h
+[ ] Npc/FukankunZoomCapMessage.h
+[ ] Npc/GhostPlayer.h
+[ ] Npc/HelpNpc.cpp
+[ ] Npc/HelpNpc.h
+[ ] Npc/HideAndSeekCapMan.h
+[ ] Npc/MayorItem.h
+[ ] Npc/MoveHomeNpc.cpp
+[ ] Npc/MoveHomeNpc.h
+[ ] Npc/NpcEventBalloonInfo.cpp
+[ ] Npc/NpcEventBalloonInfo.h
+[ ] Npc/NpcEventCtrlInfo.cpp
+[ ] Npc/NpcEventCtrlInfo.h
+[ ] Npc/NpcEventDirector.cpp
+[ ] Npc/NpcEventDirector.h
+[ ] Npc/NpcEventSceneConstData.cpp
+[ ] Npc/NpcEventSceneConstData.h
+[ ] Npc/NpcEventSceneInfo.h
+[ ] Npc/NpcEventStateScare.cpp
+[ ] Npc/NpcEventStateScare.h
+[ ] Npc/NpcJointLookAtController.cpp
+[ ] Npc/NpcJointLookAtController.h
+[ ] Npc/NpcStateReaction.h
+[ ] Npc/NpcStateReactionParam.cpp
+[ ] Npc/NpcStateReactionParam.h
+[ ] Npc/NpcStateRumbleParam.h
+[ ] Npc/NpcStateTurnBase.cpp
+[ ] Npc/NpcStateTurnBase.h
+[ ] Npc/NpcStateTurnParam.h
+[ ] Npc/NpcStateTurnSeparate.cpp
+[ ] Npc/NpcStateTurnSeparate.h
+[ ] Npc/NpcStateWait.cpp
+[ ] Npc/NpcStateWait.h
+[ ] Npc/NpcStateWaitParam.h
+[ ] Npc/OpeningStageStartCapManHero.cpp
+[ ] Npc/OpeningStageStartCapManHero.h
+[ ] Npc/PaulineAtCeremony.cpp
+[ ] Npc/PaulineAtCeremony.h
+[ ] Npc/PaulineAudience.cpp
+[ ] Npc/PaulineAudience.h
+[ ] Npc/PaulineRhythmInfo.cpp
+[ ] Npc/PaulineRhythmInfo.h
+[ ] Npc/Peach.cpp
+[ ] Npc/Peach.h
+[ ] Npc/PeachOnKoopaAnimInfo.cpp
+[ ] Npc/PeachOnKoopaAnimInfo.h
+[ ] Npc/PeachTrunk.h
+[ ] Npc/PlayerRecoder.cpp
+[ ] Npc/PlayerRecoder.h
+[ ] Npc/PochiHintPhoto.cpp
+[ ] Npc/PochiHintPhoto.h
+[ ] Npc/Poetter.cpp
+[ ] Npc/Poetter.h
+[ ] Npc/RaceManGoal.cpp
+[ ] Npc/RaceManGoal.h
+[ ] Npc/RaceManRace.cpp
+[ ] Npc/RaceManRace.h
+[ ] Npc/RaceManShell.cpp
+[ ] Npc/RaceManShell.h
+[ ] Npc/RaceManStart.cpp
+[ ] Npc/RaceManStart.h
+[ ] Npc/RaceManThrowCap.cpp
+[ ] Npc/RaceManThrowCap.h
+[ ] Npc/RadiconCar.cpp
+[ ] Npc/RadiconCar.h
+[ ] Npc/RadiconCarStateAutoMove.cpp
+[ ] Npc/RadiconCarStateAutoMove.h
+[ ] Npc/RadiconNpc.cpp
+[ ] Npc/RadiconNpc.h
+[ ] Npc/RandomActionUpdater.cpp
+[ ] Npc/RandomActionUpdater.h
+[ ] Npc/RandomWaitActionUpdater.cpp
+[ ] Npc/RandomWaitActionUpdater.h
+[ ] Npc/RankingNameHolder.cpp
+[ ] Npc/RankingNameHolder.h
+[ ] Npc/RunAwayNpc.cpp
+[ ] Npc/RunAwayNpc.h
+[ ] Npc/ShellActorStateReaction.cpp
+[ ] Npc/ShellActorStateReaction.h
+[ ] Npc/Shibaken.cpp
+[ ] Npc/Shibaken.h
+[ ] Npc/ShibakenFunction.cpp
+[ ] Npc/ShibakenFunction.h
+[ ] Npc/ShibakenMoveAnimCtrl.cpp
+[ ] Npc/ShibakenMoveAnimCtrl.h
+[ ] Npc/ShibakenStateBark.cpp
+[ ] Npc/ShibakenStateBark.h
+[ ] Npc/ShibakenStateCapCatch.cpp
+[ ] Npc/ShibakenStateCapCatch.h
+[ ] Npc/ShibakenStateJump.cpp
+[ ] Npc/ShibakenStateJump.h
+[ ] Npc/ShibakenStatePointChase.cpp
+[ ] Npc/ShibakenStatePointChase.h
+[ ] Npc/ShibakenStateSit.cpp
+[ ] Npc/ShibakenStateSit.h
+[ ] Npc/ShibakenStateTurn.cpp
+[ ] Npc/ShibakenStateTurn.h
+[ ] Npc/ShibakenStateWait.cpp
+[ ] Npc/ShibakenStateWait.h
+[ ] Npc/ShibakenStateWaitFar.cpp
+[ ] Npc/ShibakenStateWaitFar.h
+[ ] Npc/SimpleActionLiveActor.h
+[ ] Npc/SimpleActionPartsModel.h
+[ ] Npc/SkeletonDynamics.cpp
+[ ] Npc/SkeletonDynamics.h
+[ ] Npc/SnowManRaceFunction.h
+[ ] Npc/SnowManRaceNpc.cpp
+[ ] Npc/SnowManRaceNpc.h
+[ ] Npc/SphinxQuiz.cpp
+[ ] Npc/SphinxQuiz.h
+[ ] Npc/SphinxQuizRouteKillExecutor.cpp
+[ ] Npc/SphinxQuizRouteKillExecutor.h
+[ ] Npc/SphinxRide.cpp
+[ ] Npc/SphinxRide.h
+[ ] Npc/SphinxRideAim.cpp
+[ ] Npc/SphinxRideAim.h
+[ ] Npc/SphinxRideEvent.cpp
+[ ] Npc/SphinxRideEvent.h
+[ ] Npc/SphinxRideMiniGameNpc.cpp
+[ ] Npc/SphinxRideMiniGameNpc.h
+[ ] Npc/SphinxRideParam.h
+[ ] Npc/SphinxRideStateRevival.cpp
+[ ] Npc/SphinxRideStateRevival.h
+[ ] Npc/SphinxRideStateStop.cpp
+[ ] Npc/SphinxRideStateStop.h
+[ ] Npc/Squirrel.cpp
+[ ] Npc/Squirrel.h
+[ ] Npc/TalkNpc.cpp
+[ ] Npc/TalkNpc.h
+[ ] Npc/TalkNpcActionAnimInfo.cpp
+[ ] Npc/TalkNpcActionAnimInfo.h
+[ ] Npc/TalkNpcCap.cpp
+[ ] Npc/TalkNpcCap.h
+[ ] Npc/TalkNpcEyeLineAnimParam.cpp
+[ ] Npc/TalkNpcEyeLineAnimParam.h
+[ ] Npc/TalkNpcFreeze.cpp
+[ ] Npc/TalkNpcFreeze.h
+[ ] Npc/TalkNpcParam.cpp
+[ ] Npc/TalkNpcParam.h
+[ ] Npc/TalkNpcParamHolder.cpp
+[ ] Npc/TalkNpcParamHolder.h
+[ ] Npc/TalkNpcPartialAnimCtrl.cpp
+[ ] Npc/TalkNpcPartialAnimCtrl.h
+[ ] Npc/TalkNpcSceneEventSwitcher.cpp
+[ ] Npc/TalkNpcSceneEventSwitcher.h
+[ ] Npc/TalkNpcStateEvent.cpp
+[ ] Npc/TalkNpcStateEvent.h
+[ ] Npc/TalkNpcSwitchActionPlayer.h
+[ ] Npc/TalkNpcSwitchActionPlayerHolder.cpp
+[ ] Npc/TalkNpcSwitchActionPlayerHolder.h
+[ ] Npc/TalkNpcSwitchWaitActionObj.cpp
+[ ] Npc/TalkNpcSwitchWaitActionObj.h
+[ ] Npc/TestAndoNpcIk.cpp
+[ ] Npc/TestAndoNpcIk.h
+[ ] Npc/Tiara.cpp
+[ ] Npc/Tiara.h
+[ ] Npc/TimeBalloonNpc.cpp
+[ ] Npc/TimeBalloonNpc.h
+[ ] Npc/TokimekiMayorNpc.cpp
+[ ] Npc/TokimekiMayorNpc.h
+[ ] Npc/TrafficRailWatcher.cpp
+[ ] Npc/TrafficRailWatcher.h
+[ ] Npc/TrafficRailWatcherDirector.cpp
+[ ] Npc/TrafficRailWatcherDirector.h
+[ ] Npc/WorldTravelingNpc.cpp
+[ ] Npc/WorldTravelingNpc.h
+[ ] Npc/WorldTravelingPartner.cpp
+[ ] Npc/WorldTravelingPartner.h
+[ ] Npc/WorldTravelingPeach.cpp
+[ ] Npc/WorldTravelingPeach.h
+[ ] Npc/WorldTravelingPeachWaitState.cpp
+[ ] Npc/WorldTravelingPeachWaitState.h
+[ ] Npc/Yukimaru.cpp
+[ ] Npc/Yukimaru.h
+[ ] Npc/YukimaruInput.h
+[ ] Npc/YukimaruMovement.h
+[ ] Npc/YukimaruRacer.cpp
+[ ] Npc/YukimaruRacer.h
+[ ] Npc/YukimaruRacerTiago.cpp
+[ ] Npc/YukimaruRacerTiago.h
+[ ] Npc/YukimaruStateHack.cpp
+[ ] Npc/YukimaruStateHack.h
+[ ] Npc/YukimaruStateMove.cpp
+[ ] Npc/YukimaruStateMove.h
+[ ] Player/PlayerEyeSensorHitHolder.h
+[ ] Player/PlayerJudgePreInputCapThrow.cpp
+[ ] Player/PlayerTrigger.cpp
+[ ] Scene/SceneEventNotifier.cpp
+[ ] Scene/StageScene.cpp
+[ ] Scene/StageSceneStateRadicon.h
+[ ] Scene/StageSceneStateSkipDemo.h
+[ ] Scene/StageSceneStateWarp.h
+[ ] Sequence/ChangeStageInfo.h
+[ ] Util/CapManHeroDemoUtil.h
+[ ] Util/FukankunZoomTargetFunction.h
+[ ] Util/Hack.h
+[ ] Util/NpcAnimUtil.h
+[ ] Util/NpcEventFlowUtil.h
+[ ] Util/PlayerDemoUtil.h
+[ ] Util/SensorMsgFunction.cpp
+[ ] Util/SensorMsgFunction.h

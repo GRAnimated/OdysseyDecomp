@@ -8,6 +8,8 @@
 
 #include "Layout/ProjectReplaceTagProcessor.h"
 
+NpcEventBalloonInfo::NpcEventBalloonInfo() = default;
+
 // NON_MATCHING: store coalescing differs (STR+STUR vs STP)
 void NpcEventBalloonInfo::reset() {
     *this = NpcEventBalloonInfo();
@@ -80,12 +82,10 @@ void NpcEventBalloonInfo::makeTextW(sead::BufferedSafeStringBase<char16>* outBuf
     al::WStringTmp<1024> tempStr;
     tagProcessor.replace(tempStr.getBuffer(), msgSystem, mMessage);
 
-    if (mTagDataHolder) {
+    if (mTagDataHolder)
         al::replaceMessageTagData(outBuf, msgSystem, mTagDataHolder, tempStr.getBuffer());
-    } else {
-        al::copyMessageWithTag(outBuf->getBuffer(), outBuf->getBufferSize(),
-                               tempStr.getBuffer());
-    }
+    else
+        al::copyMessageWithTag(outBuf->getBuffer(), outBuf->getBufferSize(), tempStr.getBuffer());
 }
 
 bool NpcEventBalloonInfo::isTypeMessage() const {
@@ -99,6 +99,8 @@ bool NpcEventBalloonInfo::isTypeEmotionIcon() const {
 bool NpcEventBalloonInfo::isTypeTalkIcon() const {
     return mType == 2;
 }
+
+NpcEventTalkInfo::NpcEventTalkInfo() = default;
 
 NpcEventTalkInfo::NpcEventTalkInfo(const al::LiveActor* actor, const char16* message,
                                    const al::MessageTagDataHolder* tagDataHolder)

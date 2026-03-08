@@ -27,6 +27,7 @@ private:
     s32 _08;
 };
 
+// NON_MATCHING: for some reason
 NpcEventCtrlInfo::NpcEventCtrlInfo(const NpcEventSceneInfo& sceneInfo,
                                    const NpcEventSceneConstData& sceneConstData,
                                    EventFlowSceneExecuteCtrl* execCtrl)

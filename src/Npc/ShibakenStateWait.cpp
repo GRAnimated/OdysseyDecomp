@@ -24,7 +24,7 @@ ShibakenStateWait::ShibakenStateWait(const char* name, Shibaken* shibaken, bool 
 }
 
 void ShibakenStateWait::appear() {
-    mIsDead = false;
+    al::NerveStateBase::appear();
     al::setNerve(this, &Wait);
 }
 

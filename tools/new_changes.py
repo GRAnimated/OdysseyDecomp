@@ -38,3 +38,14 @@ sum_lines = 0
 for name, lines in sorted(files.items()):
     sum_lines += lines
 print(f"Total added lines: {sum_lines}")
+
+import os
+print("\nModified files:")
+seen = set()
+for name in sorted(files.keys()):
+    stripped_name = name
+    if stripped_name.startswith("lib/al/"):
+        stripped_name = stripped_name[len("lib/al/"):]
+    elif stripped_name.startswith("src/"):
+        stripped_name = stripped_name[len("src/"):]
+    print(stripped_name)

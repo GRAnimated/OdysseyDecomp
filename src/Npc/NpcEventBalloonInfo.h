@@ -25,7 +25,7 @@ struct NpcEventBalloonRequestInfo {
 
 class NpcEventBalloonInfo {
 public:
-    NpcEventBalloonInfo() = default;
+    NpcEventBalloonInfo();
     void setupForMessageBalloon(const al::LiveActor* actor, const char16* message,
                                 const al::MessageTagDataHolder* tagDataHolder);
     void reset();
@@ -58,7 +58,7 @@ static_assert(sizeof(NpcEventBalloonInfo) == 0x50);
 
 class NpcEventTalkInfo {
 public:
-    NpcEventTalkInfo() = default;
+    NpcEventTalkInfo();
     NpcEventTalkInfo(const al::LiveActor* actor, const char16* message,
                      const al::MessageTagDataHolder* tagDataHolder);
     void reset();

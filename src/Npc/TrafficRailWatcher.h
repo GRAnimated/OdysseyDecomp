@@ -16,40 +16,11 @@ struct TrafficRailActorInfo {
 
 class TrafficRailWatcher {
 public:
-    TrafficRailWatcher(const al::PlacementInfo& placementInfo)
-        : mPlacementId(nullptr), mActorCount(0), mActors(nullptr) {
-        mPlacementId = al::createPlacementId(placementInfo);
-        mActors = new TrafficRailActorInfo*[32];
-        for (s32 i = 0; i < 32; i++)
-            mActors[i] = nullptr;
-    }
+    TrafficRailWatcher(const al::PlacementInfo& placementInfo);
 
-    void registerActor(const al::LiveActor* actor) {
-        auto* info = new TrafficRailActorInfo;
-        info->actor = actor;
-        info->status = 0;
-        mActors[mActorCount] = info;
-        mActorCount++;
-    }
-
-    void stopByTraffic(const al::LiveActor* actor) {
-        TrafficRailActorInfo** p = mActors;
-        TrafficRailActorInfo* info;
-        do {
-            info = *p++;
-        } while (info->actor != actor);
-        info->status = 1;
-    }
-
-    void restartByTraffic(const al::LiveActor* actor) {
-        TrafficRailActorInfo** p = mActors;
-        TrafficRailActorInfo* info;
-        do {
-            info = *p++;
-        } while (info->actor != actor);
-        info->status = 0;
-    }
-
+    void registerActor(const al::LiveActor* actor);
+    void stopByTraffic(const al::LiveActor* actor);
+    void restartByTraffic(const al::LiveActor* actor);
     bool isEqual(const al::PlacementInfo& placementInfo) const;
     bool isExist(const al::LiveActor* actor) const;
     bool tryStopByOtherNpc(const al::LiveActor* actor);

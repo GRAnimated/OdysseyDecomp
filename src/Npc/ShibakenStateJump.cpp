@@ -31,7 +31,7 @@ ShibakenStateJump::ShibakenStateJump(const char* name, Shibaken* shibaken)
 }
 
 void ShibakenStateJump::appear() {
-    mIsDead = false;
+    al::NerveStateBase::appear();
     al::setNerve(this, &JumpStart);
 }
 
@@ -39,8 +39,7 @@ bool ShibakenStateJump::update() {
     if (!al::isNerve(this, &JumpEnd)) {
         if (!al::isNerve(this, &JumpStart) || !al::isLessEqualStep(this, 1)) {
             if (al::isOnGround(mShibaken, 0) &&
-                ShibakenFunction::isGroundNormal(al::getCollidedGroundNormal(mShibaken),
-                                                 mShibaken))
+                ShibakenFunction::isGroundNormal(al::getCollidedGroundNormal(mShibaken), mShibaken))
                 al::setNerve(this, &JumpEnd);
         }
     }
@@ -74,8 +73,7 @@ void ShibakenStateJump::exeJumpStart() {
         sead::Vector3f frontDir = {0, 0, 0};
         al::calcFrontDir(&frontDir, mShibaken);
 
-        sead::Vector3f hVel = {al::getVelocity(mShibaken).x, 0.0f,
-                               al::getVelocity(mShibaken).z};
+        sead::Vector3f hVel = {al::getVelocity(mShibaken).x, 0.0f, al::getVelocity(mShibaken).z};
         f32 speed = hVel.length();
         frontDir *= speed;
 

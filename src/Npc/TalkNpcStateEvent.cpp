@@ -32,8 +32,7 @@ NERVES_MAKE_STRUCT(TalkNpcStateEvent, Active, StopByTraffic, Demo, ScareStart, S
 TalkNpcStateEvent::TalkNpcStateEvent(const char* name, al::LiveActor* actor,
                                      const TalkNpcParam* param, al::EventFlowExecutor* executor,
                                      s32 a6)
-    : al::ActorStateBase(name, actor), mTalkNpcParam(param), mEventFlowExecutor(executor),
-      _58(a6) {
+    : al::ActorStateBase(name, actor), mTalkNpcParam(param), mEventFlowExecutor(executor), _58(a6) {
     initNerve(&NrvTalkNpcStateEvent.Active, 1);
 }
 
@@ -52,7 +51,7 @@ void TalkNpcStateEvent::initAfterPlacement() {
 }
 
 void TalkNpcStateEvent::appear() {
-    mIsDead = false;
+    al::NerveStateBase::appear();
     if (!al::isActive(mEventFlowExecutor))
         rs::startEventFlow(mEventFlowExecutor, "Init");
     if (mAnimInfo) {
@@ -66,7 +65,7 @@ void TalkNpcStateEvent::appear() {
 }
 
 void TalkNpcStateEvent::kill() {
-    mIsDead = true;
+    al::NerveStateBase::kill();
     rs::stopEventFlow(mEventFlowExecutor);
 }
 
@@ -94,8 +93,7 @@ bool TalkNpcStateEvent::update() {
     return al::NerveStateBase::update();
 }
 
-bool TalkNpcStateEvent::tryStartScare(TalkNpcStateEvent* state,
-                                      al::EventFlowExecutor* executor,
+bool TalkNpcStateEvent::tryStartScare(TalkNpcStateEvent* state, al::EventFlowExecutor* executor,
                                       TalkNpcPartialAnimCtrl* partialAnimCtrl) {
     if (!al::isScare(executor))
         return false;
@@ -150,8 +148,7 @@ bool TalkNpcStateEvent::tryStartReaction(const al::SensorMsg* msg, al::HitSensor
 }
 
 bool TalkNpcStateEvent::tryStartReactionWithoutTrample(const al::SensorMsg* msg,
-                                                       al::HitSensor* other,
-                                                       al::HitSensor* self) {
+                                                       al::HitSensor* other, al::HitSensor* self) {
     if (al::isNerve(this, &Reaction) && al::isNewNerve(this))
         return false;
     if (!mStateReaction->receiveMsgWithoutTrample(msg, other, self))

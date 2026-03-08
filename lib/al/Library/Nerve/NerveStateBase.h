@@ -19,7 +19,7 @@ public:
 
     bool isDead() const { return mIsDead; }
 
-protected:
+private:
     bool mIsDead = true;
 };
 

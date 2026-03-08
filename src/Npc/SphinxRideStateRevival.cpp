@@ -17,8 +17,7 @@ NERVE_IMPL(SphinxRideStateRevival, Revival);
 NERVES_MAKE_NOSTRUCT(SphinxRideStateRevival, Revival);
 }  // namespace
 
-SphinxRideStateRevival::SphinxRideStateRevival(SphinxRide* host,
-                                               const al::ActorInitInfo& initInfo,
+SphinxRideStateRevival::SphinxRideStateRevival(SphinxRide* host, const al::ActorInitInfo& initInfo,
                                                bool isFromTrans)
     : HostStateBase<SphinxRide>("復活状態(スフィンクス)", host) {
     initNerve(&Revival, 0);
@@ -35,7 +34,7 @@ SphinxRideStateRevival::SphinxRideStateRevival(SphinxRide* host,
 }
 
 void SphinxRideStateRevival::appear() {
-    mIsDead = false;
+    al::NerveStateBase::appear();
     al::invalidateClipping(getHost());
     getHost()->disappear();
     al::offCollide(getHost());

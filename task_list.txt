@@ -1,134 +1,22 @@
-[x] Npc/HelpNpc.o
-[x] Npc/YukimaruStateMove.o
-[x] Npc/YukimaruStateHack.o
-[x] Npc/YukimaruRacerTiago.o
-[x] Npc/YukimaruRacer.o
-[x] Npc/Yukimaru.o
-[x] Npc/WorldTravelingPeachWaitState.o
-[x] Npc/WorldTravelingPeach.o
-[x] Npc/WorldTravelingPartner.o
-[x] Npc/WorldTravelingNpc.o
-[x] Npc/TrafficRailWatcherDirector.o
-[x] Npc/TrafficRailWatcher.o
-[x] Npc/TokimekiMayorNpc.o
-[x] Npc/TimeBalloonNpc.o
-[x] Npc/Tiara.o
-[x] Npc/TestAndoNpcIk.o
-[x] Npc/TalkNpcSwitchWaitActionObj.o
-[x] Npc/TalkNpcSwitchActionPlayerHolder.o
-[x] Npc/TalkNpcSwitchActionPlayer.o
-[x] Npc/TalkNpcStateEvent.o
-[x] Npc/TalkNpcSceneEventSwitcher.o
-[x] Npc/TalkNpcPartialAnimCtrl.o
-[x] Npc/TalkNpcParamHolder.o
-[x] Npc/TalkNpcParam.o
-[x] Npc/TalkNpcFreeze.o
-[x] Npc/TalkNpcEyeLineAnimParam.o
-[x] Npc/TalkNpcCap.o
-[x] Npc/TalkNpcActionAnimInfo.o
-[x] Npc/TalkNpc.o
-[x] Npc/Squirrel.o
-[x] Npc/SphinxRideStateStop.o
-[x] Npc/SphinxRideStateRevival.o
-[x] Npc/SphinxRideMiniGameNpc.o
-[x] Npc/SphinxRideEvent.o
-[x] Npc/SphinxRideAim.o
-[x] Npc/SphinxRide.o
-[x] Npc/SphinxQuizRouteKillExecutor.o
-[x] Npc/SphinxQuiz.o
-[x] Push to claude-testing to GitHub if you haven't already
-[x] Npc/SnowManRaceNpc.o
-[x] Npc/SkeletonDynamics.o
-[x] Npc/ShibakenStateWaitFar.o
-[x] Npc/ShibakenStateWait.o
-[x] Push to claude-testing to GitHub if you haven't already
-[x] Npc/ShibakenStateTurn.o
-[x] Npc/ShibakenStateSit.o
-[x] Npc/ShibakenStatePointChase.o
-[x] Push to claude-testing on GitHub if you haven't already
-[x] Npc/ShibakenStateJump.o
-[x] Npc/ShibakenStateCapCatch.o
-[x] Npc/ShibakenStateBark.o
-[x] Npc/ShibakenMoveAnimCtrl.o
-[x] Push to claude-testing on GitHub if you haven't already
-[x] Npc/ShibakenFunction.o
-[x] Npc/Shibaken.o
-[x] Npc/ShellActorStateReaction.o
-[x] Npc/RunAwayNpc.o
-[x] Npc/RankingNpc.o
-[x] Npc/RankingNameHolder.o
-[x] Npc/RandomWaitActionUpdater.o
-[x] Push to claude-testing on GitHub if you haven't already
-[x] Npc/RandomActionUpdater.o
-[x] Npc/RadiconNpc.o
-[x] Npc/RadiconCarStateAutoMove.o
-[x] Npc/RadiconCar.o
-[x] Npc/RaceManThrowCap.o
-[x] Npc/RaceManStart.o
-[x] Push to claude-testing on GitHub if you haven't already
-[x] Npc/RaceManShell.o
-[x] Npc/RaceManRace.o
-[x] Npc/RaceManGoal.o
-[x] Npc/Poetter.o
-[x] Npc/PochiHintPhoto.o
-[x] Npc/PlayerRecoder.o
-[x] Push to claude-testing on GitHub if you haven't already
-[x] Npc/PeachOnKoopaAnimInfo.o
-[x] Npc/Peach.o
-[x] Npc/PaulineRhythmInfo.o
-[x] Npc/PaulineAudience.o
-[x] Npc/PaulineAtCeremony.o
-[x] Push to claude-testing on GitHub if you haven't already
-[x] Npc/OpeningStageStartCapManHero.o
-[x] Npc/NpcStateWait.o
-[x] Npc/NpcStateTurnSeparate.o
-[x] Npc/NpcStateTurnBase.o
-[x] Npc/NpcStateReactionParam.o
-[x] Npc/NpcJointLookAtController.o
-[x] Push to claude-testing on GitHub if you haven't already
-[x] Npc/NpcEventStateScare.o
-[x] Npc/NpcEventSceneConstData.o
-[ ] Npc/NpcEventDirector.o
-[x] Npc/NpcEventCtrlInfo.o
-[x] Npc/NpcEventBalloonInfo.o
-[ ] Npc/MoveHomeNpc.o
-[x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/JumpingRopeNpc.o
-[ ] Npc/JumpingRopeLayout.o
-[ ] Npc/HomeCapStateMoveSouvenir.o
-[ ] Npc/HomeCapStateMoveChair.o
-[x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/HomeCap.o
-[ ] Npc/HintNpc.o
-[ ] Npc/HideAndSeekCapMan.o
-[ ] Npc/GhostPlayer.o
-[x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/FukuwaraiWatcher.o
-[ ] Npc/FukuwaraiNpc.o
-[ ] Npc/FrogStateWaitWander.o
-[ ] Npc/FrogStateWaitJump.o
-[ ] Npc/FrogStateHack.o
-[ ] Npc/Frog.o
-[x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/ForestManSeed.o
-[ ] Npc/FlyObject.o
-[ ] Npc/FigureWalkingNpc.o
-[ ] Npc/FigureWalkingJudge.o
-[x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/EffectObjNpcManFar.o
-[ ] Npc/DecalJointCtrl.o
-[ ] Npc/CyclicCoordinateDescentIk.o
-[ ] Npc/CollectAnimalWatcher.o
-[x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/CollectAnimal.o
-[ ] Npc/CityManRhythmInfo.o
-[ ] Npc/CapWorldNpcTailJointController.o
-[ ] Npc/CapSlotNpc.o
-[x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/BirdMtxGlideCtrl.o
-[ ] Npc/Bird.o
-[ ] Npc/AmiiboNpcStateChangeCostume.o
-[ ] Npc/AmiiboNpc.o
-[ ] Npc/AmiiboHelpNpc.o
-[ ] Npc/AchievementNpc.o
-[x] Push to claude-testing on GitHub if you haven't already
+[ ] Clean JointAimInfo (use inlines, remove __builtin_memcpy, use sead operator/function inlines
+[ ] Finish header for JointLookAtController.h
+[ ] Clean JointLookAtInfo by using default initializers instead of an initializer list
+[ ] Add second constructor to JointLookAtParam
+[ ] Add rest of functions to BalloonOrderGroupHolder.h
+[ ] Add size and void* padding to ActorVariableFrameRateSkeletalAnimator.h
+[ ] Finish CustomTagProcessor header
+[ ] Finish RumbleCalculator header
+
+
+[ ] Move DemoActorHolder from DemoFunction.h to its own file Library/Demo/DemoActorHolder.h
+[ ] Move alDemoFunction from DemoFunction.h to Library/Demo/DemoActorHolder.h
+[ ] Move ReplaceTagProcessorBase to Library/Message/ReplaceTagProcessorBase and add the rest of its functions
+
+[ ] Implement DemoActorHolder
+[ ] Implement EventFlowActorParamHolder (and add constructor to header)
+[ ] Implement EventFlowChoiceInfo
+[ ] Implement Library/Event/EventFlowEventData.h
+[ ] Implement Library/Event/EventFlowExecutorHolder.h
+[ ] Implement Library/Event/EventFlowMovementRailBlend.h
+[ ] Implement Library/Event/EventFlowWatchParam.h
+[ ] Implement LayoutActorGroup based on LiveActorGroup
