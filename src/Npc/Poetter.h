@@ -21,8 +21,7 @@ public:
 
     void init(const al::ActorInitInfo& initInfo) override;
     void control() override;
-    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                    al::HitSensor* self) override;
+    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) override;
     void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
 
     const al::MessageSystem* getMessageSystem() const override;

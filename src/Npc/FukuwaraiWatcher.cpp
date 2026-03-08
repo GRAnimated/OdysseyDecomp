@@ -1,6 +1,7 @@
 #include "Npc/FukuwaraiWatcher.h"
 
 #include "Library/Base/StringUtil.h"
+#include "Library/Bgm/BgmLineFunction.h"
 #include "Library/LiveActor/ActorAreaFunction.h"
 #include "Library/LiveActor/ActorFlagFunction.h"
 #include "Library/LiveActor/ActorInitFunction.h"
@@ -12,7 +13,6 @@
 #include "Library/Nerve/NerveUtil.h"
 #include "Library/Placement/PlacementFunction.h"
 #include "Library/Se/SeFunction.h"
-#include "Library/Bgm/BgmLineFunction.h"
 #include "Library/Stage/StageSwitchUtil.h"
 
 #include "Npc/FukuwaraiFaceParts.h"
@@ -28,8 +28,8 @@ NERVE_IMPL(FukuwaraiWatcher, WaitStartResultEnd);
 NERVE_IMPL(FukuwaraiWatcher, ResultWait);
 NERVE_IMPL(FukuwaraiWatcher, ResultAppearParts);
 NERVE_IMPL(FukuwaraiWatcher, End);
-NERVES_MAKE_NOSTRUCT(FukuwaraiWatcher, Wait, SetStartPosition, Memorize, Play,
-                     WaitStartResultEnd, ResultWait, ResultAppearParts, End);
+NERVES_MAKE_NOSTRUCT(FukuwaraiWatcher, Wait, SetStartPosition, Memorize, Play, WaitStartResultEnd,
+                     ResultWait, ResultAppearParts, End);
 }  // namespace
 
 FukuwaraiWatcher::FukuwaraiWatcher(const char* name) : al::LiveActor(name) {}
@@ -41,8 +41,8 @@ void FukuwaraiWatcher::init(const al::ActorInitInfo& info) {
     al::initActorBgmKeeper(this, info, nullptr);
     al::initActorSeKeeperWithout3D(this, info, "FukuwaraiWatcher");
 
-    al::AreaObjGroup* areaGroup = al::createLinkAreaGroup(
-        this, info, "FukuwaraiArea", "子供エリアグループ", "子供エリア");
+    al::AreaObjGroup* areaGroup =
+        al::createLinkAreaGroup(this, info, "FukuwaraiArea", "子供エリアグループ", "子供エリア");
 
     s32 partsCount = al::calcLinkChildNum(info, "FaceParts");
 

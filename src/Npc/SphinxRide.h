@@ -77,7 +77,7 @@ public:
     bool isPlayerInputSwingSphinxStop() const;
     bool sendMsgCollidedTouch();
     bool calcCheckCollidedWallCommon(sead::Vector3f* wallPos, sead::Vector3f* wallNormal,
-                                    al::HitSensor** bodySensor, al::HitSensor** wallSensor);
+                                     al::HitSensor** bodySensor, al::HitSensor** wallSensor);
     void startStandby(const sead::Vector3f& trans, const sead::Vector3f& front);
     bool isNerveStandby() const;
     void setupEventFade();

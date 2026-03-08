@@ -3,11 +3,11 @@
 #include "Library/Base/StringUtil.h"
 #include "Library/Event/EventFlowEventData.h"
 #include "Library/Event/EventFlowFunction.h"
-#include "Library/LiveActor/ActorInitInfo.h"
 #include "Library/Joint/JointControllerKeeper.h"
 #include "Library/Layout/LayoutInitInfo.h"
 #include "Library/LiveActor/ActorAnimFunction.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
+#include "Library/LiveActor/ActorInitInfo.h"
 #include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorModelFunction.h"
 #include "Library/LiveActor/ActorSensorUtil.h"
@@ -50,16 +50,13 @@ void HelpNpc::init(const al::ActorInitInfo& info) {
 
     const char* modelName = al::getModelName(this);
 
-    if (al::isEqualString(modelName, "ForestMan") ||
-        al::isEqualString(modelName, "DesertMan") ||
+    if (al::isEqualString(modelName, "ForestMan") || al::isEqualString(modelName, "DesertMan") ||
         al::isEqualString(modelName, "CityMan")) {
         al::startVisAnim(this, "Off");
     }
 
-    if (al::isEqualString(modelName, "ForestMan") ||
-        al::isEqualString(modelName, "CityMan")) {
+    if (al::isEqualString(modelName, "ForestMan") || al::isEqualString(modelName, "CityMan"))
         mIsCapTarget = true;
-    }
 
     bool isCityMan = false;
     if (al::isEqualString(modelName, "CityMan")) {
@@ -78,16 +75,14 @@ void HelpNpc::init(const al::ActorInitInfo& info) {
         al::startMtpAnim(this, "ForestManB");
 
     f32 shadowDropLength = -1.0f;
-    if (al::tryGetArg(&shadowDropLength, info, "ShadowDropLength") &&
-        shadowDropLength >= 0.0f) {
+    if (al::tryGetArg(&shadowDropLength, info, "ShadowDropLength") && shadowDropLength >= 0.0f) {
         al::isExistShadowMask(this, u8"体影");
         al::setShadowMaskDropLength(this, shadowDropLength, u8"体影");
         al::expandClippingRadiusByShadowLength(this, nullptr, shadowDropLength);
     }
 
     f32 shadowIntensity = -1.0f;
-    if (al::tryGetArg(&shadowIntensity, info, "ShadowIntensity") &&
-        shadowIntensity >= 0.0f) {
+    if (al::tryGetArg(&shadowIntensity, info, "ShadowIntensity") && shadowIntensity >= 0.0f) {
         al::isExistShadowMask(this, u8"体影");
         al::setShadowMaskIntensity(this, u8"体影", shadowIntensity);
     }
@@ -99,8 +94,7 @@ void HelpNpc::init(const al::ActorInitInfo& info) {
         al::initJointControllerKeeper(this, 1);
     }
 
-    mJointLookAtController =
-        rs::tryCreateAndAppendNpcJointLookAtController(this, mTalkNpcParam);
+    mJointLookAtController = rs::tryCreateAndAppendNpcJointLookAtController(this, mTalkNpcParam);
 
     mStateScare = new NpcEventStateScare(this, &sScareParam);
 
@@ -136,12 +130,9 @@ bool HelpNpc::receiveEvent(const al::EventFlowEventData* event) {
     return true;
 }
 
-bool HelpNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                         al::HitSensor* self) {
-    if (rs::isMsgPlayerDisregardHomingAttack(msg) ||
-        rs::isMsgPlayerDisregardTargetMarker(msg) ||
-        (al::isMsgPlayerDisregard(msg) && mIsCapTarget &&
-         !al::isSensorName(self, "Head")))
+bool HelpNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
+    if (rs::isMsgPlayerDisregardHomingAttack(msg) || rs::isMsgPlayerDisregardTargetMarker(msg) ||
+        (al::isMsgPlayerDisregard(msg) && mIsCapTarget && !al::isSensorName(self, "Head")))
         return true;
 
     if (mStateReaction->receiveMsg(msg, other, self)) {

@@ -47,8 +47,7 @@ void rs::sendMsgSphinxQuizRouteKill(al::HitSensor* sender, const al::AreaObjGrou
 }
 
 void rs::tryRegisterSphinxQuizRouteKillSensorAfterPlacement(al::HitSensor* sensor) {
-    if (al::isExistSceneObj(al::getSensorHost(sensor),
-                            SceneObjID_SphinxQuizRouteKillExecutor)) {
+    if (al::isExistSceneObj(al::getSensorHost(sensor), SceneObjID_SphinxQuizRouteKillExecutor)) {
         auto* executor = static_cast<SphinxQuizRouteKillExecutor*>(
             al::getSceneObj(al::getSensorHost(sensor), SceneObjID_SphinxQuizRouteKillExecutor));
         executor->registerKillSensor(sensor);

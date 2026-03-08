@@ -73,8 +73,7 @@ void TokimekiMayorNpc::init(const al::ActorInitInfo& info) {
     al::initNerveState(this, mNpcStateReaction, &Reaction, u8"リアクション");
 
     al::initJointControllerKeeper(this, 8);
-    mNpcJointLookAtController =
-        rs::tryCreateAndAppendNpcJointLookAtController(this, mTalkNpcParam);
+    mNpcJointLookAtController = rs::tryCreateAndAppendNpcJointLookAtController(this, mTalkNpcParam);
     mJointSpringControllerHolder = new al::JointSpringControllerHolder();
     mJointSpringControllerHolder->init(this, "InitJointSpringCtrl");
 
@@ -142,7 +141,8 @@ void TokimekiMayorNpc::control() {
     rs::trySwitchDepthToSelfShadow(this);
 }
 
-bool TokimekiMayorNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self, al::HitSensor* other) {
+bool TokimekiMayorNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self,
+                                  al::HitSensor* other) {
     if (rs::isMsgPlayerDisregardHomingAttack(msg) ||
         rs::tryReceiveMsgPlayerDisregard(msg, other, mTalkNpcParam))
         return true;
@@ -267,10 +267,9 @@ bool TokimekiMayorNpc::receiveEvent(const al::EventFlowEventData* event) {
         rs::setTokimekiMayorNpcFavorabilityRating(this, mFavorabilityRating);
         al::StringTmp<64> str(u8"好感度アップ%d", mFavorabilityRating);
         al::startHitReaction(this, str.cstr());
-        if (mFavorabilityRating >= 4) {
+        if (mFavorabilityRating >= 4)
             for (s32 i = 0; i < mMayorItemGroup->getActorCount(); i++)
                 static_cast<MayorItem*>(mMayorItemGroup->getActor(i))->acceptPresent();
-        }
         return true;
     }
 

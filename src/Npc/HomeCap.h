@@ -11,8 +11,7 @@ class HomeChair;
 
 class HomeCap : public al::LiveActor {
 public:
-    HomeCap(const char* name, HomeChair* chair,
-            const sead::PtrArray<HomeCapMovePoint>& movePoints);
+    HomeCap(const char* name, HomeChair* chair, const sead::PtrArray<HomeCapMovePoint>& movePoints);
 
     void init(const al::ActorInitInfo& initInfo) override;
 

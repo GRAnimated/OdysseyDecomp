@@ -59,8 +59,7 @@ void WorldTravelingNpc::init(const al::ActorInitInfo& info) {
         return;
     }
 
-    al::initEventReceiver(mEventFlowExecutor,
-                          static_cast<al::IEventFlowEventReceiver*>(this));
+    al::initEventReceiver(mEventFlowExecutor, static_cast<al::IEventFlowEventReceiver*>(this));
     rs::initEventMovementWait(mEventFlowExecutor, info);
     rs::initEventCharacterName(mEventFlowExecutor, info, "WorldTravelingNpc");
     rs::makeEventCharacterName(&mCharacterName, info, "WorldTravelingPartner");
@@ -134,8 +133,7 @@ bool WorldTravelingNpc::receiveMsg(const al::SensorMsg* message, al::HitSensor* 
 // NON_MATCHING: compiler defers watchParam load to join point via address computation,
 // target loads eagerly in each branch — 5 cycles attempted, no progress
 bool WorldTravelingNpc::receiveEvent(const al::EventFlowEventData* data) {
-    if (TalkNpcFunction::receiveEventChangeWaitAction(mTalkNpcActionAnimInfo, data,
-                                                      mTalkNpcParam))
+    if (TalkNpcFunction::receiveEventChangeWaitAction(mTalkNpcActionAnimInfo, data, mTalkNpcParam))
         return true;
 
     if (al::isEventName(data, "UpdateWorldTravelingProgress")) {

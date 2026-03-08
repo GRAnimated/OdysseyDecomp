@@ -8,8 +8,8 @@
 #include "Library/LiveActor/ActorMovementFunction.h"
 #include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Math/MathUtil.h"
-#include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveExecutor.h"
+#include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 
 namespace {
@@ -26,7 +26,7 @@ FrogStateWaitWander::FrogStateWaitWander(al::LiveActor* actor)
 }
 
 void FrogStateWaitWander::appear() {
-    mIsDead = false;
+    al::NerveStateBase::appear();
     mWalkCounter = 0;
     f32 r = al::getRandom() < 0.5f ? 1.0f : -1.0f;
     al::setNerve(this, r < 0.0f ? (const al::Nerve*)&Walk : &Wait);
@@ -93,8 +93,7 @@ void FrogStateWaitWander::exeWalk() {
 
     al::LiveActor* actor = mActor;
     const sead::Vector3f& vel = al::getVelocity(actor);
-    sead::Vector3f nextVel = {frontDir.x + frontDir.x + vel.x,
-                              frontDir.y + frontDir.y + vel.y,
+    sead::Vector3f nextVel = {frontDir.x + frontDir.x + vel.x, frontDir.y + frontDir.y + vel.y,
                               frontDir.z + frontDir.z + vel.z};
 
     if (al::isFallNextMove(actor, nextVel, 50.0f, 200.0f)) {

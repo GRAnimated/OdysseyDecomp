@@ -31,14 +31,14 @@ const sead::Vector3f sBalloonOffset(0.0f, 15.0f, 0.0f);
 
 HideAndSeekCapMan::HideAndSeekCapMan(const char* name) : al::PartsModel(name) {}
 
-HideAndSeekCapMan* HideAndSeekCapMan::tryCreateLinkNpcIfClearGame(
-    al::LiveActor* parent, const al::ActorInitInfo& info, const char* suffix,
-    const char* linkName) {
+HideAndSeekCapMan* HideAndSeekCapMan::tryCreateLinkNpcIfClearGame(al::LiveActor* parent,
+                                                                  const al::ActorInitInfo& info,
+                                                                  const char* suffix,
+                                                                  const char* linkName) {
     if (!al::isExistLinkChild(info, "HideAndSeekCapMan", 0))
         return nullptr;
 
-    auto* actor = new HideAndSeekCapMan(
-        al::getLinksActorDisplayName(info, "HideAndSeekCapMan", 0));
+    auto* actor = new HideAndSeekCapMan(al::getLinksActorDisplayName(info, "HideAndSeekCapMan", 0));
     actor->initPartsFixFile(parent, info, "CapManEyes", suffix, linkName);
     al::initLinksActor(actor, info, "HideAndSeekCapMan", 0);
     return actor;
@@ -96,12 +96,10 @@ void HideAndSeekCapMan::exeWait() {
     al::calcCameraDir(&camDir, this, 0);
 
     f32 dot = camDir.x * front.x + camDir.y * front.y + camDir.z * front.z;
-    if (dot >= 0.0f) {
+    if (dot >= 0.0f)
         mCounter = 30;
-    } else {
-        if (--mCounter <= 0)
-            al::setNerve(this, &Disappear);
-    }
+    else if (--mCounter <= 0)
+        al::setNerve(this, &Disappear);
 }
 
 void HideAndSeekCapMan::exeDisappear() {

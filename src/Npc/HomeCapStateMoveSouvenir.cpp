@@ -28,9 +28,8 @@ NERVE_IMPL(HomeCapStateMoveSouvenir, ReturnChair);
 NERVE_IMPL(HomeCapStateMoveSouvenir, TurnChairFront);
 
 NERVES_MAKE_NOSTRUCT(HomeCapStateMoveSouvenir, TurnNextMovePoint, MoveSouvenirFront,
-                     WaitSouvenirAction, TurnSouvenirDir, WaitSouvenirFront,
-                     ActionSouvenirFront, TurnNextMovePointAction, ReturnChairTurn,
-                     ReturnChair, TurnChairFront);
+                     WaitSouvenirAction, TurnSouvenirDir, WaitSouvenirFront, ActionSouvenirFront,
+                     TurnNextMovePointAction, ReturnChairTurn, ReturnChair, TurnChairFront);
 }  // namespace
 
 // NON_MATCHING: argument load order and stack layout for GameDataHolderAccessor
@@ -41,15 +40,13 @@ static bool tryFindSouvenir(s32* outIndex, al::LiveActor* actor,
     s32 start = al::getRandom(0, count);
 
     for (s32 i = start; i < count; i++) {
-        GameDataHolderAccessor accessor(
-            static_cast<const al::IUseSceneObjHolder*>(actor));
+        GameDataHolderAccessor accessor(static_cast<const al::IUseSceneObjHolder*>(actor));
         if (rs::isHaveGift(accessor, movePoints->at(i)->name) && !(*trackBuffer)[i])
             return *outIndex = i, true;
     }
 
     for (s32 i = 0; i < start; i++) {
-        GameDataHolderAccessor accessor(
-            static_cast<const al::IUseSceneObjHolder*>(actor));
+        GameDataHolderAccessor accessor(static_cast<const al::IUseSceneObjHolder*>(actor));
         if (rs::isHaveGift(accessor, movePoints->at(i)->name) && !(*trackBuffer)[i])
             return *outIndex = i, true;
     }
@@ -68,7 +65,7 @@ void HomeCapStateMoveSouvenir::init() {
 }
 
 void HomeCapStateMoveSouvenir::appear() {
-    mIsDead = false;
+    al::NerveStateBase::appear();
     al::setNerve(this, &TurnNextMovePoint);
 }
 

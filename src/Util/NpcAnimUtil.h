@@ -97,7 +97,7 @@ namespace TalkNpcFunction {
 bool tryGetHackingEventHackType(s32*, const al::ActorInitInfo&);
 bool receiveEventChangeWaitAction(TalkNpcActionAnimInfo*, const al::EventFlowEventData*,
                                   const TalkNpcParam*);
-}
+}  // namespace TalkNpcFunction
 
 namespace BirdFunction {
 void tryUpdateFlyAwayDisappearDitherAlpha(al::LiveActor* actor, const al::IUseNerve* user,

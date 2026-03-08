@@ -20,15 +20,16 @@ public:
                                                  RandomActionUpdater* updater,
                                                  const al::ActorInitInfo& initInfo);
 
-    TalkNpcSwitchWaitActionObj(al::StageSwitchDirector* switchDirector,
-                               const TalkNpcParam* param, TalkNpcActionAnimInfo* animInfo,
-                               RandomActionUpdater* updater,
+    TalkNpcSwitchWaitActionObj(al::StageSwitchDirector* switchDirector, const TalkNpcParam* param,
+                               TalkNpcActionAnimInfo* animInfo, RandomActionUpdater* updater,
                                const al::PlacementInfo& placementInfo);
 
     const char* getName() const override {
         return u8"スイッチONでトークNPCのアクションを再生する機能";
     }
+
     al::StageSwitchKeeper* getStageSwitchKeeper() const override { return mStageSwitchKeeper; }
+
     void initStageSwitchKeeper() override;
 
     void listenStageSwitchStartWaitActionSwitchOn();

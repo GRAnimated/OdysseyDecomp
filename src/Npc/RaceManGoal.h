@@ -19,8 +19,7 @@ public:
     void init(const al::ActorInitInfo& initInfo) override;
     void initAfterPlacement() override;
     void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
-    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                    al::HitSensor* self) override;
+    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) override;
 
     bool isAttachedActor(const al::LiveActor* actor) const;
     void exeWait();
@@ -29,6 +28,7 @@ public:
     void attachActor(GhostPlayer* ghostPlayer);
     void calcMarioJointQuatPos(sead::Quatf* quat, sead::Vector3f* pos);
     const char* getRaceFirstJointName();
+
     s32 getAttachedGoalActorNum() const { return mGoalActors.size(); }
 
 private:

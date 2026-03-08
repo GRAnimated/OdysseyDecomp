@@ -156,8 +156,7 @@ void NpcEventDirector::init(const al::ActorInitInfo& initInfo) {
 
     auto* messageEntry = new BalloonLayoutEntry();
     balloonHolder->message = messageEntry;
-    auto* messageGroup =
-        new al::LayoutActorGroup("メッセージバルーングループ", 8);
+    auto* messageGroup = new al::LayoutActorGroup("メッセージバルーングループ", 8);
     messageEntry->group = messageGroup;
 
     auto* infos = new sead::PtrArrayImpl();
@@ -175,8 +174,8 @@ void NpcEventDirector::init(const al::ActorInitInfo& initInfo) {
     talkHolder->important = importantMsg;
     importantMsg->initLayoutForEventImportant(layoutInfo);
 
-    auto* wipe = new al::WipeSimple("イベント用黒フェードワイプ",
-                                    "FadeBlack", al::getLayoutInitInfo(initInfo), nullptr);
+    auto* wipe = new al::WipeSimple("イベント用黒フェードワイプ", "FadeBlack",
+                                    al::getLayoutInitInfo(initInfo), nullptr);
     mWipeSimple = wipe;
 }
 
@@ -237,8 +236,7 @@ void NpcEventDirector::execute() {
     auto* currentBalloon = balloonHolder->message->current;
     bool voicePlaying = false;
     if (currentBalloon)
-        voicePlaying =
-            static_cast<al::BalloonMessage*>(currentBalloon)->isVoicePlayerPlaying();
+        voicePlaying = static_cast<al::BalloonMessage*>(currentBalloon)->isVoicePlayerPlaying();
     mNpcEventSceneInfo->_10 = voicePlaying;
 
     auto* talkHolder = static_cast<TalkMessageHolder*>(_50);
@@ -257,8 +255,7 @@ void NpcEventDirector::execute() {
     activeTalk = getActiveTalkMessage(talkHolder);
     bool isEndAnim = true;
     if (activeTalk) {
-        auto* textPaneAnim =
-            reinterpret_cast<void**>(reinterpret_cast<u8*>(activeTalk) + 0xF0)[0];
+        auto* textPaneAnim = reinterpret_cast<void**>(reinterpret_cast<u8*>(activeTalk) + 0xF0)[0];
         if (textPaneAnim)
             isEndAnim = al::isEndTextPaneAnim(activeTalk, false);
         else
@@ -314,11 +311,9 @@ void NpcEventDirector::exeWait() {
 
     auto* talkHolder = static_cast<TalkMessageHolder*>(_50);
     TalkMessage* talkMsg = talkHolder->talk;
-    al::forceActivateSeKeeper(
-        talkMsg ? static_cast<al::IUseAudioKeeper*>(talkMsg) : nullptr);
+    al::forceActivateSeKeeper(talkMsg ? static_cast<al::IUseAudioKeeper*>(talkMsg) : nullptr);
     talkMsg = talkHolder->talk;
-    al::startSe(talkMsg ? static_cast<al::IUseAudioKeeper*>(talkMsg) : nullptr,
-                "NpcTalkStartPg");
+    al::startSe(talkMsg ? static_cast<al::IUseAudioKeeper*>(talkMsg) : nullptr, "NpcTalkStartPg");
 
     if (al::isExistSceneObj(this, BirdPlayerGlideCtrl::sSceneObjId))
         al::getSceneObj<BirdPlayerGlideCtrl>(this)->addDemoActorAndFlyAway();
@@ -355,8 +350,7 @@ void NpcEventDirector::exeDemo() {
 
     if (alEventFlowFunction::isReceiveCommandCloseTalkMessageLayout(
             mNpcEventCtrlInfo->mSceneEventFlowMsg)) {
-        TalkMessage* msg =
-            getActiveTalkMessage(static_cast<TalkMessageHolder*>(_50));
+        TalkMessage* msg = getActiveTalkMessage(static_cast<TalkMessageHolder*>(_50));
         if (msg && msg->isAlive()) {
             al::setNerve(this, &NrvNpcEventDirector.DemoSelectChoiceStart);
             return;
@@ -364,8 +358,7 @@ void NpcEventDirector::exeDemo() {
     }
 
     if (reinterpret_cast<u8*>(&mNpcEventCtrlInfo->mTalkInfo._20)[3]) {
-        TalkMessage* msg =
-            getActiveTalkMessage(static_cast<TalkMessageHolder*>(_50));
+        TalkMessage* msg = getActiveTalkMessage(static_cast<TalkMessageHolder*>(_50));
         if (msg && msg->isAlive()) {
             al::setNerve(this, &NrvNpcEventDirector.DemoSelectChoiceStart);
             return;
@@ -373,8 +366,7 @@ void NpcEventDirector::exeDemo() {
     }
 
     if (mEventDemoCtrl->isRequestEndDemo()) {
-        TalkMessage* msg =
-            getActiveTalkMessage(static_cast<TalkMessageHolder*>(_50));
+        TalkMessage* msg = getActiveTalkMessage(static_cast<TalkMessageHolder*>(_50));
         if (msg && msg->isAlive()) {
             al::setNerve(this, &NrvNpcEventDirector.DemoSelectChoiceStart);
             return;
@@ -384,9 +376,8 @@ void NpcEventDirector::exeDemo() {
         return;
     }
 
-    if (!mEventDemoCtrl->isActiveDemo()) {
+    if (!mEventDemoCtrl->isActiveDemo())
         al::setNerve(this, &NrvNpcEventDirector.Wait);
-    }
 }
 
 void NpcEventDirector::exeDemoWipeClose() {
@@ -427,8 +418,7 @@ void NpcEventDirector::endDemoTalk() {
 // NON_MATCHING: getActiveTalkMessage comparison order and repeated-inline pattern
 void NpcEventDirector::exeDemoTalkEnd() {
     if (al::isFirstStep(this)) {
-        TalkMessage* msg =
-            getActiveTalkMessage(static_cast<TalkMessageHolder*>(_50));
+        TalkMessage* msg = getActiveTalkMessage(static_cast<TalkMessageHolder*>(_50));
         msg->end();
 
         if (mEventDemoCtrl->isRequestEndDemo() && mEventDemoCtrl->isActiveDemoWithPlayer()) {
@@ -441,8 +431,7 @@ void NpcEventDirector::exeDemoTalkEnd() {
                          static_cast<TalkMessageHolder*>(_50)))
         return;
 
-    TalkMessage* msg =
-        getActiveTalkMessage(static_cast<TalkMessageHolder*>(_50));
+    TalkMessage* msg = getActiveTalkMessage(static_cast<TalkMessageHolder*>(_50));
     if (msg && msg->isAlive())
         return;
 

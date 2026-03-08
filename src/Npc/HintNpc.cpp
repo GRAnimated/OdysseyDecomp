@@ -53,15 +53,13 @@ void HintNpc::init(const al::ActorInitInfo& initInfo) {
     mMovementTurn = new EventActorMovementTurn(this, mParam, mActionAnimInfo);
     rs::initEventMovement(mEventFlowExecutor, mMovementTurn, initInfo);
 
-    mStateEvent =
-        new TalkNpcStateEvent(u8"イベント", this, mParam, mEventFlowExecutor, -1);
+    mStateEvent = new TalkNpcStateEvent(u8"イベント", this, mParam, mEventFlowExecutor, -1);
     mReaction = rs::createNpcStateReaction(this, mParam, nullptr);
     al::initNerveState(this, mStateEvent, &Event, u8"イベント");
     al::initNerveState(this, mReaction, &Reaction, u8"リアクション");
 
     bool isExistTargetShine = false;
-    if (al::tryGetArg(&isExistTargetShine, initInfo, "IsExistTargetShine") &&
-        isExistTargetShine) {
+    if (al::tryGetArg(&isExistTargetShine, initInfo, "IsExistTargetShine") && isExistTargetShine) {
         auto* p = static_cast<const char**>(operator new(sizeof(const char*) * 2));
         p[0] = nullptr;
         p[1] = nullptr;
@@ -81,8 +79,7 @@ void HintNpc::attackSensor(al::HitSensor* self, al::HitSensor* other) {
         rs::attackSensorNpcCommon(self, other);
 }
 
-bool HintNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                         al::HitSensor* self) {
+bool HintNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
     if (rs::isMsgPlayerDisregardHomingAttack(msg))
         return true;
 
@@ -121,8 +118,8 @@ const char* HintNpc::judgeQuery(const char* query) const {
     if (!GameDataFunction::isEnableUnlockHint(accessor))
         return "Deactive";
 
-    if (mShineInfo && mShineInfo[0] && !al::isEqualString(mShineInfo[0], "None") &&
-        mShineInfo[1] && !al::isEqualString(mShineInfo[1], "None"))
+    if (mShineInfo && mShineInfo[0] && !al::isEqualString(mShineInfo[0], "None") && mShineInfo[1] &&
+        !al::isEqualString(mShineInfo[1], "None"))
         return "WaitHappy";
 
     return "Wait";

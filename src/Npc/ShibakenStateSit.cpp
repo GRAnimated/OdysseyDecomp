@@ -19,15 +19,12 @@ NERVE_IMPL(ShibakenStateSit, Sit);
 NERVE_IMPL(ShibakenStateSit, ReactionAfter);
 NERVE_IMPL(ShibakenStateSit, SitEnd);
 
-NERVES_MAKE_NOSTRUCT(ShibakenStateSit, SitBow, SitStart, Reaction, Sit, ReactionAfter,
-                     SitEnd);
+NERVES_MAKE_NOSTRUCT(ShibakenStateSit, SitBow, SitStart, Reaction, Sit, ReactionAfter, SitEnd);
 }  // namespace
 
 ShibakenStateSit::ShibakenStateSit(const char* name, Shibaken* shibaken,
-                                   ActorStateReactionBase* reaction,
-                                   bool alwaysSit)
-    : HostStateBase<Shibaken>(name, shibaken), mReaction(reaction),
-      mAlwaysSit(alwaysSit) {
+                                   ActorStateReactionBase* reaction, bool alwaysSit)
+    : HostStateBase<Shibaken>(name, shibaken), mReaction(reaction), mAlwaysSit(alwaysSit) {
     initNerve(&SitStart, mReaction != nullptr);
     if (mReaction)
         al::initNerveState(this, mReaction, &Reaction, u8"リアクション");

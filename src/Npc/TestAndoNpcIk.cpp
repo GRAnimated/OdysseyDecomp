@@ -140,10 +140,8 @@ void TestAndoNpcIk::init(const al::ActorInitInfo& initInfo) {
 
     mIk = new CyclicCoordinateDescentIk(this, 1);
     mIk->createConnection("Hip", "FootL");
-    mIk->setLimitDegree("LegL1", sead::Vector3f{-45, -130, 0},
-                         sead::Vector3f{10, 30, 0}, "FootL");
-    mIk->setLimitDegree("LegL2", sead::Vector3f{0, 0, 0},
-                         sead::Vector3f{130, 0, 0}, "FootL");
+    mIk->setLimitDegree("LegL1", sead::Vector3f{-45, -130, 0}, sead::Vector3f{10, 30, 0}, "FootL");
+    mIk->setLimitDegree("LegL2", sead::Vector3f{0, 0, 0}, sead::Vector3f{130, 0, 0}, "FootL");
 }
 
 // NON_MATCHING: missing mov x0,x19 before 2nd/3rd calcLocalPose calls (IPA optimization)
@@ -225,26 +223,19 @@ void TestAndoNpcIk::control() {
     calcCCD(mLegTip, mLegRoot, rs::getPlayerPos(this));
     calcLocalPose(mLegRoot->child);
 
-    for (MyJoint* j = mLeftArmRoot; j; j = j->child) {
+    for (MyJoint* j = mLeftArmRoot; j; j = j->child)
         if (j->hasJointCtrl)
-            quatToEulerDegrees((sead::Vector3f*)&j->localRotX, &j->initLocalQ,
-                               &j->localQ);
-    }
-    for (MyJoint* j = mRightArmRoot; j; j = j->child) {
+            quatToEulerDegrees((sead::Vector3f*)&j->localRotX, &j->initLocalQ, &j->localQ);
+    for (MyJoint* j = mRightArmRoot; j; j = j->child)
         if (j->hasJointCtrl)
-            quatToEulerDegrees((sead::Vector3f*)&j->localRotX, &j->initLocalQ,
-                               &j->localQ);
-    }
-    for (MyJoint* j = mLegRoot; j; j = j->child) {
+            quatToEulerDegrees((sead::Vector3f*)&j->localRotX, &j->initLocalQ, &j->localQ);
+    for (MyJoint* j = mLegRoot; j; j = j->child)
         if (j->hasJointCtrl)
-            quatToEulerDegrees((sead::Vector3f*)&j->localRotX, &j->initLocalQ,
-                               &j->localQ);
-    }
+            quatToEulerDegrees((sead::Vector3f*)&j->localRotX, &j->initLocalQ, &j->localQ);
 }
 
 // NON_MATCHING: regswap throughout rotate and setMul inlines
-void TestAndoNpcIk::calcCCD(MyJoint* tip, MyJoint* root,
-                             const sead::Vector3f& target) {
+void TestAndoNpcIk::calcCCD(MyJoint* tip, MyJoint* root, const sead::Vector3f& target) {
     sead::Vector3f goalDir = target - tip->worldPos;
 
     f32 distSq = goalDir.dot(goalDir);
@@ -340,11 +331,9 @@ void TestAndoNpcIk::calcCCD(MyJoint* tip, MyJoint* root,
 }
 
 void TestAndoNpcIk::applyModel(MyJoint* root) {
-    for (MyJoint* j = root; j; j = j->child) {
+    for (MyJoint* j = root; j; j = j->child)
         if (j->hasJointCtrl)
-            quatToEulerDegrees((sead::Vector3f*)&j->localRotX, &j->initLocalQ,
-                               &j->localQ);
-    }
+            quatToEulerDegrees((sead::Vector3f*)&j->localRotX, &j->initLocalQ, &j->localQ);
 }
 
 // NON_MATCHING: store scheduling across member boundaries differs
@@ -355,8 +344,7 @@ TestAndoNpcIk::MyJoint* TestAndoNpcIk::createEmptyJoint(const char* jointName) {
 }
 
 // NON_MATCHING: regswap in rotate inline
-void TestAndoNpcIk::rotateJoint(MyJoint* start, MyJoint* pivot,
-                                 const sead::Quatf& rot) {
+void TestAndoNpcIk::rotateJoint(MyJoint* start, MyJoint* pivot, const sead::Quatf& rot) {
     for (MyJoint* j = start; j; j = j->child) {
         sead::Quatf newQ;
         newQ.setMul(rot, j->worldQ);
@@ -377,9 +365,8 @@ void TestAndoNpcIk::rotateJoint(MyJoint* start, MyJoint* pivot,
 }
 
 void TestAndoNpcIk::extendBone(MyJoint* root, f32 scale) {
-    for (MyJoint* j = root; j; j = j->child) {
+    for (MyJoint* j = root; j; j = j->child)
         j->localTranslation *= scale;
-    }
 }
 
 // NON_MATCHING: regswap in rotate inline and Quatf copy width
@@ -412,9 +399,8 @@ void TestAndoNpcIk2::init(const al::ActorInitInfo& initInfo) {
     al::initActorWithArchiveName(this, initInfo, "CityWoman", nullptr);
     mSkeletonDynamics = new SkeletonDynamics(this);
 
-    auto* delegate =
-        new sead::Delegate1<TestAndoNpcIk2, SkeletonDynamicsCallbackInfo*>(
-            this, &TestAndoNpcIk2::callback);
+    auto* delegate = new sead::Delegate1<TestAndoNpcIk2, SkeletonDynamicsCallbackInfo*>(
+        this, &TestAndoNpcIk2::callback);
     mSkeletonDynamics->setDelegate(delegate);
     makeActorAlive();
     al::startAction(this, "Walk");

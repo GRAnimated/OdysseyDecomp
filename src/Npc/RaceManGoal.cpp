@@ -79,8 +79,7 @@ void RaceManGoal::initAfterPlacement() {
         sead::Vector3f from = jointPos + sead::Vector3f::ey * 500.0f;
         sead::Vector3f dir = sead::Vector3f::ey * -1500.0f;
         sead::Vector3f hitPos;
-        if (alCollisionUtil::getFirstPolyOnArrow(this, &hitPos, &tri, from, dir, nullptr,
-                                                  nullptr))
+        if (alCollisionUtil::getFirstPolyOnArrow(this, &hitPos, &tri, from, dir, nullptr, nullptr))
             *mHeightOffsets.at(i) = (hitPos.y - jointPos.y) + mHeightOffset;
     }
 }
@@ -93,8 +92,7 @@ void RaceManGoal::attackSensor(al::HitSensor* self, al::HitSensor* other) {
 }
 
 // NON_MATCHING: Vector3f copy codegen (8+4 vs 4+4+4) and instruction scheduling
-bool RaceManGoal::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                             al::HitSensor* self) {
+bool RaceManGoal::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
     if (!al::isMsgPlayerDisregard(msg) && !rs::isMsgPlayerDisregardHomingAttack(msg) &&
         !rs::isMsgPlayerDisregardTargetMarker(msg)) {
         if (!al::isNerve(this, &Wait))
@@ -116,10 +114,9 @@ bool RaceManGoal::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
             return false;
 
         al::LiveActor* actor = al::getSensorHost(other);
-        for (s32 i = 0; i < mGoalActors.size(); ++i) {
+        for (s32 i = 0; i < mGoalActors.size(); ++i)
             if (mGoalActors.at(i) == actor)
                 return false;
-        }
 
         mGoalActors.pushBack(actor);
         mGoalCount = mGoalActors.size();
@@ -156,10 +153,9 @@ bool RaceManGoal::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
 }
 
 bool RaceManGoal::isAttachedActor(const al::LiveActor* actor) const {
-    for (s32 i = 0; i < mGoalActors.size(); ++i) {
+    for (s32 i = 0; i < mGoalActors.size(); ++i)
         if (mGoalActors.at(i) == actor)
             return true;
-    }
     return false;
 }
 

@@ -11,15 +11,15 @@
 #include "Library/LiveActor/ActorAnimFunction.h"
 #include "Library/LiveActor/ActorClippingFunction.h"
 #include "Library/LiveActor/ActorInitUtil.h"
+#include "Library/LiveActor/ActorModelFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
 #include "Library/LiveActor/ActorPoseUtil.h"
-#include "Library/LiveActor/ActorModelFunction.h"
 #include "Library/LiveActor/ActorSensorFunction.h"
 #include "Library/LiveActor/ActorSensorUtil.h"
-#include "Library/Placement/PlacementFunction.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
+#include "Library/Placement/PlacementFunction.h"
 #include "Library/Stage/StageSwitchUtil.h"
 
 #include "MapObj/RouteGuideDirector.h"
@@ -93,8 +93,7 @@ void RadiconNpc::init(const al::ActorInitInfo& initInfo) {
     al::initNerveState(this, mNpcStateReaction, &NrvRadiconNpc.Reaction, "リアクション");
 
     mCapTargetInfo = rs::createCapTargetInfo(this, "RadiCon");
-    mCameraTicket =
-        al::initObjectCamera(this, initInfo, "ラジコンカメラ", "固定");
+    mCameraTicket = al::initObjectCamera(this, initInfo, "ラジコンカメラ", "固定");
 
     auto* car = new RadiconCar(&mPlayerHack);
     mRadiconCar = car;
@@ -134,8 +133,7 @@ void RadiconNpc::attackSensor(al::HitSensor* self, al::HitSensor* other) {
 }
 
 // NON_MATCHING: regswap (x24 vs x21 for &mPlayerHack)
-bool RadiconNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                            al::HitSensor* self) {
+bool RadiconNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
     if (al::isMsgPlayerDisregard(msg))
         return !al::isSensorName(self, "Head");
 
@@ -177,8 +175,7 @@ bool RadiconNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
                 return _17c;
 
             if (rs::isMsgHackMarioDead(msg) || rs::isMsgHackMarioDemo(msg) ||
-                rs::isMsgHackMarioCheckpointFlagWarp(msg) ||
-                (rs::isMsgCancelHack(msg) && !_17c)) {
+                rs::isMsgHackMarioCheckpointFlagWarp(msg) || (rs::isMsgCancelHack(msg) && !_17c)) {
                 al::startVisAnim(this, "HackEnd");
                 sead::Vector3f front;
                 al::calcQuatFront(&front, mInitQuat);

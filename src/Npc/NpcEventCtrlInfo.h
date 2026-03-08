@@ -22,6 +22,7 @@ class NpcEventSceneInfo;
 
 struct BalloonFilterInfo {
     BalloonFilterInfo() : actor(nullptr), type(-1) {}
+
     const al::LiveActor* actor;
     s32 type;
 };
@@ -36,15 +37,13 @@ public:
     void popBalloonInfo(NpcEventBalloonInfo* info);
     void popTalkInfo(NpcEventTalkInfo* dest);
     void requestShowBalloonMessage(const NpcEventBalloonInfo& info);
-    void requestShowTalkMessage(const al::EventFlowNode* node,
-                                const NpcEventTalkInfo& src);
+    void requestShowTalkMessage(const al::EventFlowNode* node, const NpcEventTalkInfo& src);
     void requestCloseTalkMessage(const al::LiveActor* actor);
     void requestCloseWipeFadeBlack(al::EventFlowNode* node, s32 frames);
     void requestOpenWipeFadeBlack(al::EventFlowNode* node, s32 frames);
     void setBalloonFilterOnlyMiniGame(const al::LiveActor* actor);
     void resetBalloonFilter(const al::LiveActor* actor);
-    void startChoice(const al::EventFlowNode* node,
-                     al::EventFlowChoiceInfo* choiceInfo);
+    void startChoice(const al::EventFlowNode* node, al::EventFlowChoiceInfo* choiceInfo);
     s32 getChoiceMessageNum() const;
     const char16* getChoiceMessage(s32 index) const;
     s32 getChoiceCancelIndex() const;

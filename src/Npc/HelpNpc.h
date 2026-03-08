@@ -23,8 +23,7 @@ public:
     HelpNpc(const char* name);
 
     void init(const al::ActorInitInfo& info) override;
-    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                    al::HitSensor* self) override;
+    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) override;
     void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
     void control() override;
 

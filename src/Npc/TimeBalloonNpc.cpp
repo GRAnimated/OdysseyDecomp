@@ -3,6 +3,9 @@
 #include <math/seadQuat.h>
 #include <math/seadVector.h>
 
+#include "Library/Collision/PartsConnectorUtil.h"
+#include "Library/Joint/JointControllerKeeper.h"
+#include "Library/Joint/JointSpringControllerHolder.h"
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorAnimFunction.h"
 #include "Library/LiveActor/ActorFlagFunction.h"
@@ -11,9 +14,6 @@
 #include "Library/LiveActor/ActorModelFunction.h"
 #include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/LiveActor/ActorSensorUtil.h"
-#include "Library/Collision/PartsConnectorUtil.h"
-#include "Library/Joint/JointControllerKeeper.h"
-#include "Library/Joint/JointSpringControllerHolder.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
@@ -89,8 +89,7 @@ void TimeBalloonNpc::init(const al::ActorInitInfo& info) {
         rs::initEventCameraObject(mEventFlowExecutor, info, "TalkCamera");
     }
 
-    al::LiveActor* balloon =
-        new al::LiveActor(u8"[風船ゲーム]ルイージの風船");
+    al::LiveActor* balloon = new al::LiveActor(u8"[風船ゲーム]ルイージの風船");
     mBalloonActor = balloon;
     al::initChildActorWithArchiveNameNoPlacementInfo(balloon, info, "LuigiBalloon", nullptr);
     al::startAction(mBalloonActor, "Wait");
@@ -132,9 +131,9 @@ void TimeBalloonNpc::attackSensor(al::HitSensor* self, al::HitSensor* other) {
         al::sendMsgPush(other, self);
 }
 
-bool TimeBalloonNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self, al::HitSensor* other) {
-    if (rs::isMsgPlayerDisregardHomingAttack(msg) ||
-        rs::isMsgPlayerDisregardTargetMarker(msg))
+bool TimeBalloonNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self,
+                                al::HitSensor* other) {
+    if (rs::isMsgPlayerDisregardHomingAttack(msg) || rs::isMsgPlayerDisregardTargetMarker(msg))
         return true;
 
     if (mTalkNpcParam->isInvalidTrampleSensor(other)) {

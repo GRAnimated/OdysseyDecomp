@@ -40,6 +40,7 @@ public:
     void execute(al::NerveKeeper* keeper) const override {
         keeper->getParent<RadiconCar>()->exeMoveAuto();
     }
+
     void executeOnEnd(al::NerveKeeper* keeper) const override {
         keeper->getParent<RadiconCar>()->endMoveAuto();
     }
@@ -56,6 +57,7 @@ public:
     void execute(al::NerveKeeper* keeper) const override {
         keeper->getParent<RadiconCar>()->exeMove();
     }
+
     void executeOnEnd(al::NerveKeeper* keeper) const override {
         keeper->getParent<RadiconCar>()->endMoveRun();
     }
@@ -106,8 +108,7 @@ void RadiconCar::initAfterPlacement() {
 
 void RadiconCar::makeActorAlive() {
     al::LiveActor::makeActorAlive();
-    al::setNerve(this, mIsRace ? (const al::Nerve*)&NrvRadiconCar.Wait
-                                : &NrvRadiconCar.MoveAuto);
+    al::setNerve(this, mIsRace ? (const al::Nerve*)&NrvRadiconCar.Wait : &NrvRadiconCar.MoveAuto);
 }
 
 // NON_MATCHING: regalloc differences in tryEmitEffect/tryDeleteEffect calls
@@ -118,8 +119,7 @@ void RadiconCar::updateEffect() {
         return;
     }
 
-    al::tryEmitEffect(this, al::isNerve(this, &NrvRadiconCar.MoveAuto) ? "Wait" : "Move",
-                      nullptr);
+    al::tryEmitEffect(this, al::isNerve(this, &NrvRadiconCar.MoveAuto) ? "Wait" : "Move", nullptr);
 
     if (mIsRace) {
         const sead::Vector3f& gravity = al::getGravity(this);
@@ -133,7 +133,7 @@ void RadiconCar::updateEffect() {
         sead::Vector3f hitPos;
         sead::Vector3f hitNormal;
         if (!alCollisionUtil::getHitPosAndNormalOnArrow(this, &hitPos, &hitNormal, start, dir,
-                                                       nullptr, nullptr))
+                                                        nullptr, nullptr))
             return;
         sead::Vector3f front;
         al::calcFrontDir(&front, this);
@@ -172,15 +172,13 @@ bool RadiconCar::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::
     if (rs::isMsgPlayerDisregardHomingAttack(msg))
         return true;
 
-    if (!al::isNerve(this, &NrvRadiconCar.Appear) &&
-        !al::isNerve(this, &NrvRadiconCar.Break) &&
+    if (!al::isNerve(this, &NrvRadiconCar.Appear) && !al::isNerve(this, &NrvRadiconCar.Break) &&
         !al::isNerve(this, &NrvRadiconCar.Reset)) {
         if (al::tryReceiveMsgPushAndAddVelocityH(this, msg, other, self, 4.0f))
             return true;
     }
 
-    if (rs::isMsgPlayerAndCapObjHipDropAll(msg) &&
-        !al::isNerve(this, &NrvRadiconCar.Reset) &&
+    if (rs::isMsgPlayerAndCapObjHipDropAll(msg) && !al::isNerve(this, &NrvRadiconCar.Reset) &&
         !al::isNerve(this, &NrvRadiconCar.Break) &&
         !(al::isNerve(this, &NrvRadiconCar.Reaction) && al::isLessStep(this, 10))) {
         al::setVelocityZero(this);
@@ -235,18 +233,17 @@ void RadiconCar::startHackMove() {
 
 void RadiconCar::endHackMove() {
     mIsHacking = false;
-    alPadRumbleFunction::stopPadRumbleLoop(this, "【ループ】ブーン（中）",
-                                           al::getTransPtr(this), -1);
+    alPadRumbleFunction::stopPadRumbleLoop(this, "【ループ】ブーン（中）", al::getTransPtr(this),
+                                           -1);
     al::tryDeleteEffect(this, "Move");
     al::hideSilhouetteModelIfShow(this);
     if (!al::isNerve(this, &NrvRadiconCar.Break))
-        al::setNerve(this, mIsRace ? (const al::Nerve*)&NrvRadiconCar.Wait
-                                   : &NrvRadiconCar.MoveAuto);
+        al::setNerve(this,
+                     mIsRace ? (const al::Nerve*)&NrvRadiconCar.Wait : &NrvRadiconCar.MoveAuto);
 }
 
 bool RadiconCar::isMoving() const {
-    return al::isNerve(this, &NrvRadiconCar.MoveRun) ||
-           al::isNerve(this, &NrvRadiconCar.MoveStop);
+    return al::isNerve(this, &NrvRadiconCar.MoveRun) || al::isNerve(this, &NrvRadiconCar.MoveStop);
 }
 
 bool RadiconCar::isBroken() const {
@@ -282,12 +279,10 @@ void RadiconCar::updateVelocity() {
         al::addVelocityToGravity(this, 1.5f);
     }
 
-    if (mIsRace) {
+    if (mIsRace)
         al::reboundVelocityFromEachCollision(this, 0.0f, 0.0f, 0.0f, 0.0f);
-    } else {
-        if (al::reboundVelocityFromEachCollision(this, 0.0f, 0.15f, 0.0f, 0.0f))
-            al::scaleVelocityY(this, 0.6f);
-    }
+    else if (al::reboundVelocityFromEachCollision(this, 0.0f, 0.15f, 0.0f, 0.0f))
+        al::scaleVelocityY(this, 0.6f);
 }
 
 void RadiconCar::exeWait() {
@@ -316,11 +311,10 @@ void RadiconCar::calcAccel(sead::Vector3f* accel, bool isOnGround) {
         const sead::Vector3f& velocity = al::getVelocity(this);
         f32 dot = front.x * velocity.x + front.y * velocity.y + front.z * velocity.z;
         sead::Vector3f rayStart;
-        if (dot >= 0.0f) {
+        if (dot >= 0.0f)
             rayStart = {frontX + colliderPos.x, frontY + colliderPos.y, frontZ + colliderPos.z};
-        } else {
+        else
             rayStart = {colliderPos.x - frontX, colliderPos.y - frontY, colliderPos.z - frontZ};
-        }
 
         f32 radius = al::getColliderRadius(this);
         sead::Vector3f rayDir = {up.x * radius * -2.0f, up.y * radius * -2.0f,
@@ -329,7 +323,7 @@ void RadiconCar::calcAccel(sead::Vector3f* accel, bool isOnGround) {
         sead::Vector3f hitPos;
         sead::Vector3f hitNormal;
         if (alCollisionUtil::getHitPosAndNormalOnArrow(this, &hitPos, &hitNormal, rayStart, rayDir,
-                                                      nullptr, nullptr))
+                                                       nullptr, nullptr))
             groundNormal = hitNormal;
         else
             groundNormal = al::getOnGroundNormal(this, 0);
@@ -367,7 +361,7 @@ void RadiconCar::calcAccel(sead::Vector3f* accel, bool isOnGround) {
         sead::Vector3f hitNormal2;
         sead::Vector3f hitPos2;
         if (alCollisionUtil::getHitPosAndNormalOnArrow(this, &hitNormal2, &hitPos2, rayStart,
-                                                      rayDir, nullptr, nullptr)) {
+                                                       rayDir, nullptr, nullptr)) {
             sead::Quatf tempQuat;
             sead::Vector3f sideDir;
             al::calcSideDir(&sideDir, this);
@@ -402,8 +396,8 @@ void RadiconCar::calcAccel(sead::Vector3f* accel, bool isOnGround) {
         }
         if (al::isNearZero(throttle, 0.001f) && !al::isNearZero(steering, 0.001f)) {
             const sead::Vector3f& velocity = al::getVelocity(this);
-            f32 forwardDot = projFront.x * velocity.x + projFront.y * velocity.y +
-                             projFront.z * velocity.z;
+            f32 forwardDot =
+                projFront.x * velocity.x + projFront.y * velocity.y + projFront.z * velocity.z;
             throttle = al::sign(forwardDot) * 0.01f;
         }
         f32 speed = al::calcSpeed(this);
@@ -451,7 +445,7 @@ void RadiconCar::exeMove() {
     if (al::isNerve(this, &NrvRadiconCar.MoveRun)) {
         if (al::isFirstStep(this)) {
             alPadRumbleFunction::startPadRumbleLoopControlable(this, "【ループ】ブーン（中）",
-                                                              al::getTransPtr(this), -1);
+                                                               al::getTransPtr(this), -1);
         }
         f32 speed = al::calcSpeedH(this);
         f32 ratio = speed / 30.0f;
@@ -484,10 +478,9 @@ void RadiconCar::exeMove() {
     if (al::isCollidedWallFace(this)) {
         const sead::Vector3f& wallNormal = al::getCollidedWallNormal(this);
         const sead::Vector3f& gravity = al::getGravity(this);
-        f32 cross =
-            frontDir.x * (wallNormal.z * gravity.y - wallNormal.y * gravity.z) +
-            frontDir.y * (wallNormal.x * gravity.z - wallNormal.z * gravity.x) +
-            frontDir.z * (wallNormal.y * gravity.x - wallNormal.x * gravity.y);
+        f32 cross = frontDir.x * (wallNormal.z * gravity.y - wallNormal.y * gravity.z) +
+                    frontDir.y * (wallNormal.x * gravity.z - wallNormal.z * gravity.x) +
+                    frontDir.z * (wallNormal.y * gravity.x - wallNormal.x * gravity.y);
         f32 s = al::sign(cross);
         al::rotateQuatYDirDegree(this, s + s);
     }
@@ -514,8 +507,8 @@ void RadiconCar::exeReaction() {
         if (*mPlayerHackPtr)
             al::setNerve(this, &NrvRadiconCar.MoveStop);
         else
-            al::setNerve(this, mIsRace ? (const al::Nerve*)&NrvRadiconCar.Wait
-                                       : &NrvRadiconCar.MoveAuto);
+            al::setNerve(this,
+                         mIsRace ? (const al::Nerve*)&NrvRadiconCar.Wait : &NrvRadiconCar.MoveAuto);
     }
 }
 
@@ -531,8 +524,8 @@ void RadiconCar::exeBreak() {
 }
 
 void RadiconCar::exeReset() {
-    al::updateNerveStateAndNextNerve(this, mIsRace ? (const al::Nerve*)&NrvRadiconCar.Wait
-                                                   : &NrvRadiconCar.MoveAuto);
+    al::updateNerveStateAndNextNerve(this, mIsRace ? (const al::Nerve*)&NrvRadiconCar.Wait :
+                                                     &NrvRadiconCar.MoveAuto);
 }
 
 void RadiconCar::exeAppear() {

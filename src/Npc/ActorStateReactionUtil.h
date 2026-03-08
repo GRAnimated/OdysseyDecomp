@@ -7,6 +7,5 @@ class SensorMsg;
 class ActorStateReactionBase;
 
 namespace ActorStateReactionUtil {
-bool isInvalidRestartCapReaction(const al::SensorMsg* msg,
-                                 const ActorStateReactionBase* reaction);
+bool isInvalidRestartCapReaction(const al::SensorMsg* msg, const ActorStateReactionBase* reaction);
 }  // namespace ActorStateReactionUtil

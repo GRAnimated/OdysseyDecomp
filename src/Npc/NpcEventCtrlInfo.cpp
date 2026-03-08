@@ -79,8 +79,7 @@ void NpcEventCtrlInfo::requestShowBalloonMessage(const NpcEventBalloonInfo& info
         return;
 
     const al::LiveActor* actor = info.mActor;
-    const al::IUseCamera* camera =
-        actor ? static_cast<const al::IUseCamera*>(actor) : nullptr;
+    const al::IUseCamera* camera = actor ? static_cast<const al::IUseCamera*>(actor) : nullptr;
 
     const sead::Vector3f& camAt = al::getCameraAt(camera, 0);
     const sead::Vector3f& camPos = al::getCameraPos(camera, 0);
@@ -101,8 +100,8 @@ void NpcEventCtrlInfo::requestShowBalloonMessage(const NpcEventBalloonInfo& info
     f32 offsetY = trans2.y + *(reinterpret_cast<const f32*>(&info._24));
     f32 offsetZ = trans2.z + *(reinterpret_cast<const f32*>(&info._28));
     const sead::Vector3f& camPos3 = al::getCameraPos(camera, 0);
-    f32 dot2 = dirX * (offsetX - camPos3.x) + dirY * (offsetY - camPos3.y) +
-               dirZ * (offsetZ - camPos3.z);
+    f32 dot2 =
+        dirX * (offsetX - camPos3.x) + dirY * (offsetY - camPos3.y) + dirZ * (offsetZ - camPos3.z);
     if (dot2 < 0.0f)
         return;
 
@@ -151,15 +150,15 @@ void NpcEventCtrlInfo::requestShowBalloonMessage(const NpcEventBalloonInfo& info
             {
                 const sead::Vector3f& pp1 = rs::getPlayerPos(currentActor);
                 const sead::Vector3f& t1 = al::getTrans(currentActor);
-                f32 dist1 = std::sqrt((pp1.x - t1.x) * (pp1.x - t1.x) +
-                                      (pp1.y - t1.y) * (pp1.y - t1.y) +
-                                      (pp1.z - t1.z) * (pp1.z - t1.z));
+                f32 dist1 =
+                    std::sqrt((pp1.x - t1.x) * (pp1.x - t1.x) + (pp1.y - t1.y) * (pp1.y - t1.y) +
+                              (pp1.z - t1.z) * (pp1.z - t1.z));
 
                 const sead::Vector3f& pp2 = rs::getPlayerPos(actor);
                 const sead::Vector3f& t2 = al::getTrans(actor);
-                f32 dist2 = std::sqrt((pp2.x - t2.x) * (pp2.x - t2.x) +
-                                      (pp2.y - t2.y) * (pp2.y - t2.y) +
-                                      (pp2.z - t2.z) * (pp2.z - t2.z));
+                f32 dist2 =
+                    std::sqrt((pp2.x - t2.x) * (pp2.x - t2.x) + (pp2.y - t2.y) * (pp2.y - t2.y) +
+                              (pp2.z - t2.z) * (pp2.z - t2.z));
 
                 if (dist1 < dist2)
                     return;
@@ -183,20 +182,17 @@ void NpcEventCtrlInfo::requestCloseTalkMessage(const al::LiveActor* actor) {
     reinterpret_cast<u8*>(&mTalkInfo)[0x23] = 1;
 }
 
-void NpcEventCtrlInfo::requestCloseWipeFadeBlack(al::EventFlowNode* node,
-                                                 s32 frames) {
+void NpcEventCtrlInfo::requestCloseWipeFadeBlack(al::EventFlowNode* node, s32 frames) {
     mIsCloseWipeRequested = true;
     mCloseWipeFrames = frames;
 }
 
-void NpcEventCtrlInfo::requestOpenWipeFadeBlack(al::EventFlowNode* node,
-                                                s32 frames) {
+void NpcEventCtrlInfo::requestOpenWipeFadeBlack(al::EventFlowNode* node, s32 frames) {
     mIsOpenWipeRequested = true;
     mOpenWipeFrames = frames;
 }
 
-void NpcEventCtrlInfo::setBalloonFilterOnlyMiniGame(
-    const al::LiveActor* actor) {
+void NpcEventCtrlInfo::setBalloonFilterOnlyMiniGame(const al::LiveActor* actor) {
     BalloonFilterInfo* filter = mBalloonFilter;
     if (!filter->actor) {
         filter->actor = actor;

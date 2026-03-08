@@ -27,8 +27,7 @@ public:
     void initAfterPlacement() override;
     void control() override;
     void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
-    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                    al::HitSensor* self) override;
+    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) override;
     bool receiveEvent(const al::EventFlowEventData* event) override;
 
     void exePatrol();

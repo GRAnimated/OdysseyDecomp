@@ -173,8 +173,8 @@ void Squirrel::init(const al::ActorInitInfo& info) {
 
     al::tryGetArg(&mRunawayCount, info, "RunawayCount");
     al::createAndSetColliderSpecialPurpose(this, "ShibakenMoveLimit");
-    al::JointSpringControllerHolder::tryCreateAndInitJointControllerKeeper(
-        this, "InitJointSpringCtrl");
+    al::JointSpringControllerHolder::tryCreateAndInitJointControllerKeeper(this,
+                                                                           "InitJointSpringCtrl");
 
     if (al::isEqualString(al::getModelName(this), "RunawayCrab")) {
         GameDataHolderAccessor accessor(this);

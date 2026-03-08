@@ -60,6 +60,7 @@ public:
     void updateCursorPos();
 
     s32 getSelectedIdx() const { return mSelectedIdx; }
+
     s32 getItemCount() const { return mItemCount; }
 
 private:

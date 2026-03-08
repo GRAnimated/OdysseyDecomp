@@ -11,6 +11,7 @@
 #include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Math/MathUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
+#include "Library/Nerve/NerveStateBase.h"
 #include "Library/Nerve/NerveUtil.h"
 
 #include "Npc/Frog.h"
@@ -57,21 +58,17 @@ void updateJumpRotation(Frog* frog, f32 jumpSpeed) {
 }  // namespace
 
 FrogStateWaitJump::FrogStateWaitJump(Frog* frog)
-    : al::NerveStateBase(u8"状態:徘徊"),
-      mActor(frog),
-      mWaitFrames(240),
-      mTurnAngle(0.0f),
+    : al::NerveStateBase(u8"状態:徘徊"), mActor(frog), mWaitFrames(240), mTurnAngle(0.0f),
       mJumpSpeed(0.0f) {
     initNerve(&NrvFrogStateWaitJump.Wait, 0);
 }
 
 void FrogStateWaitJump::appear() {
-    mIsDead = false;
+    al::NerveStateBase::appear();
     if (al::isOnGround(mActor, 3)) {
         f32 r = al::getRandom() < 0.5f ? 1.0f : -1.0f;
-        al::setNerve(this,
-                     r < 0.0f ? (const al::Nerve*)&NrvFrogStateWaitJump.JumpStart
-                              : &NrvFrogStateWaitJump.Wait);
+        al::setNerve(this, r < 0.0f ? (const al::Nerve*)&NrvFrogStateWaitJump.JumpStart :
+                                      &NrvFrogStateWaitJump.Wait);
     } else {
         al::setNerve(this, &NrvFrogStateWaitJump.Fall);
     }
@@ -83,7 +80,7 @@ void FrogStateWaitJump::kill() {
     al::calcQuat(&mActor->mJointQuat, mActor);
     mActor->mJointController->mIsControl = false;
     al::setColliderOffsetY(mActor, al::getColliderRadius(mActor));
-    mIsDead = true;
+    al::NerveStateBase::kill();
 }
 
 // NON_MATCHING: regalloc — target caches mActor in x20, we reload each time

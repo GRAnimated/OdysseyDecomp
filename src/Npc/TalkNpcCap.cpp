@@ -80,8 +80,7 @@ TalkNpcCap* TalkNpcCap::tryCreate(const al::LiveActor* parentActor,
 void TalkNpcCap::initAttach(const al::LiveActor* parentActor) {
     mBaseMtx = parentActor->getBaseMtx();
     if (al::isExistModelResourceYaml(parentActor, "InitPartsFixInfo", mCapInfo->name)) {
-        const u8* res =
-            al::getModelResourceYaml(parentActor, "InitPartsFixInfo", mCapInfo->name);
+        const u8* res = al::getModelResourceYaml(parentActor, "InitPartsFixInfo", mCapInfo->name);
         al::ByamlIter iter(res);
         const char* jointName = nullptr;
         if (al::tryGetByamlString(&jointName, iter, "JointName") && jointName)
@@ -200,13 +199,13 @@ __attribute__((noinline)) static void updateCapTransform(TalkNpcCap* cap,
 // tail-calls into it; cannot reproduce this optimization in source
 void TalkNpcCap::makeActorAlive() {
     al::LiveActor::makeActorAlive();
-    updateCapTransform(this, mBaseMtx, &mLocalTrans, &mLocalRotate,
-                       mCapInfo == &sShoppingCapData, mScale);
+    updateCapTransform(this, mBaseMtx, &mLocalTrans, &mLocalRotate, mCapInfo == &sShoppingCapData,
+                       mScale);
 }
 
 void TalkNpcCap::control() {
-    updateCapTransform(this, mBaseMtx, &mLocalTrans, &mLocalRotate,
-                       mCapInfo == &sShoppingCapData, mScale);
+    updateCapTransform(this, mBaseMtx, &mLocalTrans, &mLocalRotate, mCapInfo == &sShoppingCapData,
+                       mScale);
 }
 
 // NON_MATCHING: regswaps + different conditional codegen for boolean if-else chain

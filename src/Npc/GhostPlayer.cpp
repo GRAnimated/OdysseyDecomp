@@ -238,9 +238,8 @@ void GhostPlayer::applyGhostData(s32 step) {
     // Action name handling
     al::StringTmp<64> actionNameTmp(actionName);
     mActionName.copy(actionName);
-    if (!al::isEqualString(actionName, mActionName.cstr())) {
+    if (!al::isEqualString(actionName, mActionName.cstr()))
         mActionName.copy(actionName);
-    }
 
     const char* currentAction = al::getActionName(this);
     if (currentAction && al::isEqualString(currentAction, actionNameTmp.cstr())) {
@@ -306,19 +305,18 @@ void GhostPlayer::applyGhostData(s32 step) {
     bool hasHack = hackName != nullptr && !isNoAction;
 
     // Check if riding sphinx/motorcycle
-    bool isRiding =
-        al::isActionPlaying(this, "SphinxRideGetOn") ||
-        al::isActionPlaying(this, "SphinxRideRide") ||
-        al::isActionPlaying(this, "SphinxRideStop") ||
-        al::isActionPlaying(this, "SphinxRideStopStart") ||
-        al::isActionPlaying(this, "SphinxRideClash") ||
-        al::isActionPlaying(this, "SphinxRideRunSlow") ||
-        al::isActionPlaying(this, "MotorcycleWait") ||
-        al::isActionPlaying(this, "MotorcycleRide") ||
-        al::isActionPlaying(this, "MotorcycleRideOn") ||
-        al::isActionPlaying(this, "MotorcycleRideLand") ||
-        al::isActionPlaying(this, "MotorcycleRideJump") ||
-        al::isActionPlaying(this, "MotorcycleRideClash");
+    bool isRiding = al::isActionPlaying(this, "SphinxRideGetOn") ||
+                    al::isActionPlaying(this, "SphinxRideRide") ||
+                    al::isActionPlaying(this, "SphinxRideStop") ||
+                    al::isActionPlaying(this, "SphinxRideStopStart") ||
+                    al::isActionPlaying(this, "SphinxRideClash") ||
+                    al::isActionPlaying(this, "SphinxRideRunSlow") ||
+                    al::isActionPlaying(this, "MotorcycleWait") ||
+                    al::isActionPlaying(this, "MotorcycleRide") ||
+                    al::isActionPlaying(this, "MotorcycleRideOn") ||
+                    al::isActionPlaying(this, "MotorcycleRideLand") ||
+                    al::isActionPlaying(this, "MotorcycleRideJump") ||
+                    al::isActionPlaying(this, "MotorcycleRideClash");
 
     s32 hackStartFrame = mHackStartFrame;
     bool hackAnimStarting = false;
@@ -451,15 +449,13 @@ afterHack:
             if (!hasHack) {
                 if (mCapActor)
                     al::hideModelIfShow(mCapActor);
-                al::LiveActor* subActor =
-                    al::tryGetSubActor(this, "レースノコノコ帽子");
+                al::LiveActor* subActor = al::tryGetSubActor(this, "レースノコノコ帽子");
                 if (subActor)
                     al::showModelIfHide(subActor);
             } else {
                 if (mCapActor)
                     al::showModelIfHide(mCapActor);
-                al::LiveActor* subActor =
-                    al::tryGetSubActor(this, "レースノコノコ帽子");
+                al::LiveActor* subActor = al::tryGetSubActor(this, "レースノコノコ帽子");
                 if (subActor)
                     al::hideModelIfShow(subActor);
             }
@@ -478,8 +474,7 @@ afterHack:
         }
         if (mCapActor)
             al::hideModelIfShow(mCapActor);
-        al::LiveActor* subActor =
-            al::tryGetSubActor(this, "レースノコノコ帽子");
+        al::LiveActor* subActor = al::tryGetSubActor(this, "レースノコノコ帽子");
         if (subActor)
             al::hideModelIfShow(subActor);
     } else if (isNoAction) {
@@ -488,8 +483,7 @@ afterHack:
             mShell->kill();
         if (mCapActor)
             al::hideModelIfShow(mCapActor);
-        al::LiveActor* subActor =
-            al::tryGetSubActor(this, "レースノコノコ帽子");
+        al::LiveActor* subActor = al::tryGetSubActor(this, "レースノコノコ帽子");
         if (subActor)
             al::hideModelIfShow(subActor);
     } else if (!(isWaterIn & 0x18)) {
@@ -501,8 +495,7 @@ afterHack:
                 mShell->kill();
             if (mCapActor)
                 al::showModelIfHide(mCapActor);
-            al::LiveActor* subActor =
-                al::tryGetSubActor(this, "レースノコノコ帽子");
+            al::LiveActor* subActor = al::tryGetSubActor(this, "レースノコノコ帽子");
             if (subActor)
                 al::hideModelIfShow(subActor);
         }
@@ -512,8 +505,7 @@ afterHack:
             mShell->kill();
         if (mCapActor)
             al::hideModelIfShow(mCapActor);
-        al::LiveActor* subActor =
-            al::tryGetSubActor(this, "レースノコノコ帽子");
+        al::LiveActor* subActor = al::tryGetSubActor(this, "レースノコノコ帽子");
         if (!subActor)
             goto afterSubActor;
         al::showModelIfHide(subActor);
@@ -558,8 +550,7 @@ afterVisibility:
         }
         al::setMaterialCode(this, materialCode);
         if (al::isEqualSubString(materialCode, "Lava"))
-            al::startHitReaction(this,
-                                 "あちちジャンプ");
+            al::startHitReaction(this, "あちちジャンプ");
     }
     return;
 
@@ -570,8 +561,7 @@ afterSubActor:
 }
 
 void GhostPlayer::initAfterPlacement() {
-    al::LiveActor* subActor =
-        al::tryGetSubActor(this, "レースノコノコ帽子");
+    al::LiveActor* subActor = al::tryGetSubActor(this, "レースノコノコ帽子");
     if (subActor)
         al::startMtpAnim(subActor, mColor.text());
     if (mCapActor)
@@ -602,8 +592,7 @@ void GhostPlayer::control() {}
 
 void GhostPlayer::attackSensor(al::HitSensor* self, al::HitSensor* other) {}
 
-bool GhostPlayer::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                             al::HitSensor* self) {
+bool GhostPlayer::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
     if (al::isSensorName(self, "Body")) {
         bool hidden = al::isHideModel(this);
         bool disregard = al::isMsgPlayerDisregard(msg);
@@ -646,8 +635,7 @@ void GhostPlayer::showDefault() {
         mShell->kill();
     if (mCapActor)
         al::hideModelIfShow(mCapActor);
-    al::LiveActor* subActor =
-        al::tryGetSubActor(this, "レースノコノコ帽子");
+    al::LiveActor* subActor = al::tryGetSubActor(this, "レースノコノコ帽子");
     if (subActor)
         al::showModelIfHide(subActor);
     if (mColor == GhostPlayerColor::RaceManGold)
@@ -702,18 +690,17 @@ void GhostPlayer::exePlay() {
         al::makeMtxUpFrontPos(&mWaterSurfaceMtx, surfaceNormal, surfaceNormal, surfacePos);
     }
 
-updateWater:
-    {
-        bool wasInWater = mIsInWater;
-        bool nowInWater = al::isInWater(this);
-        if (wasInWater) {
-            if (!nowInWater)
-                al::startHitReaction(this, "水出入");
-        } else {
-            if (nowInWater)
-                al::startHitReaction(this, "水出入");
-        }
+updateWater: {
+    bool wasInWater = mIsInWater;
+    bool nowInWater = al::isInWater(this);
+    if (wasInWater) {
+        if (!nowInWater)
+            al::startHitReaction(this, "水出入");
+    } else {
+        if (nowInWater)
+            al::startHitReaction(this, "水出入");
     }
+}
     mIsInWater = al::isInWater(this);
     mPrevTrans = al::getTrans(this);
 }

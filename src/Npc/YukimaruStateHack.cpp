@@ -35,11 +35,10 @@ NERVES_MAKE_NOSTRUCT(YukimaruStateHack, HackStart);
 NERVES_MAKE_NOSTRUCT(YukimaruStateHack, Move, Cancel, Damage, Kill, TalkDemo);
 }  // namespace
 
-YukimaruStateHack::YukimaruStateHack(Yukimaru* yukimaru)
-    : ActorStateBase("憑依", yukimaru) {
+YukimaruStateHack::YukimaruStateHack(Yukimaru* yukimaru) : ActorStateBase("憑依", yukimaru) {
     initNerve(&Move, 1);
-    mStateMove = new YukimaruStateMove(yukimaru, static_cast<YukimaruInput*>(this),
-                                       &yukimaru->mQuat);
+    mStateMove =
+        new YukimaruStateMove(yukimaru, static_cast<YukimaruInput*>(this), &yukimaru->mQuat);
     mStateMove->mIsHack = true;
     al::initNerveState(this, mStateMove, &Move, "移動状態");
     mShaderCtrl = new PlayerHackStartShaderCtrl(yukimaru, nullptr);
@@ -91,8 +90,7 @@ void YukimaruStateHack::kill() {
             rs::endHackStartDemo(mHackActor, mActor);
         const sead::Vector3f& trans = al::getTrans(mActor);
         sead::Vector3f targetPos = trans + sead::Vector3f::ey * 240.0f;
-        rs::endHackFromTargetPos(&mHackActor, targetPos, al::getQuat(mActor),
-                                 sead::Vector3f::ey);
+        rs::endHackFromTargetPos(&mHackActor, targetPos, al::getQuat(mActor), sead::Vector3f::ey);
     }
 }
 
@@ -189,7 +187,9 @@ void YukimaruStateHack::exeMove() {
 }
 
 void YukimaruStateHack::exeCancel() {}
+
 void YukimaruStateHack::exeDamage() {}
+
 void YukimaruStateHack::exeKill() {}
 
 void YukimaruStateHack::exeTalkDemo() {

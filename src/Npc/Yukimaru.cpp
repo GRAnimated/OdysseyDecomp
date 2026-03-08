@@ -103,10 +103,8 @@ void Yukimaru::attackSensor(al::HitSensor* self, al::HitSensor* other) {
         return;
     }
 
-    if (al::isNerve(this, &HackAfter) &&
-        YukimaruMovement::attackSensor(this, self, other)) {
+    if (al::isNerve(this, &HackAfter) && YukimaruMovement::attackSensor(this, self, other))
         mStateHack->mStateMove->startScaleBoundReaction(al::getVelocity(this).y);
-    }
 
     rs::attackSensorNpcCommon(self, other);
 }

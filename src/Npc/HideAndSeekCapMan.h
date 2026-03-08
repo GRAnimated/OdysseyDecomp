@@ -26,8 +26,7 @@ public:
 
     static HideAndSeekCapMan* tryCreateLinkNpcIfClearGame(al::LiveActor* parent,
                                                           const al::ActorInitInfo& info,
-                                                          const char* suffix,
-                                                          const char* linkName);
+                                                          const char* suffix, const char* linkName);
 
 private:
     al::EventFlowExecutor* mEventFlowExecutor = nullptr;

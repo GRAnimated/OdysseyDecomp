@@ -51,7 +51,7 @@ NERVE_IMPL(WorldTravelingPeach, Event);
 NERVES_MAKE_STRUCT(WorldTravelingPeach, Event);
 }  // namespace
 
-static const char* sModelNames[] = {"Peach",     "PeachSummer",  "PeachWinter",
+static const char* sModelNames[] = {"Peach",         "PeachSummer", "PeachWinter",
                                     "PeachExplorer", "PeachFarmer", "PeachYukata"};
 
 // NON_MATCHING: WFixedSafeString<32> inline expansion mismatch
@@ -144,8 +144,8 @@ void WorldTravelingPeach::init(const al::ActorInitInfo& info) {
     }
     {
         const sead::Matrix34f* jointMtx = al::getJointMtxPtr(this, "CapTarget");
-        al::PartsModel* cap = al::createPartsModel(
-            this, info, u8"世界旅行ピーチの帽子", capName, jointMtx);
+        al::PartsModel* cap =
+            al::createPartsModel(this, info, u8"世界旅行ピーチの帽子", capName, jointMtx);
         al::onSyncAlphaMaskSubActor(this, u8"世界旅行ピーチの帽子");
         al::JointSpringControllerHolder::tryCreateAndInitJointControllerKeeper(
             cap, "InitJointSpringCtrl");
@@ -170,9 +170,8 @@ noCap:
     rs::initEventMovement(executor, mWaitState, info);
 
     s32 lookAtJointNum = rs::getNpcJointLookAtControlJointNum(mTalkNpcParam);
-    s32 springJointNum =
-        al::JointSpringControllerHolder::calcInitFileSpringControlJointNum(
-            this, "InitJointSpringCtrl");
+    s32 springJointNum = al::JointSpringControllerHolder::calcInitFileSpringControlJointNum(
+        this, "InitJointSpringCtrl");
     al::initJointControllerKeeper(this, springJointNum + lookAtJointNum);
 
     if (lookAtJointNum >= 1)
@@ -307,29 +306,24 @@ void WorldTravelingPeach::control() {
         mConnectorQuat = connectorQuat;
 
         const sead::Vector3f& tiaraTrans = al::getTrans(tiara);
-        sead::Vector3f newTiaraTrans = {
-            (connectorTrans.x - oldX) + tiaraTrans.x,
-            (connectorTrans.y - oldY) + tiaraTrans.y,
-            (connectorTrans.z - oldZ) + tiaraTrans.z};
+        sead::Vector3f newTiaraTrans = {(connectorTrans.x - oldX) + tiaraTrans.x,
+                                        (connectorTrans.y - oldY) + tiaraTrans.y,
+                                        (connectorTrans.z - oldZ) + tiaraTrans.z};
         al::setTrans(tiara, newTiaraTrans);
 
-        al::LiveActor* trunkActor =
-            al::getSubActor(this, u8"世界旅行ピーチのトランク");
+        al::LiveActor* trunkActor = al::getSubActor(this, u8"世界旅行ピーチのトランク");
         const sead::Vector3f& trunkTrans = al::getTrans(trunkActor);
         sead::Vector3f trunkRelative = {trunkTrans.x - oldX, trunkTrans.y - oldY,
                                         trunkTrans.z - oldZ};
         al::rotateVectorDegreeY(&trunkRelative, angle);
 
-        al::LiveActor* trunkActor2 =
-            al::getSubActor(this, u8"世界旅行ピーチのトランク");
+        al::LiveActor* trunkActor2 = al::getSubActor(this, u8"世界旅行ピーチのトランク");
         const sead::Vector3f& myTrans = al::getTrans(this);
-        sead::Vector3f newTrunkTrans = {myTrans.x + trunkRelative.x,
-                                        myTrans.y + trunkRelative.y,
+        sead::Vector3f newTrunkTrans = {myTrans.x + trunkRelative.x, myTrans.y + trunkRelative.y,
                                         myTrans.z + trunkRelative.z};
         al::setTrans(trunkActor2, newTrunkTrans);
 
-        al::addRotateAndRepeatY(
-            al::getSubActor(this, u8"世界旅行ピーチのトランク"), angle);
+        al::addRotateAndRepeatY(al::getSubActor(this, u8"世界旅行ピーチのトランク"), angle);
     }
 
     GameDataHolderAccessor accessor(this);

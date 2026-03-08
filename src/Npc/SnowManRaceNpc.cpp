@@ -30,9 +30,8 @@
 #include "Util/SensorMsgFunction.h"
 
 namespace rs {
-void registerLinkedPlayerStartInfoToHolder(const al::IUseSceneObjHolder*,
-                                           const al::ActorInitInfo&, const char*,
-                                           const sead::Vector3f*, const sead::Quatf*);
+void registerLinkedPlayerStartInfoToHolder(const al::IUseSceneObjHolder*, const al::ActorInitInfo&,
+                                           const char*, const sead::Vector3f*, const sead::Quatf*);
 }  // namespace rs
 
 namespace {
@@ -54,11 +53,10 @@ NERVE_IMPL_(SnowManRaceNpc, GetPrizeEndThird, GetPrizeEnd);
 NERVE_IMPL(SnowManRaceNpc, WaitPlayerHack);
 NERVE_IMPL(SnowManRaceNpc, RaceResultWinWait);
 
-NERVES_MAKE_STRUCT(SnowManRaceNpc, RaceResultWin, RaceResultFirst, RaceResultLose,
-                   RaceResultCancel, RaceResultSecond, RaceResultThird, WaitNoPlayerHack,
-                   Reaction, ReactionWinWait, GetPrizeSecond, GetPrizeThird, GetPrizeFirst,
-                   GetPrizeEndFirst, GetPrizeEndSecond, GetPrizeEndThird, WaitPlayerHack,
-                   RaceResultWinWait);
+NERVES_MAKE_STRUCT(SnowManRaceNpc, RaceResultWin, RaceResultFirst, RaceResultLose, RaceResultCancel,
+                   RaceResultSecond, RaceResultThird, WaitNoPlayerHack, Reaction, ReactionWinWait,
+                   GetPrizeSecond, GetPrizeThird, GetPrizeFirst, GetPrizeEndFirst,
+                   GetPrizeEndSecond, GetPrizeEndThird, WaitPlayerHack, RaceResultWinWait);
 }  // namespace
 
 SnowManRaceNpc::SnowManRaceNpc(const char* name) : al::LiveActor(name) {}
@@ -196,11 +194,9 @@ void SnowManRaceNpc::init(const al::ActorInitInfo& info) {
     mEventFlowExecutor = rs::initEventFlow(this, info, eventFlowName, eventFlowSecondName);
     rs::initEventCharacterName(mEventFlowExecutor, info, "Yukimaru");
     al::initEventReceiver(mEventFlowExecutor, static_cast<al::IEventFlowEventReceiver*>(this));
-    rs::initEventQueryJudge(mEventFlowExecutor,
-                            static_cast<const al::IEventFlowQueryJudge*>(this));
+    rs::initEventQueryJudge(mEventFlowExecutor, static_cast<const al::IEventFlowQueryJudge*>(this));
     mReactionState = NpcStateReaction::create(this, nullptr);
-    al::initNerveState(this, mReactionState, &NrvSnowManRaceNpc.Reaction,
-                       u8"リアクション");
+    al::initNerveState(this, mReactionState, &NrvSnowManRaceNpc.Reaction, u8"リアクション");
     al::addNerveState(this, mReactionState, &NrvSnowManRaceNpc.ReactionWinWait,
                       u8"リアクション[勝った後]");
     makeActorAlive();
@@ -241,8 +237,7 @@ void SnowManRaceNpc::setHackKeepTalkDemo() {
     const sead::Vector3f& demoTrans = rs::getDemoPlayerTrans(this);
     sead::Vector3f diff = trans - demoTrans;
 
-    f32 angle =
-        al::calcAngleOnPlaneDegree(sead::Vector3f::ez, diff, sead::Vector3f::ey);
+    f32 angle = al::calcAngleOnPlaneDegree(sead::Vector3f::ez, diff, sead::Vector3f::ey);
     al::rotateQuatYDirDegree(&yukimaruQuat, yukimaruQuat, angle);
 
     *(sead::Quatf*)((char*)yukimaru + 328) = yukimaruQuat;
@@ -271,8 +266,7 @@ bool SnowManRaceNpc::receiveEvent(const al::EventFlowEventData* event) {
     if (al::isEventName(event, "RaceStartLv2")) {
         GameDataFunction::setRaceRivalLevel(this, 1);
         if (mPlaceScenario == 2)
-            GameDataFunction::tryChangeNextStageWithStartRaceYukimaru(this,
-                                                                      mChangeStageInfoSecond);
+            GameDataFunction::tryChangeNextStageWithStartRaceYukimaru(this, mChangeStageInfoSecond);
         else
             GameDataFunction::tryChangeNextStageWithStartRaceYukimaru(this, mChangeStageInfo);
         return true;
@@ -340,7 +334,8 @@ void SnowManRaceNpc::attackSensor(al::HitSensor* self, al::HitSensor* other) {
 }
 
 // NON_MATCHING: Vector3f constant load pattern (GOT pointer vs inline)
-bool SnowManRaceNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self, al::HitSensor* other) {
+bool SnowManRaceNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self,
+                                al::HitSensor* other) {
     if (rs::isMsgPlayerDisregardHomingAttack(msg))
         return true;
 
@@ -415,14 +410,13 @@ void SnowManRaceNpc::exeWaitPlayerHack() {
     bool updated = rs::updateEventFlow(mEventFlowExecutor);
     bool isHackYukimaru = rs::isPlayerHackYukimaru(this);
 
-    if (updated) {
+    if (updated)
         if (isHackYukimaru)
             al::setNerve(this, &NrvSnowManRaceNpc.WaitPlayerHack);
         else
             al::setNerve(this, &NrvSnowManRaceNpc.WaitNoPlayerHack);
-    } else if (!isHackYukimaru) {
+    else if (!isHackYukimaru)
         al::setNerve(this, &NrvSnowManRaceNpc.WaitNoPlayerHack);
-    }
 }
 
 void SnowManRaceNpc::exeReaction() {
@@ -432,14 +426,13 @@ void SnowManRaceNpc::exeReaction() {
     }
 
     if (al::updateNerveState(this)) {
-        if (al::isNerve(this, &NrvSnowManRaceNpc.Reaction)) {
+        if (al::isNerve(this, &NrvSnowManRaceNpc.Reaction))
             if (rs::isPlayerHackYukimaru(this))
                 al::setNerve(this, &NrvSnowManRaceNpc.WaitPlayerHack);
             else
                 al::setNerve(this, &NrvSnowManRaceNpc.WaitNoPlayerHack);
-        } else if (al::isNerve(this, &NrvSnowManRaceNpc.ReactionWinWait)) {
+        else if (al::isNerve(this, &NrvSnowManRaceNpc.ReactionWinWait))
             al::setNerve(this, &NrvSnowManRaceNpc.RaceResultWinWait);
-        }
     }
 }
 
@@ -471,8 +464,7 @@ void SnowManRaceNpc::exeRaceResultWinWait() {
 }
 
 void SnowManRaceNpc::exeRaceResultFirst() {
-    if (al::isFirstStep(this) &&
-        !al::isCurrentEventEntry(mEventFlowExecutor, "RaceResultWin")) {
+    if (al::isFirstStep(this) && !al::isCurrentEventEntry(mEventFlowExecutor, "RaceResultWin")) {
         rs::startEventFlow(mEventFlowExecutor, "RaceResultWin");
         mPrizeCount = 20;
     }
@@ -487,8 +479,7 @@ void SnowManRaceNpc::exeRaceResultFirst() {
 }
 
 void SnowManRaceNpc::exeRaceResultSecond() {
-    if (al::isFirstStep(this) &&
-        !al::isCurrentEventEntry(mEventFlowExecutor, "RaceResultSecond")) {
+    if (al::isFirstStep(this) && !al::isCurrentEventEntry(mEventFlowExecutor, "RaceResultSecond")) {
         al::startAction(this, "Wait");
         rs::startEventFlow(mEventFlowExecutor, "RaceResultSecond");
         mPrizeCount = 4;
@@ -504,8 +495,7 @@ void SnowManRaceNpc::exeRaceResultSecond() {
 }
 
 void SnowManRaceNpc::exeRaceResultThird() {
-    if (al::isFirstStep(this) &&
-        !al::isCurrentEventEntry(mEventFlowExecutor, "RaceResultThird")) {
+    if (al::isFirstStep(this) && !al::isCurrentEventEntry(mEventFlowExecutor, "RaceResultThird")) {
         al::startAction(this, "Wait");
         rs::startEventFlow(mEventFlowExecutor, "RaceResultThird");
         mPrizeCount = 2;

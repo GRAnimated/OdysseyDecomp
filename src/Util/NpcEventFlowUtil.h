@@ -32,14 +32,14 @@ al::EventFlowExecutor* initEventFlow(al::LiveActor*, const al::ActorInitInfo&, c
                                      const char*);
 al::EventFlowExecutor* initEventFlowSuffix(al::LiveActor*, const al::ActorInitInfo&, const char*,
                                            const char*, const char*);
-al::EventFlowExecutor* initEventFlowForSystem(al::LiveActor*, const al::ActorInitInfo&,
-                                              const char*, const char*, const char*);
+al::EventFlowExecutor* initEventFlowForSystem(al::LiveActor*, const al::ActorInitInfo&, const char*,
+                                              const char*, const char*);
 al::EventFlowExecutor* initEventFlowFromPlacementInfo(al::LiveActor*, const al::ActorInitInfo&,
                                                       const char*);
 void startEventFlow(al::EventFlowExecutor*, const char*);
 bool updateEventFlow(al::EventFlowExecutor*);
 al::EventFlowExecutor* initEventFlowForRunAwayNpc(al::LiveActor*, const al::ActorInitInfo&,
-                                                   const char*, const char*);
+                                                  const char*, const char*);
 bool isActiveEventDemo(const al::LiveActor*);
 bool isEqualEventDemoStartActor(const al::LiveActor*);
 bool isExistTrafficAreaDirector(const al::LiveActor*);

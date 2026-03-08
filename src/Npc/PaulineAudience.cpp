@@ -22,7 +22,7 @@
 #include "Util/SensorMsgFunction.h"
 
 static const char* sAnimNames[] = {
-    "Excited",    "ExcitedHandclap",  "ExcitedMax",   "ExcitedMaxJump",
+    "Excited",      "ExcitedHandclap",    "ExcitedMax", "ExcitedMaxJump",
     "HandClapWait", "HandClapWaitMiddle", "WaitShop",
 };
 
@@ -157,7 +157,8 @@ void PaulineAudience::attackSensor(al::HitSensor* self, al::HitSensor* other) {
         al::sendMsgPush(other, self);
 }
 
-bool PaulineAudience::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self, al::HitSensor* other) {
+bool PaulineAudience::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self,
+                                 al::HitSensor* other) {
     if (rs::isMsgPlayerDisregardHomingAttack(msg))
         return true;
     if (mNpcStateReaction->receiveMsg(msg, self, other)) {

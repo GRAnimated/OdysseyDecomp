@@ -304,8 +304,7 @@ sead::Vector3f YukimaruRacerTiago::calcMoveVector(const sead::Vector3f& input) {
             farRatio = 1.0f;
     }
 
-    f32 reaction =
-        closeRatio * ((f32)isBehind * 0.05f) + farRatio * ((f32)!isBehind * -0.25f);
+    f32 reaction = closeRatio * ((f32)isBehind * 0.05f) + farRatio * ((f32)!isBehind * -0.25f);
 
     s32 lapNum = SnowManRaceFunction::getLapNum(this);
     s32 lapIndex = mNumLaps - 1;
@@ -315,8 +314,7 @@ sead::Vector3f YukimaruRacerTiago::calcMoveVector(const sead::Vector3f& input) {
     f32 speed = mBaseSpeedPerLap[lapIndex] + reaction + mReactionZ;
 
     const sead::Vector3f& trans = al::getTrans(this);
-    al::AreaObj* area =
-        al::tryFindAreaObj(this, "YukimaruRacerMinimumSpeedEnforcementArea", trans);
+    al::AreaObj* area = al::tryFindAreaObj(this, "YukimaruRacerMinimumSpeedEnforcementArea", trans);
     if (area) {
         f32 minSpeed = 0.0f;
         if (al::tryGetAreaObjArg(&minSpeed, area, "MinimumSpeed")) {

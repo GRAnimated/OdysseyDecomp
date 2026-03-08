@@ -33,9 +33,8 @@ NERVE_IMPL(Tiara, ShakeHand);
 NERVE_IMPL(Tiara, WaitAfterPeachWorldHomeCastleCapDemo);
 
 NERVES_MAKE_NOSTRUCT(Tiara, Talk, Stop, TurnToHost, StopAction, FindTurn,
-                     WaitInitPeachWorldHomeCastleCapDemo,
-                     ShakeHandPeachWorldHomeCastleCapDemo, StopToHost, ShakeHand,
-                     WaitAfterPeachWorldHomeCastleCapDemo);
+                     WaitInitPeachWorldHomeCastleCapDemo, ShakeHandPeachWorldHomeCastleCapDemo,
+                     StopToHost, ShakeHand, WaitAfterPeachWorldHomeCastleCapDemo);
 NERVES_MAKE_STRUCT(Tiara, Wait, Reaction, Scare);
 }  // namespace
 

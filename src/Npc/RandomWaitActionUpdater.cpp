@@ -5,8 +5,7 @@
 
 RandomWaitActionUpdater::RandomWaitActionUpdater(al::LiveActor* actor,
                                                  const al::ActorInitInfo& info,
-                                                 const TalkNpcParam* param,
-                                                 const char* waitAction,
+                                                 const TalkNpcParam* param, const char* waitAction,
                                                  const char* byeAction) {
     mActionAnimInfo = new TalkNpcActionAnimInfo();
     mActionAnimInfo->mWaitActionName = waitAction;

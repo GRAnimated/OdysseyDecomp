@@ -12,13 +12,12 @@ class Shibaken;
 
 class ShibakenStateSit : public al::HostStateBase<Shibaken> {
 public:
-    ShibakenStateSit(const char* name, Shibaken* shibaken,
-                     ActorStateReactionBase* reaction, bool alwaysSit);
+    ShibakenStateSit(const char* name, Shibaken* shibaken, ActorStateReactionBase* reaction,
+                     bool alwaysSit);
 
     void appear() override;
     void tryStartSitEnd();
-    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                    al::HitSensor* self);
+    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self);
 
     void exeSitStart();
     void exeSit();

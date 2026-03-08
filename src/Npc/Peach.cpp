@@ -26,9 +26,8 @@ void Peach::init(const al::ActorInitInfo& initInfo) {
     al::initActorChangeModel(this, initInfo);
     al::initNerve(this, &Wait, 0);
     al::startVisAnim(this, "TiaraOn");
-    mJointSpringHolder =
-        al::JointSpringControllerHolder::tryCreateAndInitJointControllerKeeper(
-            this, "InitJointSpringCtrl");
+    mJointSpringHolder = al::JointSpringControllerHolder::tryCreateAndInitJointControllerKeeper(
+        this, "InitJointSpringCtrl");
     al::LiveActor* bouquet = al::tryGetSubActor(this, u8"ピーチブーケ");
     if (bouquet)
         mSubActorSpringHolder =
@@ -108,11 +107,10 @@ void Peach::syncEyeSubActorAction(const char* fallbackAction) {
     al::LiveActor* eyeActor = al::tryGetSubActor(this, u8"ティアラの目");
     if (!eyeActor)
         return;
-    if (al::isExistAction(eyeActor, al::getActionName(this))) {
+    if (al::isExistAction(eyeActor, al::getActionName(this)))
         al::startAction(eyeActor, al::getActionName(this));
-    } else if (al::isExistAction(eyeActor, fallbackAction)) {
+    else if (al::isExistAction(eyeActor, fallbackAction))
         al::startAction(eyeActor, fallbackAction);
-    }
 }
 
 void Peach::exeWait() {

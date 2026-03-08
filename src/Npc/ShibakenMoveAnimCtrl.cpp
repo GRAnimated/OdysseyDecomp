@@ -84,8 +84,8 @@ void ShibakenMoveAnimCtrl::update() {
 
             if (speedMaxWalk < currentSpeed) {
                 f32 speedMaxRun = al::calcSpeedMax(*mWalkSpeed, *mMaxSpeed);
-                runBlend = al::squareIn(1.0f - al::normalize(currentSpeed, speedMaxWalk,
-                                                             speedMaxRun));
+                runBlend =
+                    al::squareIn(1.0f - al::normalize(currentSpeed, speedMaxWalk, speedMaxRun));
             }
 
             f32 blendW0 = al::getSklAnimBlendWeight(mActor, 0);
@@ -104,12 +104,11 @@ void ShibakenMoveAnimCtrl::update() {
 
         f32 frameRateScale = 1.0f;
         if (currentSpeed < speedMaxWalk)
-            frameRateScale = al::lerpValue(0.25f, 1.0f, al::normalize(currentSpeed, 0.0f,
-                                                                       speedMaxWalk));
+            frameRateScale =
+                al::lerpValue(0.25f, 1.0f, al::normalize(currentSpeed, 0.0f, speedMaxWalk));
 
         al::LiveActor* actor2 = mActor;
-        f32 combinedRate = sniffBlend + walkBlendB * mWalkRunRatio +
-                           sniffWeight * mWalkSniffRatio +
+        f32 combinedRate = sniffBlend + walkBlendB * mWalkRunRatio + sniffWeight * mWalkSniffRatio +
                            sniffWalkBlend * mWalkSniffWalkRatio;
         f32 finalRate = al::lerpValue(frameRateScale, 1.0f, sniffWeight) * combinedRate;
         al::setSklAnimBlendFrameRateAll(actor2, finalRate, true);

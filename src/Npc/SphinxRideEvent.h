@@ -20,8 +20,7 @@ public:
     SphinxRideEvent(SphinxRide* sphinxRide);
 
     void init(const al::ActorInitInfo& info) override;
-    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                    al::HitSensor* self) override;
+    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) override;
 
     bool receiveEvent(const al::EventFlowEventData* event) override;
     const char* judgeQuery(const char* query) const override;

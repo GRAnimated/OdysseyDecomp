@@ -10,8 +10,9 @@ TalkNpcSwitchActionPlayerHolder::TalkNpcSwitchActionPlayerHolder(
     TalkNpcSwitchActionPlayer** players, s32 count)
     : mPlayers(players), mCount(count) {}
 
-TalkNpcSwitchActionPlayerHolder* TalkNpcSwitchActionPlayerHolder::tryCreate(
-    RandomActionUpdater* updater, const al::ActorInitInfo& initInfo) {
+TalkNpcSwitchActionPlayerHolder*
+TalkNpcSwitchActionPlayerHolder::tryCreate(RandomActionUpdater* updater,
+                                           const al::ActorInitInfo& initInfo) {
     s32 count = al::calcLinkChildNum(initInfo, "SwitchActionPlayer");
     if (count < 1)
         return nullptr;

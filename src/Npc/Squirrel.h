@@ -20,8 +20,7 @@ public:
     void control() override;
     void appear() override;
     void kill() override;
-    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                    al::HitSensor* self) override;
+    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) override;
 
     void exeHide();
     void exeAppear();

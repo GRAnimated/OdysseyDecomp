@@ -76,8 +76,7 @@ void FukuwaraiNpc::init(const al::ActorInitInfo& info) {
     mTalkNpcParam = rs::initTalkNpcParam(this, nullptr);
 
     al::initJointControllerKeeper(this, 1);
-    mNpcJointLookAtController =
-        rs::tryCreateAndAppendNpcJointLookAtController(this, mTalkNpcParam);
+    mNpcJointLookAtController = rs::tryCreateAndAppendNpcJointLookAtController(this, mTalkNpcParam);
 
     al::MessageTagDataHolder* tagHolder = al::initMessageTagDataHolder(2);
     al::registerMessageTagDataScore(tagHolder, "Score", &mScore);
@@ -98,8 +97,8 @@ void FukuwaraiNpc::init(const al::ActorInitInfo& info) {
     }
 
     bool isNextLv = true;
-    bool isGotShine = GameDataFunction::isGotShine(GameDataHolderAccessor(this),
-                                                   mShineActorPlacementId);
+    bool isGotShine =
+        GameDataFunction::isGotShine(GameDataHolderAccessor(this), mShineActorPlacementId);
     if (!GameDataFunction::isOpenMoonRock(GameDataHolderAccessor(this)))
         isNextLv = mIsMarioFace;
     if ((isGotShine & isNextLv) == 1)
@@ -117,10 +116,9 @@ void FukuwaraiNpc::init(const al::ActorInitInfo& info) {
 }
 
 s32 FukuwaraiNpc::getNextLv() const {
-    bool isGotShine = GameDataFunction::isGotShine(GameDataHolderAccessor(this),
-                                                   mShineActorPlacementId);
-    bool isNextLv =
-        GameDataFunction::isOpenMoonRock(GameDataHolderAccessor(this)) || mIsMarioFace;
+    bool isGotShine =
+        GameDataFunction::isGotShine(GameDataHolderAccessor(this), mShineActorPlacementId);
+    bool isNextLv = GameDataFunction::isOpenMoonRock(GameDataHolderAccessor(this)) || mIsMarioFace;
     return isGotShine & (s32)isNextLv;
 }
 
@@ -160,9 +158,8 @@ bool FukuwaraiNpc::receiveMsg(const al::SensorMsg* message, al::HitSensor* other
         if (al::isNerve(this, &Wait))
             al::setNerve(this, &ReactionWait);
         else
-            al::setNerve(this,
-                         al::isNerve(this, &AskEnd) ? (const al::Nerve*)&ReactionAskEnd
-                                                    : (const al::Nerve*)&ReactionPlay);
+            al::setNerve(this, al::isNerve(this, &AskEnd) ? (const al::Nerve*)&ReactionAskEnd :
+                                                            (const al::Nerve*)&ReactionPlay);
     }
 
     return true;

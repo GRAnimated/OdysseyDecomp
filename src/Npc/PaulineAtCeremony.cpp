@@ -69,19 +69,19 @@ static const char* sDanceAnimNames[] = {
 };
 
 static const char* sMouthAnimNames[] = {
-    "MouthCloseSmallClose",  "MouthCloseClose",      "MouthCloseWideClose",
-    "MouthOpenSmallClose",   "MouthOpenClose",        "MouthOpenWideClose",
-    "MouthCloseSmall",       "MouthClose",            "MouthCloseWide",
-    "MouthOpenSmall",        "MouthOpen",             "MouthOpenWide",
-    "MouthCloseSmallLaugh",  "MouthCloseLaugh",       "MouthCloseWide",
-    "MouthOpenSmallLaugh",   "MouthOpenLaugh",        "MouthOpenWide",
-    "MouthCloseSmallEnnui",  "MouthCloseEnnui",       "MouthCloseWideEnnui",
-    "MouthOpenSmallEnnui",   "MouthOpenEnnui",        "MouthOpenWideEnnui",
-    "MouthCloseSmallShout",  "MouthCloseShout",       "MouthCloseWideShout",
-    "MouthOpenSmallShout",   "MouthOpenShout",        "MouthOpenWideShout",
-    "MouthCloseSmallWink",   "MouthCloseWink",        "MouthCloseWideWink",
-    "MouthOpenSmallWink",    "MouthOpenWink",         "MouthOpenWideWink",
-    "MouthIntro",            "TalkSmile",
+    "MouthCloseSmallClose", "MouthCloseClose", "MouthCloseWideClose",
+    "MouthOpenSmallClose",  "MouthOpenClose",  "MouthOpenWideClose",
+    "MouthCloseSmall",      "MouthClose",      "MouthCloseWide",
+    "MouthOpenSmall",       "MouthOpen",       "MouthOpenWide",
+    "MouthCloseSmallLaugh", "MouthCloseLaugh", "MouthCloseWide",
+    "MouthOpenSmallLaugh",  "MouthOpenLaugh",  "MouthOpenWide",
+    "MouthCloseSmallEnnui", "MouthCloseEnnui", "MouthCloseWideEnnui",
+    "MouthOpenSmallEnnui",  "MouthOpenEnnui",  "MouthOpenWideEnnui",
+    "MouthCloseSmallShout", "MouthCloseShout", "MouthCloseWideShout",
+    "MouthOpenSmallShout",  "MouthOpenShout",  "MouthOpenWideShout",
+    "MouthCloseSmallWink",  "MouthCloseWink",  "MouthCloseWideWink",
+    "MouthOpenSmallWink",   "MouthOpenWink",   "MouthOpenWideWink",
+    "MouthIntro",           "TalkSmile",
 };
 
 static const char* sVisAnimNames[] = {
@@ -95,9 +95,9 @@ struct EyelineData {
 };
 
 static const EyelineData sEyelineData[] = {
-    {0.0f, 0.0f},       {150.0f, 140.0f},  {0.0f, 0.0f},      {-150.0f, 140.0f},
-    {150.0f, -140.0f},   {0.0f, -140.0f},   {-150.0f, -140.0f}, {150.0f, 280.0f},
-    {0.0f, 280.0f},      {-150.0f, 280.0f}, {-10.0f, 140.0f},
+    {0.0f, 0.0f},      {150.0f, 140.0f},  {0.0f, 0.0f},       {-150.0f, 140.0f},
+    {150.0f, -140.0f}, {0.0f, -140.0f},   {-150.0f, -140.0f}, {150.0f, 280.0f},
+    {0.0f, 280.0f},    {-150.0f, 280.0f}, {-10.0f, 140.0f},
 };
 
 static void trySwitchDepthShadowMap(al::LiveActor* actor) {
@@ -149,31 +149,29 @@ void PaulineAtCeremony::init(const al::ActorInitInfo& info) {
             al::initNerve(this, &Intro, 1);
             al::listenStageSwitchOn(
                 this, "SwitchStart",
-                al::FunctorV0M<PaulineAtCeremony*, void (PaulineAtCeremony::*)()>(this, &PaulineAtCeremony::startProcessing));
+                al::FunctorV0M<PaulineAtCeremony*, void (PaulineAtCeremony::*)()>(
+                    this, &PaulineAtCeremony::startProcessing));
         }
 
         if (eventFlowSelection == 0) {
-            mEventFlowExecutor =
-                rs::initEventFlow(this, info, nullptr, nullptr);
+            mEventFlowExecutor = rs::initEventFlow(this, info, nullptr, nullptr);
         } else if (eventFlowSelection == 1) {
-            mEventFlowExecutor = rs::initEventFlow(
-                this, info, "PaulineAtCeremony", "PaulineAtCeremonyNoGrandShine");
+            mEventFlowExecutor =
+                rs::initEventFlow(this, info, "PaulineAtCeremony", "PaulineAtCeremonyNoGrandShine");
         } else if (eventFlowSelection == 2) {
-            mEventFlowExecutor = rs::initEventFlow(
-                this, info, "PaulineAtCeremony", "PaulineAtShinCaptureParade");
+            mEventFlowExecutor =
+                rs::initEventFlow(this, info, "PaulineAtCeremony", "PaulineAtShinCaptureParade");
         }
     }
 
     rs::initEventParam(mEventFlowExecutor, mTalkNpcParam, nullptr);
     rs::initEventCharacterName(mEventFlowExecutor, info, "PaulineAtCeremony");
-    al::initEventReceiver(mEventFlowExecutor,
-                          static_cast<al::IEventFlowEventReceiver*>(this));
+    al::initEventReceiver(mEventFlowExecutor, static_cast<al::IEventFlowEventReceiver*>(this));
     rs::initEventCameraTalk(mEventFlowExecutor, info, "Default", -1.0f);
     rs::startEventFlow(mEventFlowExecutor, "Init");
 
     mNpcStateReaction = NpcStateReaction::createForHuman(this, nullptr);
-    al::initNerveState(this, mNpcStateReaction, &Reaction,
-                       u8"リアクション");
+    al::initNerveState(this, mNpcStateReaction, &Reaction, u8"リアクション");
 
     al::initJointControllerKeeper(this, 8);
     mNpcJointLookAtController =
@@ -208,12 +206,12 @@ void PaulineAtCeremony::init(const al::ActorInitInfo& info) {
     if (!al::isExistModelResourceYaml(this, "ReSingInfo", nullptr))
         return;
 
-    auto* rhythmInfo = new PaulineRhythmInfo(
-        this, al::getModelResourceYaml(this, "DanceAnimInfo", nullptr),
-        al::getModelResourceYaml(this, "LipSyncInfo", nullptr),
-        al::getModelResourceYaml(this, "FaceInfo", nullptr),
-        al::getModelResourceYaml(this, "EyelineInfo", nullptr),
-        al::getModelResourceYaml(this, "ReSingInfo", nullptr));
+    auto* rhythmInfo =
+        new PaulineRhythmInfo(this, al::getModelResourceYaml(this, "DanceAnimInfo", nullptr),
+                              al::getModelResourceYaml(this, "LipSyncInfo", nullptr),
+                              al::getModelResourceYaml(this, "FaceInfo", nullptr),
+                              al::getModelResourceYaml(this, "EyelineInfo", nullptr),
+                              al::getModelResourceYaml(this, "ReSingInfo", nullptr));
     mRhythmInfo = rhythmInfo;
 
     {
@@ -351,13 +349,11 @@ void PaulineAtCeremony::controlForLipSync() {
                 mCurrentMouthType = (MouthType)newMouth;
             }
         }
-    } else {
-        if (!mIsExistFaceAnim) {
-            if (al::isNerve(this, &StandBy))
-                return;
-            rs::animateCityMayorFace(this, "MouthClose", 1.0f);
-            mCurrentMouthType = MouthClose;
-        }
+    } else if (!mIsExistFaceAnim) {
+        if (al::isNerve(this, &StandBy))
+            return;
+        rs::animateCityMayorFace(this, "MouthClose", 1.0f);
+        mCurrentMouthType = MouthClose;
     }
 }
 
@@ -471,7 +467,8 @@ void PaulineAtCeremony::attackSensor(al::HitSensor* self, al::HitSensor* other) 
 }
 
 // NON_MATCHING: regswap and NpcStateReaction vtable offset differences
-bool PaulineAtCeremony::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self, al::HitSensor* other) {
+bool PaulineAtCeremony::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self,
+                                   al::HitSensor* other) {
     if (al::isMsgPlayerDisregard(msg)) {
         if (al::isSensorNpc(other))
             return al::isSensorName(other, "Body");
@@ -554,11 +551,9 @@ void PaulineAtCeremony::exeDance() {
 
         if (mDanceActionFrame > 0.0f) {
             s32 frameInt = (s32)mDanceActionFrame;
-            f32 frameMax =
-                al::getActionFrameMax(this, sDanceAnimNames[mCurrentDanceType]);
-            al::setActionFrame(this,
-                               (f32)(frameInt % (s32)frameMax) +
-                                   (mDanceActionFrame - (f32)frameInt));
+            f32 frameMax = al::getActionFrameMax(this, sDanceAnimNames[mCurrentDanceType]);
+            al::setActionFrame(this, (f32)(frameInt % (s32)frameMax) +
+                                         (mDanceActionFrame - (f32)frameInt));
         }
     }
 
@@ -592,9 +587,7 @@ void PaulineAtCeremony::exeDance() {
 
 void PaulineAtCeremony::exeReaction() {
     if (al::isFirstStep(this)) {
-        al::LiveActor* face =
-            al::getSubActor(this,
-                            u8"市長の顔");
+        al::LiveActor* face = al::getSubActor(this, u8"市長の顔");
         al::startAction(face, "ReactionCap");
     }
     if (al::updateNerveState(this))

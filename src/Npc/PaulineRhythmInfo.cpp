@@ -156,11 +156,9 @@ void PaulineRhythmInfo::update(bool forceReset) {
     mIsLoopingFlag = rs::isLooping(mActor);
     if (mIsLoopingFlag) {
         resetRhythmInfo(al::getLoopStartBeat(mActor));
-    } else {
-        if (mCurrentBeat - mPrevBeat > 0.5f || forceReset) {
-            resetRhythmInfo(mCurrentBeat);
-            _89 = true;
-        }
+    } else if (mCurrentBeat - mPrevBeat > 0.5f || forceReset) {
+        resetRhythmInfo(mCurrentBeat);
+        _89 = true;
     }
 
     updateDance();

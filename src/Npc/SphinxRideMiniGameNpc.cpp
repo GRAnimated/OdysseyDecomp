@@ -22,11 +22,9 @@ SphinxRideMiniGameNpc::SphinxRideMiniGameNpc(const char* name)
 void SphinxRideMiniGameNpc::init(const al::ActorInitInfo& info) {
     al::initActorWithArchiveName(this, info, "DesertMan", nullptr);
     al::initNerve(this, &TalkWait, 0);
-    mEventFlowExecutor =
-        rs::initEventFlow(this, info, "SphinxRideMiniGameNpc", nullptr);
+    mEventFlowExecutor = rs::initEventFlow(this, info, "SphinxRideMiniGameNpc", nullptr);
 
-    auto* displayModel =
-        new al::LiveActor("乗れるスフィンクス(ミニゲームNPCのディスプレイ)");
+    auto* displayModel = new al::LiveActor("乗れるスフィンクス(ミニゲームNPCのディスプレイ)");
     mDisplayModel = displayModel;
     al::initActorWithArchiveName(displayModel, info, "SphinxRide", nullptr);
     al::startAction(mDisplayModel, "Wait");

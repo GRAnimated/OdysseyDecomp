@@ -14,8 +14,7 @@ class StageSwitchDirector;
 
 class TalkNpcSwitchActionPlayer : public al::IUseStageSwitch {
 public:
-    TalkNpcSwitchActionPlayer(al::StageSwitchDirector* switchDirector,
-                              RandomActionUpdater* updater,
+    TalkNpcSwitchActionPlayer(al::StageSwitchDirector* switchDirector, RandomActionUpdater* updater,
                               const al::PlacementInfo& placementInfo)
         : mActionUpdater(updater) {
         al::initStageSwitch(this, switchDirector, placementInfo);
@@ -28,14 +27,12 @@ public:
     const char* getName() const override {
         return u8"スイッチONでトークNPCのアクションを再生する機能";
     }
-    al::StageSwitchKeeper* getStageSwitchKeeper() const override { return mStageSwitchKeeper; }
-    void initStageSwitchKeeper() override {
-        mStageSwitchKeeper = new al::StageSwitchKeeper();
-    }
 
-    void listenStageSwitchStartActionOn() {
-        mActionUpdater->startActionOneTime(mActionName);
-    }
+    al::StageSwitchKeeper* getStageSwitchKeeper() const override { return mStageSwitchKeeper; }
+
+    void initStageSwitchKeeper() override { mStageSwitchKeeper = new al::StageSwitchKeeper(); }
+
+    void listenStageSwitchStartActionOn() { mActionUpdater->startActionOneTime(mActionName); }
 
 private:
     al::StageSwitchKeeper* mStageSwitchKeeper = nullptr;

@@ -45,10 +45,15 @@ public:
     void exeBalloonAction();
 
     void setAnimInfo(TalkNpcActionAnimInfo* info) { mAnimInfo = info; }
+
     void setPartialAnimCtrl(TalkNpcPartialAnimCtrl* ctrl) { mPartialAnimCtrl = ctrl; }
+
     void setRandomActionUpdater(RandomActionUpdater* updater) { mRandomActionUpdater = updater; }
+
     void setGlideCtrl(BirdMtxGlideCtrl* ctrl) { mGlideCtrl = ctrl; }
+
     void setIsTrafficNpc(bool v) { _5d = v; }
+
     void setIsHackWait(bool v) { mIsHackWait = v; }
 
     const TalkNpcParam* mTalkNpcParam;

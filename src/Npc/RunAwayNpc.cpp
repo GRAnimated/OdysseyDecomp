@@ -58,8 +58,8 @@ struct {
     RunAwayNpcNrvPrepareToRunAway PrepareToRunAway;
     RunAwayNpcNrvScaredByRegularEnemy ScaredByRegularEnemy;
     RunAwayNpcNrvTurnToPlacementFront TurnToPlacementFront;
-    const char* actionNames[9] = {"Wait",    "Talk",   "Turn",      "Reaction", "ReactionCap",
-                                  "Scared",  "Run",    "Search",    "WaitSearch"};
+    const char* actionNames[9] = {"Wait",   "Talk", "Turn",   "Reaction",  "ReactionCap",
+                                  "Scared", "Run",  "Search", "WaitSearch"};
 } NrvRunAwayNpc;
 
 const char* sReactionActionNames[] = {"Reaction", "ReactionCap"};
@@ -70,8 +70,7 @@ f32 calcAngleToPlayerH(al::LiveActor* actor, const sead::Vector3f* front) {
     al::calcPoseDir(nullptr, &up, &calcFront, actor);
     const sead::Vector3f& playerPos = al::getPlayerPos(actor, 0);
     const sead::Vector3f& trans = al::getTrans(actor);
-    sead::Vector3f toPlayer = {playerPos.x - trans.x, playerPos.y - trans.y,
-                               playerPos.z - trans.z};
+    sead::Vector3f toPlayer = {playerPos.x - trans.x, playerPos.y - trans.y, playerPos.z - trans.z};
     al::verticalizeVec(&toPlayer, up, toPlayer);
     if (!al::tryNormalizeOrZero(&toPlayer))
         return 0.0f;
@@ -92,8 +91,7 @@ void RunAwayNpc::init(const al::ActorInitInfo& info) {
         al::isActionOneTime(this, "Surprise") ? "Surprise" : "SurpriseOneTime";
     mSurpriseActionName.copy(surpriseName);
 
-    const char* searchName =
-        al::isActionOneTime(this, "Search") ? "Search" : "SearchOneTime";
+    const char* searchName = al::isActionOneTime(this, "Search") ? "Search" : "SearchOneTime";
     mSearchActionName.copy(searchName);
 
     al::initSubActorKeeperNoFile(this, info, 1);
@@ -178,8 +176,7 @@ void RunAwayNpc::initAfterPlacement() {
 void RunAwayNpc::control() {
     if (!al::isNerve(this, &NrvRunAwayNpc.Reaction) &&
         !al::isNerve(this, &NrvRunAwayNpc.Surprised) &&
-        !al::isNerve(this, &NrvRunAwayNpc.ScaredToRun) &&
-        !al::isNerve(this, &NrvRunAwayNpc.Turn) &&
+        !al::isNerve(this, &NrvRunAwayNpc.ScaredToRun) && !al::isNerve(this, &NrvRunAwayNpc.Turn) &&
         !al::isNerve(this, &NrvRunAwayNpc.Relieved)) {
         rs::updateEventFlow(mEventFlowExecutor);
     }
@@ -272,9 +269,8 @@ void RunAwayNpc::attackSensor(al::HitSensor* self, al::HitSensor* other) {
         mEnemySensorPos = al::getSensorPos(other);
 
         bool canSee = mIsPlayerHack(this);
-        if (canSeeWithCylindricalLineOfSight(mEnemySensorPos)) {
+        if (canSeeWithCylindricalLineOfSight(mEnemySensorPos))
             reinterpret_cast<u8*>(&mScareType)[1] = canSee;
-        }
 
         if (!reinterpret_cast<u8*>(&mScareType)[1]) {
             if (canSeeWithCylindricalLineOfSight(mEnemySensorPos))
@@ -283,8 +279,7 @@ void RunAwayNpc::attackSensor(al::HitSensor* self, al::HitSensor* other) {
     }
 }
 
-bool RunAwayNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                            al::HitSensor* self) {
+bool RunAwayNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
     if (rs::isMsgPlayerDisregardHomingAttack(msg))
         return true;
 
@@ -306,8 +301,7 @@ bool RunAwayNpc::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
     return false;
 
 setReaction:
-    if (al::isNerve(this, &NrvRunAwayNpc.Patrol) ||
-        al::isNerve(this, &NrvRunAwayNpc.Hiding) ||
+    if (al::isNerve(this, &NrvRunAwayNpc.Patrol) || al::isNerve(this, &NrvRunAwayNpc.Hiding) ||
         al::isNerve(this, &NrvRunAwayNpc.HidingAndTurning) ||
         al::isNerve(this, &NrvRunAwayNpc.RunAway) ||
         al::isNerve(this, &NrvRunAwayNpc.PrepareToRunAway)) {
@@ -561,8 +555,7 @@ void RunAwayNpc::exeHidingAndTurning() {
 
     const sead::Vector3f& trans = al::getTrans(this);
     const sead::Vector3f& playerPos = al::getPlayerPos(this, 0);
-    sead::Vector3f awayDir = {trans.x - playerPos.x, trans.y - playerPos.y,
-                              trans.z - playerPos.z};
+    sead::Vector3f awayDir = {trans.x - playerPos.x, trans.y - playerPos.y, trans.z - playerPos.z};
     if (al::turnFrontToDirGetIsFinished(this, awayDir, 5.0f))
         al::setNerve(this, &NrvRunAwayNpc.Hiding);
 }
@@ -624,8 +617,7 @@ bool RunAwayNpc::canSeeWithCylindricalLineOfSight(const sead::Vector3f& pos) {
     sead::Vector3f toPos = {pos.x - headPos.x, pos.y - headPos.y, pos.z - headPos.z};
     sead::Vector3f lineEnd = {headDir.x * 2000.0f + headPos.x, headDir.y * 2000.0f + headPos.y,
                               headDir.z * 2000.0f + headPos.z};
-    sead::Vector3f lineDir = {lineEnd.x - headPos.x, lineEnd.y - headPos.y,
-                              lineEnd.z - headPos.z};
+    sead::Vector3f lineDir = {lineEnd.x - headPos.x, lineEnd.y - headPos.y, lineEnd.z - headPos.z};
     f32 t = toPos.x * lineDir.x + toPos.y * lineDir.y + toPos.z * lineDir.z;
     if (t < 0.0f || t > 4000000.0f)
         return false;

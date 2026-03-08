@@ -37,10 +37,9 @@ TalkNpcParam* TalkNpcParamHolder::tryFindParamLocal(const al::LiveActor* actor,
     if (!al::isExistModel(actor) || mParamCount < 1)
         return nullptr;
 
-    for (s32 i = 0; i < mParamCount; i++) {
+    for (s32 i = 0; i < mParamCount; i++)
         if (mParams[i]->isEqualModelName(actor) && mParams[i]->isEqualSuffixName(suffix))
             return mParams[i];
-    }
     return nullptr;
 }
 

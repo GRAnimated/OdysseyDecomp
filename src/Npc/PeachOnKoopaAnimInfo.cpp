@@ -4,8 +4,7 @@
 
 PeachOnKoopaAnimInfo::PeachOnKoopaAnimInfo() = default;
 
-void PeachOnKoopaAnimInfo::update(const char* body, const char* leftHand,
-                                  const char* rightHand) {
+void PeachOnKoopaAnimInfo::update(const char* body, const char* leftHand, const char* rightHand) {
     mIsBodyChanged = false;
     mIsLeftHandChanged = false;
     mIsRightHandChanged = false;

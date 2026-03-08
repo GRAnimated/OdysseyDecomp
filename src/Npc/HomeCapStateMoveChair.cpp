@@ -30,7 +30,7 @@ void HomeCapStateMoveChair::init() {
 }
 
 void HomeCapStateMoveChair::appear() {
-    mIsDead = false;
+    al::NerveStateBase::appear();
 }
 
 // NON_MATCHING: instruction scheduling — target uses LDP/STP for vector field pairs

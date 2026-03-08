@@ -75,8 +75,7 @@ IsNotMoveLimit sIsNotMoveLimit;
 
 NpcStateReactionParam sShibakenReactionParam("Reaction", "ReactionBall");
 
-void initShibakenDigPointLocater(ShibakenDigPointLocater* locater,
-                                 const al::ActorInitInfo& info,
+void initShibakenDigPointLocater(ShibakenDigPointLocater* locater, const al::ActorInitInfo& info,
                                  const al::PlacementInfo& placementInfo) {
     locater->childCount = 0;
     locater->point = nullptr;
@@ -95,8 +94,7 @@ void initShibakenDigPointLocater(ShibakenDigPointLocater* locater,
         for (s32 i = 0; i < locater->childCount; i++) {
             al::PlacementInfo childInfo;
             al::getLinksInfoByIndex(&childInfo, placementInfo, "NextDigPoint", i);
-            auto* child =
-                static_cast<ShibakenDigPointLocater*>(::operator new(0x18));
+            auto* child = static_cast<ShibakenDigPointLocater*>(::operator new(0x18));
             initShibakenDigPointLocater(child, info, childInfo);
             locater->children[i] = child;
         }
@@ -130,8 +128,7 @@ __attribute__((noinline)) void fitPoseOnGround(Shibaken* shibaken) {
         GameDataHolderAccessor accessor(shibaken);
         bool isWorldMoon = GameDataFunction::isWorldMoon(accessor);
         const sead::Vector3f& grav = al::getGravity(shibaken);
-        f32 dot = grav.x * groundNormal->x + grav.y * groundNormal->y +
-                  grav.z * groundNormal->z;
+        f32 dot = grav.x * groundNormal->x + grav.y * groundNormal->y + grav.z * groundNormal->z;
         bool isValid = isWorldMoon ? dot < -0.34202f : dot < -0.5f;
         if (isValid) {
             accumNormal += al::getCollidedGroundNormal(shibaken);
@@ -248,23 +245,21 @@ void Shibaken::exeWaitInit() {
 void Shibaken::exeWait() {
     if (al::isFirstStep(this)) {
         sead::Vector3f gravity;
-        if (al::isExistActorCollider(this) && al::isCollidedGround(this)) {
+        if (al::isExistActorCollider(this) && al::isCollidedGround(this))
             gravity = -al::getCollidedGroundNormal(this);
-        } else {
+        else
             gravity.set(al::getGravity(this));
-        }
         al::scaleVelocityExceptDirection(this, gravity, 0.0f);
     }
     al::updateNerveState(this);
-    if (mStateWait->isPlayingWait() && calcPlayerDistanceSpeed(this) > 0.5f) {
+    if (mStateWait->isPlayingWait() && calcPlayerDistanceSpeed(this) > 0.5f)
         al::setNerve(this, &NrvShibaken.PlayerChase);
-    } else if (rs::isPlayerWaitSleep(this)) {
+    else if (rs::isPlayerWaitSleep(this))
         al::setNerve(this, &NrvShibaken.SleepStart);
-    } else if (mStateCapCatch->tryStart()) {
+    else if (mStateCapCatch->tryStart())
         al::setNerve(this, &NrvShibaken.CapCatch);
-    } else {
+    else
         ShibakenFunction::tryStartJump(this, this, &NrvShibaken.Jump);
-    }
 }
 
 void Shibaken::exeWaitFar() {
@@ -361,11 +356,10 @@ void Shibaken::exeSleepStart() {
     if (al::isFirstStep(this))
         al::startAction(this, "SleepStart");
     sead::Vector3f gravity;
-    if (al::isCollidedGround(this)) {
+    if (al::isCollidedGround(this))
         gravity = -al::getCollidedGroundNormal(this);
-    } else {
+    else
         gravity.set(al::getGravity(this));
-    }
     f32 accel = 1.0f;
     if (mWorldMoonFlag == 1)
         accel = 0.6f;
@@ -378,11 +372,10 @@ void Shibaken::exeSleep() {
     if (al::isFirstStep(this))
         al::startAction(this, "Sleep");
     sead::Vector3f gravity;
-    if (al::isCollidedGround(this)) {
+    if (al::isCollidedGround(this))
         gravity = -al::getCollidedGroundNormal(this);
-    } else {
+    else
         gravity.set(al::getGravity(this));
-    }
     f32 accel = 1.0f;
     if (mWorldMoonFlag == 1)
         accel = 0.6f;
@@ -396,11 +389,10 @@ void Shibaken::exeSleepEnd() {
     if (al::isFirstStep(this))
         al::startAction(this, "SleepEnd");
     sead::Vector3f gravity;
-    if (al::isCollidedGround(this)) {
+    if (al::isCollidedGround(this))
         gravity = -al::getCollidedGroundNormal(this);
-    } else {
+    else
         gravity.set(al::getGravity(this));
-    }
     f32 accel = 1.0f;
     if (mWorldMoonFlag == 1)
         accel = 0.6f;
@@ -481,11 +473,10 @@ bool ShibakenFunction::chaseToPlayerAndTryStop(Shibaken* shibaken) {
 
 void ShibakenFunction::addFallVelocityToGround(Shibaken* shibaken, f32 hScale) {
     sead::Vector3f gravity;
-    if (al::isCollidedGround(shibaken)) {
+    if (al::isCollidedGround(shibaken))
         gravity = -al::getCollidedGroundNormal(shibaken);
-    } else {
+    else
         gravity.set(al::getGravity(shibaken));
-    }
     f32 accel = 1.0f;
     if (shibaken->mWorldMoonFlag == 1)
         accel = 0.6f;
@@ -519,9 +510,10 @@ bool ShibakenFunction::executeReactionNerve(al::HostStateBase<Shibaken>* state) 
     return al::updateNerveState(state);
 }
 
-// NON_MATCHING: compiler generates fnmul+fsub for negated dot product, ours uses fadd+negated threshold
+// NON_MATCHING: compiler generates fnmul+fsub for negated dot product, ours uses fadd+negated
+// threshold
 bool ShibakenFunction::checkStopChaseByFaceWall(const Shibaken* shibaken,
-                                                 const sead::Vector3f& wallNormal) {
+                                                const sead::Vector3f& wallNormal) {
     sead::Vector3f front = {0.0f, 0.0f, 0.0f};
     al::calcFrontDir(&front, shibaken);
     const sead::Vector3f& playerPos = rs::getPlayerPos(shibaken);
@@ -531,8 +523,8 @@ bool ShibakenFunction::checkStopChaseByFaceWall(const Shibaken* shibaken,
         return false;
     f32 angle = sead::Mathf::deg2rad(10.0f);
     f32 cos10 = cosf(angle);
-    f32 negDot = -(wallNormal.x * toPlayer.x + wallNormal.y * toPlayer.y +
-                   wallNormal.z * toPlayer.z);
+    f32 negDot =
+        -(wallNormal.x * toPlayer.x + wallNormal.y * toPlayer.y + wallNormal.z * toPlayer.z);
     if (negDot >= cos10) {
         cos10 = cosf(angle);
         if (toPlayer.x * front.x + toPlayer.y * front.y + toPlayer.z * front.z >= cos10)
@@ -553,11 +545,10 @@ void ShibakenFunction::addFallVelocityToGroundAndFitPoseOnGround(Shibaken* shiba
         return;
     fitPoseOnGround(shibaken);
     sead::Vector3f gravity;
-    if (al::isCollidedGround(shibaken)) {
+    if (al::isCollidedGround(shibaken))
         gravity = -al::getCollidedGroundNormal(shibaken);
-    } else {
+    else
         gravity.set(al::getGravity(shibaken));
-    }
     f32 gravAccel = 1.0f;
     if (shibaken->mWorldMoonFlag == 1)
         gravAccel = 0.6f;
@@ -680,8 +671,7 @@ void ShibakenFunction::chaseToTarget(Shibaken* shibaken, const sead::Vector3f& t
         GameDataHolderAccessor accessor(shibaken);
         bool isWorldMoon = GameDataFunction::isWorldMoon(accessor);
         const sead::Vector3f& grav = al::getGravity(shibaken);
-        f32 dot =
-            grav.x * groundNormal.x + grav.y * groundNormal.y + grav.z * groundNormal.z;
+        f32 dot = grav.x * groundNormal.x + grav.y * groundNormal.y + grav.z * groundNormal.z;
         bool isNormal = isWorldMoon ? dot < -0.34202f : dot < -0.5f;
         if (!isNormal) {
             sead::Vector3f adjustedUp = upDir;
@@ -701,21 +691,19 @@ void ShibakenFunction::chaseToTarget(Shibaken* shibaken, const sead::Vector3f& t
     sead::Vector3f upVel = {0.0f, 0.0f, 0.0f};
     al::parallelizeVec(&upVel, up, al::getVelocity(shibaken));
     const sead::Vector3f& vel = al::getVelocity(shibaken);
-    f32 hSpeed =
-        sead::Mathf::sqrt((vel.x - upVel.x) * (vel.x - upVel.x) +
-                          (vel.y - upVel.y) * (vel.y - upVel.y) +
-                          (vel.z - upVel.z) * (vel.z - upVel.z)) +
-        speed;
+    f32 hSpeed = sead::Mathf::sqrt((vel.x - upVel.x) * (vel.x - upVel.x) +
+                                   (vel.y - upVel.y) * (vel.y - upVel.y) +
+                                   (vel.z - upVel.z) * (vel.z - upVel.z)) +
+                 speed;
 
     if (limitToTarget) {
         sead::Vector3f toTarget = target - al::getTrans(shibaken);
         al::verticalizeVec(&toTarget, al::getGravity(shibaken), toTarget);
         if (al::isCollidedWallVelocity(shibaken))
             al::verticalizeVec(&toTarget, al::getCollidedWallNormal(shibaken), toTarget);
-        f32 distScale =
-            sead::Mathf::sqrt(toTarget.x * toTarget.x + toTarget.y * toTarget.y +
-                              toTarget.z * toTarget.z) *
-            0.9f;
+        f32 distScale = sead::Mathf::sqrt(toTarget.x * toTarget.x + toTarget.y * toTarget.y +
+                                          toTarget.z * toTarget.z) *
+                        0.9f;
         if (hSpeed >= distScale)
             hSpeed = distScale;
     }

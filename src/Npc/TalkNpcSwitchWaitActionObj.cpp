@@ -10,9 +10,10 @@
 #include "Npc/RandomActionUpdater.h"
 #include "Npc/TalkNpcActionAnimInfo.h"
 
-TalkNpcSwitchWaitActionObj* TalkNpcSwitchWaitActionObj::tryCreate(
-    const TalkNpcParam* param, TalkNpcActionAnimInfo* animInfo, RandomActionUpdater* updater,
-    const al::ActorInitInfo& initInfo) {
+TalkNpcSwitchWaitActionObj*
+TalkNpcSwitchWaitActionObj::tryCreate(const TalkNpcParam* param, TalkNpcActionAnimInfo* animInfo,
+                                      RandomActionUpdater* updater,
+                                      const al::ActorInitInfo& initInfo) {
     al::PlacementInfo placementInfo;
     if (!al::tryGetLinksInfo(&placementInfo, initInfo, "SwitchWaitActionObj"))
         return nullptr;
@@ -21,10 +22,11 @@ TalkNpcSwitchWaitActionObj* TalkNpcSwitchWaitActionObj::tryCreate(
                                           placementInfo);
 }
 
-TalkNpcSwitchWaitActionObj::TalkNpcSwitchWaitActionObj(
-    al::StageSwitchDirector* switchDirector, const TalkNpcParam* param,
-    TalkNpcActionAnimInfo* animInfo, RandomActionUpdater* updater,
-    const al::PlacementInfo& placementInfo)
+TalkNpcSwitchWaitActionObj::TalkNpcSwitchWaitActionObj(al::StageSwitchDirector* switchDirector,
+                                                       const TalkNpcParam* param,
+                                                       TalkNpcActionAnimInfo* animInfo,
+                                                       RandomActionUpdater* updater,
+                                                       const al::PlacementInfo& placementInfo)
     : mParam(param), mAnimInfo(animInfo), mActionUpdater(updater) {
     al::initStageSwitch(this, switchDirector, placementInfo);
     al::FunctorV0M<TalkNpcSwitchWaitActionObj*, void (TalkNpcSwitchWaitActionObj::*)()> onFunctor(

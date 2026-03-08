@@ -21,8 +21,7 @@ class ShibakenStateWait;
 class ShibakenStatePointChase : public al::HostStateBase<Shibaken> {
 public:
     ShibakenStatePointChase(const char* name, Shibaken* shibaken,
-                            ShibakenMoveAnimCtrl* moveAnimCtrl,
-                            ActorStateReactionBase* reaction);
+                            ShibakenMoveAnimCtrl* moveAnimCtrl, ActorStateReactionBase* reaction);
 
     void appear() override;
     void kill() override;

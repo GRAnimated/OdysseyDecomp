@@ -26,8 +26,7 @@ struct FacialAnimParam {
 };
 
 struct BirdGlideParam {
-    BirdGlideParam()
-        : isValid(false), jointName(nullptr), localOffset(0.0f, 0.0f, 0.0f) {}
+    BirdGlideParam() : isValid(false), jointName(nullptr), localOffset(0.0f, 0.0f, 0.0f) {}
 
     bool isValid;
     const char* jointName;
@@ -66,8 +65,8 @@ public:
     void calcPlayerWatchTrans(sead::Vector3f* out, const al::LiveActor* actor) const;
     bool isInvalidTrampleSensor(const al::HitSensor* sensor) const;
     bool isEnableReactionRestartEvent(const al::IUseNerve* nerve) const;
-    void manualInitLookAtJoint(const char* fileName, const char* key,
-                               const al::LiveActor* actor, const char* suffix);
+    void manualInitLookAtJoint(const char* fileName, const char* key, const al::LiveActor* actor,
+                               const char* suffix);
 
     const char* mModelName = nullptr;
     const char* mSuffixName = nullptr;

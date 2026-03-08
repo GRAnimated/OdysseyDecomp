@@ -63,6 +63,7 @@ public:
     ShibakenChestJointController() : al::JointControllerBase(1) {}
 
     void calcJointCallback(s32, sead::Matrix34f*) override {}
+
     const char* getCtrlTypeName() const override { return ""; }
 
     al::LiveActor* mActor = nullptr;
@@ -75,6 +76,7 @@ struct NrvShibakenType {
     u64 WaitInit, Wait, WaitFar, Reaction, PointChase, CapCatch, Bark, Jump, Sit, Reset,
         PlayerChase, SleepStart, PlayerChaseTurn;
 };
+
 NrvShibakenType NrvShibaken;
 }  // namespace
 
@@ -126,12 +128,11 @@ void Shibaken::init(const al::ActorInitInfo& info) {
 
     mStateWaitFar = new ShibakenStateWaitFar(u8"遠目で待機", this);
 
-    auto* stateReaction =
-        NpcStateReaction::createForHuman(this, &sShibakenReactionParam);
+    auto* stateReaction = NpcStateReaction::createForHuman(this, &sShibakenReactionParam);
     mStateReaction = stateReaction;
 
-    mStatePointChase =
-        new ShibakenStatePointChase(u8"ここ掘れポイント追いかけ", this, mMoveAnimCtrl, stateReaction);
+    mStatePointChase = new ShibakenStatePointChase(u8"ここ掘れポイント追いかけ", this,
+                                                   mMoveAnimCtrl, stateReaction);
 
     mStateCapCatch = new ShibakenStateCapCatch(u8"キャップキャッチ", this);
 
@@ -144,8 +145,7 @@ void Shibaken::init(const al::ActorInitInfo& info) {
     al::initNerveState(this, mStateWait, NERVE(Wait), u8"待機");
     al::initNerveState(this, mStateWaitFar, NERVE(WaitFar), u8"遠目で待機");
     al::initNerveState(this, mStateReaction, NERVE(Reaction), u8"リアクション");
-    al::initNerveState(this, mStatePointChase, NERVE(PointChase),
-                       u8"ここ掘れポイント追いかけ");
+    al::initNerveState(this, mStatePointChase, NERVE(PointChase), u8"ここ掘れポイント追いかけ");
     al::initNerveState(this, mStateCapCatch, NERVE(CapCatch), u8"キャップキャッチ");
     al::initNerveState(this, mStateBark, NERVE(Bark), u8"敵に吠える");
     al::initNerveState(this, stateJump, NERVE(Jump), u8"ジャンプ");
@@ -160,8 +160,7 @@ void Shibaken::init(const al::ActorInitInfo& info) {
 
     if (!mIsHomeShip)
         al::setColliderFilterCollisionParts(
-            this,
-            reinterpret_cast<al::CollisionPartsFilterBase*>(sIsNotMoveLimit));
+            this, reinterpret_cast<al::CollisionPartsFilterBase*>(sIsNotMoveLimit));
 
     auto* collisionArray = new sead::PtrArray<al::CollisionParts>();
     collisionArray->setBuffer(32, reinterpret_cast<al::CollisionParts**>(collisionArray + 1));
@@ -177,8 +176,7 @@ void Shibaken::init(const al::ActorInitInfo& info) {
     if (al::isExistLinkChild(info, "DigPoint", 0)) {
         al::PlacementInfo placementInfo;
         al::getLinksInfo(&placementInfo, info, "DigPoint");
-        auto* locater =
-            static_cast<ShibakenDigPointLocater*>(::operator new(0x18));
+        auto* locater = static_cast<ShibakenDigPointLocater*>(::operator new(0x18));
         initShibakenDigPointLocater(locater, info, placementInfo);
         digPointHolder[0] = locater;
         locater->isValid = false;
@@ -198,14 +196,12 @@ void Shibaken::init(const al::ActorInitInfo& info) {
     mDigPointHolder = digPointHolder;
 
     if (digPointHolder[0]) {
-        mStatePointChase->startFirstWait(
-            *static_cast<DigPoint**>(digPointHolder[0]));
+        mStatePointChase->startFirstWait(*static_cast<DigPoint**>(digPointHolder[0]));
         al::setNerve(this, NERVE(PointChase));
     }
 
-    s32 springJointNum =
-        al::JointSpringControllerHolder::calcInitFileSpringControlJointNum(
-            this, "InitJointSpringCtrl");
+    s32 springJointNum = al::JointSpringControllerHolder::calcInitFileSpringControlJointNum(
+        this, "InitJointSpringCtrl");
     al::initJointControllerKeeper(this, springJointNum + 2);
 
     auto* chestJoint = new ShibakenChestJointController();
@@ -223,8 +219,7 @@ void Shibaken::init(const al::ActorInitInfo& info) {
 
     bool isKeepWait = false;
     if (mIsHomeShip || (al::tryGetArg(&isKeepWait, info, "IsKeepWait") && isKeepWait)) {
-        auto* stateSit =
-            new ShibakenStateSit(u8"座り", this, mStateReaction, true);
+        auto* stateSit = new ShibakenStateSit(u8"座り", this, mStateReaction, true);
         mStateSit = stateSit;
         al::initNerveState(this, stateSit, NERVE(Sit), u8"座り");
         al::setNerve(this, NERVE(Sit));
@@ -292,8 +287,7 @@ void Shibaken::movement() {
         return;
     }
 
-    auto* collisionArray =
-        static_cast<sead::PtrArray<al::CollisionParts>*>(_1c8);
+    auto* collisionArray = static_cast<sead::PtrArray<al::CollisionParts>*>(_1c8);
 
     CollisionPartsListSetter setter;
     setter.actor = this;
@@ -339,8 +333,7 @@ void Shibaken::control() {
             al::calcFrontDir(&frontDir, chestJoint->mActor);
             const sead::Vector3f& gravity = al::getGravity(chestJoint->mActor);
             sead::Vector3f up = {-gravity.x, -gravity.y, -gravity.z};
-            f32 angle =
-                al::calcAngleOnPlaneDegree(chestJoint->mFrontDir, frontDir, up);
+            f32 angle = al::calcAngleOnPlaneDegree(chestJoint->mFrontDir, frontDir, up);
             f32 normalized = al::normalizeAbs(angle, 0.0f, 5.0f);
             f32 lerped1 = al::lerpValue(chestJoint->mLerpState2, normalized, 0.2f);
             f32 prev = chestJoint->mLerpState1;
@@ -394,8 +387,7 @@ void Shibaken::attackSensor(al::HitSensor* self, al::HitSensor* other) {
 }
 
 // NON_MATCHING: branch polarity difference (tbnz vs tbz) in stateReaction check
-bool Shibaken::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                          al::HitSensor* self) {
+bool Shibaken::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
     if (mCapTarget) {
         if (rs::tryReceiveMsgInitCapTargetAndSetCapTargetInfo(
                 msg, static_cast<CapTargetInfo*>(mCapTarget)))
@@ -432,11 +424,9 @@ bool Shibaken::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
             if (al::isNerve(this, NERVE(CapCatch))) {
                 if (mStateCapCatch->receiveMsg(msg, other, self))
                     return true;
-            } else {
-                if (mStateCapCatch->tryStartByReceiveMsg(msg, other, self)) {
-                    al::setNerve(this, NERVE(CapCatch));
-                    return true;
-                }
+            } else if (mStateCapCatch->tryStartByReceiveMsg(msg, other, self)) {
+                al::setNerve(this, NERVE(CapCatch));
+                return true;
             }
         }
     }

@@ -81,8 +81,7 @@ void RaceManStart::init(const al::ActorInitInfo& initInfo) {
 
     mTalkNpcParam = rs::initTalkNpcParam(this, nullptr);
     al::initJointControllerKeeper(this, 1);
-    mJointLookAtController =
-        rs::tryCreateAndAppendNpcJointLookAtController(this, mTalkNpcParam);
+    mJointLookAtController = rs::tryCreateAndAppendNpcJointLookAtController(this, mTalkNpcParam);
 
     if (rs::isDefinedEventCamera(mEventFlowExecutor, "Default"))
         rs::initEventCameraObject(mEventFlowExecutor, initInfo, "Default");
@@ -140,8 +139,7 @@ void RaceManStart::init(const al::ActorInitInfo& initInfo) {
     }
 
     if (playerStartId && shouldProceed) {
-        const char* startPos =
-            mEndRaceLv != 0 ? mStartPosLv2 : mStartPosLv1;
+        const char* startPos = mEndRaceLv != 0 ? mStartPosLv2 : mStartPosLv1;
         bool isEqual = al::isEqualString(startPos, playerStartId);
         al::initNerve(this, &NrvRaceManStart.Wait, 1);
         mAddDemoInfo = al::registDemoRequesterToAddDemoInfo(this, initInfo, 0);
@@ -159,14 +157,11 @@ void RaceManStart::init(const al::ActorInitInfo& initInfo) {
                 mIsEventStarted = rs::tryStartEventCutSceneDemo(this);
 
                 GameDataHolderAccessor accessor7(this);
-                const char* worldName =
-                    GameDataFunction::getWorldDevelopNameCurrent(accessor7);
-                bool isBigWorld = al::isEqualString(worldName, "Lake") ||
-                                  al::isEqualString(worldName, "Clash") ||
-                                  al::isEqualString(worldName, "Sea") ||
-                                  al::isEqualString(worldName, "Lava") ||
-                                  al::isEqualString(worldName, "Sky") ||
-                                  al::isEqualString(worldName, "Moon");
+                const char* worldName = GameDataFunction::getWorldDevelopNameCurrent(accessor7);
+                bool isBigWorld =
+                    al::isEqualString(worldName, "Lake") || al::isEqualString(worldName, "Clash") ||
+                    al::isEqualString(worldName, "Sea") || al::isEqualString(worldName, "Lava") ||
+                    al::isEqualString(worldName, "Sky") || al::isEqualString(worldName, "Moon");
 
                 switch (mRaceResult) {
                 case 1:
@@ -261,15 +256,12 @@ void RaceManStart::attackSensor(al::HitSensor* self, al::HitSensor* other) {
     rs::attackSensorNpcCommon(self, other);
 }
 
-bool RaceManStart::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                              al::HitSensor* self) {
-    if (rs::isMsgPlayerDisregardHomingAttack(msg) ||
-        rs::isMsgPlayerDisregardTargetMarker(msg))
+bool RaceManStart::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
+    if (rs::isMsgPlayerDisregardHomingAttack(msg) || rs::isMsgPlayerDisregardTargetMarker(msg))
         return true;
 
     if ((!al::isNerve(this, &NrvRaceManStart.Reaction) ||
-         (al::isNerve(this, &NrvRaceManStart.Reaction) &&
-          al::isGreaterEqualStep(this, 10))) &&
+         (al::isNerve(this, &NrvRaceManStart.Reaction) && al::isGreaterEqualStep(this, 10))) &&
         mNpcStateReaction->receiveMsg(msg, other, self)) {
         al::setNerve(this, &NrvRaceManStart.Reaction);
         return true;

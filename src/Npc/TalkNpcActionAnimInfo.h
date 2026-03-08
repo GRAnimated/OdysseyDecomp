@@ -25,8 +25,8 @@ public:
 
     static const char* getArgWaitActionName(const al::ActorInitInfo& initInfo);
     void initWaitActionNameFromPlacementInfo(const al::LiveActor* actor,
-                                            const al::ActorInitInfo& initInfo,
-                                            bool isCheckHackWait);
+                                             const al::ActorInitInfo& initInfo,
+                                             bool isCheckHackWait);
     void initWaitActionNameDirect(const al::LiveActor* actor, const char* actionName,
                                   bool isCheckHackWait);
     void init(const al::LiveActor* actor, const al::ActorInitInfo& initInfo,

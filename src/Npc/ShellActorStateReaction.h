@@ -6,8 +6,7 @@ class ShellActorStateReaction : public ActorStateReactionBase {
 public:
     ShellActorStateReaction(al::LiveActor* actor);
 
-    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                    al::HitSensor* self) override;
+    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) override;
     bool receiveMsgWithoutTrample(const al::SensorMsg* msg, al::HitSensor* other,
                                   al::HitSensor* self) override;
     bool receiveMsgNoReaction(const al::SensorMsg* msg, al::HitSensor* other,

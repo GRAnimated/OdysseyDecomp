@@ -23,10 +23,10 @@
 namespace {
 NERVE_IMPL(YukimaruStateMove, JumpEnd);
 
-al::AnimScaleParam sScaleParam(0.1f, 0.85f, 0.2f, 1.8f, 0.06f, 0.12f, 0.91f, 20, 0.25f, 0.9f,
-                               5.2f, 0.05f);
-al::AnimScaleParam sBoundScaleParam(0.2f, 0.85f, 0.6f, 1.3f, 0.06f, 0.12f, 0.91f, 20, 0.25f,
-                                    0.9f, 5.2f, 0.05f);
+al::AnimScaleParam sScaleParam(0.1f, 0.85f, 0.2f, 1.8f, 0.06f, 0.12f, 0.91f, 20, 0.25f, 0.9f, 5.2f,
+                               0.05f);
+al::AnimScaleParam sBoundScaleParam(0.2f, 0.85f, 0.6f, 1.3f, 0.06f, 0.12f, 0.91f, 20, 0.25f, 0.9f,
+                                    5.2f, 0.05f);
 
 YukimaruInput sNullInput;
 
@@ -36,8 +36,7 @@ NERVE_IMPL(YukimaruStateMove, Jump);
 NERVES_MAKE_NOSTRUCT(YukimaruStateMove, JumpEnd, RunStart, Run, Jump);
 }  // namespace
 
-YukimaruStateMove::YukimaruStateMove(al::LiveActor* actor, YukimaruInput* input,
-                                     sead::Quatf* quat)
+YukimaruStateMove::YukimaruStateMove(al::LiveActor* actor, YukimaruInput* input, sead::Quatf* quat)
     : ActorStateBase("ユキマル移動状態", actor), mInput(input), mQuat(quat) {
     std::memcpy(&mEffectMtx, &sead::Matrix34f::ident, sizeof(sead::Matrix34f));
     mVelocity.set(sead::Vector3f::zero);
@@ -65,7 +64,7 @@ void YukimaruStateMove::attackSensor(al::HitSensor* self, al::HitSensor* other) 
 
 // clang-format off
 bool YukimaruMovement::attackSensor(al::LiveActor* actor, al::HitSensor* self, al::HitSensor* other) {
-// clang-format on
+    // clang-format on
     if (al::getVelocity(actor).y < 0.0f &&
         rs::trySendMsgPlayerReflectOrTrample(actor, self, other)) {
         al::setVelocityOnlyV(actor, 24.0f);
@@ -100,7 +99,8 @@ bool YukimaruMovement::attackSensor(al::LiveActor* actor, al::HitSensor* self, a
     return al::sendMsgPushAndKillVelocityToTarget(actor, self, other);
 }
 
-bool YukimaruStateMove::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self, al::HitSensor* other) {
+bool YukimaruStateMove::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self,
+                                   al::HitSensor* other) {
     if (al::isMsgPushAll(msg))
         return true;
 
@@ -167,11 +167,10 @@ void YukimaruStateMove::exeRunStart() {
 
     updateMove(mInput);
 
-    if (mIsJumping) {
+    if (mIsJumping)
         al::setNerve(this, &Jump);
-    } else if (al::isActionEnd(mActor)) {
+    else if (al::isActionEnd(mActor))
         al::setNerve(this, &Run);
-    }
 }
 
 void YukimaruStateMove::updateMove() {
@@ -241,11 +240,10 @@ void YukimaruStateMove::exeJumpEnd() {
 
     updateMove(mInput);
 
-    if (mIsJumping) {
+    if (mIsJumping)
         al::setNerve(this, &Jump);
-    } else if (al::isActionEnd(mActor)) {
+    else if (al::isActionEnd(mActor))
         al::setNerve(this, &Run);
-    }
 }
 
 void YukimaruStateMove::updateMoveNoInput() {
@@ -392,8 +390,7 @@ void YukimaruStateMove::updateMove(YukimaruInput* input) {
         sead::Vector3f up = {-grav.x, -grav.y, -grav.z};
         al::calcMomentRollBall(&rollMoment, mRotation, up, 5.0f);
 
-        f32 gravityFactor =
-            al::lerpValue((f32)mGravityTimer, 0.0f, 30.0f, 1.0f, 0.0f);
+        f32 gravityFactor = al::lerpValue((f32)mGravityTimer, 0.0f, 30.0f, 1.0f, 0.0f);
         gravityFactor = al::easeInOut(gravityFactor);
         f32 rollScale = gravityFactor * 0.1f;
 
@@ -477,17 +474,15 @@ void YukimaruStateMove::reactionBound(f32 speed, bool isUpward) {
     mBoundScaleController->startAndSetScaleY(scaleY);
 
     const char* reactionName;
-    if (mIsHack) {
+    if (mIsHack)
         if (isUpward)
             reactionName = "バウンド";
         else
             reactionName = "壁バウンド";
-    } else {
-        if (isUpward)
-            reactionName = "バウンド[敵]";
-        else
-            reactionName = "壁バウンド[敵]";
-    }
+    else if (isUpward)
+        reactionName = "バウンド[敵]";
+    else
+        reactionName = "壁バウンド[敵]";
     al::startHitReaction(mActor, reactionName);
 }
 

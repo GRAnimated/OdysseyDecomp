@@ -126,18 +126,16 @@ void OpeningStageStartCapManHero::init(const al::ActorInitInfo& initInfo) {
     mDemoTalkState = new EventActorStateDemoTalk(this);
 
     al::tryGetLinksMatrixTR(&mKoopaDemoMtx, initInfo, "LinkKoopaDemoMtx");
-    mDemoActorHolder =
-        al::alDemoFunction::createDemoActorHolder("DemoMeetCapNpcSubStage", initInfo,
-                                                   &mKoopaDemoMtx, 1, false);
+    mDemoActorHolder = al::alDemoFunction::createDemoActorHolder("DemoMeetCapNpcSubStage", initInfo,
+                                                                 &mKoopaDemoMtx, 1, false);
 
-    const al::Resource* demoCameraRes =
-        al::findOrCreateResource("ObjectData/DemoCamera", nullptr);
-    mDemoAnimCamera = al::initDemoAnimCamera(
-        this, initInfo, demoCameraRes,
-        reinterpret_cast<const sead::Matrix34f*>(getName()), "DemoMeetFirstCamera");
+    const al::Resource* demoCameraRes = al::findOrCreateResource("ObjectData/DemoCamera", nullptr);
+    mDemoAnimCamera = al::initDemoAnimCamera(this, initInfo, demoCameraRes,
+                                             reinterpret_cast<const sead::Matrix34f*>(getName()),
+                                             "DemoMeetFirstCamera");
 
-    al::FunctorV0M<OpeningStageStartCapManHero*, void (OpeningStageStartCapManHero::*)()>
-        functor(this, &OpeningStageStartCapManHero::startDemo);
+    al::FunctorV0M<OpeningStageStartCapManHero*, void (OpeningStageStartCapManHero::*)()> functor(
+        this, &OpeningStageStartCapManHero::startDemo);
     al::listenStageSwitchOnStart(this, functor);
 
     mAddDemoInfo = al::registDemoRequesterToAddDemoInfo(this, initInfo, 0);
@@ -221,7 +219,8 @@ void OpeningStageStartCapManHero::startDemo() {
     if (!mIsStartDemo)
         return;
 
-    if (al::isNerve(this, &NrvOpeningStageStartCapManHero.WaitBridge) || al::isNerve(this, &NrvOpeningStageStartCapManHero.RunAway)) {
+    if (al::isNerve(this, &NrvOpeningStageStartCapManHero.WaitBridge) ||
+        al::isNerve(this, &NrvOpeningStageStartCapManHero.RunAway)) {
         appear();
         al::invalidateClipping(this);
         CapManHeroDemoUtil::invalidateDitherAnimIfExist(this);
@@ -629,9 +628,9 @@ void OpeningStageStartCapManHero::exeWaitBridge() {
     sead::Vector3f lerpPos;
     al::lerpVec(&lerpPos, mBridgeStartPos, mBridgeEndPos, rate);
 
-    f32 dist = sead::Mathf::sqrt((lerpPos.x - x) * (lerpPos.x - x) +
-                                  (lerpPos.y - y) * (lerpPos.y - y) +
-                                  (lerpPos.z - z) * (lerpPos.z - z));
+    f32 dist =
+        sead::Mathf::sqrt((lerpPos.x - x) * (lerpPos.x - x) + (lerpPos.y - y) * (lerpPos.y - y) +
+                          (lerpPos.z - z) * (lerpPos.z - z));
 
     if (al::isGreaterEqualStep(this, 290)) {
         sead::Vector3f toPlayer;

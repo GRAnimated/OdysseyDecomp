@@ -39,9 +39,9 @@
 #include "Npc/RaceManGoal.h"
 #include "Npc/RaceManThrowCap.h"
 #include "Npc/TalkNpcCap.h"
+#include "System/GameDataFile.h"
 #include "System/GameDataFunction.h"
 #include "System/GameDataHolder.h"
-#include "System/GameDataFile.h"
 #include "Util/NpcEventFlowUtil.h"
 #include "Util/PlayerDemoUtil.h"
 #include "Util/PlayerUtil.h"
@@ -167,8 +167,8 @@ void RaceManRace::init(const al::ActorInitInfo& initInfo) {
         }
 
         auto* ghostName = new al::StringTmp<256>(u8"駆けっこゴースト[%d]", i);
-        auto* ghost = new GhostPlayer(ghostName->cstr(), i,
-                                      (i == 3 && raceRivalLevel == 1) ? 4 : -1);
+        auto* ghost =
+            new GhostPlayer(ghostName->cstr(), i, (i == 3 && raceRivalLevel == 1) ? 4 : -1);
         auto* byamlIter =
             new al::ByamlIter(resource->getByml(al::StringTmp<512>("%s.byml", byamlKey.cstr())));
         ghost->initGhostPlayDataFromByaml(byamlIter);
@@ -195,8 +195,7 @@ void RaceManRace::init(const al::ActorInitInfo& initInfo) {
     for (s32 i = 0; i < mGhostPlayers.size(); i++)
         mGhostPlayers.at(i)->appear();
 
-    mCameraTicket =
-        al::initObjectCameraNoPlacementInfo(this, u8"ゴール時のカメラ", nullptr);
+    mCameraTicket = al::initObjectCameraNoPlacementInfo(this, u8"ゴール時のカメラ", nullptr);
     mParabolicPath = new al::ParabolicPath();
 
     mAreaObjGroup = al::createLinkAreaGroup(this, initInfo, "RaceManRacePriorRankArea",
@@ -233,8 +232,7 @@ void RaceManRace::attackSensor(al::HitSensor* self, al::HitSensor* other) {
 }
 
 // NON_MATCHING: compiler tail-calls isMsgPlayerDisregardTargetMarker and shares return-true block
-bool RaceManRace::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                             al::HitSensor* self) {
+bool RaceManRace::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
     if (!al::isSensorName(self, "Body"))
         return false;
     if (al::isMsgPlayerDisregard(msg))
@@ -538,8 +536,7 @@ void RaceManRace::exeStartWait() {
 }
 
 void RaceManRace::exeRace() {
-    if (al::isFirstStep(this)) {
+    if (al::isFirstStep(this))
         for (s32 i = 0; i < mGhostPlayers.size(); i++)
             mGhostPlayers.at(i)->start();
-    }
 }

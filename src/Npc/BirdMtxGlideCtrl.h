@@ -10,9 +10,9 @@ class LiveActor;
 class BirdMtxGlideCtrl {
 public:
     static BirdMtxGlideCtrl* tryCreateAliveWaitByLinksBird(sead::Matrix34f* birdGlideMtx,
-                                                            al::LiveActor* actor,
-                                                            const al::ActorInitInfo& info,
-                                                            const char* linkName);
+                                                           al::LiveActor* actor,
+                                                           const al::ActorInitInfo& info,
+                                                           const char* linkName);
     void invalidateGlide();
     void validateGlide();
     void update();

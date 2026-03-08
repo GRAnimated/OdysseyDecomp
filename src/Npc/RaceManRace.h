@@ -19,17 +19,14 @@ class RaceManGoal;
 class TalkNpcCap;
 struct RaceRankAreaInfo;
 
-class RaceManRace : public al::LiveActor,
-                    public al::IEventFlowEventReceiver,
-                    public al::ISceneObj {
+class RaceManRace : public al::LiveActor, public al::IEventFlowEventReceiver, public al::ISceneObj {
 public:
     RaceManRace(const char* name);
 
     void init(const al::ActorInitInfo& initInfo) override;
     void control() override;
     void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
-    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                    al::HitSensor* self) override;
+    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) override;
 
     bool receiveEvent(const al::EventFlowEventData* data) override;
 

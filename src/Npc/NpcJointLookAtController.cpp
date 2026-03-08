@@ -112,8 +112,7 @@ void NpcJointLookAtController::update() {
                     auto* sensor = *reinterpret_cast<al::HitSensor* const*>(
                         reinterpret_cast<const u8*>(mPlayerEyeSensorHitHolder) + 0x30);
                     if (sensor) {
-                        if (!al::isDead(al::getSensorHost(sensor)) &&
-                            al::isSensorValid(sensor)) {
+                        if (!al::isDead(al::getSensorHost(sensor)) && al::isSensorValid(sensor)) {
                             target = &al::getSensorPos(sensor);
                             f32 lookAtDist = mLookAtDistance;
                             if (al::calcDistanceH(mActor, *target) <= lookAtDist)

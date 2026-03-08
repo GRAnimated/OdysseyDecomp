@@ -26,8 +26,7 @@ NERVE_IMPL(RandomActionUpdater, RandomLoop);
 NERVES_MAKE_STRUCT(RandomActionUpdater, Wait, PlayOneTime, BalloonAction, RandomOneTime,
                    RandomLoop);
 
-void tryGetRandomActionName(sead::BufferedSafeStringBase<char>* outName,
-                            const al::LiveActor* actor,
+void tryGetRandomActionName(sead::BufferedSafeStringBase<char>* outName, const al::LiveActor* actor,
                             const TalkNpcActionAnimInfo* info) {
     if (!al::isSklAnimPlaying(actor, 0))
         return;
@@ -51,18 +50,9 @@ void tryGetRandomActionName(sead::BufferedSafeStringBase<char>* outName,
 }  // namespace
 
 // NON_MATCHING: field init ordering and sead::FixedSafeString buffer clearing differs
-RandomActionUpdater::RandomActionUpdater(al::LiveActor* actor,
-                                         const TalkNpcActionAnimInfo* info)
-    : al::NerveExecutor("ランダムアクション制御"),
-      mActor(actor),
-      mActionAnimInfo(info),
-      _20(nullptr),
-      _28(nullptr),
-      _30(nullptr),
-      _90(nullptr),
-      _98(false),
-      _99(false),
-      _9c(0),
+RandomActionUpdater::RandomActionUpdater(al::LiveActor* actor, const TalkNpcActionAnimInfo* info)
+    : al::NerveExecutor("ランダムアクション制御"), mActor(actor), mActionAnimInfo(info),
+      _20(nullptr), _28(nullptr), _30(nullptr), _90(nullptr), _98(false), _99(false), _9c(0),
       _a0(0.2f) {
     initNerve(&NrvRandomActionUpdater.Wait, 0);
 }
@@ -177,18 +167,16 @@ void RandomActionUpdater::exeWait() {
                 _9c = 600;
             else
                 _9c--;
-        } else {
-            if (rs::isSuccessNpcEventBalloonMessage(mActor)) {
-                if (rs::isNearPlayerH(mActor, 500.0f)) {
-                    sead::Vector3f frontDir = {0.0f, 0.0f, 0.0f};
-                    sead::Vector3f playerDir = {0.0f, 0.0f, 0.0f};
-                    al::calcFrontDir(&frontDir, mActor);
-                    const sead::Vector3f& playerPos = rs::getPlayerPos(mActor);
-                    al::calcDirToActorH(&playerDir, mActor, playerPos);
-                    if (al::calcAngleDegree(frontDir, playerDir) < 30.0f) {
-                        _20 = al::getActionName(mActor);
-                        al::setNerve(this, &NrvRandomActionUpdater.BalloonAction);
-                    }
+        } else if (rs::isSuccessNpcEventBalloonMessage(mActor)) {
+            if (rs::isNearPlayerH(mActor, 500.0f)) {
+                sead::Vector3f frontDir = {0.0f, 0.0f, 0.0f};
+                sead::Vector3f playerDir = {0.0f, 0.0f, 0.0f};
+                al::calcFrontDir(&frontDir, mActor);
+                const sead::Vector3f& playerPos = rs::getPlayerPos(mActor);
+                al::calcDirToActorH(&playerDir, mActor, playerPos);
+                if (al::calcAngleDegree(frontDir, playerDir) < 30.0f) {
+                    _20 = al::getActionName(mActor);
+                    al::setNerve(this, &NrvRandomActionUpdater.BalloonAction);
                 }
             }
         }

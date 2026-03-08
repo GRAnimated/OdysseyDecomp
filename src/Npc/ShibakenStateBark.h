@@ -13,8 +13,7 @@ class ShibakenStateTurn;
 
 class ShibakenStateBark : public al::NerveStateBase {
 public:
-    ShibakenStateBark(const char* name, Shibaken* shibaken,
-                      ActorStateReactionBase* reaction);
+    ShibakenStateBark(const char* name, Shibaken* shibaken, ActorStateReactionBase* reaction);
 
     void kill() override;
 

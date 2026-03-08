@@ -36,9 +36,8 @@ f32 getJumpStartSpeedV(const Shibaken* shibaken);
 f32 getJumpGravityAccel(const Shibaken* shibaken);
 f32 getJumpAirFriction(const Shibaken* shibaken);
 bool executeReactionNerve(al::HostStateBase<Shibaken>* state);
-bool tryStartReaction(al::IUseNerve* user, ActorStateReactionBase* reaction,
-                      const al::Nerve* nerve, const al::SensorMsg* msg,
-                      al::HitSensor* other, al::HitSensor* self);
+bool tryStartReaction(al::IUseNerve* user, ActorStateReactionBase* reaction, const al::Nerve* nerve,
+                      const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self);
 bool checkStopChaseByFaceWall(const Shibaken* shibaken);
 bool checkStopChaseByFaceWall(const Shibaken* shibaken, const sead::Vector3f& dir);
 void addFallVelocityToGroundAndFitPoseOnGround(Shibaken* shibaken, f32 gravity);
@@ -46,8 +45,8 @@ bool chaseToPlayerAndTryStop(Shibaken* shibaken);
 void chaseToTargetRun(Shibaken* shibaken, const sead::Vector3f& target);
 void chaseToTargetWalk(Shibaken* shibaken, const sead::Vector3f& target);
 void chaseToTargetWalkSniff(Shibaken* shibaken, const sead::Vector3f& target);
-void chaseToTarget(Shibaken* shibaken, const sead::Vector3f& target, f32 speed,
-                   bool limitToTarget, bool skipTurn);
+void chaseToTarget(Shibaken* shibaken, const sead::Vector3f& target, f32 speed, bool limitToTarget,
+                   bool skipTurn);
 bool tryStartJump(al::IUseNerve* user, const Shibaken* shibaken, const al::Nerve* nerve);
 bool tryStartJump(al::HostStateBase<Shibaken>* state, const al::Nerve* nerve);
 bool executeFindTurnNerve(al::HostStateBase<Shibaken>* state, const sead::Vector3f& target,
@@ -62,8 +61,7 @@ struct ShibakenDigPointLocater {
     bool isValid;
 };
 
-void initShibakenDigPointLocater(ShibakenDigPointLocater* locater,
-                                 const al::ActorInitInfo& info,
+void initShibakenDigPointLocater(ShibakenDigPointLocater* locater, const al::ActorInitInfo& info,
                                  const al::PlacementInfo& placementInfo);
 void updateShibakenDigPointLocaterHintTrans(ShibakenDigPointLocater* locater,
                                             const sead::Vector3f& trans);

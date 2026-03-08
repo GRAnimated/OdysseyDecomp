@@ -77,10 +77,9 @@ void SphinxQuiz::init(const al::ActorInitInfo& info) {
     mKeyMoveSaveObjInfo = rs::createSaveObjInfoWriteSaveData(info, linkInfo);
     mSaveObjInfo = rs::createSaveObjInfoWriteSaveData(info);
     mKeyPoseKeeper = al::createKeyPoseKeeper(info);
-    mRouteKillAreaGroup = al::createLinkAreaGroup(
-        this, info, "RouteKillArea",
-        u8"ルートアクター消滅エリアグループ",
-        u8"ルートアクター消滅エリア");
+    mRouteKillAreaGroup =
+        al::createLinkAreaGroup(this, info, "RouteKillArea", u8"ルートアクター消滅エリアグループ",
+                                u8"ルートアクター消滅エリア");
 
     if (mRouteKillAreaGroup)
         rs::tryCreateSphinxQuizRouteKillExecutor(this);
@@ -119,7 +118,8 @@ bool SphinxQuiz::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self, al::H
     return rs::isMsgPlayerDisregardHomingAttack(msg);
 }
 
-// NON_MATCHING: compiler tail-merges JudgeAfterCorrect handlers via CSE; our code keeps them separate
+// NON_MATCHING: compiler tail-merges JudgeAfterCorrect handlers via CSE; our code keeps them
+// separate
 bool SphinxQuiz::receiveEvent(const al::EventFlowEventData* event) {
     if (al::isEventName(event, "KeyMove")) {
         if (rs::isOnSaveObjInfo(mKeyMoveSaveObjInfo))

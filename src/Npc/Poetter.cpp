@@ -55,21 +55,18 @@ void Poetter::init(const al::ActorInitInfo& initInfo) {
         mHome = home;
         al::initChildActorWithArchiveNameWithPlacementInfo(home, initInfo, "PoetterHome", nullptr);
         mHome->makeActorAlive();
-        sead::Vector3f pos =
-            al::getTrans(mHome) + sead::Vector3f::ey * 82.0f;
+        sead::Vector3f pos = al::getTrans(mHome) + sead::Vector3f::ey * 82.0f;
         al::resetPosition(this, pos);
     }
 
     auto* scareState = new NpcEventStateScare(this, &sScareParam);
     mScareState = scareState;
     mReactionState = NpcStateReaction::createForHuman(this, &sReactionParam);
-    al::initNerveState(this, mScareState, &EventScare,
-                       u8"イベント中の怖がり");
+    al::initNerveState(this, mScareState, &EventScare, u8"イベント中の怖がり");
     al::initNerveState(this, mReactionState, &Reaction, u8"リアクション");
 
     mMessageSystem = initInfo.layoutInitInfo->getMessageSystem();
-    mEventFlowExecutor =
-        rs::initEventFlow(this, initInfo, nullptr, nullptr);
+    mEventFlowExecutor = rs::initEventFlow(this, initInfo, nullptr, nullptr);
     rs::initEventCharacterName(mEventFlowExecutor, initInfo, "Hint_Bird");
     rs::initEventParam(mEventFlowExecutor, mTalkParam, nullptr);
     rs::initEventCameraObject(mEventFlowExecutor, initInfo, "Default");
@@ -88,9 +85,8 @@ void Poetter::init(const al::ActorInitInfo& initInfo) {
         }
     }
 
-    mJointSpringHolder =
-        al::JointSpringControllerHolder::tryCreateAndInitJointControllerKeeper(
-            this, "InitJointSpringCtrl");
+    mJointSpringHolder = al::JointSpringControllerHolder::tryCreateAndInitJointControllerKeeper(
+        this, "InitJointSpringCtrl");
     mJointSpringHolder->onControlAll();
 }
 
@@ -105,8 +101,7 @@ void Poetter::attackSensor(al::HitSensor* self, al::HitSensor* other) {
     }
 }
 
-bool Poetter::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                         al::HitSensor* self) {
+bool Poetter::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
     if (rs::isMsgPlayerDisregardHomingAttack(msg))
         return true;
     if (rs::isMsgPlayerDisregardTargetMarker(msg))
@@ -185,8 +180,7 @@ void Poetter::exeWait() {
             }
         }
 
-        mHintMessage = GameDataFunction::tryFindShineMessage(
-            this, this, worldId, indices[index]);
+        mHintMessage = GameDataFunction::tryFindShineMessage(this, this, worldId, indices[index]);
         rs::startEventFlow(mEventFlowExecutor, "TalkShow");
         al::setNerve(this, &Event);
         return;
@@ -209,13 +203,10 @@ void Poetter::exeWait() {
         sead::Vector3f front = al::getFront(this);
         if (al::calcAngleDegree(front, diff) < 80.0f) {
             if (mCapWatchCount++ >= 49) {
-                if (al::isActionPlaying(this, "Wait") ||
-                    al::isActionPlaying(this, "RollingEnd")) {
+                if (al::isActionPlaying(this, "Wait") || al::isActionPlaying(this, "RollingEnd"))
                     al::startAction(this, "RollingStart");
-                } else if (al::isActionPlaying(this, "RollingStart") &&
-                           al::isActionEnd(this)) {
+                else if (al::isActionPlaying(this, "RollingStart") && al::isActionEnd(this))
                     al::startAction(this, "Rolling");
-                }
                 goto checkYawn;
             }
         } else {
@@ -224,11 +215,10 @@ void Poetter::exeWait() {
     }
 
 checkRolling:
-    if (al::isActionPlaying(this, "Rolling") || al::isActionPlaying(this, "RollingStart")) {
+    if (al::isActionPlaying(this, "Rolling") || al::isActionPlaying(this, "RollingStart"))
         al::startAction(this, "RollingEnd");
-    } else if (al::isActionPlaying(this, "RollingEnd") && al::isActionEnd(this)) {
+    else if (al::isActionPlaying(this, "RollingEnd") && al::isActionEnd(this))
         al::startAction(this, "Wait");
-    }
 
 checkYawn:
     if (al::isActionPlaying(this, "Yawn") && al::isActionEnd(this)) {

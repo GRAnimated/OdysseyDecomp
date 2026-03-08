@@ -16,9 +16,9 @@ ProjectReplaceTagProcessor::ProjectReplaceTagProcessor(const al::IUseSceneObjHol
 // NON_MATCHING: stack frame is 0xc0 in target vs 0xb0 here; compiler allocates separate stack
 // slots for accessor temporaries in Shine else-branch and CoinCollect block instead of overlapping
 u32 ProjectReplaceTagProcessor::replaceProjectTag(char16* out, const al::MessageTag& tag,
-                                                   const al::IUseMessageSystem* msgSys) const {
-    const char* tagName = al::getMessageTagName(
-        msgSys, (s32)(u16)tag.getData()[1], (s32)(u16)tag.getData()[2]);
+                                                  const al::IUseMessageSystem* msgSys) const {
+    const char* tagName =
+        al::getMessageTagName(msgSys, (s32)(u16)tag.getData()[1], (s32)(u16)tag.getData()[2]);
     const char16* message = nullptr;
 
     if (al::isEqualString(tagName, "ShineIconCurrentWorld")) {
@@ -30,16 +30,14 @@ u32 ProjectReplaceTagProcessor::replaceProjectTag(char16* out, const al::Message
         else {
             s32 worldId =
                 GameDataFunction::getCurrentWorldId(GameDataHolderAccessor(mSceneObjHolder));
-            const char* developName =
-                GameDataFunction::getWorldDevelopName(GameDataHolderAccessor(mSceneObjHolder),
-                                                      worldId);
+            const char* developName = GameDataFunction::getWorldDevelopName(
+                GameDataHolderAccessor(mSceneObjHolder), worldId);
             iconName.format("ShineIcon_%s", developName);
         }
         message = al::getSystemMessageString(msgSys, "IconTag", iconName.cstr());
     } else if (al::isEqualString(tagName, "CoinCollectIconCurrentWorld")) {
         sead::FixedSafeString<64> iconName;
-        s32 worldId =
-            GameDataFunction::getCurrentWorldId(GameDataHolderAccessor(mSceneObjHolder));
+        s32 worldId = GameDataFunction::getCurrentWorldId(GameDataHolderAccessor(mSceneObjHolder));
         const char* developName =
             GameDataFunction::getWorldDevelopName(GameDataHolderAccessor(mSceneObjHolder), worldId);
         iconName.format("CoinCollectIcon_%s", developName);

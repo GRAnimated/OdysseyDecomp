@@ -7,7 +7,8 @@
 
 class ScrollBarParts : public al::LayoutActor {
 public:
-    ScrollBarParts(al::LayoutActor* layoutActor, const al::LayoutInitInfo& initInfo, bool isVertical);
+    ScrollBarParts(al::LayoutActor* layoutActor, const al::LayoutInitInfo& initInfo,
+                   bool isVertical);
 
     void control();
     void setupDataNum(s32 visibleCount, s32 totalCount);

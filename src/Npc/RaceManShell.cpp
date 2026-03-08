@@ -17,8 +17,7 @@ void RaceManShell::init(const al::ActorInitInfo& initInfo) {
 void RaceManShell::control() {}
 
 // NON_MATCHING: branch direction differences and tail call optimization for last check
-bool RaceManShell::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                              al::HitSensor* self) {
+bool RaceManShell::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) {
     if (!al::isSensorName(self, "Body"))
         return false;
     if (al::isMsgPlayerDisregard(msg))

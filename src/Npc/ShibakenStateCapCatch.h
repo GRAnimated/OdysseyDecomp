@@ -20,8 +20,7 @@ public:
     void kill() override;
 
     bool tryStart();
-    bool tryStartByReceiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
-                              al::HitSensor* self);
+    bool tryStartByReceiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self);
     bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self);
 
     void exeChase();

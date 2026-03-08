@@ -23,10 +23,8 @@ NERVES_MAKE_NOSTRUCT(JumpingRopeLayout, Wait, Game, Result, End, DisplayTutorial
 JumpingRopeLayout::JumpingRopeLayout(JumpingRopeNpc* npc, const al::ActorInitInfo& info)
     : al::NerveExecutor(u8"縄跳びレイアウト管理") {
     mNpc = npc;
-    mMiniGameLayout =
-        new MiniGameLayout(u8"ミニゲームレイアウト", al::getLayoutInitInfo(info));
-    mCueLayout =
-        new MiniGameCueLayout(u8"ミニゲーム見出しレイアウト", al::getLayoutInitInfo(info));
+    mMiniGameLayout = new MiniGameLayout(u8"ミニゲームレイアウト", al::getLayoutInitInfo(info));
+    mCueLayout = new MiniGameCueLayout(u8"ミニゲーム見出しレイアウト", al::getLayoutInitInfo(info));
     initNerve(&Wait, 0);
 }
 

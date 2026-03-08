@@ -43,28 +43,25 @@ void SphinxRideEvent::init(const al::ActorInitInfo& info) {
         return;
     }
 
-    al::getLinkTR(&mSphinxRideTrans, &mSphinxRideRotate, info,
-                  "StartEventPosSphinxRide");
+    al::getLinkTR(&mSphinxRideTrans, &mSphinxRideRotate, info, "StartEventPosSphinxRide");
 
     al::PlacementInfo placementInfo;
     al::getLinksInfoByIndex(&placementInfo, info, "StartEventPosPlayer", 0);
     al::tryGetTrans(&mPlayerTrans, placementInfo);
     al::tryGetFront(&mPlayerFront, placementInfo);
 
-    bool isExistPyramid =
-        al::isExistLinkChild(info, "SwitchAreaOnEventPyramid", 0);
-    bool isExistSphinxStone =
-        al::isExistLinkChild(info, "SwitchAreaOnEventSphinxStone", 0);
+    bool isExistPyramid = al::isExistLinkChild(info, "SwitchAreaOnEventPyramid", 0);
+    bool isExistSphinxStone = al::isExistLinkChild(info, "SwitchAreaOnEventSphinxStone", 0);
 
     if (isExistPyramid)
-        mAreaObjGroup = al::createLinkAreaGroup(
-            this, info, "SwitchAreaOnEventPyramid",
-            "帽子メッセージエリアグループ", "帽子メッセージエリア");
+        mAreaObjGroup =
+            al::createLinkAreaGroup(this, info, "SwitchAreaOnEventPyramid",
+                                    "帽子メッセージエリアグループ", "帽子メッセージエリア");
 
     if (isExistSphinxStone)
-        mAreaObjGroup = al::createLinkAreaGroup(
-            this, info, "SwitchAreaOnEventSphinxStone",
-            "帽子メッセージエリアグループ", "帽子メッセージエリア");
+        mAreaObjGroup =
+            al::createLinkAreaGroup(this, info, "SwitchAreaOnEventSphinxStone",
+                                    "帽子メッセージエリアグループ", "帽子メッセージエリア");
 
     if (isExistPyramid)
         mEventType = 0;
@@ -73,11 +70,9 @@ void SphinxRideEvent::init(const al::ActorInitInfo& info) {
         mEventType = 1;
 
     if (mEventType == 1) {
-        mEventFlowExecutor =
-            rs::initEventFlow(this, info, "SphinxRideEventStone", nullptr);
+        mEventFlowExecutor = rs::initEventFlow(this, info, "SphinxRideEventStone", nullptr);
     } else if (mEventType == 0) {
-        mEventFlowExecutor =
-            rs::initEventFlow(this, info, "SphinxRideEventPyramid", nullptr);
+        mEventFlowExecutor = rs::initEventFlow(this, info, "SphinxRideEventPyramid", nullptr);
         rs::initEventCharacterName(mEventFlowExecutor, info, "SphinxRide");
     } else {
         makeActorDead();
@@ -90,9 +85,7 @@ void SphinxRideEvent::init(const al::ActorInitInfo& info) {
     al::initNerve(this, &CheckInArea, 0);
     makeActorAlive();
 
-    s32 shineIndex =
-        GameDataFunction::tryFindLinkedShineIndexByLinkName(this, info,
-                                                            "GetAutoMoon");
+    s32 shineIndex = GameDataFunction::tryFindLinkedShineIndexByLinkName(this, info, "GetAutoMoon");
     GameDataHolderAccessor accessor(this);
     if (GameDataFunction::isGotShine(accessor, shineIndex))
         al::tryOnStageSwitch(this, "SwitchShineGetOn");
@@ -133,8 +126,7 @@ void SphinxRideEvent::exeEventSphinxStone() {
 
 bool SphinxRideEvent::receiveMsg(const al::SensorMsg* msg, al::HitSensor* other,
                                  al::HitSensor* self) {
-    if (al::isMsgPlayerDisregard(msg) ||
-        rs::isMsgPlayerDisregardHomingAttack(msg))
+    if (al::isMsgPlayerDisregard(msg) || rs::isMsgPlayerDisregardHomingAttack(msg))
         return true;
 
     return rs::isMsgPlayerDisregardTargetMarker(msg);

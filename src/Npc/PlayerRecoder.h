@@ -16,6 +16,7 @@ struct PlayerRecordEntry {
     bool hasCapPos;
     sead::Vector3f capPos;
 };
+
 static_assert(sizeof(PlayerRecordEntry) == 0x38);
 
 class PlayerRecoder : public al::NerveExecutor {

@@ -148,8 +148,7 @@ bool JumpingRopeNpc::receiveMsg(const al::SensorMsg* message, al::HitSensor* oth
                 miss();
             return true;
         }
-        if (rs::isMsgPlayerObjLeapFrog(message) ||
-            al::isMsgPlayerTrampleReflect(message) ||
+        if (rs::isMsgPlayerObjLeapFrog(message) || al::isMsgPlayerTrampleReflect(message) ||
             rs::isMsgPlayerAndCapObjHipDropReflectAll(message) ||
             rs::isMsgThrowObjHitReflect(message)) {
             ActionAnimInfo* info = mActionAnimInfo;
@@ -172,8 +171,7 @@ bool JumpingRopeNpc::receiveMsg(const al::SensorMsg* message, al::HitSensor* oth
 }
 
 bool JumpingRopeNpc::tryMiss() {
-    if (al::isNerve(this, &NrvJumpingRopeNpc.Jump) ||
-        al::isNerve(this, &NrvJumpingRopeNpc.Start) ||
+    if (al::isNerve(this, &NrvJumpingRopeNpc.Jump) || al::isNerve(this, &NrvJumpingRopeNpc.Start) ||
         al::isNerve(this, &NrvJumpingRopeNpc.Wait)) {
         miss();
         return true;
@@ -289,26 +287,24 @@ void JumpingRopeNpc::endJump() {
 
 void JumpingRopeNpc::startResultAction() {
     const char* actionName;
-    if (mJumpCount < _200) {
+    if (mJumpCount < _200)
         actionName = "ResultA";
-    } else if (mJumpCount < _204) {
+    else if (mJumpCount < _204)
         actionName = "ResultB";
-    } else {
+    else
         actionName = "ResultC";
-    }
     setActionAnimInfo(mActionAnimInfo, actionName);
     setActionAnimInfo(mPartnerActionAnimInfo, actionName);
 }
 
 void JumpingRopeNpc::startResultMessage() {
     const char* message;
-    if (mJumpCount < _200) {
+    if (mJumpCount < _200)
         message = "ResultBad";
-    } else if (mJumpCount >= _204) {
+    else if (mJumpCount >= _204)
         message = "ResultCool";
-    } else {
+    else
         message = "ResultNormal";
-    }
     rs::startEventFlow(mEventFlowExecutor, message);
 }
 
@@ -316,15 +312,14 @@ bool JumpingRopeNpc::tryStartResultLoopAction() {
     ActionAnimInfo* info = mActionAnimInfo;
     const char* waitAction;
 
-    if (al::isEqualString("ResultA", info->actionName)) {
+    if (al::isEqualString("ResultA", info->actionName))
         waitAction = "WaitResultA";
-    } else if (al::isEqualString("ResultB", info->actionName)) {
+    else if (al::isEqualString("ResultB", info->actionName))
         waitAction = "WaitResultB";
-    } else if (al::isEqualString("ResultC", info->actionName)) {
+    else if (al::isEqualString("ResultC", info->actionName))
         waitAction = "WaitResultC";
-    } else {
+    else
         return false;
-    }
 
     if (!info->reactionAction) {
         if (!al::isActionEnd(info->actor))
@@ -372,8 +367,7 @@ s32 JumpingRopeNpc::searchNearestNode() {
     sead::Vector3f frontDir;
     al::calcFrontDir(&frontDir, this);
 
-    RopeNode* firstNode =
-        mRopeNodes.ptrNum > 0 ? (RopeNode*)((void**)mRopeNodes.ptrs)[0] : nullptr;
+    RopeNode* firstNode = mRopeNodes.ptrNum > 0 ? (RopeNode*)((void**)mRopeNodes.ptrs)[0] : nullptr;
     const sead::Vector3f* playerPos = &al::getPlayerPos(this, 0);
 
     s32 nodeCount = mRopeNodes.ptrNum - 2;
@@ -384,8 +378,7 @@ s32 JumpingRopeNpc::searchNearestNode() {
                   (playerPos->y - firstNode->pos.y) * frontDir.y +
                   (playerPos->z - firstNode->pos.z) * frontDir.z;
 
-    RopeNode* node2 =
-        mRopeNodes.ptrNum >= 3 ? (RopeNode*)((void**)mRopeNodes.ptrs)[2] : nullptr;
+    RopeNode* node2 = mRopeNodes.ptrNum >= 3 ? (RopeNode*)((void**)mRopeNodes.ptrs)[2] : nullptr;
     f32 dot2 = (node2->pos.x - firstNode->pos.x) * frontDir.x +
                (node2->pos.y - firstNode->pos.y) * frontDir.y +
                (node2->pos.z - firstNode->pos.z) * frontDir.z;
@@ -417,34 +410,30 @@ void JumpingRopeNpc::updateRot(bool updateFrame) {
     al::calcSideDir(&sideDir, this);
     al::calcFrontDir(&frontDir, this);
 
-    RopeNode* firstNode =
-        mRopeNodes.ptrNum > 0 ? (RopeNode*)((void**)mRopeNodes.ptrs)[0] : nullptr;
+    RopeNode* firstNode = mRopeNodes.ptrNum > 0 ? (RopeNode*)((void**)mRopeNodes.ptrs)[0] : nullptr;
     f32 cosVal = cosf(mAngle);
     f32 sinVal = sinf(mAngle);
 
     RopeNode* secondNode =
         mRopeNodes.ptrNum >= 2 ? (RopeNode*)((void**)mRopeNodes.ptrs)[1] : nullptr;
-    secondNode->pos.x = sinVal * sideDir.x * mNodeInterval + firstNode->pos.x +
-                         frontDir.x * 65.0f;
+    secondNode->pos.x = sinVal * sideDir.x * mNodeInterval + firstNode->pos.x + frontDir.x * 65.0f;
     secondNode->pos.y = sinVal * sideDir.y * mNodeInterval + cosVal * mNodeInterval +
-                         firstNode->pos.y + frontDir.y * 65.0f;
-    secondNode->pos.z = sinVal * sideDir.z * mNodeInterval + firstNode->pos.z +
-                         frontDir.z * 65.0f;
+                        firstNode->pos.y + frontDir.y * 65.0f;
+    secondNode->pos.z = sinVal * sideDir.z * mNodeInterval + firstNode->pos.z + frontDir.z * 65.0f;
 
     s32 count = mRopeNodes.ptrNum;
     RopeNode* lastNode = (RopeNode*)((void**)mRopeNodes.ptrs)[count - 1];
     RopeNode* secondLastNode =
         count >= 2 ? (RopeNode*)((void**)mRopeNodes.ptrs)[count - 2] : nullptr;
-    secondLastNode->pos.x = sinVal * sideDir.x * mNodeInterval + lastNode->pos.x -
-                             frontDir.x * 65.0f;
+    secondLastNode->pos.x =
+        sinVal * sideDir.x * mNodeInterval + lastNode->pos.x - frontDir.x * 65.0f;
     secondLastNode->pos.y = sinVal * sideDir.y * mNodeInterval + cosVal * mNodeInterval +
-                             lastNode->pos.y - frontDir.y * 65.0f;
-    secondLastNode->pos.z = sinVal * sideDir.z * mNodeInterval + lastNode->pos.z -
-                             frontDir.z * 65.0f;
+                            lastNode->pos.y - frontDir.y * 65.0f;
+    secondLastNode->pos.z =
+        sinVal * sideDir.z * mNodeInterval + lastNode->pos.z - frontDir.z * 65.0f;
 
     if (updateFrame) {
-        f32 phase =
-            al::modf((mAngle + sead::Mathf::pi()) / sead::Mathf::pi2() + 1.0f, 1.0f);
+        f32 phase = al::modf((mAngle + sead::Mathf::pi()) / sead::Mathf::pi2() + 1.0f, 1.0f);
         f32 maxFrame = al::getActionFrameMax(this, "TurnLeft");
         f32 animFrame = phase * maxFrame;
         ActionAnimInfo* animInfo = mActionAnimInfo;
@@ -487,16 +476,12 @@ void JumpingRopeNpc::updateRope() {
         al::isNerve(this, &NrvJumpingRopeNpc.Interrupt) ||
         al::isNerve(this, &NrvJumpingRopeNpc.TryAgain)) {
         RopeNode* secondNode =
-            mRopeNodes.ptrNum >= 2
-                ? (RopeNode*)((void**)mRopeNodes.ptrs)[1]
-                : nullptr;
+            mRopeNodes.ptrNum >= 2 ? (RopeNode*)((void**)mRopeNodes.ptrs)[1] : nullptr;
         al::calcJointPos(&secondNode->pos, this, "RopeRoot");
 
         s32 count = mRopeNodes.ptrNum;
         RopeNode* secondLastNode =
-            count >= 2
-                ? (RopeNode*)((void**)mRopeNodes.ptrs)[count - 2]
-                : nullptr;
+            count >= 2 ? (RopeNode*)((void**)mRopeNodes.ptrs)[count - 2] : nullptr;
         al::calcJointPos(&secondLastNode->pos, mPartner, "RopeRoot");
     }
 
@@ -560,8 +545,7 @@ void JumpingRopeNpc::updateRope() {
             node->pos.y = trans.y + 10.0f;
             if (!(_180 & 0xFF)) {
                 if (_180 >= 0x100)
-                    al::startHitReaction(this,
-                                         u8"地面パチン");
+                    al::startHitReaction(this, u8"地面パチン");
                 _20c = true;
             }
         }
@@ -575,8 +559,7 @@ void JumpingRopeNpc::updateRope() {
     if (mRopeNodes.ptrNum >= 2) {
         RopeNode* sn = (RopeNode*)((void**)mRopeNodes.ptrs)[1];
         mHandTarget = sn->pos;
-        RopeNode* sln =
-            (RopeNode*)((void**)mRopeNodes.ptrs)[mRopeNodes.ptrNum - 2];
+        RopeNode* sln = (RopeNode*)((void**)mRopeNodes.ptrs)[mRopeNodes.ptrNum - 2];
         mPartnerHandTarget = sln->pos;
     }
 }
@@ -696,8 +679,7 @@ void JumpingRopeNpc::exeJump() {
     if (_1fc) {
         if (distToSensor < sensorRadius) {
             s32 nearestIdx = searchNearestNode();
-            RopeNode* nearNode =
-                (RopeNode*)((void**)mRopeNodes.ptrs)[nearestIdx];
+            RopeNode* nearNode = (RopeNode*)((void**)mRopeNodes.ptrs)[nearestIdx];
             if (nearNode->pos.y < al::getPlayerPos(this, 0).y) {
                 sead::Vector3f front;
                 al::calcFrontDir(&front, this);
@@ -711,13 +693,11 @@ void JumpingRopeNpc::exeJump() {
                            cross.y * (nearNode->pos.y - playerPos->y) +
                            cross.z * (nearNode->pos.z - playerPos->z);
 
-                RopeNode* nextNode =
-                    (RopeNode*)((void**)mRopeNodes.ptrs)[nearestIdx];
+                RopeNode* nextNode = (RopeNode*)((void**)mRopeNodes.ptrs)[nearestIdx];
                 playerPos = &al::getPlayerPos(this, 0);
-                f32 dot2 =
-                    cross.x * (nextNode->targetPos.x - playerPos->x) +
-                    cross.y * (nextNode->targetPos.y - playerPos->y) +
-                    cross.z * (nextNode->targetPos.z - playerPos->z);
+                f32 dot2 = cross.x * (nextNode->targetPos.x - playerPos->x) +
+                           cross.y * (nextNode->targetPos.y - playerPos->y) +
+                           cross.z * (nextNode->targetPos.z - playerPos->z);
 
                 if (!al::isSameSign(dot1, dot2)) {
                     s32 count = mJumpCount + 1;
@@ -726,20 +706,16 @@ void JumpingRopeNpc::exeJump() {
                     mJumpCount = count;
 
                     if (count == _204)
-                        al::startHitReaction(this,
-                                             u8"１００回記念");
+                        al::startHitReaction(this, u8"１００回記念");
                     else if (count > _204 && count % _204 == 0)
-                        al::startHitReaction(this,
-                                             u8"１００毎記念");
+                        al::startHitReaction(this, u8"１００毎記念");
                     else
-                        al::startHitReaction(this,
-                                             u8"カウントアップ");
+                        al::startHitReaction(this, u8"カウントアップ");
 
                     if (mRopeSpeed < 10.0f && mJumpCount % 5 == 0) {
                         mRopeSpeed = fminf(mRopeSpeed + 0.5f, 10.0f);
                         _1f8 = al::getNerveStep(this) + 60;
-                        al::startHitReaction(this,
-                                             u8"スピードアップ");
+                        al::startHitReaction(this, u8"スピードアップ");
                     }
 
                     _1fc = false;
@@ -925,11 +901,9 @@ void JumpingRopeNpc::exeTryAgain() {
             rs::startEventFlow(mEventFlowExecutor, "Obstacle");
             _182 = true;
         }
-    } else {
-        if (*((u8*)&_180 + 1)) {
-            rs::startEventFlow(mEventFlowExecutor, "ResultBad");
-            _182 = false;
-        }
+    } else if (*((u8*)&_180 + 1)) {
+        rs::startEventFlow(mEventFlowExecutor, "ResultBad");
+        _182 = false;
     }
 
     playerPos = &al::getPlayerPos(this, 0);
@@ -939,4 +913,3 @@ void JumpingRopeNpc::exeTryAgain() {
     if (sqrtf(dx * dx + dy * dy + dz * dz) < 1200.0f)
         rs::updateEventFlow(mEventFlowExecutor);
 }
-
