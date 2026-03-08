@@ -632,10 +632,10 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                 playerStartInfoHolder->tryFindInitInfoByStartId(startId);
             playerRestartInfo = foundInfo;
             if (foundInfo) {
-                const al::ByamlIter* iters = (const al::ByamlIter*)foundInfo;
-                restartPlacementInfo.set(iters[0], iters[1]);
-                al::CameraTicket* restartCamera =
-                    *(al::CameraTicket**)((const char*)foundInfo + 32);
+                const al::PlacementInfo* srcPlacement = foundInfo->placementInfo;
+                restartPlacementInfo.set(srcPlacement->getPlacementIter(),
+                                         srcPlacement->getZoneIter());
+                al::CameraTicket* restartCamera = foundInfo->cameraTicket;
                 if (lastRaceRanking <= 0 && restartCamera)
                     al::startCamera(this, restartCamera, -1);
                 else
