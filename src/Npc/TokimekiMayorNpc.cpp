@@ -68,7 +68,7 @@ void TokimekiMayorNpc::init(const al::ActorInitInfo& info) {
 
     mNpcStateReactionParam = new NpcStateReactionParam();
     mNpcStateReaction = NpcStateReaction::create(this, nullptr);
-    mNpcStateReaction->_20 = mNpcStateReactionParam;
+    mNpcStateReaction->mParam = mNpcStateReactionParam;
     mNpcStateReaction->_29 = true;
     al::initNerveState(this, mNpcStateReaction, &Reaction, u8"リアクション");
 

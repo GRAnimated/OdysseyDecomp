@@ -21,11 +21,11 @@ public:
     void appear() override;
     void kill() override;
 
-    bool receiveMsg(const al::SensorMsg*, al::HitSensor* self, al::HitSensor* other) override;
-    bool receiveMsgWithoutTrample(const al::SensorMsg*, al::HitSensor* self,
-                                  al::HitSensor* other) override;
-    bool receiveMsgNoReaction(const al::SensorMsg*, al::HitSensor* self,
-                              al::HitSensor* other) override;
+    bool receiveMsg(const al::SensorMsg*, al::HitSensor* other, al::HitSensor* self) override;
+    bool receiveMsgWithoutTrample(const al::SensorMsg*, al::HitSensor* other,
+                                  al::HitSensor* self) override;
+    bool receiveMsgNoReaction(const al::SensorMsg*, al::HitSensor* other,
+                              al::HitSensor* self) override;
     bool isCapReaction() const override;
 
     void exeReaction();
@@ -33,7 +33,11 @@ public:
 
     void setCapReaction(bool v) { mIsCapReaction = v; }
 
-    NpcStateReactionParam* _20 = nullptr;
-    bool mIsCapReaction = false;
-    bool _29 = false;
+    const NpcStateReactionParam* mParam;
+    bool mIsCapReaction;
+    bool _29;
+    bool _2a;
+    bool mWasClippingInvalid;
 };
+
+static_assert(sizeof(NpcStateReaction) == 0x30);

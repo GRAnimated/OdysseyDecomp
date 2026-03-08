@@ -4,16 +4,16 @@
 
 class NpcStateTurnParam {
 public:
-    NpcStateTurnParam(f32, f32, f32, f32, bool, bool, s32);
+    NpcStateTurnParam(f32 angleThreshold, f32 angleEnd, f32 turnSpeed, f32 nearDistance,
+                      bool isEnable, bool isOnlyFromWaitAfter, s32 turnEndStep);
 
-private:
-    f32 _0;
-    f32 _4;
-    f32 _8;
-    f32 _c;
-    bool _10;
-    bool _11;
-    s32 _14;
+    f32 mAngleThreshold;
+    f32 mAngleEnd;
+    f32 mTurnSpeed;
+    f32 mNearDistance;
+    bool mIsEnable;
+    bool mIsOnlyFromWaitAfter;
+    s32 mTurnEndStep;
 };
 
 static_assert(sizeof(NpcStateTurnParam) == 0x18);

@@ -54,43 +54,43 @@
 [x] Npc/ShibakenFunction.o
 [x] Npc/Shibaken.o
 [x] Npc/ShellActorStateReaction.o
-[ ] Npc/RunAwayNpc.o
-[ ] Npc/RankingNpc.o
-[ ] Npc/RankingNameHolder.o
-[ ] Npc/RandomWaitActionUpdater.o
+[x] Npc/RunAwayNpc.o
+[x] Npc/RankingNpc.o
+[x] Npc/RankingNameHolder.o
+[x] Npc/RandomWaitActionUpdater.o
 [x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/RandomActionUpdater.o
-[ ] Npc/RadiconNpc.o
-[ ] Npc/RadiconCarStateAutoMove.o
-[ ] Npc/RadiconCar.o
-[ ] Npc/RaceManThrowCap.o
-[ ] Npc/RaceManStart.o
+[x] Npc/RandomActionUpdater.o
+[x] Npc/RadiconNpc.o
+[x] Npc/RadiconCarStateAutoMove.o
+[x] Npc/RadiconCar.o
+[x] Npc/RaceManThrowCap.o
+[x] Npc/RaceManStart.o
 [x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/RaceManShell.o
-[ ] Npc/RaceManRace.o
-[ ] Npc/RaceManGoal.o
-[ ] Npc/Poetter.o
-[ ] Npc/PochiHintPhoto.o
-[ ] Npc/PlayerRecoder.o
+[x] Npc/RaceManShell.o
+[x] Npc/RaceManRace.o
+[x] Npc/RaceManGoal.o
+[x] Npc/Poetter.o
+[x] Npc/PochiHintPhoto.o
+[x] Npc/PlayerRecoder.o
 [x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/PeachOnKoopaAnimInfo.o
-[ ] Npc/Peach.o
-[ ] Npc/PaulineRhythmInfo.o
-[ ] Npc/PaulineAudience.o
-[ ] Npc/PaulineAtCeremony.o
+[x] Npc/PeachOnKoopaAnimInfo.o
+[x] Npc/Peach.o
+[x] Npc/PaulineRhythmInfo.o
+[x] Npc/PaulineAudience.o
+[x] Npc/PaulineAtCeremony.o
 [x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/OpeningStageStartCapManHero.o
-[ ] Npc/NpcStateWait.o
-[ ] Npc/NpcStateTurnSeparate.o
-[ ] Npc/NpcStateTurnBase.o
-[ ] Npc/NpcStateReactionParam.o
-[ ] Npc/NpcJointLookAtController.o
+[x] Npc/OpeningStageStartCapManHero.o
+[x] Npc/NpcStateWait.o
+[x] Npc/NpcStateTurnSeparate.o
+[x] Npc/NpcStateTurnBase.o
+[x] Npc/NpcStateReactionParam.o
+[x] Npc/NpcJointLookAtController.o
 [x] Push to claude-testing on GitHub if you haven't already
-[ ] Npc/NpcEventStateScare.o
-[ ] Npc/NpcEventSceneConstData.o
+[x] Npc/NpcEventStateScare.o
+[x] Npc/NpcEventSceneConstData.o
 [ ] Npc/NpcEventDirector.o
-[ ] Npc/NpcEventCtrlInfo.o
-[ ] Npc/NpcEventBalloonInfo.o
+[x] Npc/NpcEventCtrlInfo.o
+[x] Npc/NpcEventBalloonInfo.o
 [ ] Npc/MoveHomeNpc.o
 [x] Push to claude-testing on GitHub if you haven't already
 [ ] Npc/JumpingRopeNpc.o

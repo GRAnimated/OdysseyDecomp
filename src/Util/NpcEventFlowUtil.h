@@ -51,6 +51,7 @@ void initEventCameraFixActorAutoAroundFront(al::EventFlowExecutor*, const al::Ac
                                             const char*, const al::LiveActor*,
                                             const sead::Vector3f*, f32, f32, f32, bool);
 void initEventCameraObject(al::EventFlowExecutor*, const al::ActorInitInfo&, const char*);
+void initEventCameraTalk2(al::EventFlowExecutor*, const al::ActorInitInfo&, const char*);
 void initEventQueryJudge(al::EventFlowExecutor*, const al::IEventFlowQueryJudge*);
 void initEventCameraObjectAfterKeepPose(al::EventFlowExecutor*, const al::ActorInitInfo&,
                                         const char*);
@@ -63,6 +64,8 @@ void setEventBalloonFilterOnlyMiniGame(const al::LiveActor*);
 void resetEventBalloonFilter(const al::LiveActor*);
 bool tryStartEventCutSceneDemo(al::LiveActor*);
 void tryStartEventCutSceneKeepHackDemo(al::LiveActor*);
+void endEventCutSceneDemo(al::LiveActor*);
+void endEventCutSceneDemoBySkip(al::LiveActor*);
 void endEventCutSceneDemoOrTryEndEventCutSceneDemoBySkip(al::LiveActor*);
 void tryHideDemoPlayerIfRequested(al::LiveActor*, al::EventFlowExecutor*);
 void tryShowDemoPlayerIfRequested(al::LiveActor*, al::EventFlowExecutor*);
@@ -71,6 +74,7 @@ bool isPlayingTextPaneAnimEventTalkMessage(const al::LiveActor*);
 bool isSuccessNpcEventBalloonMessage(const al::LiveActor*);
 bool isPlayingNpcEventBalloonMessageVoice(const al::LiveActor*);
 bool isCloseNpcDemoEventTalkMessage(const al::LiveActor*);
+void startCloseNpcDemoEventTalkMessage(al::LiveActor*);
 void requestSwitchTalkNpcEventVolleyBall(al::LiveActor*, s32);
 void skipEventDemo(al::EventFlowExecutor*);
 const char* tryGetTalkNpcVolleyBallEntryName(const al::LiveActor*);
@@ -80,4 +84,7 @@ void startWorldTravelingPeach(const al::LiveActor*);
 void tryInitItemKeeperByEvent(al::LiveActor*, const al::ActorInitInfo&,
                               const al::EventFlowExecutor*);
 bool isExistTalkNpcParamHolder(const al::LiveActor*);
+bool isExecuteSceneEvent(const al::LiveActor*);
+bool isExistNpcLookPos(const al::LiveActor*);
+const sead::Vector3f* getNpcLookPos(const al::LiveActor*);
 }  // namespace rs

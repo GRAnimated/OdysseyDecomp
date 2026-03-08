@@ -682,9 +682,9 @@ bool SphinxRide::receiveMsg(const al::SensorMsg* msg, al::HitSensor* self, al::H
             if (al::isNerve(this, &NrvSphinxRide.Reaction))
                 return true;
             if (_208)
-                mStateReaction->_20 = &sReactionCapStandbyParam;
+                mStateReaction->mParam = &sReactionCapStandbyParam;
             else
-                mStateReaction->_20 = &sReactionWaitParam;
+                mStateReaction->mParam = &sReactionWaitParam;
             al::setNerve(this, &NrvSphinxRide.Reaction);
             return true;
         }
