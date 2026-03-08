@@ -1218,8 +1218,9 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
             } else {
                 if (GameDataFunction::isEnterStageFirst(mGameDataHolder) &&
                     al::isExistSceneObj(this, SceneObjID_GiantWanderBoss)) {
-                    GiantWanderBoss* giantWanderBoss = (GiantWanderBoss*)al::getSceneObj(
-                        this, SceneObjID_GiantWanderBoss);
+                    GiantWanderBoss* giantWanderBoss =
+                        static_cast<GiantWanderBoss*>(al::getSceneObj(
+                            this, SceneObjID_GiantWanderBoss));
                     if (GiantWanderBoss::isOnSwitchAll(giantWanderBoss)) {
                         rs::requestStartDemoWithPlayer(this);
                         rs::addDemoActor(giantWanderBoss, false);
