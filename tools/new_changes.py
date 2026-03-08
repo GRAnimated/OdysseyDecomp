@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import os
+import re
 import subprocess
+import sys
 
 def run(cmd):
     return subprocess.check_output(cmd, shell=True, text=True)
@@ -32,20 +33,60 @@ for line in diff.splitlines():
             counts[key] += 1
             break
 
+# Compute weighted byte size from changes in file_list.yml.
+# The diff shows status lines changing; size is visible in context lines.
+# We track the last seen `size:` value from context to pair with each status change.
+NON_MATCHING = {"NonMatchingMinor", "NonMatchingMajor"}
+
+file_list_diff = run(f"git diff {BASE} -- data/file_list.yml")
+
+matching_bytes = 0
+nonmatching_bytes = 0
+last_size = None
+
+for line in file_list_diff.splitlines():
+    # Skip diff headers
+    if line.startswith("+++") or line.startswith("---") or line.startswith("@@"):
+        continue
+
+    content = line[1:].strip() if len(line) > 1 else ""
+
+    # Track size from context or added lines
+    m = re.match(r"size:\s*(\d+)", content)
+    if m:
+        last_size = int(m.group(1))
+        continue
+
+    # Only process added status lines
+    if not line.startswith("+"):
+        continue
+
+    m = re.match(r"status:\s*(\S+)", content)
+    if m and last_size is not None:
+        new_status = m.group(1)
+        if new_status == "Matching":
+            matching_bytes += last_size
+        elif new_status in NON_MATCHING:
+            nonmatching_bytes += last_size
+        last_size = None
+
 print("Status counts:")
 for key, val in counts.items():
     print(f"  {key}: {val}")
 sum_lines = 0
 for name, lines in sorted(files.items()):
     sum_lines += lines
-print(f"Total added lines: {sum_lines}")
+print(f"\nTotal added lines: {sum_lines}")
+print(f"Matching added bytes: {matching_bytes / 1024:.1f} KB")
+print(f"Non-Matching added bytes: {nonmatching_bytes / 1024:.1f} KB")
+print(f"Total added bytes: {(matching_bytes + nonmatching_bytes) / 1024:.1f} KB")
 
-# print("\nModified files:")
-# seen = set()
-# for name in sorted(files.keys()):
-#     stripped_name = name
-#     if stripped_name.startswith("lib/al/"):
-#         stripped_name = stripped_name[len("lib/al/"):]
-#     elif stripped_name.startswith("src/"):
-#         stripped_name = stripped_name[len("src/"):]
-#     print(stripped_name)
+if "--files" in sys.argv:
+    print("\nModified files:")
+    for name in sorted(files.keys()):
+        stripped_name = name
+        if stripped_name.startswith("lib/al/"):
+            stripped_name = stripped_name[len("lib/al/"):]
+        elif stripped_name.startswith("src/"):
+            stripped_name = stripped_name[len("src/"):]
+        print(stripped_name)
