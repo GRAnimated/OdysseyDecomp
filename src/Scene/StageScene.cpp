@@ -283,12 +283,14 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
     s32 placementInfoCount = 0;
     al::tryGetPlacementInfoAndCount(&placementInfos, &placementInfoCount,
                                     al::getStageInfoMap(this, 0), "ObjectList");
-    s32 foundMirror = 0;
+    bool foundMirror = false;
     if (placementInfoCount >= 1) {
         for (s32 i = 0; i < placementInfoCount; i++) {
             al::PlacementInfo placementInfo;
             al::getPlacementInfoByIndex(&placementInfo, placementInfos, i);
             foundMirror |= al::isObjectName(placementInfo, "Mirror");
+            if (foundMirror)
+                break;
         }
     }
     graphicsInitArg.atmosScatterViewNum = foundMirror;
@@ -922,16 +924,16 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
         wipeHolder->registerWipe("WipeCircle", wipeCircle);
         auto* fadeBlack =
             new al::WipeSimple("黒フェード", "FadeBlack", layoutInitInfo, nullptr);
-        mWipeHolder->registerWipe("FadeBlack", fadeBlack);
+        wipeHolder->registerWipe("FadeBlack", fadeBlack);
         auto* fadeWhite =
             new al::WipeSimple("白フェード", "FadeWhite", layoutInitInfo, nullptr);
-        mWipeHolder->registerWipe("FadeWhite", fadeWhite);
+        wipeHolder->registerWipe("FadeWhite", fadeWhite);
         auto* wipeMiss =
             new al::WipeSimple("ミスワイプ", "WipeMiss", layoutInitInfo, nullptr);
-        mWipeHolder->registerWipe("WipeMiss", wipeMiss);
+        wipeHolder->registerWipe("WipeMiss", wipeMiss);
         auto* wipeSkip =
             new al::WipeSimple("スキップワイプ", "WipeSkip", layoutInitInfo, nullptr);
-        mWipeHolder->registerWipe("WipeSkip", wipeSkip);
+        wipeHolder->registerWipe("WipeSkip", wipeSkip);
     }
 
     al::createSceneObj(this, SceneObjID_WipeHolderRequester);

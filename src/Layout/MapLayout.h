@@ -4,6 +4,7 @@
 #include <math/seadMatrix.h>
 #include <math/seadVector.h>
 
+#include "Library/Layout/LayoutActor.h"
 #include "Library/Scene/ISceneObj.h"
 
 namespace al {
@@ -12,12 +13,12 @@ class LayoutInitInfo;
 class PlayerHolder;
 }  // namespace al
 
-class MapLayout : public al::ISceneObj {
+class MapLayout : public al::LayoutActor, public al::ISceneObj {
 public:
     MapLayout(const al::LayoutInitInfo&, const al::PlayerHolder*, s32);
 
 private:
-    u8 _padding[0x290];
+    u8 _padding[0x160];
 };
 
 static_assert(sizeof(MapLayout) == 0x298);
