@@ -81,6 +81,7 @@
 #include "Player/ProjectCameraInput.h"
 #include "Scene/BgmAnimeSyncDirector.h"
 #include "Scene/BirdGatheringSpotDirector.h"
+#include "MapObj/CheckpointFlag.h"
 #include "Scene/CheckpointFlagWatcher.h"
 #include "Scene/CollectBgmPlayer.h"
 #include "Scene/DemoSoundSynchronizer.h"
@@ -648,7 +649,8 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
         GameDataFunction::getCheckpointWarpObjId(mGameDataHolder);
     al::LiveActor* checkpointFlag = rs::tryFindCheckpointFlag(this, checkpointWarpObjId);
     bool isWarpCheckpoint = GameDataFunction::isWarpCheckpoint(mGameDataHolder);
-    if (checkpointFlag && isWarpCheckpoint && al::isAlive(checkpointFlag))
+    if (checkpointFlag && isWarpCheckpoint &&
+        static_cast<CheckpointFlag*>(checkpointFlag)->isHomeFlag())
         al::resetSceneInitEntranceCamera(this);
 
     const char* costumeTypeName =
@@ -968,12 +970,12 @@ void StageScene::init(const al::SceneInitInfo& initInfo) {
                                                   mPlayGuideSkip, mAudioSystemPauseController,
                                                   mDemoSyncedEventKeeper);
 
-    mCheckpointWarpArriveCamera = al::initDemoProgramableCamera(
+    al::CameraTicket* checkpointWarpArriveCamera = al::initDemoProgramableCamera(
         this, actorInitInfo, "CheckpointWarpArriveCamera", &mCheckpointWarpTargetPos,
         &mCheckpointWarpParabolicPathPos, nullptr);
     mStateCheckpointWarp = new StageSceneStateCheckpointWarp(
         "チェックポイントワープ到着デモ", this, mCheckpointWarpCapActor, mGameDataHolder,
-        mCheckpointWarpArriveCamera, &mCheckpointWarpTargetPos, &mCheckpointWarpParabolicPathPos);
+        checkpointWarpArriveCamera, &mCheckpointWarpTargetPos, &mCheckpointWarpParabolicPathPos);
 
     mStateCarryMeat = new StageSceneStateCarryMeat("肉運びデモ", this);
 
