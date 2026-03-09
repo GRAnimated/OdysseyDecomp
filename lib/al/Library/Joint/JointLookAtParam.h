@@ -7,6 +7,7 @@ namespace al {
 
 class JointLookAtParam {
 public:
+    JointLookAtParam();
     JointLookAtParam(s32 jointIndex, f32 lookRate, const sead::Vector2f& limitYawDegree,
                      const sead::Vector2f& limitPitchDegree, const sead::Vector3f& localFrontDir,
                      const sead::Vector3f& localUpDir);
@@ -17,7 +18,7 @@ public:
     sead::Vector2f mLimitPitchDegree;
     sead::Vector3f mLocalFrontDir;
     sead::Vector3f mLocalUpDir;
-    u8 _30[0xC];
+    sead::Vector3f mLocalRightDir;
 };
 
 static_assert(sizeof(JointLookAtParam) == 0x3C);

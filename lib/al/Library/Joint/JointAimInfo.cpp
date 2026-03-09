@@ -9,25 +9,16 @@ namespace al {
 
 JointAimInfo::JointAimInfo() = default;
 
-// NON_MATCHING: target copies sead::Quatf::unit as two 8-byte loads (z,w first then x,y),
-// interleaved with clamping logic; our compiler generates four 32-bit word copies; also minor
-// register allocation differences (x21/x22 swap)
+// NON_MATCHING: register allocation differences (x21/x22 swap)
 void JointAimInfo::makeTurnQuat(sead::Quatf* quat, const sead::Vector3f& targetDir) const {
     sead::Vector3f dir;
     tryNormalizeOrZero(&dir, targetDir);
 
     if (!isNearZero(mBaseOffsetLocal)) {
-        f32 dot1 = mBaseOffsetLocal.x * mBaseAimLocalDir.x +
-                   mBaseOffsetLocal.y * mBaseAimLocalDir.y +
-                   mBaseOffsetLocal.z * mBaseAimLocalDir.z;
-        f32 aimLenSq = mBaseAimLocalDir.x * mBaseAimLocalDir.x +
-                       mBaseAimLocalDir.y * mBaseAimLocalDir.y +
-                       mBaseAimLocalDir.z * mBaseAimLocalDir.z;
-        f32 offsetLenSq = mBaseOffsetLocal.x * mBaseOffsetLocal.x +
-                          mBaseOffsetLocal.y * mBaseOffsetLocal.y +
-                          mBaseOffsetLocal.z * mBaseOffsetLocal.z;
-        f32 targetLenSq =
-            targetDir.x * targetDir.x + targetDir.y * targetDir.y + targetDir.z * targetDir.z;
+        f32 dot1 = mBaseOffsetLocal.dot(mBaseAimLocalDir);
+        f32 aimLenSq = mBaseAimLocalDir.dot(mBaseAimLocalDir);
+        f32 offsetLenSq = mBaseOffsetLocal.dot(mBaseOffsetLocal);
+        f32 targetLenSq = targetDir.dot(targetDir);
         f32 discriminant = dot1 * dot1 - (offsetLenSq - targetLenSq) * aimLenSq;
 
         f32 t;
@@ -41,10 +32,7 @@ void JointAimInfo::makeTurnQuat(sead::Quatf* quat, const sead::Vector3f& targetD
             t = 0.0f;
         }
 
-        sead::Vector3f adjusted;
-        adjusted.x = t * mBaseAimLocalDir.x + mBaseOffsetLocal.x;
-        adjusted.y = t * mBaseAimLocalDir.y + mBaseOffsetLocal.y;
-        adjusted.z = t * mBaseAimLocalDir.z + mBaseOffsetLocal.z;
+        sead::Vector3f adjusted = mBaseAimLocalDir * t + mBaseOffsetLocal;
         tryNormalizeOrZero(&adjusted);
 
         sead::Quatf rotRate;
@@ -69,7 +57,7 @@ void JointAimInfo::makeTurnQuat(sead::Quatf* quat, const sead::Vector3f& targetD
         if (clampedSide < -_54)
             clampedSide = -_54;
 
-        __builtin_memcpy(quat, &sead::Quatf::unit, sizeof(sead::Quatf));
+        *quat = sead::Quatf{0.0f, 0.0f, 0.0f, 1.0f};
         rotateQuatRadian(quat, *quat, mBaseSideLocalDir, clampedUp * sead::Mathf::deg2rad(1.0f));
         rotateQuatRadian(quat, *quat, mBaseUpLocalDir, clampedSide * sead::Mathf::deg2rad(1.0f));
         return;
@@ -78,32 +66,27 @@ void JointAimInfo::makeTurnQuat(sead::Quatf* quat, const sead::Vector3f& targetD
         makeTurnQuatOval(quat, dir);
         return;
     case 0:
-        __builtin_memcpy(quat, &sead::Quatf::unit, sizeof(sead::Quatf));
+        *quat = sead::Quatf{0.0f, 0.0f, 0.0f, 1.0f};
         turnQuat(quat, *quat, mBaseAimLocalDir, dir, _50 * sead::Mathf::deg2rad(1.0f));
         return;
     }
 }
 
-// NON_MATCHING: target copies sead::Quatf::unit as two 8-byte loads (z,w first then x,y);
-// our compiler generates four 32-bit word copies
 void JointAimInfo::makeTurnQuatCircle(sead::Quatf* quat, const sead::Vector3f& targetDir) const {
-    __builtin_memcpy(quat, &sead::Quatf::unit, sizeof(sead::Quatf));
+    *quat = sead::Quatf{0.0f, 0.0f, 0.0f, 1.0f};
     turnQuat(quat, *quat, mBaseAimLocalDir, targetDir, _50 * sead::Mathf::deg2rad(1.0f));
 }
 
-// NON_MATCHING: target copies sead::Quatf::unit as two 8-byte loads (z,w first then x,y);
-// our compiler generates four 32-bit word copies; also minor epilog ordering difference
+// NON_MATCHING: minor epilog ordering difference
 void JointAimInfo::makeTurnQuatOval(sead::Quatf* quat, const sead::Vector3f& targetDir) const {
-    f32 dotSide = targetDir.x * mBaseSideLocalDir.x + targetDir.y * mBaseSideLocalDir.y +
-                  targetDir.z * mBaseSideLocalDir.z;
-    f32 dotUp = targetDir.x * mBaseUpLocalDir.x + targetDir.y * mBaseUpLocalDir.y +
-                targetDir.z * mBaseUpLocalDir.z;
+    f32 dotSide = targetDir.dot(mBaseSideLocalDir);
+    f32 dotUp = targetDir.dot(mBaseUpLocalDir);
     f32 dotSideSq = dotSide * dotSide;
     f32 dotUpSq = dotUp * dotUp;
     f32 sum = dotSideSq + dotUpSq;
 
     if (isNearZero(sum)) {
-        __builtin_memcpy(quat, &sead::Quatf::unit, sizeof(sead::Quatf));
+        *quat = sead::Quatf{0.0f, 0.0f, 0.0f, 1.0f};
         return;
     }
 
@@ -121,12 +104,10 @@ void JointAimInfo::makeTurnQuatOval(sead::Quatf* quat, const sead::Vector3f& tar
                 sead::Mathf::deg2rad(1.0f);
     }
 
-    __builtin_memcpy(quat, &sead::Quatf::unit, sizeof(sead::Quatf));
+    *quat = sead::Quatf{0.0f, 0.0f, 0.0f, 1.0f};
     turnQuat(quat, *quat, mBaseAimLocalDir, targetDir, angle);
 }
 
-// NON_MATCHING: target copies sead::Quatf::unit as two 8-byte loads (z,w first then x,y),
-// interleaved with clamping logic; our compiler generates four 32-bit word copies before clamping
 void JointAimInfo::makeTurnQuatRect(sead::Quatf* quat, const sead::Vector3f& targetDir) const {
     f32 angleUp = calcAngleOnPlaneDegree(mBaseAimLocalDir, targetDir, mBaseSideLocalDir);
     f32 angleSide = calcAngleOnPlaneDegree(mBaseAimLocalDir, targetDir, mBaseUpLocalDir);
@@ -143,7 +124,7 @@ void JointAimInfo::makeTurnQuatRect(sead::Quatf* quat, const sead::Vector3f& tar
     if (clampedSide < -_54)
         clampedSide = -_54;
 
-    __builtin_memcpy(quat, &sead::Quatf::unit, sizeof(sead::Quatf));
+    *quat = sead::Quatf{0.0f, 0.0f, 0.0f, 1.0f};
     rotateQuatRadian(quat, *quat, mBaseSideLocalDir, clampedUp * sead::Mathf::deg2rad(1.0f));
     rotateQuatRadian(quat, *quat, mBaseUpLocalDir, clampedSide * sead::Mathf::deg2rad(1.0f));
 }
