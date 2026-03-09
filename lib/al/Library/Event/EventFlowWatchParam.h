@@ -16,6 +16,7 @@ public:
     void calcWatchTrans(sead::Vector3f* out, const LiveActor* actor) const;
 
 private:
-    u8 mData[0x18];
+    const char* mSensorName = nullptr;
+    sead::Vector3f mLocalOffset = {0.0f, 0.0f, 0.0f};
 };
 }  // namespace al

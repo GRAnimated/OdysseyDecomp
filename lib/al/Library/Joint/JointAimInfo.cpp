@@ -72,8 +72,9 @@ void JointAimInfo::makeTurnQuat(sead::Quatf* quat, const sead::Vector3f& targetD
     }
 }
 
+// NON_MATCHING: operator= on Quatf::unit generates 32-bit copies, target uses 64-bit
 void JointAimInfo::makeTurnQuatCircle(sead::Quatf* quat, const sead::Vector3f& targetDir) const {
-    *quat = sead::Quatf{0.0f, 0.0f, 0.0f, 1.0f};
+    *quat = sead::Quatf::unit;
     turnQuat(quat, *quat, mBaseAimLocalDir, targetDir, _50 * sead::Mathf::deg2rad(1.0f));
 }
 
@@ -86,7 +87,7 @@ void JointAimInfo::makeTurnQuatOval(sead::Quatf* quat, const sead::Vector3f& tar
     f32 sum = dotSideSq + dotUpSq;
 
     if (isNearZero(sum)) {
-        *quat = sead::Quatf{0.0f, 0.0f, 0.0f, 1.0f};
+        *quat = sead::Quatf::unit;
         return;
     }
 
@@ -104,10 +105,11 @@ void JointAimInfo::makeTurnQuatOval(sead::Quatf* quat, const sead::Vector3f& tar
                 sead::Mathf::deg2rad(1.0f);
     }
 
-    *quat = sead::Quatf{0.0f, 0.0f, 0.0f, 1.0f};
+    *quat = sead::Quatf::unit;
     turnQuat(quat, *quat, mBaseAimLocalDir, targetDir, angle);
 }
 
+// NON_MATCHING: operator= on Quatf::unit generates 32-bit copies, target uses 64-bit
 void JointAimInfo::makeTurnQuatRect(sead::Quatf* quat, const sead::Vector3f& targetDir) const {
     f32 angleUp = calcAngleOnPlaneDegree(mBaseAimLocalDir, targetDir, mBaseSideLocalDir);
     f32 angleSide = calcAngleOnPlaneDegree(mBaseAimLocalDir, targetDir, mBaseUpLocalDir);
@@ -124,7 +126,7 @@ void JointAimInfo::makeTurnQuatRect(sead::Quatf* quat, const sead::Vector3f& tar
     if (clampedSide < -_54)
         clampedSide = -_54;
 
-    *quat = sead::Quatf{0.0f, 0.0f, 0.0f, 1.0f};
+    *quat = sead::Quatf::unit;
     rotateQuatRadian(quat, *quat, mBaseSideLocalDir, clampedUp * sead::Mathf::deg2rad(1.0f));
     rotateQuatRadian(quat, *quat, mBaseUpLocalDir, clampedSide * sead::Mathf::deg2rad(1.0f));
 }

@@ -8,6 +8,7 @@ class RumbleCalculator {
 public:
     RumbleCalculator(f32 frequency, f32 phaseOffset, f32 amplitude, u32 duration);
 
+    void setParam(f32 frequency, f32 phaseOffset, f32 amplitude, u32 duration);
     void start(u32 startFrame);
     void calc();
     void reset();
@@ -25,6 +26,13 @@ public:
 class RumbleCalculatorCosMultLinear : public RumbleCalculator {
 public:
     RumbleCalculatorCosMultLinear(f32 frequency, f32 phaseOffset, f32 amplitude, u32 duration);
+
+    void calcValues(sead::Vector3f* result, const sead::Vector3f& input) override;
+};
+
+class RumbleCalculatorCosAddOneMultLinear : public RumbleCalculator {
+public:
+    RumbleCalculatorCosAddOneMultLinear(f32 frequency, f32 phaseOffset, f32 amplitude, u32 duration);
 
     void calcValues(sead::Vector3f* result, const sead::Vector3f& input) override;
 };

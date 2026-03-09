@@ -6,12 +6,17 @@ namespace al {
 
 class EventFlowChoiceInfo {
 public:
-    s32 mSelectedChoice;
-    s32 mCancelIndex;
-    s32 mMessageNum;
-    s32 _0c;
-    const char16** mMessages;
-    const char16* mTalkMessage;
+    EventFlowChoiceInfo(s32 maxChoices);
+
+    void registerChoiceMessage(const char16* message);
+
+    s32 mSelectedChoice = -1;
+    s32 mCancelIndex = -1;
+    s32 mMessageNum = 0;
+    s32 mMaxChoices;
+    const char16** mMessages = nullptr;
+    const char16* mTalkMessage = nullptr;
+    bool _20 = false;
 };
 
 }  // namespace al
