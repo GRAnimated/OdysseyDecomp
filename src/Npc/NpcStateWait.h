@@ -14,8 +14,9 @@ struct ActorInitInfo;
 
 class NpcStateWait : public al::ActorStateBase {
 public:
-    NpcStateWait(al::LiveActor*, const al::ActorInitInfo&, const NpcStateWaitParam*,
-                 const NpcStateTurnParam*, const NpcStateRumbleParam*);
+    NpcStateWait(al::LiveActor* actor, const al::ActorInitInfo& initInfo,
+                 const NpcStateWaitParam* waitParam, const NpcStateTurnParam* turnParam,
+                 const NpcStateRumbleParam* rumbleParam);
 
     void appear() override;
     void control() override;
@@ -25,7 +26,7 @@ public:
     void startWait();
     void invalidateTurn();
     void startTurnEnd();
-    bool tryStartTurn(const NpcStateTurnParam* param);
+    inline bool tryStartTurn(const NpcStateTurnParam* param);
 
     void exeWait();
     void exeWaitAfter();

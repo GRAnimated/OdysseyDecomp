@@ -30,11 +30,12 @@ NERVES_MAKE_STRUCT(NpcStateWait, Wait, WaitAfter, Turn, TurnEnd);
 static const NpcStateWaitParam sDefaultWaitParam("Wait", nullptr, nullptr, nullptr, nullptr,
                                                  nullptr, false, nullptr, false);
 
-// NON_MATCHING: regalloc in FunctorV0M setup and IUseStageSwitch cast
 NpcStateWait::NpcStateWait(al::LiveActor* actor, const al::ActorInitInfo& initInfo,
                            const NpcStateWaitParam* waitParam, const NpcStateTurnParam* turnParam,
                            const NpcStateRumbleParam* rumbleParam)
-    : ActorStateBase("NPC", actor) {
+    : ActorStateBase("NPC待機状態", actor) {
+    using NpcStateWaitFunctor = al::FunctorV0M<NpcStateWait*, void (NpcStateWait::*)()>;
+
     mIsWaitAfter = false;
     mIsTurnInvalid = false;
     mWaitParam = waitParam;
@@ -47,21 +48,15 @@ NpcStateWait::NpcStateWait(al::LiveActor* actor, const al::ActorInitInfo& initIn
     if (!waitParam)
         mWaitParam = &sDefaultWaitParam;
 
-    if (!mWaitParam->mTrampledAction) {
-        if (mRumbleParam) {
-            auto* calc = new al::RumbleCalculatorCosMultLinear(
-                mRumbleParam->mFrequency, mRumbleParam->mPhaseOffset, mRumbleParam->mAmplitude,
-                mRumbleParam->mDuration);
-            mRumbleCalculator = calc;
-        }
+    if (!mWaitParam->mTrampledAction && mRumbleParam) {
+        auto* calc = new al::RumbleCalculatorCosMultLinear(
+            mRumbleParam->mFrequency, mRumbleParam->mPhaseOffset, mRumbleParam->mAmplitude,
+            mRumbleParam->mDuration);
+        mRumbleCalculator = calc;
     }
 
-    al::FunctorV0M<NpcStateWait*, void (NpcStateWait::*)()> functorOn(this,
-                                                                      &NpcStateWait::setWaitAfter);
-    al::FunctorV0M<NpcStateWait*, void (NpcStateWait::*)()> functorOff(this,
-                                                                       &NpcStateWait::setWait);
-    al::listenStageSwitchOnOffStart(static_cast<al::IUseStageSwitch*>(mActor), functorOn,
-                                    functorOff);
+    al::listenStageSwitchOnOffStart(mActor, NpcStateWaitFunctor(this, &NpcStateWait::setWaitAfter),
+                                    NpcStateWaitFunctor(this, &NpcStateWait::setWait));
 }
 
 void NpcStateWait::setWaitAfter() {
@@ -78,16 +73,14 @@ void NpcStateWait::setWait() {
 
 void NpcStateWait::appear() {
     al::NerveStateBase::appear();
-    al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait :
-                                       (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
+    startWait();
 }
 
 void NpcStateWait::startWait() {
-    al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait :
-                                       (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
+    al::setNerve(this, !mIsWaitAfter ? (const al::Nerve*)&NrvNpcStateWait.Wait :
+                                       &NrvNpcStateWait.WaitAfter);
 }
 
-// NON_MATCHING: instruction scheduling for Vector3f add (ldp vs individual ldr)
 void NpcStateWait::control() {
     if (mRumbleTimer < 0)
         return;
@@ -98,11 +91,7 @@ void NpcStateWait::control() {
     if (mRumbleParam->mDuration > mRumbleTimer) {
         mRumbleCalculator->calc();
         f32 s = mRumbleParam->mScale;
-        sead::Vector3f scale;
-        scale.x = s + mRumbleCalculator->mResult.x;
-        scale.y = s + mRumbleCalculator->mResult.y;
-        scale.z = s + mRumbleCalculator->mResult.z;
-        al::setScale(mActor, scale);
+        al::setScale(mActor, sead::Vector3f(s, s, s) + mRumbleCalculator->mResult);
         mRumbleTimer++;
     } else {
         al::setScaleAll(mActor, mRumbleParam->mScale);
@@ -114,8 +103,7 @@ void NpcStateWait::control() {
 void NpcStateWait::invalidateTurn() {
     mIsTurnInvalid = true;
     if (al::isNerve(this, &NrvNpcStateWait.Turn))
-        al::setNerve(this, !mIsWaitAfter ? &NrvNpcStateWait.Wait :
-                                           (const al::Nerve*)&NrvNpcStateWait.WaitAfter);
+        startWait();
 }
 
 void NpcStateWait::exeWait() {
@@ -127,7 +115,7 @@ void NpcStateWait::exeWait() {
 }
 
 // NON_MATCHING: fabs vs fneg+fcmp+fcsel for Mathf::abs; regalloc (d8 vs x23)
-bool NpcStateWait::tryStartTurn(const NpcStateTurnParam* param) {
+inline bool NpcStateWait::tryStartTurn(const NpcStateTurnParam* param) {
     if (!param || mIsTurnInvalid)
         return false;
 
