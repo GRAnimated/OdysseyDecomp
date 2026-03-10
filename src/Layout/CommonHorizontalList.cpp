@@ -59,25 +59,23 @@ CommonHorizontalList::CommonHorizontalList(al::LayoutActor* layoutActor,
             if (!al::isEqualString(childName, "ParScroll")) {
                 al::LayoutActor* parts = new al::LayoutActor("横リストパーツ");
                 al::initLayoutPartsActor(parts, layoutActor, initInfo, childName, nullptr);
-                auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
-                if (itemParts->size() < itemParts->capacity())
-                    itemParts->pushBack(parts);
+                if (mItemParts.size() < mItemParts.capacity())
+                    mItemParts.pushBack(parts);
             }
         }
 
-        auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
         sead::Vector2f firstTrans = sead::Vector2f::zero;
-        if (itemParts->size() > 0)
-            firstTrans = al::getLocalTrans(itemParts->at(0));
+        if (mItemParts.size() > 0)
+            firstTrans = al::getLocalTrans(mItemParts.at(0));
 
         sead::Vector2f secondTrans = sead::Vector2f::zero;
-        if (itemParts->size() >= 2)
-            secondTrans = al::getLocalTrans(itemParts->at(1));
+        if (mItemParts.size() >= 2)
+            secondTrans = al::getLocalTrans(mItemParts.at(1));
 
         f32 spacing = secondTrans.x - firstTrans.x;
         if (spacing <= 0.0f)
             spacing = -spacing;
-        _0x54 = spacing;
+        _54 = spacing;
 
         if (hasCursor) {
             mCursorActor = new al::LayoutActor("カーソル");
@@ -113,10 +111,11 @@ void CommonHorizontalList::initData(s32 itemCount) {
     mAnimTimer = 0;
 
     if (itemCount > 0) {
-        auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
-        s32 count = mItemPartCount <= itemCount ? mItemPartCount : itemCount;
-        for (s32 i = 0; i < count; i++)
-            al::startAction(itemParts->at(i), "Wait");
+        if (mItemPartCount <= itemCount)
+            itemCount = mItemPartCount;
+
+        for (s32 i = 0; i < itemCount; i++)
+            al::startAction(mItemParts[i], "Wait");
 
         if (mScrollBarParts)
             mScrollBarParts->setupDataNum(mItemPartCount - 3, itemCount);
@@ -134,10 +133,9 @@ void CommonHorizontalList::initDataNoResetSelected(s32 itemCount) {
     mAnimTimer = 0;
 
     if (itemCount > 0) {
-        auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
         s32 count = mItemPartCount <= itemCount ? mItemPartCount : itemCount;
         for (s32 i = 0; i < count; i++)
-            al::startAction(itemParts->at(i), "Wait");
+            al::startAction(mItemParts.at(i), "Wait");
 
         if (mScrollBarParts)
             mScrollBarParts->setupDataNum(mItemPartCount - 3, itemCount);
@@ -158,10 +156,9 @@ void CommonHorizontalList::initDataWithIdx(s32 itemCount, s32 scrollOffset, s32 
     mAnimTimer = 0;
 
     if (itemCount > 0) {
-        auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
         s32 count = mItemPartCount <= itemCount ? mItemPartCount : itemCount;
         for (s32 i = 0; i < count; i++)
-            al::startAction(itemParts->at(i), "Wait");
+            al::startAction(mItemParts.at(i), "Wait");
 
         if (mScrollBarParts)
             mScrollBarParts->setupDataNum(mItemPartCount - 3, itemCount);
@@ -174,8 +171,7 @@ void CommonHorizontalList::initDataWithIdx(s32 itemCount, s32 scrollOffset, s32 
 void CommonHorizontalList::addStringData(const sead::WFixedSafeString<256>* wstr,
                                          const char* paneName) {
     mStringDataArray[mStringDataCount] = const_cast<sead::WFixedSafeString<256>*>(wstr);
-    auto* labels = reinterpret_cast<sead::FixedSafeString<128>*>(mStringLabels);
-    labels[mStringDataCount].format("%s", paneName);
+    mStringLabels[mStringDataCount].format("%s", paneName);
     mStringDataCount++;
 }
 
@@ -201,9 +197,8 @@ void CommonHorizontalList::setEnableData(const bool* enableData) {
     mEnableData = enableData;
 }
 
-// NON_MATCHING: wrong function size; target saves x20 (passes mCursorPos addr directly vs stack)
 void CommonHorizontalList::calcCursorPos(sead::Vector2f* outPos) const {
-    *outPos = mCursorPos;
+    outPos->set(mCursorPos);
 }
 
 bool CommonHorizontalList::isActive() const {
@@ -291,7 +286,7 @@ void CommonHorizontalList::left() {
 
 // NON_MATCHING: wrong function size; register allocation and branch layout differ
 void CommonHorizontalList::pageUp() {
-    if (!al::isNerve(this, &Active))
+    if (!isActive())
         return;
 
     if (mAnimTimer > 0)
@@ -328,7 +323,7 @@ void CommonHorizontalList::pageUp() {
 
 // NON_MATCHING: wrong function size; register allocation and branch layout differ
 void CommonHorizontalList::pageDown() {
-    if (!al::isNerve(this, &Active))
+    if (!isActive())
         return;
 
     if (mAnimTimer > 0)
@@ -382,7 +377,7 @@ void CommonHorizontalList::pageDown() {
 
 // NON_MATCHING: wrong function size; register allocation and branch layout differ
 void CommonHorizontalList::jumpLeft() {
-    if (!al::isNerve(this, &Active))
+    if (!isActive())
         return;
 
     mSelectedIdx = 0;
@@ -407,7 +402,7 @@ void CommonHorizontalList::jumpLeft() {
 }
 
 void CommonHorizontalList::jumpRight() {
-    if (!al::isNerve(this, &Active))
+    if (!isActive())
         return;
 
     s32 itemCount = mItemCount;
@@ -434,7 +429,7 @@ void CommonHorizontalList::jumpRight() {
 }
 
 void CommonHorizontalList::decide(const char* decideLabel) {
-    if (!al::isNerve(this, &Active))
+    if (!isActive())
         return;
 
     if (mAnimTimer >= 1) {
@@ -457,22 +452,21 @@ void CommonHorizontalList::updateParts() {
 
     f32 t = al::easeOut((f32)(mAnimTimer - 2) / (f32)(mAnimTimerMax - 2));
     t = al::lerpValue(0.0f, 1.0f, t);
-    f32 blendOffset = t * _0x54;
+    f32 blendOffset = t * _54;
     if (curScrollPrev >= curScrollOffset)
         blendOffset = -blendOffset;
 
-    auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
     s32 visibleCount = mItemPartCount;
     if (visibleCount >= 1) {
         f32 basePos = mItemWidth + blendOffset;
-        f32 spacing = _0x54;
+        f32 spacing = _54;
 
         f32 offset = 0.0f;
         for (s32 i = 0; i < visibleCount; i++) {
             s32 dataIdx = curScrollOffset + i;
 
             al::LayoutActor* partActor =
-                (u32)i < (u32)itemParts->capacity() ? itemParts->at(i) : nullptr;
+                (u32)i < (u32)mItemParts.capacity() ? mItemParts.at(i) : nullptr;
 
             sead::Vector2f localTrans = al::getLocalTrans(partActor);
             sead::Vector2f newTrans(basePos - offset, localTrans.y);
@@ -493,9 +487,8 @@ void CommonHorizontalList::updateParts() {
                         al::startAction(partActor, groupAnim.cstr(), mGroupAnimPartsName);
                 }
 
-                auto* labels = reinterpret_cast<sead::FixedSafeString<128>*>(mStringLabels);
                 for (s32 j = 0; j < mStringDataCount; j++) {
-                    al::setPaneString(partActor, labels[j].cstr(),
+                    al::setPaneString(partActor, mStringLabels[j].cstr(),
                                       mStringDataArray[j]->getStringTop());
                 }
 
@@ -504,7 +497,7 @@ void CommonHorizontalList::updateParts() {
 
                 if (mCursorVisualActor) {
                     if (dataIdx == mSelectedIdx) {
-                        if (!al::isNerve(this, &Deactive)) {
+                        if (!isDeactive()) {
                             if (mCursorVisualActor)
                                 al::startAction(mCursorVisualActor,
                                                 mEnableData && !mEnableData[dataIdx] ? "Off" : "On",
@@ -531,7 +524,7 @@ void CommonHorizontalList::updateParts() {
                 }
 
                 if (al::isNearZero(sead::Vector2f(t, 0.0f), 0.001f) && dataIdx == mSelectedIdx &&
-                    !al::isNerve(this, &Deactive)) {
+                    !isDeactive()) {
                     if (partActor && !al::isActionPlaying(partActor, "Select")) {
                         al::startAction(partActor, "Select");
                         if (mIsNewSelection) {
@@ -564,7 +557,7 @@ void CommonHorizontalList::updateParts() {
     if (mAnimTimer < 0) {
         s32 diff = mSelectedIdx - mScrollOffset;
         al::LayoutActor* cursorTarget =
-            (u32)diff < (u32)itemParts->capacity() ? itemParts->at(diff) : nullptr;
+            (u32)diff < (u32)mItemParts.capacity() ? mItemParts.at(diff) : nullptr;
         sead::Vector2f panePos;
         al::calcPaneTrans(&panePos, cursorTarget, "Cursor");
         mCursorPos = panePos;
@@ -579,7 +572,7 @@ void CommonHorizontalList::updateParts() {
 }
 
 void CommonHorizontalList::reject() {
-    if (!al::isNerve(this, &Active))
+    if (!isActive())
         return;
 
     if (mAnimTimer >= 1) {
@@ -591,17 +584,13 @@ void CommonHorizontalList::reject() {
 }
 
 void CommonHorizontalList::deactivate() {
-    if (!al::isNerve(this, &Active))
-        return;
-    al::setNerve(this, &Deactive);
+    if (isActive())
+        al::setNerve(this, &Deactive);
 }
 
 void CommonHorizontalList::activate() {
-    if (al::isNerve(this, &Active))
-        return;
-    if (al::isNerve(this, &Decide))
-        return;
-    al::setNerve(this, &Active);
+    if (!isActive() && !al::isNerve(this, &Decide))
+        al::setNerve(this, &Active);
 }
 
 void CommonHorizontalList::exeActive() {
@@ -614,16 +603,13 @@ void CommonHorizontalList::exeDeactive() {
 
 void CommonHorizontalList::exeDecide() {
     s32 cursorOff = mSelectedIdx - mScrollOffset;
-    auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
 
     if (al::isFirstStep(this)) {
-        al::LayoutActor* parts = itemParts->at(cursorOff);
-        al::startAction(parts, mDecideActionName->cstr());
+        al::startAction(mItemParts.at(cursorOff), mDecideActionName->cstr());
         mIsNewSelection = true;
     }
 
-    al::LayoutActor* parts = itemParts->at(cursorOff);
-    if (al::isActionEnd(parts))
+    if (al::isActionEnd(mItemParts.at(cursorOff)))
         al::setNerve(this, &DecideEnd);
 }
 
@@ -631,16 +617,13 @@ void CommonHorizontalList::exeDecideEnd() {}
 
 void CommonHorizontalList::exeReject() {
     s32 cursorOff = mSelectedIdx - mScrollOffset;
-    auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
 
     if (al::isFirstStep(this)) {
-        al::LayoutActor* parts = itemParts->at(cursorOff);
-        al::startAction(parts, "Reject");
+        al::startAction(mItemParts.at(cursorOff), "Reject");
         mIsNewSelection = true;
     }
 
-    al::LayoutActor* parts = itemParts->at(cursorOff);
-    if (al::isActionEnd(parts))
+    if (al::isActionEnd(mItemParts.at(cursorOff)))
         al::setNerve(this, &RejectEnd);
 }
 
@@ -648,17 +631,14 @@ void CommonHorizontalList::exeRejectEnd() {
     al::setNerve(this, &Active);
 }
 
-// NON_MATCHING: wrong function size; target saves x20 and passes mCursorPos addr directly,
-// uses different bounds check for mItemParts, and stores mCursorPos differently
 void CommonHorizontalList::updateCursorPos() {
-    s32 cursorOff = mSelectedIdx - mScrollOffset;
-    auto* itemParts = reinterpret_cast<sead::PtrArray<al::LayoutActor>*>(&mItemParts);
-    al::LayoutActor* cursorActor =
-        (u32)cursorOff < (u32)itemParts->capacity() ? itemParts->at(cursorOff) : nullptr;
+    u32 cursorOff = mSelectedIdx - mScrollOffset;
+    al::LayoutActor* cursorActor = nullptr;
 
-    sead::Vector2f panePos;
-    al::calcPaneTrans(&panePos, cursorActor, "Cursor");
-    mCursorPos = panePos;
+    if ((u32)mItemParts.size() >= cursorOff)
+        cursorActor = mItemParts.at(cursorOff);
+
+    al::calcPaneTrans(&mCursorPos, cursorActor, "Cursor");
     if (mCursorActor)
         al::setLocalTrans(mCursorActor, mCursorPos);
 }

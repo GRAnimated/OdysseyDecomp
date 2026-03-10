@@ -23,9 +23,9 @@ public:
 
 private:
     f32 mBarSize = -1.0f;
-    f32 _0x134 = -1.0f;
+    f32 _134 = -1.0f;
     sead::Vector2f mInitialPos = sead::Vector2f::zero;
-    s32 _0x140[7] = {-1, -1, -1, -1, -1, -1, -1};
+    s32 _140[7] = {-1, -1, -1, -1, -1, -1, -1};
     bool mIsVertical = false;
 };
 

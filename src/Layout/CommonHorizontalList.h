@@ -65,7 +65,7 @@ public:
 
 private:
     al::LayoutActor* mLayoutActor = nullptr;
-    sead::PtrArrayImpl mItemParts;
+    sead::PtrArray<al::LayoutActor> mItemParts;
     ScrollBarParts* mScrollBarParts = nullptr;
     al::LayoutActor* mCursorActor = nullptr;
     s32 mItemPartCount = -1;
@@ -75,10 +75,10 @@ private:
     f32 mItemWidth = -1.0f;
     s32 mAnimTimer = -1;
     s32 mAnimTimerMax = 5;
-    f32 _0x54 = 0.0f;
+    f32 _54 = 0.0f;
     sead::Vector2f mCursorPos = sead::Vector2f::zero;
     sead::WFixedSafeString<256>** mStringDataArray = nullptr;
-    sead::BufferedSafeStringBase<char>* mStringLabels = nullptr;
+    sead::FixedSafeString<128>* mStringLabels = nullptr;
     nn::ui2d::TextureInfo** mImageDataArray = nullptr;
     const bool* mEnableData = nullptr;
     const sead::FixedSafeString<64>* mGroupAnimNameArray = nullptr;
@@ -88,7 +88,7 @@ private:
     const char* mGroupAnimPartsName = nullptr;
     al::LayoutActor* mCursorVisualActor = nullptr;
     bool mIsNewSelection = false;
-    sead::BufferedSafeStringBase<char>* mDecideActionName = nullptr;
+    sead::FixedSafeString<128>* mDecideActionName = nullptr;
     f32 mRumbleStrength = 0.3f;
 };
 
