@@ -84,7 +84,7 @@ AL_FILE_MANUAL_ASSIGNMENT = {
 
 def get_changed_files():
     result = subprocess.run(
-        ["git", "diff", "master...HEAD", "--name-only"],
+        ["git", "diff", "master..claude-testing-cleanup", "--name-only"],
         capture_output=True, text=True, cwd=REPO_ROOT
     )
     return [f.strip() for f in result.stdout.strip().splitlines() if f.strip()]

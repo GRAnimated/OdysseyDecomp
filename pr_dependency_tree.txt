@@ -24,11 +24,17 @@ PR [infra-docs]:
   tools/check-format.py
   tools/common
   tools/new_changes.py
+  tools/pr_dependency_tree.py
 
 PR [infra-al]: (no src/ users among changed files)
+  lib/al/Library/Bgm/BgmParamsChanger.cpp
+  lib/al/Library/Bgm/BgmParamsChanger.h
+  lib/al/Library/Bgm/DspValueController.h
   lib/al/Library/LiveActor/ActorVariableFrameRateSkeletalAnimator.h
   lib/al/Library/Message/MessageTag.h
   lib/al/Library/Message/ReplaceTagProcessorBase.h
+  lib/al/Project/Bgm/BgmInfo.cpp
+  lib/al/Project/Bgm/BgmInfo.h
 
 PR [partial]: (review manually — partial edits, no new class header)
   src/Enemy/Pecho.cpp
@@ -42,8 +48,13 @@ PR [partial]: (review manually — partial edits, no new class header)
   src/Scene/StageSceneStateWarp.h
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-WAVE 1  (38 PRs)
+WAVE 1  (39 PRs)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Area/In2DAreaMoveControl
+  │    src/Area/In2DAreaMoveControl.cpp
+  │    src/Area/In2DAreaMoveControl.h
+  └─
 
   ┌─ src/Boss/BossRaid/BossRaidChain
   │    src/Boss/BossRaid/BossRaidChain.cpp
@@ -111,7 +122,6 @@ WAVE 1  (38 PRs)
   │    src/Npc/Frog.h
   │    src/Npc/FrogStateWaitJump.cpp
   │    src/Npc/FrogStateWaitJump.h
-  │    src/Npc/YukimaruMovement.h
   └─
 
   ┌─ src/Npc/FrogStateWaitWander
@@ -864,5 +874,5 @@ WAVE 14  (1 PR)
   └─
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-TOTAL: 120 impl PRs across 14 waves (+ 2-3 infra PRs)
+TOTAL: 121 impl PRs across 14 waves (+ 2-3 infra PRs)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

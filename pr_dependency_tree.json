@@ -4,6 +4,17 @@
       "wave": 1,
       "prs": [
         {
+          "key": "src/Area/In2DAreaMoveControl",
+          "name": "In2DAreaMoveControl",
+          "directory": "src/Area",
+          "files": [
+            "src/Area/In2DAreaMoveControl.cpp",
+            "src/Area/In2DAreaMoveControl.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
           "key": "src/Boss/BossRaid/BossRaidChain",
           "name": "BossRaidChain",
           "directory": "src/Boss/BossRaid",
@@ -132,8 +143,7 @@
             "lib/al/Library/Joint/JointQuatController.h",
             "src/Npc/Frog.h",
             "src/Npc/FrogStateWaitJump.cpp",
-            "src/Npc/FrogStateWaitJump.h",
-            "src/Npc/YukimaruMovement.h"
+            "src/Npc/FrogStateWaitJump.h"
           ],
           "depends_on": [],
           "cycle_merged": []
