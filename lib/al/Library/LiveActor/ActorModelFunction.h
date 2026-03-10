@@ -18,6 +18,7 @@ class ResTexture;
 namespace al {
 class LayoutTextureRenderObj;
 class LiveActor;
+class ModelKeeper;
 class ClippingDirector;
 
 void updateMaterialCodeGround(LiveActor* actor, const char*);

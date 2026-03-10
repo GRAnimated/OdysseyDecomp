@@ -11,9 +11,9 @@ struct NpcEventStateScareActionParam {
     NpcEventStateScareActionParam(const char*);
     NpcEventStateScareActionParam(const char*, const char*, const char*);
 
-    const char* _0;
-    const char* _8;
-    const char* _10;
+    const char* _0 = nullptr;
+    const char* _8 = nullptr;
+    const char* _10 = nullptr;
 };
 
 class NpcEventStateScare : public al::ActorStateBase {
@@ -27,8 +27,8 @@ public:
     void exeScareEnd();
 
 private:
-    al::EventFlowExecutor* _20;
-    NpcEventStateScareActionParam* _28;
+    const al::EventFlowExecutor* _20 = nullptr;
+    const NpcEventStateScareActionParam* _28 = nullptr;
 };
 
 static_assert(sizeof(NpcEventStateScareActionParam) == 0x18);

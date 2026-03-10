@@ -472,9 +472,9 @@ bool sendMsgPushToPlayerAndKillVelocityToTargetH(al::LiveActor* actor, al::HitSe
     return true;
 }
 
-void sendMsgEventFlowScareCheck(al::HitSensor* receiver, al::HitSensor* sender,
+bool sendMsgEventFlowScareCheck(al::HitSensor* receiver, al::HitSensor* sender,
                                 al::EventFlowExecutor* executor) {
-    executor->attackSensor(sender, receiver);
+    return executor->attackSensor(sender, receiver);
 }
 
 bool sendMsgRaceStart(al::LiveActor* receiver) {

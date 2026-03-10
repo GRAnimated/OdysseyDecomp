@@ -333,6 +333,7 @@ bool isPartialSklAnimEnd(const LiveActor* actor, s32 index);
 bool isPartialSklAnimOneTime(const LiveActor* actor, s32 index);
 bool isPartialSklAnimAttached(const LiveActor* actor, s32 index);
 bool isPartialAnimPlaying(const LiveActor*, s32);
+bool isPartialSklAnimPlaying(const LiveActor*, const char*, s32);
 
 }  // namespace al
 
