@@ -12,6 +12,8 @@ class EnemyCap;
 
 class EnemyStateReset : public al::ActorStateBase {
 public:
+    friend class RadiconCar;
+
     EnemyStateReset(al::LiveActor* actor, const al::ActorInitInfo& info, EnemyCap* cap);
 
     void appear() override;
