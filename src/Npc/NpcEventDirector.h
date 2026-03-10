@@ -34,10 +34,10 @@ class NpcEventDirector : public al::NerveExecutor,
 public:
     NpcEventDirector(const al::PlayerHolder*, al::CameraDirector*, al::CollisionDirector*,
                      const al::MessageSystem*, EventFlowSceneExecuteCtrl*);
-    void init(const al::ActorInitInfo& initInfo);
+    virtual void init(const al::ActorInitInfo& initInfo);
     void execute() override;
     void updateBalloon();
-    void killAllBalloonForSnapshotMode();
+    void killAllBalloonForSnapShotMode();
     void exeWait();
     void exeDemo();
     void exeDemoWipeClose();
