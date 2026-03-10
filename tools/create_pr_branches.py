@@ -235,8 +235,9 @@ def main():
             print(f"\n  [{pr_name}] Creating PR branch: {branch}")
             print(f"  [{pr_name}] Files: {pr_files}")
 
-            # Branch from the wave branch
-            create_branch(branch, wave_branch, dry_run=dry_run)
+            # Branch from the PREVIOUS wave (same base as the wave branch),
+            # so the diff against claude/wave-N shows only this PR's files.
+            create_branch(branch, prev_wave_branch, dry_run=dry_run)
 
             # Checkout only this PR's files from source branch
             checkout_files_from(SOURCE_BRANCH, pr_files, deleted_files, dry_run=dry_run)
