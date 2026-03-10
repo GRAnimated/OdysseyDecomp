@@ -90,7 +90,7 @@ bool isExistEventEntry(const EventFlowExecutor*, const char*);
 bool isCurrentEventEntry(const EventFlowExecutor*, const char*);
 bool isEventName(const EventFlowEventData*, const char*, ...);
 const char* getEventName(const EventFlowEventData*);
-bool getEventDataParamString(const EventFlowEventData*, const char*);
+const char* getEventDataParamString(const EventFlowEventData*, const char*);
 bool isEventDataParamBool(const EventFlowEventData*, const char*);
 }  // namespace al
 
