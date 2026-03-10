@@ -1,0 +1,868 @@
+================================================================================
+PR PLAN — claude-testing-cleanup
+================================================================================
+
+Dependency rule: header-to-header includes only.
+PRs within the same WAVE can be submitted simultaneously.
+al/ files listed under the PR that motivated the change.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PREREQUISITE PRs (no source deps — submit anytime)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+PR [infra-docs]:
+  CLAUDE.md
+  CLAUDE_AUTO.md
+  CLAUDE_MATCHING.md
+  data/data_strings.csv
+  data/file_list.yml
+  docs/MATCHING.md
+  docs/STYLE.md
+  flake.nix
+  manual_review.txt
+  task_list.txt
+  tools/check-format.py
+  tools/common
+  tools/new_changes.py
+
+PR [infra-al]: (no src/ users among changed files)
+  lib/al/Library/LiveActor/ActorVariableFrameRateSkeletalAnimator.h
+  lib/al/Library/Message/MessageTag.h
+  lib/al/Library/Message/ReplaceTagProcessorBase.h
+
+PR [partial]: (review manually — partial edits, no new class header)
+  src/Enemy/Pecho.cpp
+  src/MapObj/TrampleSwitch.cpp
+  src/Player/PlayerTrigger.cpp
+  src/Scene/ProjectActorFactory.cpp
+  src/Scene/SceneEventNotifier.cpp
+  src/Scene/StageScene.cpp
+  src/Scene/StageSceneStateRadicon.h
+  src/Scene/StageSceneStateSkipDemo.h
+  src/Scene/StageSceneStateWarp.h
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 1  (38 PRs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Boss/BossRaid/BossRaidChain
+  │    src/Boss/BossRaid/BossRaidChain.cpp
+  │    src/Boss/BossRaid/BossRaidChain.h
+  └─
+
+  ┌─ src/Boss/BossRaid/BossRaidElectric
+  │    lib/al/Library/Event/EventFlowExecutor.h [al]
+  │    lib/al/Library/Joint/JointControllerKeeper.h [al]
+  │    lib/al/Library/LiveActor/ActorModelFunction.h [al]
+  │    src/Boss/BossRaid/BossRaidElectric.cpp
+  │    src/Boss/BossRaid/BossRaidElectric.h
+  └─
+
+  ┌─ src/Boss/BossUtil/BossUtil
+  │    lib/al/Library/LiveActor/ActorAnimFunction.h [al]
+  │    src/Boss/BossUtil/BossUtil.cpp
+  │    src/Boss/BossUtil/BossUtil.h
+  │    src/System/BossSaveData.h
+  │    src/System/CapMessageBossData.h
+  │    src/System/GameDataFile.h
+  └─
+
+  ┌─ src/Layout/CommonHorizontalList
+  │    src/Layout/CommonHorizontalList.cpp
+  │    src/Layout/CommonHorizontalList.h
+  │    src/Layout/ScrollBarParts.h
+  └─
+
+  ┌─ src/Layout/CommonSelectParts
+  │    src/Layout/CommonSelectParts.cpp
+  │    src/Layout/CommonSelectParts.h
+  └─
+
+  ┌─ src/Layout/DecideIconLayoutParts
+  │    src/Layout/DecideIconLayoutParts.cpp
+  │    src/Layout/DecideIconLayoutParts.h
+  └─
+
+  ┌─ src/Layout/ProjectReplaceTagProcessor
+  │    lib/al/Library/Layout/ReplaceTagProcessor.h [al]
+  │    lib/al/Library/Message/CustomTagProcessor.h [al]
+  │    src/Layout/ProjectReplaceTagProcessor.cpp
+  │    src/Layout/ProjectReplaceTagProcessor.h
+  └─
+
+  ┌─ src/Layout/ShopLayoutFooter
+  │    src/Layout/ShopLayoutFooter.cpp
+  │    src/Layout/ShopLayoutFooter.h
+  └─
+
+  ┌─ src/MapObj/FastenerRailKeeper
+  │    src/MapObj/Fastener.h
+  │    src/MapObj/FastenerRailKeeper.cpp
+  │    src/MapObj/FastenerRailKeeper.h
+  └─
+
+  ┌─ src/MapObj/ShopStateInShop
+  │    src/MapObj/ShopStateInShop.cpp
+  │    src/MapObj/ShopStateInShop.h
+  └─
+
+  ┌─ src/Npc/FrogStateWaitJump
+  │    lib/al/Library/Joint/JointQuatController.h [al]
+  │    src/Npc/Frog.h
+  │    src/Npc/FrogStateWaitJump.cpp
+  │    src/Npc/FrogStateWaitJump.h
+  │    src/Npc/YukimaruMovement.h
+  └─
+
+  ┌─ src/Npc/FrogStateWaitWander
+  │    src/Npc/FrogStateWaitWander.cpp
+  │    src/Npc/FrogStateWaitWander.h
+  └─
+
+  ┌─ src/Npc/FukuwaraiWatcher
+  │    src/Npc/FukuwaraiWatcher.cpp
+  │    src/Npc/FukuwaraiWatcher.h
+  └─
+
+  ┌─ src/Npc/HomeCapStateMoveChair
+  │    src/Npc/HomeCapStateMoveChair.cpp
+  │    src/Npc/HomeCapStateMoveChair.h
+  └─
+
+  ┌─ src/Npc/HomeCapStateMoveSouvenir
+  │    src/Npc/HomeCapMovePoint.h
+  │    src/Npc/HomeCapStateMoveSouvenir.cpp
+  │    src/Npc/HomeCapStateMoveSouvenir.h
+  └─
+
+  ┌─ src/Npc/NpcEventSceneConstData
+  │    src/Npc/NpcEventSceneConstData.cpp
+  │    src/Npc/NpcEventSceneConstData.h
+  └─
+
+  ┌─ src/Npc/NpcEventStateScare
+  │    src/Npc/NpcEventStateScare.cpp
+  │    src/Npc/NpcEventStateScare.h
+  └─
+
+  ┌─ src/Npc/NpcStateWait
+  │    lib/al/Library/Movement/RumbleCalculator.h [al]
+  │    src/Npc/NpcStateRumbleParam.h
+  │    src/Npc/NpcStateTurnParam.h
+  │    src/Npc/NpcStateWait.cpp
+  │    src/Npc/NpcStateWait.h
+  │    src/Npc/NpcStateWaitParam.h
+  └─
+
+  ┌─ src/Npc/PaulineRhythmInfo
+  │    src/Npc/PaulineRhythmInfo.cpp
+  │    src/Npc/PaulineRhythmInfo.h
+  └─
+
+  ┌─ src/Npc/PeachOnKoopaAnimInfo
+  │    src/Npc/PeachOnKoopaAnimInfo.cpp
+  │    src/Npc/PeachOnKoopaAnimInfo.h
+  └─
+
+  ┌─ src/Npc/PlayerRecoder
+  │    src/Npc/PlayerRecoder.cpp
+  │    src/Npc/PlayerRecoder.h
+  └─
+
+  ┌─ src/Npc/PochiHintPhoto
+  │    src/Npc/PochiHintPhoto.cpp
+  │    src/Npc/PochiHintPhoto.h
+  └─
+
+  ┌─ src/Npc/RaceManThrowCap
+  │    src/Npc/RaceManThrowCap.cpp
+  │    src/Npc/RaceManThrowCap.h
+  └─
+
+  ┌─ src/Npc/RadiconCarStateAutoMove
+  │    src/Npc/RadiconCarStateAutoMove.cpp
+  │    src/Npc/RadiconCarStateAutoMove.h
+  └─
+
+  ┌─ src/Npc/RankingNameHolder
+  │    src/Npc/RankingNameHolder.cpp
+  │    src/Npc/RankingNameHolder.h
+  └─
+
+  ┌─ src/Npc/ShibakenMoveAnimCtrl
+  │    src/Npc/ShibakenMoveAnimCtrl.cpp
+  │    src/Npc/ShibakenMoveAnimCtrl.h
+  └─
+
+  ┌─ src/Npc/ShibakenStateTurn
+  │    src/Npc/ShibakenStateTurn.cpp
+  │    src/Npc/ShibakenStateTurn.h
+  └─
+
+  ┌─ src/Npc/ShibakenStateWait
+  │    src/Npc/ShibakenStateWait.cpp
+  │    src/Npc/ShibakenStateWait.h
+  └─
+
+  ┌─ src/Npc/SkeletonDynamics
+  │    lib/al/Library/Model/ModelShapeUtil.h [al]
+  │    src/Npc/SkeletonDynamics.cpp
+  │    src/Npc/SkeletonDynamics.h
+  └─
+
+  ┌─ src/Npc/SphinxRideAim
+  │    src/Npc/SphinxRideAim.cpp
+  │    src/Npc/SphinxRideAim.h
+  └─
+
+  ┌─ src/Npc/SphinxRideStateRevival
+  │    src/Npc/SphinxRideStateRevival.cpp
+  │    src/Npc/SphinxRideStateRevival.h
+  └─
+
+  ┌─ src/Npc/SphinxRideStateStop
+  │    src/Npc/SphinxRideStateStop.cpp
+  │    src/Npc/SphinxRideStateStop.h
+  └─
+
+  ┌─ src/Npc/TalkNpcCap
+  │    src/Npc/TalkNpcCap.cpp
+  │    src/Npc/TalkNpcCap.h
+  └─
+
+  ┌─ src/Npc/TalkNpcEyeLineAnimParam
+  │    src/Npc/TalkNpcEyeLineAnimParam.cpp
+  │    src/Npc/TalkNpcEyeLineAnimParam.h
+  └─
+
+  ┌─ src/Npc/TalkNpcFreeze
+  │    src/Npc/TalkNpcFreeze.cpp
+  │    src/Npc/TalkNpcFreeze.h
+  └─
+
+  ┌─ src/Npc/TalkNpcSceneEventSwitcher
+  │    src/Npc/TalkNpcSceneEventSwitcher.cpp
+  │    src/Npc/TalkNpcSceneEventSwitcher.h
+  └─
+
+  ┌─ src/Npc/TrafficRailWatcher
+  │    src/Npc/TrafficRailWatcher.cpp
+  │    src/Npc/TrafficRailWatcher.h
+  └─
+
+  ┌─ src/Util/SensorMsgFunction
+  │    src/Util/SensorMsgFunction.cpp
+  │    src/Util/SensorMsgFunction.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 2  (14 PRs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Boss/BossRaid/BossRaidChainList
+  │  needs: src/Boss/BossRaid/BossRaidChain
+  │    src/Boss/BossRaid/BossRaidChainList.cpp
+  │    src/Boss/BossRaid/BossRaidChainList.h
+  └─
+
+  ┌─ src/Boss/BossRaid/BossRaidElectricLine
+  │  needs: src/Boss/BossRaid/BossRaidElectric
+  │    src/Boss/BossRaid/BossRaidElectricLine.cpp
+  │    src/Boss/BossRaid/BossRaidElectricLine.h
+  └─
+
+  ┌─ src/Boss/BossRaid/BossRaidNpc
+  │  needs: src/Util/SensorMsgFunction
+  │    lib/al/Library/Joint/JointAimInfo.cpp [al]
+  │    lib/al/Library/Joint/JointAimInfo.h [al]
+  │    src/Boss/BossRaid/BossRaidNpc.cpp
+  │    src/Boss/BossRaid/BossRaidNpc.h
+  │    src/Util/NpcEventFlowUtil.h
+  └─
+
+  ┌─ src/Boss/BossRaid/BossRaidWheel
+  │  needs: src/Util/SensorMsgFunction
+  │    src/Boss/BossRaid/BossRaidWheel.cpp
+  │    src/Boss/BossRaid/BossRaidWheel.h
+  └─
+
+  ┌─ src/Npc/HomeCap
+  │  needs: src/Npc/HomeCapStateMoveChair, src/Npc/HomeCapStateMoveSouvenir
+  │    src/Npc/HomeCap.cpp
+  │    src/Npc/HomeCap.h
+  │    src/Npc/HomeCapFunction.h
+  │    src/Util/CapManHeroDemoUtil.h
+  └─
+
+  ┌─ src/Npc/NpcEventBalloonInfo
+  │  needs: src/Layout/ProjectReplaceTagProcessor
+  │    src/Npc/NpcEventBalloonInfo.cpp
+  │    src/Npc/NpcEventBalloonInfo.h
+  └─
+
+  ┌─ src/Npc/NpcStateReactionParam
+  │  needs: src/Util/SensorMsgFunction
+  │    src/Npc/ActorStateReactionUtil.h
+  │    src/Npc/NpcStateReactionParam.cpp
+  │    src/Npc/NpcStateReactionParam.h
+  └─
+
+  ┌─ src/Npc/RaceManShell
+  │  needs: src/Util/SensorMsgFunction
+  │    src/Npc/RaceManShell.cpp
+  │    src/Npc/RaceManShell.h
+  └─
+
+  ┌─ src/Npc/ShibakenStateJump
+  │  needs: src/Util/SensorMsgFunction
+  │    src/Npc/ShibakenStateJump.cpp
+  │    src/Npc/ShibakenStateJump.h
+  └─
+
+  ┌─ src/Npc/Squirrel
+  │  needs: src/Util/SensorMsgFunction
+  │    src/Npc/Squirrel.cpp
+  │    src/Npc/Squirrel.h
+  └─
+
+  ┌─ src/Npc/TestAndoNpcIk
+  │  needs: src/Npc/SkeletonDynamics
+  │    src/Npc/CyclicCoordinateDescentIk.h
+  │    src/Npc/TestAndoNpcIk.cpp
+  │    src/Npc/TestAndoNpcIk.h
+  └─
+
+  ┌─ src/Npc/TrafficRailWatcherDirector
+  │  needs: src/Npc/TrafficRailWatcher
+  │    src/Npc/TrafficRailWatcherDirector.cpp
+  │    src/Npc/TrafficRailWatcherDirector.h
+  └─
+
+  ┌─ src/Npc/YukimaruStateMove
+  │  needs: src/Util/SensorMsgFunction
+  │    src/Npc/YukimaruStateMove.cpp
+  │    src/Npc/YukimaruStateMove.h
+  └─
+
+  ┌─ src/Player/PlayerCarryKeeper
+  │  needs: src/Util/SensorMsgFunction
+  │    src/Player/PlayerCarryKeeper.cpp
+  │    src/Player/PlayerCarryKeeper.h
+  │    src/Player/PlayerJointParamHandLegAngle.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 3  (14 PRs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Boss/BossRaid/BossRaidLightning
+  │  needs: src/Boss/BossRaid/BossRaidElectricLine
+  │    src/Boss/BossRaid/BossRaidLightning.cpp
+  │    src/Boss/BossRaid/BossRaidLightning.h
+  └─
+
+  ┌─ src/Boss/BossRaid/BossRaidRivet
+  │  needs: src/Boss/BossRaid/BossRaidChainList, src/Util/SensorMsgFunction
+  │    src/Boss/BossRaid/BossRaidRivet.cpp
+  │    src/Boss/BossRaid/BossRaidRivet.h
+  │    src/Enemy/Popn.h
+  │    src/Player/CapTargetInfo.h
+  │    src/Util/Hack.h
+  └─
+
+  ┌─ src/Boss/BossRaid/BossRaidStateBreathAttack
+  │  needs: src/Boss/BossRaid/BossRaidWheel
+  │    src/Boss/BossRaid/BossRaidStateBreathAttack.cpp
+  │    src/Boss/BossRaid/BossRaidStateBreathAttack.h
+  └─
+
+  ┌─ src/Boss/BossRaid/BossRaidStateGroundAttack
+  │  needs: src/Boss/BossRaid/BossRaidElectric, src/Boss/BossRaid/BossRaidElectricLine
+  │    src/Boss/BossRaid/BossRaidStateGroundAttack.cpp
+  │    src/Boss/BossRaid/BossRaidStateGroundAttack.h
+  └─
+
+  ┌─ src/Boss/BossUtil/BossStateTalkDemo
+  │  needs: src/Boss/BossRaid/BossRaidNpc
+  │    src/Boss/BossUtil/BossStateTalkDemo.cpp
+  │    src/Boss/BossUtil/BossStateTalkDemo.h
+  └─
+
+  ┌─ src/Npc/GhostPlayer
+  │  needs: src/Npc/RaceManShell, src/Util/SensorMsgFunction
+  │    src/Npc/GhostPlayer.cpp
+  │    src/Npc/GhostPlayer.h
+  └─
+
+  ┌─ src/Npc/HideAndSeekCapMan
+  │  needs: src/Boss/BossRaid/BossRaidNpc
+  │    src/Npc/HideAndSeekCapMan.cpp
+  │    src/Npc/HideAndSeekCapMan.h
+  └─
+
+  ┌─ src/Npc/JumpingRopeNpc
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Util/SensorMsgFunction
+  │    src/Npc/JumpingRopeNpc.cpp
+  │    src/Npc/JumpingRopeNpc.h
+  └─
+
+  ┌─ src/Npc/NpcEventCtrlInfo
+  │  needs: src/Npc/NpcEventBalloonInfo
+  │    lib/al/Library/Event/EventFlowChoiceInfo.cpp [al]
+  │    lib/al/Library/Event/EventFlowChoiceInfo.h [al]
+  │    lib/al/Library/Event/EventFlowExecutorHolder.cpp [al]
+  │    lib/al/Library/Event/EventFlowExecutorHolder.h [al]
+  │    lib/al/Library/Layout/BalloonOrderGroupHolder.h [al]
+  │    src/Npc/NpcEventCtrlInfo.cpp
+  │    src/Npc/NpcEventCtrlInfo.h
+  │    src/Npc/NpcEventSceneInfo.h
+  └─
+
+  ┌─ src/Npc/ShibakenStateCapCatch
+  │  needs: src/Npc/ShibakenStateJump, src/Util/SensorMsgFunction
+  │    src/Npc/ShibakenStateCapCatch.cpp
+  │    src/Npc/ShibakenStateCapCatch.h
+  └─
+
+  ┌─ src/Npc/SphinxRideMiniGameNpc
+  │  needs: src/Boss/BossRaid/BossRaidNpc
+  │    src/Npc/SphinxRideMiniGameNpc.cpp
+  │    src/Npc/SphinxRideMiniGameNpc.h
+  └─
+
+  ┌─ src/Npc/TalkNpcParam
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/TalkNpcEyeLineAnimParam
+  │    lib/al/Library/Event/EventFlowActorParamHolder.h [al]
+  │    lib/al/Library/Event/EventFlowWatchParam.cpp [al]
+  │    lib/al/Library/Event/EventFlowWatchParam.h [al]
+  │    lib/al/Library/Joint/JointLookAtInfo.h [al]
+  │    lib/al/Library/Joint/JointLookAtParam.h [al]
+  │    src/Npc/TalkNpcParam.cpp
+  │    src/Npc/TalkNpcParam.h
+  └─
+
+  ┌─ src/Npc/TalkNpcPartialAnimCtrl
+  │  needs: src/Npc/NpcStateReactionParam
+  │    src/Npc/TalkNpcPartialAnimCtrl.cpp
+  │    src/Npc/TalkNpcPartialAnimCtrl.h
+  └─
+
+  ┌─ src/Player/PlayerJudgePreInputCapThrow
+  │  needs: src/Player/PlayerCarryKeeper
+  │    src/Player/PlayerCapThrowType.h
+  │    src/Player/PlayerJudgePreInputCapThrow.cpp
+  │    src/Player/PlayerJudgePreInputCapThrow.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 4  (9 PRs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Boss/BossRaid/BossRaid
+  │  needs: src/Boss/BossRaid/BossRaidRivet, src/Boss/BossRaid/BossRaidStateBreathAttack, src/Boss/BossRaid/BossRaidStateGroundAttack, src/Boss/BossUtil/BossStateTalkDemo, src/Boss/BossUtil/BossUtil, src/Util/SensorMsgFunction
+  │    src/Boss/BossRaid/BossRaid.cpp
+  │    src/Boss/BossRaid/BossRaid.h
+  │    src/Util/PlayerDemoUtil.h
+  └─
+
+  ┌─ src/MapObj/FireHydrant
+  │  needs: src/Boss/BossRaid/BossRaidRivet, src/Util/SensorMsgFunction
+  │    src/MapObj/FireHydrant.cpp
+  │    src/MapObj/FireHydrant.h
+  └─
+
+  ┌─ src/Npc/JumpingRopeLayout
+  │  needs: src/Npc/JumpingRopeNpc
+  │    src/Npc/JumpingRopeLayout.cpp
+  │    src/Npc/JumpingRopeLayout.h
+  └─
+
+  ┌─ src/Npc/NpcJointLookAtController
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/TalkNpcParam
+  │    lib/al/Library/Joint/JointLookAtController.h [al]
+  │    src/Npc/NpcJointLookAtController.cpp
+  │    src/Npc/NpcJointLookAtController.h
+  │    src/Player/PlayerEyeSensorHitHolder.h
+  └─
+
+  ┌─ src/Npc/PaulineAtCeremony
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/PaulineRhythmInfo, src/Npc/TalkNpcParam, src/Util/SensorMsgFunction
+  │    src/Npc/BgmAnimeSynchronizer.h
+  │    src/Npc/PaulineAtCeremony.cpp
+  │    src/Npc/PaulineAtCeremony.h
+  └─
+
+  ┌─ src/Npc/RaceManGoal
+  │  needs: src/Npc/GhostPlayer, src/Util/SensorMsgFunction
+  │    src/MapObj/GoalMark.h
+  │    src/Npc/RaceManGoal.cpp
+  │    src/Npc/RaceManGoal.h
+  └─
+
+  ┌─ src/Npc/RadiconCar
+  │  needs: src/Boss/BossRaid/BossRaidRivet, src/Npc/RadiconCarStateAutoMove, src/Util/SensorMsgFunction
+  │    src/Enemy/EnemyStateReset.h
+  │    src/Npc/RadiconCar.cpp
+  │    src/Npc/RadiconCar.h
+  └─
+
+  ┌─ src/Npc/TalkNpcActionAnimInfo
+  │  needs: src/Npc/NpcStateReactionParam, src/Npc/TalkNpcParam
+  │    src/Npc/TalkNpcActionAnimInfo.cpp
+  │    src/Npc/TalkNpcActionAnimInfo.h
+  └─
+
+  ┌─ src/Npc/TalkNpcParamHolder
+  │  needs: src/Npc/TalkNpcParam
+  │    src/Npc/TalkNpcParamHolder.cpp
+  │    src/Npc/TalkNpcParamHolder.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 5  (9 PRs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Boss/BossRaid/BossRaidStateLightning
+  │  needs: src/Boss/BossRaid/BossRaid, src/Boss/BossRaid/BossRaidWheel
+  │    src/Boss/BossRaid/BossRaidStateLightning.cpp
+  │    src/Boss/BossRaid/BossRaidStateLightning.h
+  └─
+
+  ┌─ src/Npc/HelpNpc
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/NpcEventStateScare, src/Npc/NpcStateReactionParam, src/Npc/TalkNpcActionAnimInfo, src/Util/SensorMsgFunction
+  │    lib/al/Library/Event/EventFlowEventData.h [al]
+  │    lib/al/Library/Event/EventFlowMovement.h [al]
+  │    src/Npc/EventActorMovementTurn.h
+  │    src/Npc/HelpNpc.cpp
+  │    src/Npc/HelpNpc.h
+  └─
+
+  ┌─ src/Npc/MoveHomeNpc
+  │  needs: src/Boss/BossRaid/BossRaid, src/Boss/BossRaid/BossRaidNpc, src/Npc/HomeCap
+  │    src/Npc/MoveHomeNpc.cpp
+  │    src/Npc/MoveHomeNpc.h
+  └─
+
+  ┌─ src/Npc/NpcEventDirector
+  │  needs: src/Boss/BossRaid/BossRaid, src/Npc/NpcEventBalloonInfo, src/Npc/NpcEventCtrlInfo, src/Npc/NpcEventSceneConstData
+  │    lib/al/Library/Layout/LayoutActorGroup.cpp [al]
+  │    lib/al/Library/Layout/LayoutActorGroup.h [al]
+  │    src/Layout/TalkMessage.h
+  │    src/Npc/EventDemoCtrl.h
+  │    src/Npc/EventFlowSceneExecuteCtrl.h
+  │    src/Npc/NpcEventDirector.cpp
+  │    src/Npc/NpcEventDirector.h
+  └─
+
+  ┌─ src/Npc/OpeningStageStartCapManHero
+  │  needs: src/Boss/BossRaid/BossRaid, src/Boss/BossRaid/BossRaidNpc, src/Npc/HomeCap
+  │    lib/al/Library/Demo/DemoActorHolder.h [al]
+  │    lib/al/Library/Demo/DemoFunction.h [al]
+  │    lib/al/Library/Event/EventFlowUtil.h [al]
+  │    lib/al/Library/Joint/JointSpringControllerHolder.h [al]
+  │    src/Npc/EventActorStateDemoTalk.h
+  │    src/Npc/OpeningStageStartCapManHero.cpp
+  │    src/Npc/OpeningStageStartCapManHero.h
+  │    src/Npc/SimpleActionLiveActor.h
+  │    src/Npc/SimpleActionPartsModel.h
+  └─
+
+  ┌─ src/Npc/RaceManRace
+  │  needs: src/Boss/BossRaid/BossRaid, src/Boss/BossRaid/BossRaidNpc, src/Boss/BossUtil/BossUtil, src/Npc/GhostPlayer, src/Npc/RaceManGoal, src/Npc/RaceManThrowCap, src/Npc/TalkNpcCap, src/Util/SensorMsgFunction
+  │    src/Npc/RaceManRace.cpp
+  │    src/Npc/RaceManRace.h
+  └─
+
+  ┌─ src/Npc/RandomActionUpdater
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/TalkNpcActionAnimInfo
+  │    src/Npc/RandomActionUpdater.cpp
+  │    src/Npc/RandomActionUpdater.h
+  └─
+
+  ┌─ src/Npc/SphinxQuizRouteKillExecutor
+  │  needs: src/Boss/BossRaid/BossRaid, src/Util/SensorMsgFunction
+  │    src/Npc/SphinxQuizRouteKillExecutor.cpp
+  │    src/Npc/SphinxQuizRouteKillExecutor.h
+  └─
+
+  ┌─ src/Npc/SphinxRideEvent
+  │  needs: src/Boss/BossRaid/BossRaid, src/Boss/BossRaid/BossRaidNpc, src/Util/SensorMsgFunction
+  │    src/Npc/SphinxRideEvent.cpp
+  │    src/Npc/SphinxRideEvent.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 6  (4 PRs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Npc/RandomWaitActionUpdater
+  │  needs: src/Npc/RandomActionUpdater, src/Npc/TalkNpcActionAnimInfo
+  │    src/Npc/RandomWaitActionUpdater.cpp
+  │    src/Npc/RandomWaitActionUpdater.h
+  └─
+
+  ┌─ src/Npc/SphinxQuiz
+  │  needs: src/Boss/BossRaid/BossRaid, src/Boss/BossRaid/BossRaidNpc, src/Npc/SphinxQuizRouteKillExecutor, src/Util/SensorMsgFunction
+  │    src/Npc/SphinxQuiz.cpp
+  │    src/Npc/SphinxQuiz.h
+  └─
+
+  ┌─ src/Npc/TalkNpcSwitchActionPlayerHolder
+  │  needs: src/Npc/RandomActionUpdater
+  │    src/Npc/TalkNpcSwitchActionPlayer.h
+  │    src/Npc/TalkNpcSwitchActionPlayerHolder.cpp
+  │    src/Npc/TalkNpcSwitchActionPlayerHolder.h
+  └─
+
+  ┌─ src/Npc/TalkNpcSwitchWaitActionObj
+  │  needs: src/Npc/RandomActionUpdater, src/Npc/TalkNpcActionAnimInfo
+  │    src/Npc/TalkNpcSwitchWaitActionObj.cpp
+  │    src/Npc/TalkNpcSwitchWaitActionObj.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 7  (1 PR)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Npc/TalkNpc
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/HelpNpc, src/Npc/HideAndSeekCapMan, src/Npc/NpcJointLookAtController, src/Npc/PaulineAtCeremony, src/Npc/RandomActionUpdater, src/Npc/TalkNpcActionAnimInfo, src/Npc/TalkNpcCap, src/Npc/TalkNpcParam, src/Npc/TalkNpcPartialAnimCtrl, src/Npc/TalkNpcSwitchActionPlayerHolder, src/Npc/TalkNpcSwitchWaitActionObj, src/Util/SensorMsgFunction
+  │    lib/al/Library/Event/EventFlowMovementRailBlend.h [al]
+  │    src/Npc/BirdMtxGlideCtrl.h
+  │    src/Npc/EventActorMovementRailTraffic.h
+  │    src/Npc/TalkNpc.cpp
+  │    src/Npc/TalkNpc.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 8  (1 PR)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Npc/TalkNpcStateEvent
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/RandomActionUpdater, src/Npc/TalkNpc, src/Npc/TalkNpcActionAnimInfo, src/Npc/TalkNpcParam, src/Npc/TalkNpcPartialAnimCtrl
+  │    src/Npc/TalkNpcStateEvent.cpp
+  │    src/Npc/TalkNpcStateEvent.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 9  (1 PR)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Npc/HintNpc
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/HelpNpc, src/Npc/TalkNpcActionAnimInfo, src/Npc/TalkNpcCap, src/Npc/TalkNpcStateEvent
+  │    src/Npc/ActorStateReactionBase.h
+  │    src/Npc/HintNpc.cpp
+  │    src/Npc/HintNpc.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 10  (5 PRs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Npc/FukuwaraiNpc
+  │  needs: src/Boss/BossRaid/BossRaid, src/Boss/BossRaid/BossRaidNpc, src/Npc/FukuwaraiWatcher, src/Npc/HintNpc, src/Npc/TalkNpcCap, src/Util/SensorMsgFunction
+  │    lib/al/Library/Event/IEventFlowQueryJudge.h [al]
+  │    src/Npc/FukuwaraiFaceParts.h
+  │    src/Npc/FukuwaraiNpc.cpp
+  │    src/Npc/FukuwaraiNpc.h
+  │    src/Npc/NpcStateReaction.h
+  │    src/Util/NpcAnimUtil.h
+  └─
+
+  ┌─ src/Npc/ShellActorStateReaction
+  │  needs: src/Npc/HintNpc, src/Npc/NpcStateReactionParam, src/Util/SensorMsgFunction
+  │    src/Npc/ShellActorStateReaction.cpp
+  │    src/Npc/ShellActorStateReaction.h
+  └─
+
+  ┌─ src/Npc/ShibakenStateBark
+  │  needs: src/Npc/HintNpc, src/Npc/ShibakenStateTurn, src/Util/SensorMsgFunction
+  │    src/Npc/ShibakenStateBark.cpp
+  │    src/Npc/ShibakenStateBark.h
+  └─
+
+  ┌─ src/Npc/ShibakenStatePointChase
+  │  needs: src/Npc/HintNpc, src/Npc/ShibakenMoveAnimCtrl, src/Npc/ShibakenStateJump, src/Npc/ShibakenStateTurn, src/Npc/ShibakenStateWait
+  │    src/Npc/ShibakenStatePointChase.cpp
+  │    src/Npc/ShibakenStatePointChase.h
+  └─
+
+  ┌─ src/Npc/ShibakenStateSit
+  │  needs: src/Npc/HintNpc
+  │    src/Npc/ShibakenStateSit.cpp
+  │    src/Npc/ShibakenStateSit.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 11  (13 PRs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Npc/NpcStateTurnBase
+  │  needs: src/Npc/FukuwaraiNpc
+  │    src/Npc/NpcStateTurnBase.cpp
+  │    src/Npc/NpcStateTurnBase.h
+  └─
+
+  ┌─ src/Npc/PaulineAudience
+  │  needs: src/Npc/FukuwaraiNpc, src/Npc/PaulineAtCeremony, src/Util/SensorMsgFunction
+  │    src/Npc/CityManRhythmInfo.h
+  │    src/Npc/PaulineAudience.cpp
+  │    src/Npc/PaulineAudience.h
+  └─
+
+  ┌─ src/Npc/Peach
+  │  needs: src/Npc/FukuwaraiNpc
+  │    src/Npc/Peach.cpp
+  │    src/Npc/Peach.h
+  └─
+
+  ┌─ src/Npc/Poetter
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/FukuwaraiNpc, src/Npc/NpcEventStateScare, src/Npc/NpcStateReactionParam, src/Util/SensorMsgFunction
+  │    src/Npc/Poetter.cpp
+  │    src/Npc/Poetter.h
+  └─
+
+  ┌─ src/Npc/RaceManStart
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/FukuwaraiNpc, src/Npc/TalkNpcCap, src/Util/SensorMsgFunction
+  │    src/Npc/RaceManStart.cpp
+  │    src/Npc/RaceManStart.h
+  │    src/Sequence/ChangeStageInfo.h
+  └─
+
+  ┌─ src/Npc/RadiconNpc
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Boss/BossRaid/BossRaidRivet, src/Npc/FukuwaraiNpc, src/Npc/NpcStateReactionParam, src/Npc/RadiconCar, src/Npc/RandomActionUpdater, src/Npc/TalkNpcActionAnimInfo, src/Npc/TalkNpcParam, src/Util/SensorMsgFunction
+  │    src/Npc/RadiconNpc.cpp
+  │    src/Npc/RadiconNpc.h
+  └─
+
+  ┌─ src/Npc/ShibakenStateWaitFar
+  │  needs: src/Npc/ShibakenStateSit, src/Npc/ShibakenStateTurn
+  │    src/Npc/ShibakenStateWaitFar.cpp
+  │    src/Npc/ShibakenStateWaitFar.h
+  └─
+
+  ┌─ src/Npc/SphinxRide
+  │  needs: src/Boss/BossRaid/BossRaid, src/Boss/BossRaid/BossRaidNpc, src/Npc/FukuwaraiNpc, src/Npc/NpcStateReactionParam, src/Npc/SphinxRideAim, src/Npc/SphinxRideEvent, src/Npc/SphinxRideStateRevival, src/Npc/SphinxRideStateStop, src/Util/SensorMsgFunction
+  │    src/Npc/SphinxRide.cpp
+  │    src/Npc/SphinxRide.h
+  │    src/Npc/SphinxRideParam.h
+  └─
+
+  ┌─ src/Npc/Tiara
+  │  needs: src/Npc/FukuwaraiNpc, src/Util/SensorMsgFunction
+  │    src/Npc/Tiara.cpp
+  │    src/Npc/Tiara.h
+  └─
+
+  ┌─ src/Npc/TimeBalloonNpc
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/FukuwaraiNpc, src/Npc/NpcEventStateScare, src/Npc/NpcStateReactionParam, src/Npc/RandomActionUpdater, src/Npc/TalkNpcActionAnimInfo, src/Npc/TalkNpcParam, src/Util/SensorMsgFunction
+  │    src/Npc/TimeBalloonNpc.cpp
+  │    src/Npc/TimeBalloonNpc.h
+  └─
+
+  ┌─ src/Npc/TokimekiMayorNpc
+  │  needs: src/Boss/BossRaid/BossRaid, src/Boss/BossRaid/BossRaidNpc, src/Npc/FukuwaraiNpc, src/Npc/NpcStateReactionParam, src/Npc/NpcStateWait, src/Npc/RandomWaitActionUpdater, src/Npc/TalkNpcParam
+  │    src/Npc/MayorItem.h
+  │    src/Npc/TokimekiMayorNpc.cpp
+  │    src/Npc/TokimekiMayorNpc.h
+  └─
+
+  ┌─ src/Npc/WorldTravelingPartner
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/FukuwaraiNpc, src/Npc/TalkNpcParam
+  │    src/Npc/WorldTravelingPartner.cpp
+  │    src/Npc/WorldTravelingPartner.h
+  └─
+
+  ┌─ src/Npc/YukimaruRacer
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/FukuwaraiNpc, src/Npc/YukimaruStateMove, src/Util/SensorMsgFunction
+  │    src/Npc/SnowManRaceFunction.h
+  │    src/Npc/YukimaruInput.h
+  │    src/Npc/YukimaruRacer.cpp
+  │    src/Npc/YukimaruRacer.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 12  (6 PRs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Npc/NpcStateTurnSeparate
+  │  needs: src/Npc/NpcStateTurnBase
+  │    src/Npc/NpcStateTurnSeparate.cpp
+  │    src/Npc/NpcStateTurnSeparate.h
+  └─
+
+  ┌─ src/Npc/ShibakenFunction
+  │  needs: src/Npc/HintNpc, src/Npc/NpcStateReactionParam, src/Npc/ShibakenStateBark, src/Npc/ShibakenStateCapCatch, src/Npc/ShibakenStateJump, src/Npc/ShibakenStatePointChase, src/Npc/ShibakenStateWait, src/Npc/ShibakenStateWaitFar, src/Util/SensorMsgFunction
+  │    lib/al/Library/Collision/CollisionParts.h [al]
+  │    src/Npc/ShibakenFunction.cpp
+  │    src/Npc/ShibakenFunction.h
+  └─
+
+  ┌─ src/Npc/SnowManRaceNpc
+  │  needs: src/Boss/BossRaid/BossRaid, src/Boss/BossRaid/BossRaidNpc, src/Npc/FukuwaraiNpc, src/Npc/RaceManStart, src/Npc/TalkNpcActionAnimInfo, src/Npc/TalkNpcParam, src/Util/SensorMsgFunction
+  │    src/Npc/SnowManRaceNpc.cpp
+  │    src/Npc/SnowManRaceNpc.h
+  └─
+
+  ┌─ src/Npc/WorldTravelingNpc
+  │  needs: src/Boss/BossRaid/BossRaid, src/Boss/BossRaid/BossRaidNpc, src/Npc/FukuwaraiNpc, src/Npc/TalkNpcActionAnimInfo, src/Npc/TalkNpcStateEvent, src/Npc/WorldTravelingPartner
+  │    src/Npc/WorldTravelingNpc.cpp
+  │    src/Npc/WorldTravelingNpc.h
+  └─
+
+  ┌─ src/Npc/YukimaruRacerTiago
+  │  needs: src/Npc/YukimaruRacer, src/Npc/YukimaruStateMove, src/Util/SensorMsgFunction
+  │    src/Npc/YukimaruRacerTiago.cpp
+  │    src/Npc/YukimaruRacerTiago.h
+  └─
+
+  ┌─ src/Npc/YukimaruStateHack
+  │  needs: src/Boss/BossRaid/BossRaidRivet, src/Npc/YukimaruRacer, src/Npc/YukimaruStateMove, src/Util/SensorMsgFunction
+  │    src/Npc/YukimaruStateHack.cpp
+  │    src/Npc/YukimaruStateHack.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 13  (4 PRs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Npc/RunAwayNpc
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Npc/FukuwaraiNpc, src/Npc/NpcStateTurnSeparate, src/Npc/TalkNpcCap, src/Util/SensorMsgFunction
+  │    src/Npc/RunAwayNpc.cpp
+  │    src/Npc/RunAwayNpc.h
+  └─
+
+  ┌─ src/Npc/Shibaken
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Boss/BossRaid/BossRaidRivet, src/Npc/FukuwaraiNpc, src/Npc/NpcStateReactionParam, src/Npc/ShibakenFunction, src/Npc/ShibakenMoveAnimCtrl, src/Npc/ShibakenStateBark, src/Npc/ShibakenStateCapCatch, src/Npc/ShibakenStateJump, src/Npc/ShibakenStatePointChase, src/Npc/ShibakenStateSit, src/Npc/ShibakenStateWait, src/Npc/ShibakenStateWaitFar, src/Npc/TalkNpcCap, src/Util/SensorMsgFunction
+  │    src/MapObj/DigPoint.h
+  │    src/Npc/Shibaken.cpp
+  │    src/Npc/Shibaken.h
+  └─
+
+  ┌─ src/Npc/WorldTravelingPeachWaitState
+  │  needs: src/Npc/FukuwaraiNpc, src/Npc/NpcStateTurnSeparate, src/Npc/TalkNpcActionAnimInfo, src/Npc/Tiara
+  │    src/Npc/WorldTravelingPeachWaitState.cpp
+  │    src/Npc/WorldTravelingPeachWaitState.h
+  │    src/Util/FukankunZoomTargetFunction.h
+  └─
+
+  ┌─ src/Npc/Yukimaru
+  │  needs: src/Boss/BossRaid/BossRaidNpc, src/Boss/BossRaid/BossRaidRivet, src/Npc/FukuwaraiNpc, src/Npc/NpcStateReactionParam, src/Npc/NpcStateWait, src/Npc/YukimaruStateHack, src/Npc/YukimaruStateMove, src/Util/SensorMsgFunction
+  │    src/Npc/Yukimaru.cpp
+  │    src/Npc/Yukimaru.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WAVE 14  (1 PR)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─ src/Npc/WorldTravelingPeach
+  │  needs: src/Boss/BossRaid/BossRaid, src/Boss/BossRaid/BossRaidNpc, src/Npc/FukuwaraiNpc, src/Npc/TalkNpcActionAnimInfo, src/Npc/TalkNpcStateEvent, src/Npc/Tiara, src/Npc/WorldTravelingPeachWaitState
+  │    src/Npc/FukankunZoomCapMessage.h
+  │    src/Npc/PeachTrunk.h
+  │    src/Npc/WorldTravelingPeach.cpp
+  │    src/Npc/WorldTravelingPeach.h
+  └─
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOTAL: 120 impl PRs across 14 waves (+ 2-3 infra PRs)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

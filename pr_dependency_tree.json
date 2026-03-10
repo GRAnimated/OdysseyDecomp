@@ -1,0 +1,1828 @@
+{
+  "waves": [
+    {
+      "wave": 1,
+      "prs": [
+        {
+          "key": "src/Boss/BossRaid/BossRaidChain",
+          "name": "BossRaidChain",
+          "directory": "src/Boss/BossRaid",
+          "files": [
+            "src/Boss/BossRaid/BossRaidChain.cpp",
+            "src/Boss/BossRaid/BossRaidChain.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Boss/BossRaid/BossRaidElectric",
+          "name": "BossRaidElectric",
+          "directory": "src/Boss/BossRaid",
+          "files": [
+            "lib/al/Library/Event/EventFlowExecutor.h",
+            "lib/al/Library/Joint/JointControllerKeeper.h",
+            "lib/al/Library/LiveActor/ActorModelFunction.h",
+            "src/Boss/BossRaid/BossRaidElectric.cpp",
+            "src/Boss/BossRaid/BossRaidElectric.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Boss/BossUtil/BossUtil",
+          "name": "BossUtil",
+          "directory": "src/Boss/BossUtil",
+          "files": [
+            "lib/al/Library/LiveActor/ActorAnimFunction.h",
+            "src/Boss/BossUtil/BossUtil.cpp",
+            "src/Boss/BossUtil/BossUtil.h",
+            "src/System/BossSaveData.h",
+            "src/System/CapMessageBossData.h",
+            "src/System/GameDataFile.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Layout/CommonHorizontalList",
+          "name": "CommonHorizontalList",
+          "directory": "src/Layout",
+          "files": [
+            "src/Layout/CommonHorizontalList.cpp",
+            "src/Layout/CommonHorizontalList.h",
+            "src/Layout/ScrollBarParts.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Layout/CommonSelectParts",
+          "name": "CommonSelectParts",
+          "directory": "src/Layout",
+          "files": [
+            "src/Layout/CommonSelectParts.cpp",
+            "src/Layout/CommonSelectParts.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Layout/DecideIconLayoutParts",
+          "name": "DecideIconLayoutParts",
+          "directory": "src/Layout",
+          "files": [
+            "src/Layout/DecideIconLayoutParts.cpp",
+            "src/Layout/DecideIconLayoutParts.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Layout/ProjectReplaceTagProcessor",
+          "name": "ProjectReplaceTagProcessor",
+          "directory": "src/Layout",
+          "files": [
+            "lib/al/Library/Layout/ReplaceTagProcessor.h",
+            "lib/al/Library/Message/CustomTagProcessor.h",
+            "src/Layout/ProjectReplaceTagProcessor.cpp",
+            "src/Layout/ProjectReplaceTagProcessor.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Layout/ShopLayoutFooter",
+          "name": "ShopLayoutFooter",
+          "directory": "src/Layout",
+          "files": [
+            "src/Layout/ShopLayoutFooter.cpp",
+            "src/Layout/ShopLayoutFooter.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/MapObj/FastenerRailKeeper",
+          "name": "FastenerRailKeeper",
+          "directory": "src/MapObj",
+          "files": [
+            "src/MapObj/Fastener.h",
+            "src/MapObj/FastenerRailKeeper.cpp",
+            "src/MapObj/FastenerRailKeeper.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/MapObj/ShopStateInShop",
+          "name": "ShopStateInShop",
+          "directory": "src/MapObj",
+          "files": [
+            "src/MapObj/ShopStateInShop.cpp",
+            "src/MapObj/ShopStateInShop.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/FrogStateWaitJump",
+          "name": "FrogStateWaitJump",
+          "directory": "src/Npc",
+          "files": [
+            "lib/al/Library/Joint/JointQuatController.h",
+            "src/Npc/Frog.h",
+            "src/Npc/FrogStateWaitJump.cpp",
+            "src/Npc/FrogStateWaitJump.h",
+            "src/Npc/YukimaruMovement.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/FrogStateWaitWander",
+          "name": "FrogStateWaitWander",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/FrogStateWaitWander.cpp",
+            "src/Npc/FrogStateWaitWander.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/FukuwaraiWatcher",
+          "name": "FukuwaraiWatcher",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/FukuwaraiWatcher.cpp",
+            "src/Npc/FukuwaraiWatcher.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/HomeCapStateMoveChair",
+          "name": "HomeCapStateMoveChair",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/HomeCapStateMoveChair.cpp",
+            "src/Npc/HomeCapStateMoveChair.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/HomeCapStateMoveSouvenir",
+          "name": "HomeCapStateMoveSouvenir",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/HomeCapMovePoint.h",
+            "src/Npc/HomeCapStateMoveSouvenir.cpp",
+            "src/Npc/HomeCapStateMoveSouvenir.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/NpcEventSceneConstData",
+          "name": "NpcEventSceneConstData",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/NpcEventSceneConstData.cpp",
+            "src/Npc/NpcEventSceneConstData.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/NpcEventStateScare",
+          "name": "NpcEventStateScare",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/NpcEventStateScare.cpp",
+            "src/Npc/NpcEventStateScare.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/NpcStateWait",
+          "name": "NpcStateWait",
+          "directory": "src/Npc",
+          "files": [
+            "lib/al/Library/Movement/RumbleCalculator.h",
+            "src/Npc/NpcStateRumbleParam.h",
+            "src/Npc/NpcStateTurnParam.h",
+            "src/Npc/NpcStateWait.cpp",
+            "src/Npc/NpcStateWait.h",
+            "src/Npc/NpcStateWaitParam.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/PaulineRhythmInfo",
+          "name": "PaulineRhythmInfo",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/PaulineRhythmInfo.cpp",
+            "src/Npc/PaulineRhythmInfo.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/PeachOnKoopaAnimInfo",
+          "name": "PeachOnKoopaAnimInfo",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/PeachOnKoopaAnimInfo.cpp",
+            "src/Npc/PeachOnKoopaAnimInfo.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/PlayerRecoder",
+          "name": "PlayerRecoder",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/PlayerRecoder.cpp",
+            "src/Npc/PlayerRecoder.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/PochiHintPhoto",
+          "name": "PochiHintPhoto",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/PochiHintPhoto.cpp",
+            "src/Npc/PochiHintPhoto.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/RaceManThrowCap",
+          "name": "RaceManThrowCap",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/RaceManThrowCap.cpp",
+            "src/Npc/RaceManThrowCap.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/RadiconCarStateAutoMove",
+          "name": "RadiconCarStateAutoMove",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/RadiconCarStateAutoMove.cpp",
+            "src/Npc/RadiconCarStateAutoMove.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/RankingNameHolder",
+          "name": "RankingNameHolder",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/RankingNameHolder.cpp",
+            "src/Npc/RankingNameHolder.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/ShibakenMoveAnimCtrl",
+          "name": "ShibakenMoveAnimCtrl",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/ShibakenMoveAnimCtrl.cpp",
+            "src/Npc/ShibakenMoveAnimCtrl.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/ShibakenStateTurn",
+          "name": "ShibakenStateTurn",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/ShibakenStateTurn.cpp",
+            "src/Npc/ShibakenStateTurn.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/ShibakenStateWait",
+          "name": "ShibakenStateWait",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/ShibakenStateWait.cpp",
+            "src/Npc/ShibakenStateWait.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/SkeletonDynamics",
+          "name": "SkeletonDynamics",
+          "directory": "src/Npc",
+          "files": [
+            "lib/al/Library/Model/ModelShapeUtil.h",
+            "src/Npc/SkeletonDynamics.cpp",
+            "src/Npc/SkeletonDynamics.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/SphinxRideAim",
+          "name": "SphinxRideAim",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/SphinxRideAim.cpp",
+            "src/Npc/SphinxRideAim.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/SphinxRideStateRevival",
+          "name": "SphinxRideStateRevival",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/SphinxRideStateRevival.cpp",
+            "src/Npc/SphinxRideStateRevival.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/SphinxRideStateStop",
+          "name": "SphinxRideStateStop",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/SphinxRideStateStop.cpp",
+            "src/Npc/SphinxRideStateStop.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TalkNpcCap",
+          "name": "TalkNpcCap",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TalkNpcCap.cpp",
+            "src/Npc/TalkNpcCap.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TalkNpcEyeLineAnimParam",
+          "name": "TalkNpcEyeLineAnimParam",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TalkNpcEyeLineAnimParam.cpp",
+            "src/Npc/TalkNpcEyeLineAnimParam.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TalkNpcFreeze",
+          "name": "TalkNpcFreeze",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TalkNpcFreeze.cpp",
+            "src/Npc/TalkNpcFreeze.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TalkNpcSceneEventSwitcher",
+          "name": "TalkNpcSceneEventSwitcher",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TalkNpcSceneEventSwitcher.cpp",
+            "src/Npc/TalkNpcSceneEventSwitcher.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TrafficRailWatcher",
+          "name": "TrafficRailWatcher",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TrafficRailWatcher.cpp",
+            "src/Npc/TrafficRailWatcher.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Util/SensorMsgFunction",
+          "name": "SensorMsgFunction",
+          "directory": "src/Util",
+          "files": [
+            "src/Util/SensorMsgFunction.cpp",
+            "src/Util/SensorMsgFunction.h"
+          ],
+          "depends_on": [],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 2,
+      "prs": [
+        {
+          "key": "src/Boss/BossRaid/BossRaidChainList",
+          "name": "BossRaidChainList",
+          "directory": "src/Boss/BossRaid",
+          "files": [
+            "src/Boss/BossRaid/BossRaidChainList.cpp",
+            "src/Boss/BossRaid/BossRaidChainList.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidChain"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Boss/BossRaid/BossRaidElectricLine",
+          "name": "BossRaidElectricLine",
+          "directory": "src/Boss/BossRaid",
+          "files": [
+            "src/Boss/BossRaid/BossRaidElectricLine.cpp",
+            "src/Boss/BossRaid/BossRaidElectricLine.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidElectric"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Boss/BossRaid/BossRaidNpc",
+          "name": "BossRaidNpc",
+          "directory": "src/Boss/BossRaid",
+          "files": [
+            "lib/al/Library/Joint/JointAimInfo.cpp",
+            "lib/al/Library/Joint/JointAimInfo.h",
+            "src/Boss/BossRaid/BossRaidNpc.cpp",
+            "src/Boss/BossRaid/BossRaidNpc.h",
+            "src/Util/NpcEventFlowUtil.h"
+          ],
+          "depends_on": [
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Boss/BossRaid/BossRaidWheel",
+          "name": "BossRaidWheel",
+          "directory": "src/Boss/BossRaid",
+          "files": [
+            "src/Boss/BossRaid/BossRaidWheel.cpp",
+            "src/Boss/BossRaid/BossRaidWheel.h"
+          ],
+          "depends_on": [
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/HomeCap",
+          "name": "HomeCap",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/HomeCap.cpp",
+            "src/Npc/HomeCap.h",
+            "src/Npc/HomeCapFunction.h",
+            "src/Util/CapManHeroDemoUtil.h"
+          ],
+          "depends_on": [
+            "src/Npc/HomeCapStateMoveChair",
+            "src/Npc/HomeCapStateMoveSouvenir"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/NpcEventBalloonInfo",
+          "name": "NpcEventBalloonInfo",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/NpcEventBalloonInfo.cpp",
+            "src/Npc/NpcEventBalloonInfo.h"
+          ],
+          "depends_on": [
+            "src/Layout/ProjectReplaceTagProcessor"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/NpcStateReactionParam",
+          "name": "NpcStateReactionParam",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/ActorStateReactionUtil.h",
+            "src/Npc/NpcStateReactionParam.cpp",
+            "src/Npc/NpcStateReactionParam.h"
+          ],
+          "depends_on": [
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/RaceManShell",
+          "name": "RaceManShell",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/RaceManShell.cpp",
+            "src/Npc/RaceManShell.h"
+          ],
+          "depends_on": [
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/ShibakenStateJump",
+          "name": "ShibakenStateJump",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/ShibakenStateJump.cpp",
+            "src/Npc/ShibakenStateJump.h"
+          ],
+          "depends_on": [
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/Squirrel",
+          "name": "Squirrel",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/Squirrel.cpp",
+            "src/Npc/Squirrel.h"
+          ],
+          "depends_on": [
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TestAndoNpcIk",
+          "name": "TestAndoNpcIk",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/CyclicCoordinateDescentIk.h",
+            "src/Npc/TestAndoNpcIk.cpp",
+            "src/Npc/TestAndoNpcIk.h"
+          ],
+          "depends_on": [
+            "src/Npc/SkeletonDynamics"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TrafficRailWatcherDirector",
+          "name": "TrafficRailWatcherDirector",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TrafficRailWatcherDirector.cpp",
+            "src/Npc/TrafficRailWatcherDirector.h"
+          ],
+          "depends_on": [
+            "src/Npc/TrafficRailWatcher"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/YukimaruStateMove",
+          "name": "YukimaruStateMove",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/YukimaruStateMove.cpp",
+            "src/Npc/YukimaruStateMove.h"
+          ],
+          "depends_on": [
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Player/PlayerCarryKeeper",
+          "name": "PlayerCarryKeeper",
+          "directory": "src/Player",
+          "files": [
+            "src/Player/PlayerCarryKeeper.cpp",
+            "src/Player/PlayerCarryKeeper.h",
+            "src/Player/PlayerJointParamHandLegAngle.h"
+          ],
+          "depends_on": [
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 3,
+      "prs": [
+        {
+          "key": "src/Boss/BossRaid/BossRaidLightning",
+          "name": "BossRaidLightning",
+          "directory": "src/Boss/BossRaid",
+          "files": [
+            "src/Boss/BossRaid/BossRaidLightning.cpp",
+            "src/Boss/BossRaid/BossRaidLightning.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidElectricLine"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Boss/BossRaid/BossRaidRivet",
+          "name": "BossRaidRivet",
+          "directory": "src/Boss/BossRaid",
+          "files": [
+            "src/Boss/BossRaid/BossRaidRivet.cpp",
+            "src/Boss/BossRaid/BossRaidRivet.h",
+            "src/Enemy/Popn.h",
+            "src/Player/CapTargetInfo.h",
+            "src/Util/Hack.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidChainList",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Boss/BossRaid/BossRaidStateBreathAttack",
+          "name": "BossRaidStateBreathAttack",
+          "directory": "src/Boss/BossRaid",
+          "files": [
+            "src/Boss/BossRaid/BossRaidStateBreathAttack.cpp",
+            "src/Boss/BossRaid/BossRaidStateBreathAttack.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidWheel"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Boss/BossRaid/BossRaidStateGroundAttack",
+          "name": "BossRaidStateGroundAttack",
+          "directory": "src/Boss/BossRaid",
+          "files": [
+            "src/Boss/BossRaid/BossRaidStateGroundAttack.cpp",
+            "src/Boss/BossRaid/BossRaidStateGroundAttack.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidElectric",
+            "src/Boss/BossRaid/BossRaidElectricLine"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Boss/BossUtil/BossStateTalkDemo",
+          "name": "BossStateTalkDemo",
+          "directory": "src/Boss/BossUtil",
+          "files": [
+            "src/Boss/BossUtil/BossStateTalkDemo.cpp",
+            "src/Boss/BossUtil/BossStateTalkDemo.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/GhostPlayer",
+          "name": "GhostPlayer",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/GhostPlayer.cpp",
+            "src/Npc/GhostPlayer.h"
+          ],
+          "depends_on": [
+            "src/Npc/RaceManShell",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/HideAndSeekCapMan",
+          "name": "HideAndSeekCapMan",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/HideAndSeekCapMan.cpp",
+            "src/Npc/HideAndSeekCapMan.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/JumpingRopeNpc",
+          "name": "JumpingRopeNpc",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/JumpingRopeNpc.cpp",
+            "src/Npc/JumpingRopeNpc.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/NpcEventCtrlInfo",
+          "name": "NpcEventCtrlInfo",
+          "directory": "src/Npc",
+          "files": [
+            "lib/al/Library/Event/EventFlowChoiceInfo.cpp",
+            "lib/al/Library/Event/EventFlowChoiceInfo.h",
+            "lib/al/Library/Event/EventFlowExecutorHolder.cpp",
+            "lib/al/Library/Event/EventFlowExecutorHolder.h",
+            "lib/al/Library/Layout/BalloonOrderGroupHolder.h",
+            "src/Npc/NpcEventCtrlInfo.cpp",
+            "src/Npc/NpcEventCtrlInfo.h",
+            "src/Npc/NpcEventSceneInfo.h"
+          ],
+          "depends_on": [
+            "src/Npc/NpcEventBalloonInfo"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/ShibakenStateCapCatch",
+          "name": "ShibakenStateCapCatch",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/ShibakenStateCapCatch.cpp",
+            "src/Npc/ShibakenStateCapCatch.h"
+          ],
+          "depends_on": [
+            "src/Npc/ShibakenStateJump",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/SphinxRideMiniGameNpc",
+          "name": "SphinxRideMiniGameNpc",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/SphinxRideMiniGameNpc.cpp",
+            "src/Npc/SphinxRideMiniGameNpc.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TalkNpcParam",
+          "name": "TalkNpcParam",
+          "directory": "src/Npc",
+          "files": [
+            "lib/al/Library/Event/EventFlowActorParamHolder.h",
+            "lib/al/Library/Event/EventFlowWatchParam.cpp",
+            "lib/al/Library/Event/EventFlowWatchParam.h",
+            "lib/al/Library/Joint/JointLookAtInfo.h",
+            "lib/al/Library/Joint/JointLookAtParam.h",
+            "src/Npc/TalkNpcParam.cpp",
+            "src/Npc/TalkNpcParam.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/TalkNpcEyeLineAnimParam"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TalkNpcPartialAnimCtrl",
+          "name": "TalkNpcPartialAnimCtrl",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TalkNpcPartialAnimCtrl.cpp",
+            "src/Npc/TalkNpcPartialAnimCtrl.h"
+          ],
+          "depends_on": [
+            "src/Npc/NpcStateReactionParam"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Player/PlayerJudgePreInputCapThrow",
+          "name": "PlayerJudgePreInputCapThrow",
+          "directory": "src/Player",
+          "files": [
+            "src/Player/PlayerCapThrowType.h",
+            "src/Player/PlayerJudgePreInputCapThrow.cpp",
+            "src/Player/PlayerJudgePreInputCapThrow.h"
+          ],
+          "depends_on": [
+            "src/Player/PlayerCarryKeeper"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 4,
+      "prs": [
+        {
+          "key": "src/Boss/BossRaid/BossRaid",
+          "name": "BossRaid",
+          "directory": "src/Boss/BossRaid",
+          "files": [
+            "src/Boss/BossRaid/BossRaid.cpp",
+            "src/Boss/BossRaid/BossRaid.h",
+            "src/Util/PlayerDemoUtil.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidRivet",
+            "src/Boss/BossRaid/BossRaidStateBreathAttack",
+            "src/Boss/BossRaid/BossRaidStateGroundAttack",
+            "src/Boss/BossUtil/BossStateTalkDemo",
+            "src/Boss/BossUtil/BossUtil",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/MapObj/FireHydrant",
+          "name": "FireHydrant",
+          "directory": "src/MapObj",
+          "files": [
+            "src/MapObj/FireHydrant.cpp",
+            "src/MapObj/FireHydrant.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidRivet",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/JumpingRopeLayout",
+          "name": "JumpingRopeLayout",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/JumpingRopeLayout.cpp",
+            "src/Npc/JumpingRopeLayout.h"
+          ],
+          "depends_on": [
+            "src/Npc/JumpingRopeNpc"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/NpcJointLookAtController",
+          "name": "NpcJointLookAtController",
+          "directory": "src/Npc",
+          "files": [
+            "lib/al/Library/Joint/JointLookAtController.h",
+            "src/Npc/NpcJointLookAtController.cpp",
+            "src/Npc/NpcJointLookAtController.h",
+            "src/Player/PlayerEyeSensorHitHolder.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/TalkNpcParam"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/PaulineAtCeremony",
+          "name": "PaulineAtCeremony",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/BgmAnimeSynchronizer.h",
+            "src/Npc/PaulineAtCeremony.cpp",
+            "src/Npc/PaulineAtCeremony.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/PaulineRhythmInfo",
+            "src/Npc/TalkNpcParam",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/RaceManGoal",
+          "name": "RaceManGoal",
+          "directory": "src/Npc",
+          "files": [
+            "src/MapObj/GoalMark.h",
+            "src/Npc/RaceManGoal.cpp",
+            "src/Npc/RaceManGoal.h"
+          ],
+          "depends_on": [
+            "src/Npc/GhostPlayer",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/RadiconCar",
+          "name": "RadiconCar",
+          "directory": "src/Npc",
+          "files": [
+            "src/Enemy/EnemyStateReset.h",
+            "src/Npc/RadiconCar.cpp",
+            "src/Npc/RadiconCar.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidRivet",
+            "src/Npc/RadiconCarStateAutoMove",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TalkNpcActionAnimInfo",
+          "name": "TalkNpcActionAnimInfo",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TalkNpcActionAnimInfo.cpp",
+            "src/Npc/TalkNpcActionAnimInfo.h"
+          ],
+          "depends_on": [
+            "src/Npc/NpcStateReactionParam",
+            "src/Npc/TalkNpcParam"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TalkNpcParamHolder",
+          "name": "TalkNpcParamHolder",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TalkNpcParamHolder.cpp",
+            "src/Npc/TalkNpcParamHolder.h"
+          ],
+          "depends_on": [
+            "src/Npc/TalkNpcParam"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 5,
+      "prs": [
+        {
+          "key": "src/Boss/BossRaid/BossRaidStateLightning",
+          "name": "BossRaidStateLightning",
+          "directory": "src/Boss/BossRaid",
+          "files": [
+            "src/Boss/BossRaid/BossRaidStateLightning.cpp",
+            "src/Boss/BossRaid/BossRaidStateLightning.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Boss/BossRaid/BossRaidWheel"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/HelpNpc",
+          "name": "HelpNpc",
+          "directory": "src/Npc",
+          "files": [
+            "lib/al/Library/Event/EventFlowEventData.h",
+            "lib/al/Library/Event/EventFlowMovement.h",
+            "src/Npc/EventActorMovementTurn.h",
+            "src/Npc/HelpNpc.cpp",
+            "src/Npc/HelpNpc.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/NpcEventStateScare",
+            "src/Npc/NpcStateReactionParam",
+            "src/Npc/TalkNpcActionAnimInfo",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/MoveHomeNpc",
+          "name": "MoveHomeNpc",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/MoveHomeNpc.cpp",
+            "src/Npc/MoveHomeNpc.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/HomeCap"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/NpcEventDirector",
+          "name": "NpcEventDirector",
+          "directory": "src/Npc",
+          "files": [
+            "lib/al/Library/Layout/LayoutActorGroup.cpp",
+            "lib/al/Library/Layout/LayoutActorGroup.h",
+            "src/Layout/TalkMessage.h",
+            "src/Npc/EventDemoCtrl.h",
+            "src/Npc/EventFlowSceneExecuteCtrl.h",
+            "src/Npc/NpcEventDirector.cpp",
+            "src/Npc/NpcEventDirector.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Npc/NpcEventBalloonInfo",
+            "src/Npc/NpcEventCtrlInfo",
+            "src/Npc/NpcEventSceneConstData"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/OpeningStageStartCapManHero",
+          "name": "OpeningStageStartCapManHero",
+          "directory": "src/Npc",
+          "files": [
+            "lib/al/Library/Demo/DemoActorHolder.h",
+            "lib/al/Library/Demo/DemoFunction.h",
+            "lib/al/Library/Event/EventFlowUtil.h",
+            "lib/al/Library/Joint/JointSpringControllerHolder.h",
+            "src/Npc/EventActorStateDemoTalk.h",
+            "src/Npc/OpeningStageStartCapManHero.cpp",
+            "src/Npc/OpeningStageStartCapManHero.h",
+            "src/Npc/SimpleActionLiveActor.h",
+            "src/Npc/SimpleActionPartsModel.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/HomeCap"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/RaceManRace",
+          "name": "RaceManRace",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/RaceManRace.cpp",
+            "src/Npc/RaceManRace.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Boss/BossUtil/BossUtil",
+            "src/Npc/GhostPlayer",
+            "src/Npc/RaceManGoal",
+            "src/Npc/RaceManThrowCap",
+            "src/Npc/TalkNpcCap",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/RandomActionUpdater",
+          "name": "RandomActionUpdater",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/RandomActionUpdater.cpp",
+            "src/Npc/RandomActionUpdater.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/TalkNpcActionAnimInfo"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/SphinxQuizRouteKillExecutor",
+          "name": "SphinxQuizRouteKillExecutor",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/SphinxQuizRouteKillExecutor.cpp",
+            "src/Npc/SphinxQuizRouteKillExecutor.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/SphinxRideEvent",
+          "name": "SphinxRideEvent",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/SphinxRideEvent.cpp",
+            "src/Npc/SphinxRideEvent.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 6,
+      "prs": [
+        {
+          "key": "src/Npc/RandomWaitActionUpdater",
+          "name": "RandomWaitActionUpdater",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/RandomWaitActionUpdater.cpp",
+            "src/Npc/RandomWaitActionUpdater.h"
+          ],
+          "depends_on": [
+            "src/Npc/RandomActionUpdater",
+            "src/Npc/TalkNpcActionAnimInfo"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/SphinxQuiz",
+          "name": "SphinxQuiz",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/SphinxQuiz.cpp",
+            "src/Npc/SphinxQuiz.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/SphinxQuizRouteKillExecutor",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TalkNpcSwitchActionPlayerHolder",
+          "name": "TalkNpcSwitchActionPlayerHolder",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TalkNpcSwitchActionPlayer.h",
+            "src/Npc/TalkNpcSwitchActionPlayerHolder.cpp",
+            "src/Npc/TalkNpcSwitchActionPlayerHolder.h"
+          ],
+          "depends_on": [
+            "src/Npc/RandomActionUpdater"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TalkNpcSwitchWaitActionObj",
+          "name": "TalkNpcSwitchWaitActionObj",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TalkNpcSwitchWaitActionObj.cpp",
+            "src/Npc/TalkNpcSwitchWaitActionObj.h"
+          ],
+          "depends_on": [
+            "src/Npc/RandomActionUpdater",
+            "src/Npc/TalkNpcActionAnimInfo"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 7,
+      "prs": [
+        {
+          "key": "src/Npc/TalkNpc",
+          "name": "TalkNpc",
+          "directory": "src/Npc",
+          "files": [
+            "lib/al/Library/Event/EventFlowMovementRailBlend.h",
+            "src/Npc/BirdMtxGlideCtrl.h",
+            "src/Npc/EventActorMovementRailTraffic.h",
+            "src/Npc/TalkNpc.cpp",
+            "src/Npc/TalkNpc.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/HelpNpc",
+            "src/Npc/HideAndSeekCapMan",
+            "src/Npc/NpcJointLookAtController",
+            "src/Npc/PaulineAtCeremony",
+            "src/Npc/RandomActionUpdater",
+            "src/Npc/TalkNpcActionAnimInfo",
+            "src/Npc/TalkNpcCap",
+            "src/Npc/TalkNpcParam",
+            "src/Npc/TalkNpcPartialAnimCtrl",
+            "src/Npc/TalkNpcSwitchActionPlayerHolder",
+            "src/Npc/TalkNpcSwitchWaitActionObj",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 8,
+      "prs": [
+        {
+          "key": "src/Npc/TalkNpcStateEvent",
+          "name": "TalkNpcStateEvent",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TalkNpcStateEvent.cpp",
+            "src/Npc/TalkNpcStateEvent.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/RandomActionUpdater",
+            "src/Npc/TalkNpc",
+            "src/Npc/TalkNpcActionAnimInfo",
+            "src/Npc/TalkNpcParam",
+            "src/Npc/TalkNpcPartialAnimCtrl"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 9,
+      "prs": [
+        {
+          "key": "src/Npc/HintNpc",
+          "name": "HintNpc",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/ActorStateReactionBase.h",
+            "src/Npc/HintNpc.cpp",
+            "src/Npc/HintNpc.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/HelpNpc",
+            "src/Npc/TalkNpcActionAnimInfo",
+            "src/Npc/TalkNpcCap",
+            "src/Npc/TalkNpcStateEvent"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 10,
+      "prs": [
+        {
+          "key": "src/Npc/FukuwaraiNpc",
+          "name": "FukuwaraiNpc",
+          "directory": "src/Npc",
+          "files": [
+            "lib/al/Library/Event/IEventFlowQueryJudge.h",
+            "src/Npc/FukuwaraiFaceParts.h",
+            "src/Npc/FukuwaraiNpc.cpp",
+            "src/Npc/FukuwaraiNpc.h",
+            "src/Npc/NpcStateReaction.h",
+            "src/Util/NpcAnimUtil.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/FukuwaraiWatcher",
+            "src/Npc/HintNpc",
+            "src/Npc/TalkNpcCap",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/ShellActorStateReaction",
+          "name": "ShellActorStateReaction",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/ShellActorStateReaction.cpp",
+            "src/Npc/ShellActorStateReaction.h"
+          ],
+          "depends_on": [
+            "src/Npc/HintNpc",
+            "src/Npc/NpcStateReactionParam",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/ShibakenStateBark",
+          "name": "ShibakenStateBark",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/ShibakenStateBark.cpp",
+            "src/Npc/ShibakenStateBark.h"
+          ],
+          "depends_on": [
+            "src/Npc/HintNpc",
+            "src/Npc/ShibakenStateTurn",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/ShibakenStatePointChase",
+          "name": "ShibakenStatePointChase",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/ShibakenStatePointChase.cpp",
+            "src/Npc/ShibakenStatePointChase.h"
+          ],
+          "depends_on": [
+            "src/Npc/HintNpc",
+            "src/Npc/ShibakenMoveAnimCtrl",
+            "src/Npc/ShibakenStateJump",
+            "src/Npc/ShibakenStateTurn",
+            "src/Npc/ShibakenStateWait"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/ShibakenStateSit",
+          "name": "ShibakenStateSit",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/ShibakenStateSit.cpp",
+            "src/Npc/ShibakenStateSit.h"
+          ],
+          "depends_on": [
+            "src/Npc/HintNpc"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 11,
+      "prs": [
+        {
+          "key": "src/Npc/NpcStateTurnBase",
+          "name": "NpcStateTurnBase",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/NpcStateTurnBase.cpp",
+            "src/Npc/NpcStateTurnBase.h"
+          ],
+          "depends_on": [
+            "src/Npc/FukuwaraiNpc"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/PaulineAudience",
+          "name": "PaulineAudience",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/CityManRhythmInfo.h",
+            "src/Npc/PaulineAudience.cpp",
+            "src/Npc/PaulineAudience.h"
+          ],
+          "depends_on": [
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/PaulineAtCeremony",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/Peach",
+          "name": "Peach",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/Peach.cpp",
+            "src/Npc/Peach.h"
+          ],
+          "depends_on": [
+            "src/Npc/FukuwaraiNpc"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/Poetter",
+          "name": "Poetter",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/Poetter.cpp",
+            "src/Npc/Poetter.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/NpcEventStateScare",
+            "src/Npc/NpcStateReactionParam",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/RaceManStart",
+          "name": "RaceManStart",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/RaceManStart.cpp",
+            "src/Npc/RaceManStart.h",
+            "src/Sequence/ChangeStageInfo.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/TalkNpcCap",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/RadiconNpc",
+          "name": "RadiconNpc",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/RadiconNpc.cpp",
+            "src/Npc/RadiconNpc.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Boss/BossRaid/BossRaidRivet",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/NpcStateReactionParam",
+            "src/Npc/RadiconCar",
+            "src/Npc/RandomActionUpdater",
+            "src/Npc/TalkNpcActionAnimInfo",
+            "src/Npc/TalkNpcParam",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/ShibakenStateWaitFar",
+          "name": "ShibakenStateWaitFar",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/ShibakenStateWaitFar.cpp",
+            "src/Npc/ShibakenStateWaitFar.h"
+          ],
+          "depends_on": [
+            "src/Npc/ShibakenStateSit",
+            "src/Npc/ShibakenStateTurn"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/SphinxRide",
+          "name": "SphinxRide",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/SphinxRide.cpp",
+            "src/Npc/SphinxRide.h",
+            "src/Npc/SphinxRideParam.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/NpcStateReactionParam",
+            "src/Npc/SphinxRideAim",
+            "src/Npc/SphinxRideEvent",
+            "src/Npc/SphinxRideStateRevival",
+            "src/Npc/SphinxRideStateStop",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/Tiara",
+          "name": "Tiara",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/Tiara.cpp",
+            "src/Npc/Tiara.h"
+          ],
+          "depends_on": [
+            "src/Npc/FukuwaraiNpc",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TimeBalloonNpc",
+          "name": "TimeBalloonNpc",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/TimeBalloonNpc.cpp",
+            "src/Npc/TimeBalloonNpc.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/NpcEventStateScare",
+            "src/Npc/NpcStateReactionParam",
+            "src/Npc/RandomActionUpdater",
+            "src/Npc/TalkNpcActionAnimInfo",
+            "src/Npc/TalkNpcParam",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/TokimekiMayorNpc",
+          "name": "TokimekiMayorNpc",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/MayorItem.h",
+            "src/Npc/TokimekiMayorNpc.cpp",
+            "src/Npc/TokimekiMayorNpc.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/NpcStateReactionParam",
+            "src/Npc/NpcStateWait",
+            "src/Npc/RandomWaitActionUpdater",
+            "src/Npc/TalkNpcParam"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/WorldTravelingPartner",
+          "name": "WorldTravelingPartner",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/WorldTravelingPartner.cpp",
+            "src/Npc/WorldTravelingPartner.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/TalkNpcParam"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/YukimaruRacer",
+          "name": "YukimaruRacer",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/SnowManRaceFunction.h",
+            "src/Npc/YukimaruInput.h",
+            "src/Npc/YukimaruRacer.cpp",
+            "src/Npc/YukimaruRacer.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/YukimaruStateMove",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 12,
+      "prs": [
+        {
+          "key": "src/Npc/NpcStateTurnSeparate",
+          "name": "NpcStateTurnSeparate",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/NpcStateTurnSeparate.cpp",
+            "src/Npc/NpcStateTurnSeparate.h"
+          ],
+          "depends_on": [
+            "src/Npc/NpcStateTurnBase"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/ShibakenFunction",
+          "name": "ShibakenFunction",
+          "directory": "src/Npc",
+          "files": [
+            "lib/al/Library/Collision/CollisionParts.h",
+            "src/Npc/ShibakenFunction.cpp",
+            "src/Npc/ShibakenFunction.h"
+          ],
+          "depends_on": [
+            "src/Npc/HintNpc",
+            "src/Npc/NpcStateReactionParam",
+            "src/Npc/ShibakenStateBark",
+            "src/Npc/ShibakenStateCapCatch",
+            "src/Npc/ShibakenStateJump",
+            "src/Npc/ShibakenStatePointChase",
+            "src/Npc/ShibakenStateWait",
+            "src/Npc/ShibakenStateWaitFar",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/SnowManRaceNpc",
+          "name": "SnowManRaceNpc",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/SnowManRaceNpc.cpp",
+            "src/Npc/SnowManRaceNpc.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/RaceManStart",
+            "src/Npc/TalkNpcActionAnimInfo",
+            "src/Npc/TalkNpcParam",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/WorldTravelingNpc",
+          "name": "WorldTravelingNpc",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/WorldTravelingNpc.cpp",
+            "src/Npc/WorldTravelingNpc.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/TalkNpcActionAnimInfo",
+            "src/Npc/TalkNpcStateEvent",
+            "src/Npc/WorldTravelingPartner"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/YukimaruRacerTiago",
+          "name": "YukimaruRacerTiago",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/YukimaruRacerTiago.cpp",
+            "src/Npc/YukimaruRacerTiago.h"
+          ],
+          "depends_on": [
+            "src/Npc/YukimaruRacer",
+            "src/Npc/YukimaruStateMove",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/YukimaruStateHack",
+          "name": "YukimaruStateHack",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/YukimaruStateHack.cpp",
+            "src/Npc/YukimaruStateHack.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidRivet",
+            "src/Npc/YukimaruRacer",
+            "src/Npc/YukimaruStateMove",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 13,
+      "prs": [
+        {
+          "key": "src/Npc/RunAwayNpc",
+          "name": "RunAwayNpc",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/RunAwayNpc.cpp",
+            "src/Npc/RunAwayNpc.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/NpcStateTurnSeparate",
+            "src/Npc/TalkNpcCap",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/Shibaken",
+          "name": "Shibaken",
+          "directory": "src/Npc",
+          "files": [
+            "src/MapObj/DigPoint.h",
+            "src/Npc/Shibaken.cpp",
+            "src/Npc/Shibaken.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Boss/BossRaid/BossRaidRivet",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/NpcStateReactionParam",
+            "src/Npc/ShibakenFunction",
+            "src/Npc/ShibakenMoveAnimCtrl",
+            "src/Npc/ShibakenStateBark",
+            "src/Npc/ShibakenStateCapCatch",
+            "src/Npc/ShibakenStateJump",
+            "src/Npc/ShibakenStatePointChase",
+            "src/Npc/ShibakenStateSit",
+            "src/Npc/ShibakenStateWait",
+            "src/Npc/ShibakenStateWaitFar",
+            "src/Npc/TalkNpcCap",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/WorldTravelingPeachWaitState",
+          "name": "WorldTravelingPeachWaitState",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/WorldTravelingPeachWaitState.cpp",
+            "src/Npc/WorldTravelingPeachWaitState.h",
+            "src/Util/FukankunZoomTargetFunction.h"
+          ],
+          "depends_on": [
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/NpcStateTurnSeparate",
+            "src/Npc/TalkNpcActionAnimInfo",
+            "src/Npc/Tiara"
+          ],
+          "cycle_merged": []
+        },
+        {
+          "key": "src/Npc/Yukimaru",
+          "name": "Yukimaru",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/Yukimaru.cpp",
+            "src/Npc/Yukimaru.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Boss/BossRaid/BossRaidRivet",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/NpcStateReactionParam",
+            "src/Npc/NpcStateWait",
+            "src/Npc/YukimaruStateHack",
+            "src/Npc/YukimaruStateMove",
+            "src/Util/SensorMsgFunction"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    },
+    {
+      "wave": 14,
+      "prs": [
+        {
+          "key": "src/Npc/WorldTravelingPeach",
+          "name": "WorldTravelingPeach",
+          "directory": "src/Npc",
+          "files": [
+            "src/Npc/FukankunZoomCapMessage.h",
+            "src/Npc/PeachTrunk.h",
+            "src/Npc/WorldTravelingPeach.cpp",
+            "src/Npc/WorldTravelingPeach.h"
+          ],
+          "depends_on": [
+            "src/Boss/BossRaid/BossRaid",
+            "src/Boss/BossRaid/BossRaidNpc",
+            "src/Npc/FukuwaraiNpc",
+            "src/Npc/TalkNpcActionAnimInfo",
+            "src/Npc/TalkNpcStateEvent",
+            "src/Npc/Tiara",
+            "src/Npc/WorldTravelingPeachWaitState"
+          ],
+          "cycle_merged": []
+        }
+      ]
+    }
+  ]
+}
