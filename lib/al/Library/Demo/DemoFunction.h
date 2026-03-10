@@ -2,10 +2,11 @@
 
 #include <basis/seadTypes.h>
 
+#include "Library/Demo/DemoActorHolder.h"
+
 namespace al {
 class AddDemoInfo;
 struct ActorInitInfo;
-class DemoActorHolder;
 class LiveActor;
 class Scene;
 
