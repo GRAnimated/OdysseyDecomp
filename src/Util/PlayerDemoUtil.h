@@ -1,61 +1,63 @@
 #pragma once
 
-#include <basis/seadTypes.h>
 #include <math/seadQuat.h>
 #include <math/seadVector.h>
 
 namespace al {
+class HitSensor;
 class LiveActor;
-}
+}  // namespace al
 
 namespace rs {
-void startActionDemoPlayer(const al::LiveActor*, const char*);
-bool isActionEndDemoPlayer(const al::LiveActor*);
-void setActionFrameRateDemoPlayer(const al::LiveActor*, f32);
-void setActionFrameDemoPlayer(const al::LiveActor*, f32);
-void clearDemoAnimInterpolatePlayer(const al::LiveActor*);
-void hideDemoPlayer(const al::LiveActor*);
-void showDemoPlayer(const al::LiveActor*);
-void hideDemoPlayerSilhouette(const al::LiveActor*);
-void showDemoPlayerSilhouette(const al::LiveActor*);
-void addDemoLockOnCap(const al::LiveActor*);
-void forcePutOnDemoCap(const al::LiveActor*);
-void forcePutOffMarioHeadCap(const al::LiveActor*);
-void hideDemoCap(const al::LiveActor*);
-void showDemoCap(const al::LiveActor*);
-void hideDemoCapSilhouette(const al::LiveActor*);
-void showDemoCapSilhouette(const al::LiveActor*);
-void killAllEffectPlayerAndCap(const al::LiveActor*);
-const sead::Vector3f& getDemoPlayerTrans(const al::LiveActor*);
-void setDemoPlayerQuat(const al::LiveActor*, const sead::Quatf&);
-const sead::Quatf& getDemoPlayerQuat(const al::LiveActor*);
-void replaceDemoPlayer(const al::LiveActor*, const sead::Vector3f&, const sead::Quatf&);
-void validateIK(const al::LiveActor*);
-void invalidateIK(const al::LiveActor*);
-void validateWatchTarget(const al::LiveActor*, const sead::Vector3f&);
-void invalidateWatchTarget(const al::LiveActor*);
-void hideDemoPlayerAndStartDemoResetAction(const al::LiveActor*);
-void calcDemoMarioJointPosAllRoot(sead::Vector3f*, const al::LiveActor*);
-void invalidateMarioDitherFrame(const al::LiveActor*, s32);
-void startMarioCapEyeAction(const al::LiveActor*, const char*);
-void killMarioCapEye(const al::LiveActor*);
-void startMarioRightHandAction(const al::LiveActor*, const char*);
-f32 getMarioActionFrameMax(const al::LiveActor*);
-void hideMarioGroundDepthShadow(const al::LiveActor*);
-void showMarioGroundDepthShadow(const al::LiveActor*);
-void setMarioGroundDepthShadowMapLength(const al::LiveActor*, f32);
-void changeMarioDepthShadowMapSizeHight(const al::LiveActor*);
-void changeMarioDepthShadowMapSizeNormal(const al::LiveActor*);
-void setMarioDirectionalShadowMaskTypeNone(const al::LiveActor*);
-void setMarioDirectionalShadowMaskTypeSelf(const al::LiveActor*);
-void resetMarioDynamics(const al::LiveActor*);
-void keepMarioCapVisibilityEndDemo(const al::LiveActor*);
-void clearMarioFootPrint(const al::LiveActor*);
+void startActionDemoPlayer(const al::LiveActor* actor, const char* actionName);
+bool isActionEndDemoPlayer(const al::LiveActor* actor);
+void setActionFrameRateDemoPlayer(const al::LiveActor* actor, f32 frameRate);
+void setActionFrameDemoPlayer(const al::LiveActor* actor, f32 frame);
+void clearDemoAnimInterpolatePlayer(const al::LiveActor* actor);
+void hideDemoPlayer(const al::LiveActor* actor);
+void showDemoPlayer(const al::LiveActor* actor);
+void hideDemoPlayerSilhouette(const al::LiveActor* actor);
+void showDemoPlayerSilhouette(const al::LiveActor* actor);
+void addDemoLockOnCap(const al::LiveActor* actor);
+void forcePutOnDemoCap(const al::LiveActor* actor);
+void forcePutOffMarioHeadCap(const al::LiveActor* actor);
+void hideDemoCap(const al::LiveActor* actor);
+void showDemoCap(const al::LiveActor* actor);
+void hideDemoCapSilhouette(const al::LiveActor* actor);
+void showDemoCapSilhouette(const al::LiveActor* actor);
+void killAllEffectPlayerAndCap(const al::LiveActor* actor);
+const sead::Vector3f& getDemoPlayerTrans(const al::LiveActor* actor);
+void setDemoPlayerQuat(const al::LiveActor* actor, const sead::Quatf& quat);
+const sead::Quatf& getDemoPlayerQuat(const al::LiveActor* actor);
+void replaceDemoPlayer(const al::LiveActor* actor, const sead::Vector3f& trans,
+                       const sead::Quatf& quat);
+void validateIK(const al::LiveActor* actor);
+void invalidateIK(const al::LiveActor* actor);
+void validateWatchTarget(const al::LiveActor* actor, const sead::Vector3f& target);
+void invalidateWatchTarget(const al::LiveActor* actor);
+void hideDemoPlayerAndStartDemoResetAction(const al::LiveActor* actor);
+void calcDemoMarioJointPosAllRoot(sead::Vector3f* outTrans, const al::LiveActor* actor);
+void invalidateMarioDitherFrame(const al::LiveActor* actor, s32 frames);
+void startMarioCapEyeAction(const al::LiveActor* actor, const char* actionName);
+void killMarioCapEye(const al::LiveActor* actor);
+void startMarioRightHandAction(const al::LiveActor* actor, const char* actionName);
+f32 getMarioActionFrameMax(const al::LiveActor* actor);
+void hideMarioGroundDepthShadow(const al::LiveActor* actor);
+void showMarioGroundDepthShadow(const al::LiveActor* actor);
+void setMarioGroundDepthShadowMapLength(const al::LiveActor* actor, f32 length);
+void changeMarioDepthShadowMapSizeHight(const al::LiveActor* actor);
+void changeMarioDepthShadowMapSizeNormal(const al::LiveActor* actor);
+void setMarioDirectionalShadowMaskTypeNone(const al::LiveActor* actor);
+void setMarioDirectionalShadowMaskTypeSelf(const al::LiveActor* actor);
+void resetMarioDynamics(const al::LiveActor* actor);
+void keepMarioCapVisibilityEndDemo(const al::LiveActor* actor);
+void clearMarioFootPrint(const al::LiveActor* actor);
+void tryRegisterSphinxQuizRouteKillSensorAfterPlacement(al::HitSensor* sensor);
 }  // namespace rs
 
 namespace PlayerDemoFunction {
-void startCapCheckpointWarpMode(const al::LiveActor*);
-void endMarioShadowMainShine(const al::LiveActor*);
-void prepareSphinxQuizRouteKill(const al::LiveActor*);
-void clearMarioStain(al::LiveActor*);
+void startCapCheckpointWarpMode(const al::LiveActor* actor);
+void endMarioShadowMainShine(const al::LiveActor* actor);
+void prepareSphinxQuizRouteKill(const al::LiveActor* actor);
+void clearMarioStain(al::LiveActor* actor);
 }  // namespace PlayerDemoFunction
