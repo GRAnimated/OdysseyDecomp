@@ -25,6 +25,8 @@ public:
 
     void setPoseMatrix(sead::Matrix34f* mtx) { mPoseMatrix = mtx; }
 
+    void set74(bool value) { _74 = value; }
+
 private:
     friend CapTargetInfoFunction;
     const al::LiveActor* mActor = nullptr;
