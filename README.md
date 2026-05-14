@@ -9,6 +9,13 @@ Files:
 - `tools/hypa.py` - Quick symbol lookup
 - `tools/agent-install.py <ida/ghidra> <opencode/...>` - Adds the MCP server and agent to your agentic tool of choice
 
+Requires a fork of [ida-pro-mcp](https://github.com/GRAnimated/ida-pro-mcp) with odyssey-specific helpers:
+```sh
+git clone https://github.com/GRAnimated/ida-pro-mcp.git
+pip install ida-pro-mcp
+ida-pro-mcp --install
+```
+
 # OdysseyDecomp 
 
  [![Decompilation Progress][progress-badge]][progress] [![Discord Channel][discord-badge]][discord]

@@ -15,30 +15,33 @@ This file covers the most common mismatch patterns. Every iteration cycle you wi
 
 ## Rules
 
-**Never rename anything.** All symbol names come from `data/file_list.yml` or IDA. Use them exactly as given.
-
-**But IDA sometimes has local renames** — always trust standard macros (`NERVE_IMPL`, `NERVES_MAKE_NOSTRUCT`) over IDA's displayed name. The variable name is the action name, not `sInstance`.
+**Never rename anything.** All symbol names come from `data/file_list.yml` or IDA. Use them exactly as given. However, IDA sometimes has local renames — always trust standard macros (`NERVE_IMPL`, `NERVES_MAKE_NOSTRUCT`) over IDA's displayed name. The variable name is the action name, not `sInstance`.
 
 **Headers matter.** They are shared by all contributors — write them carefully and completely.
 
-**No `goto`s.** If the pseudocode has a goto, restructure using if/else/switch. But do NOT restructure control flow in a way that changes the assembly structure (e.g. pulling a switch case out into a separate if/else before the switch changes jump table layout).
+**No `goto`.** Restructure using switch fallthrough or if/else. If the target's control flow uses goto-like jumps between switch cases, replicate the same structure using a helper function or duplicated case blocks — don't restructure into if/else chains that change the assembly structure.
+
+**Do not grep for function declarations. Use `odyssey_hypa` to find any function's signature or include path.** Grep is only for exploring sead math operations, never for declarations.
 
 ## Environment
 
 - **IDA**: `decompile`, `disasm`, `lookup_funcs`, `xrefs_to`, `py_eval`, etc. `addr` takes `0x7100000000 + offset`. Always use `int_convert` for address math.
 - **Reading floats**: IDA shows integer literals for floats. Run `struct.unpack('<f', struct.pack('<I', 0x40A00000))[0]` or `py_eval` for batches.
-- **Reading strings**: `py_eval` with `idaapi.get_bytes(addr, length)`. Always read enough bytes to capture the full string including any suffix — Japanese strings often extend past what IDA shows.
-- **`odyssey_hypa`**: feed IDA pseudocode to resolve function declarations and includes. Run it right after decompiling.
+- **Reading strings**: `py_eval` with `idaapi.get_bytes(addr, length)`. Always read enough bytes to capture the full string including any suffix — Japanese strings often extend past what IDA shows. Also try `odyssey_read_string(addr)` for unanalyzed strings.
 
 ## Tools
 
-- **`odyssey_hypa`**: feed pseudocode → get declarations and includes.
+- **`odyssey_hypa`**: resolve function declarations and includes. Run it right after decompiling.
 - **`odyssey_build`**: compile. `clean=true` for clean build.
 - **`odyssey_check`**: assembly diff. `function` (single), `functions` (list), or omit for all. `context_lines=N` to compress matching streaks. `show_source=true` for source overlay.
 - **`odyssey_check_status`**: compact status. `function`, `functions` (list), or `filter` (text pattern). Run this after EVERY build.
 - **`odyssey_clangd_check file=src/Foo/Bar.cpp`**: fast type check. Run before first build of a new file.
 - **`odyssey_check_format`**: formatting check. Fix all before finishing.
 - **`odyssey_listsym`**: unlabeled symbols. `-show_decompiled`, `-show_undefined`, `-show_data`.
+- **`odyssey_class_size(func)`**: finds `operator new(0xNN)` by decompiling the constructor's caller. Pass `class_name=` for template factory resolution.
+- **`odyssey_vtable_order(type_name)`**: reads vtable entries in address order from the constructor's ADRP references. Returns text with ordered function list.
+- **`odyssey_nerve_macros(class_name)`**: scans all `*Nrv*::execute` functions, determines NERVE_IMPL vs NERVES_MAKE_NOSTRUCT, and emits the complete `namespace { ... }` block.
+- **`odyssey_read_string(addr)`**: reads raw bytes at address with Shift-JIS/UTF-8 fallback for unanalyzed Japanese strings.
 
 ### Diff markers
 
@@ -88,11 +91,13 @@ Step 1b. **FORCED: Read sead math headers NOW.**
   | Negation | `vec = {-a.x, -a.y, -a.z}` (NOT `-vec`) |
   | Scalar * vector stored to variable | Inline the multiply: `shot(pos, diff * scale)` NOT `auto scaled = diff * scale` |
 
-  If the operation you need isn't in this table, grep for it:
+  If the sead operation you need isn't in this table, grep the sead math headers (not source files):
+
   ```
-  grep -rn "setRotation\|setMul\|rotate\|setAdd\|setScale\|mult" lib/sead/include/math/
+  grep -rn "setRotation\|setCross\|setSub\|setScaleAdd\|dot\|cross\|setAxisRadian\|fromQuat" lib/sead/include/math/
   ```
-  Then `read` the matching header to see the full signature.
+
+  This grep is ONLY for finding sead operations — NOT for finding function declarations (use `odyssey_hypa` for that).
 
   Also skim the `.hpp` implementation files for the exact inlined instructions:
   ```
@@ -103,16 +108,14 @@ Step 1b. **FORCED: Read sead math headers NOW.**
 
 Step 1c. Decompile the most useful functions first (constructor, init, getters/setters). Skip complex math for now.
 
-Step 1d. **Run `odyssey_hypa` on the pseudocode** to get includes and declarations.
+Step 1d. **Run `odyssey_hypa` on the pseudocode NOW.** Feed it the decompiler output — it resolves all function declarations and include paths in one shot. This replaces grepping for individual function signatures.
 
-Step 1e. Find class size:
-  - `xrefs_to` on the C1 constructor address
-  - **Decompile the caller** (NOT disassemble at the xref — decompile gives `operator new(0xNN)`)
-  - That NN is the class size
+Step 1e. Find class size — use `odyssey_class_size(func_addr, class_name=BubbleLauncher)`:
+  This decompiles the caller and extracts `operator new(0xNN)`. Pass `class_name` for template factory patterns.
 
 Step 1f. Disassemble the constructor to establish struct layout (store pattern table below).
 
-Step 1g. Read Japanese string literals via `py_eval` with `idaapi.get_bytes(addr, 40)`.
+Step 1g. Read Japanese string literals — use `odyssey_read_string(addr)` which tries Shift-JIS/UTF-8 automatically.
 
 Step 1h. Grep `lib/al` for free-function headers before writing includes.
 
@@ -121,6 +124,7 @@ Step 1h. Grep `lib/al` for free-function headers before writing includes.
 - Mirror the object file's directory path.
 - `#pragma once`. Always forward-declare.
 - `static_assert(sizeof(MyClass) == 0xNN)` if size known.
+- **Run `odyssey_vtable_order(ClassName, constructor_addr)` before listing virtual functions** to get the exact vtable order.
 - Confident fields get real names; uncertain fields use `_5c` with a brief comment.
 - Member prefixes: `m` (instance), `s` (static), `g` (global).
 - Functions in ascending offset order.
@@ -162,7 +166,9 @@ sead::Vector3f result = someOp.calcSomething(arg1, mRightAxis * 0.0f);
 
 Do NOT create a separate dead variable and cast it to void — that's banned.
 
-**Never write `f32 x = ...` manual float math.** If you're typing individual float component operations, STOP. You missed a sead function. Go back to step 1b and read the sead headers again, specifically grepping for the operation you need.
+**Never write `f32 x = ...` manual float math.** If you're typing individual float component operations, STOP. You missed a sead function. Go back to step 1b and read the sead headers again.
+
+**Need a function's declaration while implementing? STOP and run `odyssey_hypa FunctionName`.** Do NOT grep for it — hypa reads the authoritative source files and gives you the exact include path and signature. Grep will give you every usage of the function across the entire codebase. hypa gives you only what you need.
 
 **cosf/sinf directly, not through wrappers.** `sead::Mathf::cos()` wraps to `std::cos` which adds an extra call. Use `cosf()` and `sinf()` directly.
 
@@ -205,7 +211,7 @@ To verify: run `callees(func_addr)` on the IDA function — if the suspected cal
 
 #### Patterns
 
-**Nerve/state-machine:**
+**Nerve/state-machine — use `odyssey_nerve_macros(ClassName)` to generate:**
 ```cpp
 namespace {
 NERVE_IMPL(MyClass, Idle);
@@ -213,6 +219,8 @@ NERVE_IMPL(MyClass, Move);
 NERVES_MAKE_NOSTRUCT(MyClass, Idle, Move);
 }
 ```
+
+**Virtual function order — use `odyssey_vtable_order(ClassName, constructor_addr)` to get the exact vtable layout before writing the header.**
 
 **Single-delegation constructor:**
 ```cpp
@@ -242,6 +250,7 @@ MyClass::MyClass(const char* name) : al::LiveActor(name) {}
 - `odyssey_check_format` — fix all issues.
 - `odyssey_check` (no args) — confirm all statuses.
 - `odyssey_listsym` — find unlabeled symbols. Do not edit `file_list.yml`.
+- `odyssey_nerve_macros(ClassName)` — verify the generated nerve block looks correct.
 - Update MATCHING.md with any new patterns discovered.
 
 ## Code Style
