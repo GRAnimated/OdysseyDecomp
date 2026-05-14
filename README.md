@@ -1,3 +1,14 @@
+## Agentic Tooling fork
+
+This branch represents a template for use with AI agents.
+
+Files:
+- `docs/llm/AGENT-*.md` - Decomp agents specialized for this repository
+- `docs/llm/MATCHING.md` - Reference of common non-matching patterns
+- `tools/odyssey-mcp.py` - MCP server
+- `tools/hypa.py` - Quick symbol lookup
+- `tools/agent-install.py <ida/ghidra> <opencode/...>` - Adds the MCP server and agent to your agentic tool of choice
+
 # OdysseyDecomp 
 
  [![Decompilation Progress][progress-badge]][progress] [![Discord Channel][discord-badge]][discord]
