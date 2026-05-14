@@ -16,6 +16,40 @@ _ANSI = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 mcp = FastMCP("odyssey")
 
 
+_DIFF_MARKER = re.compile(r"^[0-9a-f]+:\s+\S.*?([ s|r<>])\s+(?:[0-9a-f]+:\s+\S.*)?$")
+
+
+def _compress(text: str, context: int) -> str:
+    lines = text.splitlines()
+    if not lines:
+        return text
+
+    markers = []
+    for line in lines:
+        m = _DIFF_MARKER.match(line)
+        markers.append(m.group(1) if m else None)
+
+    result = []
+    i = 0
+    while i < len(lines):
+        if markers[i] == " ":
+            start = i
+            while i < len(lines) and markers[i] == " ":
+                i += 1
+            streak = i - start
+            if streak > context * 2 + 1:
+                result.extend(lines[start:start + context])
+                result.append("...")
+                result.extend(lines[i - context:i])
+            else:
+                result.extend(lines[start:i])
+        else:
+            result.append(lines[i])
+            i += 1
+
+    return "\n".join(result)
+
+
 def _run(args: list[str], timeout: int = 120) -> str:
     result = subprocess.run(
         args, cwd=REPO, stdin=subprocess.DEVNULL,
@@ -69,13 +103,13 @@ def check(
         show_source: Show source alongside assembly (-c).
     """
     args = ["tools/check", "--no-pager", "--format=plain"]
-    if context_lines is not None:
-        args.extend(["-U", str(context_lines)])
     if show_source:
         args.append("-c")
     if function:
         args.append(function)
     output = _run(args, timeout=5)
+    if context_lines is not None:
+        output = _compress(output, context_lines)
     return output
 
 
@@ -100,13 +134,9 @@ def check_status(function: str) -> str:
         verdict = "OK"
         reason = ""
 
-    _DIFF_LINE = re.compile(
-        r"^[0-9a-f]+:\s+\S.*?([ s|r<>])\s+(?:[0-9a-f]+:\s+\S.*)?$"
-    )
-
     counts = {"match": 0, "s": 0, "|": 0, "r": 0, "<": 0, ">": 0}
     for line in raw.splitlines():
-        m = _DIFF_LINE.match(line)
+        m = _DIFF_MARKER.match(line)
         if m:
             marker = m.group(1)
             if marker == " ":
