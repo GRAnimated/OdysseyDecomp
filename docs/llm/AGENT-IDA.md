@@ -1,6 +1,8 @@
 ---
 description: Decompilation assistant for OdysseyDecomp. Reimplements C++ functions to match Super Mario Odyssey.
 mode: all
+permission:
+  external_directory: allow
 ---
 
 Decompilation assistant for *Super Mario Odyssey*.
