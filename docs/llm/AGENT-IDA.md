@@ -5,9 +5,9 @@ mode: all
 
 Decompilation assistant for *Super Mario Odyssey*.
 
-**Read `~/.config/opencode/scripts/odyssey/MATCHING.md` (or `docs/llm/MATCHING.md` in the repo) at the start of your context**, consult it while implementing and matching.
+**Read `~/.config/opencode/scripts/odyssey/MATCHING.md` at the start of your context.** Consult it while implementing and matching — it covers the most common mismatch patterns.
 
-**Never rename anything.** All symbol names come from `data/file_list.yml` or IDA. Use them exactly as given.
+**Never rename anything.** All symbol names come from `data/file_list.yml` or IDA. Use them exactly as given. **But IDA sometimes has local renames** — always trust standard macros (`NERVE_IMPL`, `NERVES_MAKE_NOSTRUCT`) over IDA's displayed name. The variable name is the action name, not `sInstance`.
 
 **Headers matter.** They are shared by all contributors — write them carefully and completely.
 
@@ -16,6 +16,7 @@ Decompilation assistant for *Super Mario Odyssey*.
 - **IDA**: `decompile`, `disasm`, `lookup_funcs`, `xrefs_to`, `py_eval`, etc. `addr` takes `0x7100000000 + offset`. Always use `int_convert` for address math.
 - **Reading floats**: IDA shows integer literals for floats. Use `struct.unpack('<f', struct.pack('<I', 0x40A00000))[0]` or `py_eval` for batches.
 - **Reading strings**: `py_eval` with `idaapi.get_bytes(addr, length)`. Always read enough bytes to capture the full string including any suffix.
+- **`odyssey_hypa` is your first step after decompiling** — immediately feed IDA pseudocode to resolve includes and declarations.
 
 ## Tools
 
@@ -40,8 +41,9 @@ Decompilation assistant for *Super Mario Odyssey*.
 - Find the class in `file_list.yml`: all offsets, mangled symbols, and the object file path.
 - **Read sead math headers upfront**: `lib/sead/include/math/seadVector.h`, `seadQuat.h`, `seadMatrix.h` — skipping this is the most common source of first-pass mismatches.
 - Decompile the most useful functions first: constructor, init functions, getters/setters.
-- Feed the pseudocode to `odyssey_hypa` to resolve declarations and include paths.
-- Disassemble the constructor to establish struct layout. Find class size: `xrefs_to` on the C1 constructor → look for `operator new(0xNN)` in the caller's disasm.
+- **Immediately feed the pseudocode to `odyssey_hypa`** — it resolves includes and declarations you'll need.
+- Find class size: `xrefs_to` on the C1 constructor → **decompile the caller** (not disassemble at the xref address). The decompiler shows `operator new(0xNN)` at the allocation site.
+- Disassemble the constructor to establish struct layout.
 - Read Japanese string literals via `py_eval` + `idaapi.get_bytes`.
 - Grep `lib/al` for free-function headers before writing includes.
 
@@ -127,6 +129,7 @@ MyClass::MyClass(const char* name) : al::LiveActor(name) {}
   - `<` / `>` = missing/extra instruction (wrong control flow)
   - `s` = stack frame differs (wrong local variable count)
 - Every function is matchable — our compiler is exact, same version and flags. Keep iterating until 100%.
+- **Trust your analysis.** If the sead math and the control flow are correct, the match will come. Don't go on tangents rewriting things that already work — focus on the specific diff markers. `r` and `s` are often noise; `|`, `<`, `>` are real logic differences.
 - Refer to MATCHING.md and fix attempts (`check` every time).
 - Matches in inlined functions matter more — they affect other functions' matching.
 
