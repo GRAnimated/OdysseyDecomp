@@ -301,10 +301,19 @@ def obj_to_header_hint(obj: str) -> str:
 def main():
     parser = argparse.ArgumentParser(
         description="Quick function signature & include path retriever")
+    parser.add_argument("--project-root", type=Path, default=None,
+                        help="Override project root (for running outside repo)")
     parser.add_argument("-f", "--fuzzy", action="store_true",
                         help="Fuzzy match: show all functions starting with the given name")
     parser.add_argument("names", nargs="*", help="Function names to look up")
     args = parser.parse_args()
+
+    global ROOT, FILE_LIST_PATH, SRC_DIR, LIB_DIR
+    if args.project_root:
+        ROOT = args.project_root.resolve()
+        FILE_LIST_PATH = ROOT / "data" / "file_list.yml"
+        SRC_DIR = ROOT / "src"
+        LIB_DIR = ROOT / "lib"
 
     names = args.names
     pseudocode_input = not sys.stdin.isatty()

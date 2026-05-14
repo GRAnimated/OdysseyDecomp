@@ -69,7 +69,7 @@ def hypa(input: str, fuzzy: bool = False) -> str:
         input: Function names or IDA pseudocode.
         fuzzy: Enable fuzzy matching (show all functions starting with the given name).
     """
-    args = [sys.executable, str(HYPA)]
+    args = [sys.executable, str(HYPA), "--project-root", str(REPO)]
     if fuzzy:
         args.append("-f")
     if "(" in input:
@@ -91,76 +91,101 @@ def build(clean: bool = False) -> str:
 @mcp.tool()
 def check(
     function: Optional[str] = None,
+    functions: Optional[list[str]] = None,
     context_lines: Optional[int] = None,
     show_source: bool = False,
 ) -> str:
     """
-    Assembly diff. Omit function to check all.
+    Assembly diff. Omit function/functions to check all.
 
     Args:
-        function: MangLED or demangled symbol name. None checks all.
-        context_lines: Number of context lines for the diff (-U N).
+        function: Single mangled or demangled symbol name.
+        functions: Multiple symbol names to check in batch.
+        context_lines: Number of context lines around non-matching parts.
         show_source: Show source alongside assembly (-c).
     """
-    args = ["tools/check", "--no-pager", "--format=plain"]
+    targets: list[Optional[str]] = list(functions) if functions else [function] if function else [None]
+    base = ["tools/check", "--no-pager", "--format=plain"]
     if show_source:
-        args.append("-c")
-    if function:
-        args.append(function)
-    output = _run(args, timeout=5)
-    if context_lines is not None:
-        output = _compress(output, context_lines)
-    return output
+        base.append("-c")
+    results = []
+    for target in targets:
+        args = base + ([target] if target else [])
+        output = _run(args, timeout=5)
+        if context_lines is not None:
+            output = _compress(output, context_lines)
+        results.append(output)
+    return "\n".join(results) if len(results) > 1 else results[0]
 
 
 @mcp.tool()
-def check_status(function: str) -> str:
+def check_status(
+    function: Optional[str] = None,
+    functions: Optional[list[str]] = None,
+    filter: Optional[str] = None,
+) -> str:
     """
-    Compact OK/mismatch status with diff stats for one function.
+    Compact OK/mismatch status with diff stats. Accepts one or multiple functions, or a filter.
 
     Args:
-        function: MangLED or demangled symbol name.
+        function: Single mangled or demangled symbol name.
+        functions: Multiple symbol names to check in batch.
+        filter: Only show results for functions matching this text pattern.
     """
-    raw = _run(
-        ["tools/check", "--no-pager", "--format=plain", "--always-diff", function],
-        timeout=30,
-    )
+    if filter:
+        raw = _run(["tools/check", "--no-pager", "--format=plain"], timeout=30)
+        lines = raw.splitlines()
+        matching = [l for l in lines if filter.lower() in l.lower()]
+        return "\n".join(matching) if matching else f"(no functions matching '{filter}')"
 
-    if "mismatch" in raw and "OK" not in raw.split("mismatch")[0].split("\n")[-1]:
-        verdict = "mismatch"
-        m = re.search(r"mismatch at [0-9a-fx]+: (.+)", raw)
-        reason = m.group(1).strip() if m else "unknown"
-    else:
-        verdict = "OK"
-        reason = ""
+    targets: list[str] = list(functions) if functions else ([function] if function else [])
+    if not targets:
+        return "check_status requires at least one function name"
 
-    counts = {"match": 0, "s": 0, "|": 0, "r": 0, "<": 0, ">": 0}
-    for line in raw.splitlines():
-        m = _DIFF_MARKER.match(line)
-        if m:
-            marker = m.group(1)
-            if marker == " ":
-                counts["match"] += 1
-            elif marker in counts:
-                counts[marker] += 1
+    results = []
+    for target in targets:
+        raw = _run(
+            ["tools/check", "--no-pager", "--format=plain", "--always-diff", target],
+            timeout=30,
+        )
 
-    total = sum(counts.values())
-    effectively = counts["match"] + counts["r"]
+        if "mismatch" in raw and "OK" not in raw.split("mismatch")[0].split("\n")[-1]:
+            verdict = "mismatch"
+            m = re.search(r"mismatch at [0-9a-fx]+: (.+)", raw)
+            reason = m.group(1).strip() if m else "unknown"
+        else:
+            verdict = "OK"
+            reason = ""
 
-    if verdict == "OK":
-        return f"{function}: OK ({effectively} matching, {counts['r']} regswap)"
+        counts = {"match": 0, "s": 0, "|": 0, "r": 0, "<": 0, ">": 0}
+        for line in raw.splitlines():
+            m = _DIFF_MARKER.match(line)
+            if m:
+                marker = m.group(1)
+                if marker == " ":
+                    counts["match"] += 1
+                elif marker in counts:
+                    counts[marker] += 1
 
-    pct = int(100 * effectively / total) if total > 0 else 0
-    parts = []
-    if counts["|"]: parts.append(f'{counts["|"]} changed')
-    if counts["s"]: parts.append(f'{counts["s"]} imm/offset')
-    if counts["r"]: parts.append(f'{counts["r"]} regswap')
-    if counts["<"]: parts.append(f'{counts["<"]} deleted')
-    if counts[">"]: parts.append(f'{counts[">"]} added')
-    return (
-        f"{function}: mismatch ({reason})\n"
-        f"  {effectively}/{total} match ({pct}%), {', '.join(parts)}"
-    )
+        total = sum(counts.values())
+        effectively = counts["match"] + counts["r"]
+
+        if verdict == "OK":
+            results.append(f"{target}: OK ({effectively} matching, {counts['r']} regswap)")
+        else:
+            pct = int(100 * effectively / total) if total > 0 else 0
+            parts = []
+            if counts["|"]: parts.append(f'{counts["|"]} changed')
+            if counts["s"]: parts.append(f'{counts["s"]} imm/offset')
+            if counts["r"]: parts.append(f'{counts["r"]} regswap')
+            if counts["<"]: parts.append(f'{counts["<"]} deleted')
+            if counts[">"]: parts.append(f'{counts[">"]} added')
+            results.append(
+                f"{target}: mismatch ({reason})\n"
+                f"  {effectively}/{total} match ({pct}%), {', '.join(parts)}"
+            )
+
+    return "\n".join(results)
 
 
 @mcp.tool()

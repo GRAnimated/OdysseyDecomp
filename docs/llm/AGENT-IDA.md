@@ -21,8 +21,9 @@ Decompilation assistant for *Super Mario Odyssey*.
 
 - **`odyssey_hypa`**: feed IDA pseudocode to resolve function declarations and include paths. Run it right after decompiling.
 - **`odyssey_build`**: compile. `clean=true` for clean build.
-- **`odyssey_check`**: assembly diff. Omit `function` to check all. Pass `context_lines` to compress, `show_source=true` for side-by-side. Prefer the mangled symbol from `file_list.yml`.
-- **`odyssey_check_status`**: compact OK/mismatch + diff stats without full diff.
+- **`odyssey_check`**: assembly diff. Accept `function` (single) or `functions` (list). Omit both to check all. Pass `context_lines` to compress, `show_source=true` for side-by-side. Prefer the mangled symbol from `file_list.yml`.
+    - Diff markers: `r` = regswap (register allocation differs, usually harmless), `i` = immediate/offset differs, `|` = different instruction, `<` / `>` = missing/extra instruction.
+- **`odyssey_check_status`**: compact OK/mismatch + diff stats. Accept `function`, `functions` (list), or `filter` (text pattern). Check this after every build to track progress.
 - **`odyssey_clangd_check file=src/Foo/Bar.cpp`**: fast type/syntax check. Run this first after writing a new file.
 - **`odyssey_check_format`**: reports formatting errors. Fix all before finishing.
 - **`odyssey_listsym`**: symbols in output ELF not yet in file list. Use `-show_decompiled`, `-show_undefined`, `-show_data` as needed.
@@ -30,7 +31,7 @@ Decompilation assistant for *Super Mario Odyssey*.
 ### Watch for
 
 - Offset comments (`// 0x108`) forbidden in headers.
-- String literals must match the binary exactly — read with `idaapi.get_bytes`.
+- String literals must match the binary exactly — read with `idaapi.get_bytes`. Read enough context bytes to capture the full string — Japanese strings often extend past what IDA shows (e.g. camera `"バブルキャノ"` was actually `"バブルキャノンカメラ"`).
 
 ## Workflow
 
@@ -72,8 +73,33 @@ Map every store to a byte range, union them, split at natural alignment boundari
 ### 4. Implement
 
 - Decompile everything, clean up enough to compile. Never copy-paste pseudocode — reimplement. **No `goto`s**.
-- Identify inlined functions and call the original inline (sead math inlines are very common).
+- Identify inlined functions and call the original inline.
 - Consult MATCHING.md while writing.
+
+#### Inlining rules (critical for matching)
+
+| Category | Inlines? | How to use |
+|---|---|---|
+| **sead math helpers** (Vector3f, Quatf, Matrix34f methods) | ✅ Yes — every time | Use named methods: `.setSub(a,b)` not `= a - b`, `.setCross(a,b)` not `a.cross(b)`, `.fromQuat(q)`, `.setTranslation(t)`. These are the primitives the developers used. |
+| **sead operators** (`operator+`, `operator*`, etc.) | ✅ Yes | Prefer `.setSub`/`.setAdd`/`.setCross` over operators for closer matching. |
+| **`al::` functions** (`al::getTrans`, `al::getQuat`, `al::startAction`, etc.) | ❌ Never inline — library calls | Call them normally. IDA showing a field offset instead of a named call means it's NOT an `al` function being inlined — it's an inline helper or manual math. |
+| **`rs::` functions** (rs::sendMsg*) | ❌ Never inline | Same as `al::` — they're real function calls. |
+| **`Bubble::` member functions** | ❌ Never inline | Regular member function calls (vtable or direct). |
+
+**Key insight**: If IDA pseudocode shows explicit float arithmetic (fmul, fsub, etc.) instead of a function call, the original code used sead inline math, not `al::` helpers. Implement that math using sead Vector3f/Quatf/Matrix34f operations — the inlined sead helpers produce matching float code.
+
+#### Complex math functions (controlCameraReady, calcEffectMtx, controlCameraShoot)
+
+Don't try to hand-translate the IDA pseudocode float-by-float. Instead:
+
+1. **Understand the concept**: quaternion rotation, matrix construction, camera lag interpolation
+2. **Implement with sead inline ops**: `sead::Vector3f::cross()`, `Quatf::setAxisAngle()`, `Matrix34f::fromQuat()`, etc.
+3. **The function must be large enough** (> ~50 instructions) to prevent -O3 from inlining it into its caller. If a complex helper function is too small, the calling function won't match.
+
+#### Constructors
+
+- Standard single-delegation: `MyClass::MyClass(const char* name) : al::LiveActor(name) {}`
+- The compiler auto-generates both C1 (complete object) and C2 (base object) constructors. In the target binary these may differ slightly (different instruction ordering or immediate loads). **Don't fight this** — if the simple constructor doesn't match after two fix attempts, move on. The C1/C2 divergence is a compiler codegen quirk, not something to reproduce in source.
 
 **Recognising inlines**: IDA shows direct field access instead of a function call. `*(*(this+8)+8)` = `getStringTop()`. Field offsets in place of a named call = inline.
 
@@ -93,13 +119,14 @@ MyClass::MyClass(const char* name) : al::LiveActor(name) {}
 
 ### 5. Check & fix
 
-- Initially, run `check` (no args) to check all functions you decompiled at once.
-- Most mismatches are fixable — clean up structure, write like a programmer, not a tool.
-- Our compiler is exact, down to the same version and flags. That means that every function is fixable, though
-  it may not always be worth the time. Unless the user has specified that they want 100% matching on every function, 
-  you can settle for small mismatches. 5 attempts on every mismatching function before you decide whether to continue 
-  trying or not. You must keep trying if the score percentage is below 80%. Do not introduce `goto`s or matching hacks, 
-  as they decrease the code quality.
+- **Check early, check often**. Run `odyssey_check_status` after every build to see which functions changed. Run a full `odyssey_check` (no args) to get the summary once most look OK.
+- **Use the diff view** (`odyssey_check function=<mangled> context_lines=2`). The markers tell you what's wrong:
+  - `r` = regswap (register allocation — harmless, ignore)
+  - `i` = immediate/offset differs (data address mismatch — check string literals)
+  - `|` = different instruction (logic difference)
+  - `<` / `>` = missing/extra instruction (wrong control flow)
+  - `s` = stack frame differs (wrong local variable count)
+- Every function is matchable — our compiler is exact, same version and flags. Keep iterating until 100%.
 - Refer to MATCHING.md and fix attempts (`check` every time).
 - Matches in inlined functions matter more — they affect other functions' matching.
 
