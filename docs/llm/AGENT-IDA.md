@@ -15,7 +15,7 @@ This file covers the most common mismatch patterns. Every iteration cycle you wi
 
 ## Rules
 
-**Never rename anything.** All symbol names come from `data/file_list.yml` or IDA. Use them exactly as given. However, IDA sometimes has local renames — always trust standard macros (`NERVE_IMPL`, `NERVES_MAKE_NOSTRUCT`) over IDA's displayed name. The variable name is the action name, not `sInstance`.
+**Never rename anything.** All symbol names come from `data/file_list.yml` or IDA's function list. Use them exactly as given. IDA's data section often shows invented labels (`sInstance`, `off_...`, `unk_...`) that don't exist in source — ignore them. The only source of truth for function names is `file_list.yml`.
 
 **Headers matter.** They are shared by all contributors — write them carefully and completely.
 
@@ -25,7 +25,7 @@ This file covers the most common mismatch patterns. Every iteration cycle you wi
 
 ## Environment
 
-- **IDA**: `decompile`, `disasm`, `lookup_funcs`, `xrefs_to`, `py_eval`, etc. `addr` takes `0x7100000000 + offset`. Always use `int_convert` for address math.
+- **IDA**: `decompile`, `disasm`, `lookup_funcs`, `xrefs_to`, `py_eval`, etc. Addresses from `file_list.yml` work directly — no need to add `0x7100000000` manually.
 - **Reading floats**: IDA shows integer literals for floats. Run `struct.unpack('<f', struct.pack('<I', 0x40A00000))[0]` or `py_eval` for batches.
 - **Reading strings**: `py_eval` with `idaapi.get_bytes(addr, length)`. Always read enough bytes to capture the full string including any suffix — Japanese strings often extend past what IDA shows. Also try `odyssey_read_string(addr)` for unanalyzed strings.
 
@@ -40,7 +40,7 @@ This file covers the most common mismatch patterns. Every iteration cycle you wi
 - **`odyssey_listsym`**: unlabeled symbols. `-show_decompiled`, `-show_undefined`, `-show_data`.
 - **`odyssey_class_size(func)`**: finds `operator new(0xNN)` by decompiling the constructor's caller. Pass `class_name=` for template factory resolution.
 - **`odyssey_vtable_order(type_name)`**: reads vtable entries in address order from the constructor's ADRP references. Returns text with ordered function list.
-- **`odyssey_nerve_macros(class_name)`**: scans all `*Nrv*::execute` functions, determines NERVE_IMPL vs NERVES_MAKE_NOSTRUCT, and emits the complete `namespace { ... }` block.
+- **`odyssey_nerve_macros(class_name)`**: scans all `*Nrv*::execute` functions, detects `executeOnEnd` (→ `NERVE_END_IMPL`), detects STRUCT vs NOSTRUPT via xref patterns, and emits the complete `namespace { ... }` block. Use this instead of writing nerve macros by hand.
 - **`odyssey_read_string(addr)`**: reads raw bytes at address with Shift-JIS/UTF-8 fallback for unanalyzed Japanese strings.
 
 ### Diff markers
@@ -211,12 +211,14 @@ To verify: run `callees(func_addr)` on the IDA function — if the suspected cal
 
 #### Patterns
 
-**Nerve/state-machine — use `odyssey_nerve_macros(ClassName)` to generate:**
+**Nerve/state-machine — use `odyssey_nerve_macros(ClassName)` to generate everything:**
+The tool detects `executeOnEnd` (→ `NERVE_END_IMPL`), `execute` (→ `NERVE_IMPL`), and STRUCT vs NOSTRUPT automatically. Do not write nerve macros manually.
 ```cpp
+// Example output — the tool emits the exact block for your class:
 namespace {
 NERVE_IMPL(MyClass, Idle);
-NERVE_IMPL(MyClass, Move);
-NERVES_MAKE_NOSTRUCT(MyClass, Idle, Move);
+NERVE_END_IMPL(MyClass, Move);
+NERVES_MAKE_STRUCT(MyClass, Idle, Move);
 }
 ```
 
