@@ -18,7 +18,8 @@ mcp = FastMCP("odyssey")
 
 def _run(args: list[str], timeout: int = 120) -> str:
     result = subprocess.run(
-        args, cwd=REPO, capture_output=True, text=True, timeout=timeout,
+        args, cwd=REPO, stdin=subprocess.DEVNULL,
+        capture_output=True, text=True, timeout=timeout,
     )
     return _ANSI.sub("", result.stdout + result.stderr)
 
@@ -74,7 +75,7 @@ def check(
         args.append("-c")
     if function:
         args.append(function)
-    output = _run(args, timeout=60 if function else 600)
+    output = _run(args, timeout=5)
     return output
 
 
@@ -88,7 +89,7 @@ def check_status(function: str) -> str:
     """
     raw = _run(
         ["tools/check", "--no-pager", "--format=plain", "--always-diff", function],
-        timeout=60,
+        timeout=30,
     )
 
     if "mismatch" in raw and "OK" not in raw.split("mismatch")[0].split("\n")[-1]:
@@ -159,7 +160,7 @@ def listsym(
 @mcp.tool()
 def check_format() -> str:
     """Report formatting errors. Fix all before finishing."""
-    return _run(["tools/check-format.py"], timeout=60)
+    return _run(["tools/check-format.py"], timeout=30)
 
 
 @mcp.tool()
@@ -173,7 +174,8 @@ def clangd_check(file: str) -> str:
     """
     result = subprocess.run(
         ["clangd", f"--check={file}", "--compile-commands-dir=build"],
-        cwd=REPO, capture_output=True, text=True, timeout=120,
+        cwd=REPO, stdin=subprocess.DEVNULL,
+        capture_output=True, text=True, timeout=120,
     )
     raw = _ANSI.sub("", result.stderr)
 
