@@ -5,24 +5,34 @@
 namespace al {
 class ByamlIter;
 
+class ActorScoreInfo {
+public:
+    ActorScoreInfo();
+
+    void init(const ByamlIter& iter);
+
+    const char* getFactorName() const { return mFactorName; }
+    const char* getCategoryName() const { return mCategoryName; }
+
+private:
+    const char* mFactorName = nullptr;
+    const char* mCategoryName = nullptr;
+};
+
+static_assert(sizeof(ActorScoreInfo) == 0x10);
+
 class ActorScoreKeeper {
 public:
-    struct Entry {
-        const char* factorName;
-        const char* categoryName;
-    };
-
     ActorScoreKeeper();
 
     void init(const ByamlIter& iter);
-    void getCategoryName();  // unknown return type
-    const char* tryGetCategoryName(const char* a1);
+    const char* getCategoryName() const;
+    const char* tryGetCategoryName(const char* factorName) const;
 
 private:
-    inline void allocArray();
-    inline void putEntry(s32 index, const ByamlIter& iter);
-
-    Entry* mArray = nullptr;
+    ActorScoreInfo* mArray = nullptr;
     s32 mSize = 0;
 };
+
+static_assert(sizeof(ActorScoreKeeper) == 0x10);
 }  // namespace al

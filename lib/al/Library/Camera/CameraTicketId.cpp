@@ -35,15 +35,15 @@ bool CameraTicketId::isEqual(const ByamlIter& iter) const {
     const char* id = getObjId();
     const char* otherId = tryGetByamlKeyStringOrNULL(iter, "ObjId");
     if (id && otherId) {
-        if (__builtin_expect(!isEqualString(id, otherId), 0))
+        if (!isEqualString(id, otherId))
             return false;
-    } else if (__builtin_expect(id != nullptr, 0) || __builtin_expect(otherId != nullptr, 0)) {
+    } else if (!(id == nullptr && otherId == nullptr)) {
         return false;
     }
 
     const char* suffix = mSuffix;
     const char* otherSuffix = tryGetByamlKeyStringOrNULL(iter, "Suffix");
-    if (__builtin_expect(suffix && otherSuffix, 1))
+    if (suffix && otherSuffix)
         return isEqualString(suffix, otherSuffix);
     return !suffix && !otherSuffix;
 }

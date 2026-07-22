@@ -26,7 +26,7 @@
 #include "System/WorldList.h"
 #include "Util/SensorMsgFunction.h"
 
-const char* sItem2DNames[] = {
+static const char* sItem2DNames[] = {
     "コイン2D[自動取得]",
     "コイン2D[自動取得]",
     "コイン2D[自動取得]",
@@ -222,37 +222,33 @@ void initItem2DByPlacementInfo(al::LiveActor* actor, const al::ActorInitInfo& in
     tryInitItem2DByPlacementInfo(actor, info);
 }
 
-// https://decomp.me/scratch/QRKyC
-// NON_MATCHING: Extra comparison and the default return is placed in a different spot
 bool tryInitItem2DByPlacementInfo(al::LiveActor* actor, const al::ActorInitInfo& info) {
-    const char* itemType = nullptr;
-    if ((!al::tryGetStringArg(&itemType, info, "ItemType") &&
-         !al::tryGetStringArg(&itemType, info, "ItemTypeNoShine") &&
-         !al::tryGetStringArg(&itemType, info, "ItemType2D3D")) ||
-        al::isEqualString(itemType, "None"))
-        return false;
+    s32 type = getItemType(info);
+    bool result = false;
+    if (type != ItemType::None && type != ItemType::Shine) {
+        if (type == ItemType::Random) {
+            actor->initItemKeeper(2);
+            al::addItem(actor, info, "ライフアップアイテム[飛出し出現]", "ライフアップ", nullptr,
+                        -1, false);
+            al::addItem(actor, info, "コイン2D[自動取得]", "コイン", nullptr, -1, false);
+            return true;
+        }
 
-    s32 type = getItemType(itemType);
-    if (type == ItemType::None || type == ItemType::Shine)
-        return false;
-
-    if (type == ItemType::Random) {
-        actor->initItemKeeper(2);
-        al::addItem(actor, info, "ライフアップアイテム[飛出し出現]", "ライフアップ", nullptr, -1,
-                    false);
-        al::addItem(actor, info, "コイン2D[自動取得]", "コイン", nullptr, -1, false);
-        return true;
-    }
-
-    actor->initItemKeeper(1);
-    if (type <= ItemType::LifeMaxUpItem2D && type != ItemType::Coin &&
+        actor->initItemKeeper(1);
+        /*
+        if (type <= ItemType::LifeMaxUpItem2D && type != ItemType::Coin &&
         type != ItemType::CoinPopUp && type != ItemType::Coin10 && type != ItemType::LifeUpItem &&
         type != ItemType::LifeUpItemBack && type != ItemType::LifeUpItem2D &&
-        type != ItemType::LifeMaxUpItem2D) {
-        al::addItem(actor, info, sItem2DNames[type], 0);
-        return true;
+        type != ItemType::LifeMaxUpItem2D)*/
+
+        // TODO: expand this bitmask into something more readable without breaking matching
+        if (static_cast<u32>(type) <= ItemType::LifeMaxUpItem2D && ((0x17111u >> type) & 1)) {
+            al::addItem(actor, info, sItem2DNames[type], 0);
+            return true;
+        }
+        return false;
     }
-    return false;
+    return result;
 }
 
 bool tryInitItem(al::LiveActor* actor, s32 itemType, const al::ActorInitInfo& info,

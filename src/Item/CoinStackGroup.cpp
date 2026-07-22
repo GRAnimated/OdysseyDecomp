@@ -1,6 +1,6 @@
 #include "Item/CoinStackGroup.h"
 
-#include <new>
+#include <prim/seadStorageFor.h>
 #include <random/seadRandom.h>
 
 #include "Library/Clipping/ClippingActorHolder.h"
@@ -87,20 +87,6 @@ void CoinStackGroup::makeActorAlive() {
 }
 
 
-namespace {
-union LazyRandom {
-    sead::Random value;
-    LazyRandom() { return; }
-    ~LazyRandom() { return; }
-};
-
-union LazyVector3f {
-    sead::Vector3f value;
-    LazyVector3f() { return; }
-    ~LazyVector3f() { return; }
-};
-}
-
 inline f32 getRandomRange(sead::Random* random, f32 scale) {
     f32 value = random->getF32();
     return scale * value * ((value > 0.5f) ? 1.0f : -1.0f) + 0.0f;
@@ -115,25 +101,25 @@ void CoinStackGroup::generateCoinStackGroup(const al::ActorInitInfo& initInfo, s
         CoinStack* newStack = new CoinStack("CoinStack");
         newStack->init(initInfo);
 
-        LazyRandom random;
-        LazyVector3f resultTrans;
+        sead::StorageFor<sead::Random> random;
+        sead::StorageFor<sead::Vector3f> resultTrans;
         if (index == 0) {
-            new (&resultTrans.value) sead::Vector3f(stackTrans);
-            newStack->postInit(this, resultTrans.value, previousStack, mClippingPos,
-                               clippingRadius, &cStackDistH);
+            resultTrans.construct(stackTrans);
+            newStack->postInit(this, *resultTrans, previousStack, mClippingPos, clippingRadius,
+                               &cStackDistH);
             mCoinStack = newStack;
             previousStack = newStack;
             continue;
         }
 
-        new (&random.value) sead::Random;
+        random.constructDefault();
         sead::Vector3f coinTrans;
-        coinTrans.x = getRandomRange(&random.value, 10.0f);
+        coinTrans.x = getRandomRange(random.data(), 10.0f);
         coinTrans.y = index * cStackDistH;
-        random.value.init();
-        coinTrans.z = getRandomRange(&random.value, 10.0f);
-        new (&resultTrans.value) sead::Vector3f(stackTrans + coinTrans);
-        newStack->postInit(this, resultTrans.value, previousStack, mClippingPos, clippingRadius,
+        random->init();
+        coinTrans.z = getRandomRange(random.data(), 10.0f);
+        resultTrans.construct(stackTrans + coinTrans);
+        newStack->postInit(this, *resultTrans, previousStack, mClippingPos, clippingRadius,
                            &cStackDistH);
         previousStack = newStack;
     }

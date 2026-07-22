@@ -39,8 +39,13 @@ void BackHideDitherAnimator::update() {
 
 BackHideParts::BackHideParts(const char* name) : LiveActor(name) {}
 
-// NON_MATCHING: X19/X20 regswap (https://decomp.me/scratch/j5tRy)
 void BackHideParts::init(const ActorInitInfo& info) {
+// Pins X19 to the class so Clang doesn't swap it with X20
+#ifdef MATCHING_HACK_NX_CLANG
+    register auto* self asm("x19") = this;
+    __asm__("" ::"r"(self));
+#endif
+
     const char* suffix = nullptr;
     tryGetStringArg(&suffix, info, "Suffix");
     initMapPartsActor(this, info, suffix);

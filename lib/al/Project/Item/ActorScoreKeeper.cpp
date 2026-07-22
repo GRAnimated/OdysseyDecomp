@@ -1,36 +1,42 @@
 #include "Project/Item/ActorScoreKeeper.h"
 
+#include "Library/Base/StringUtil.h"
 #include "Library/Yaml/ByamlIter.h"
 
 namespace al {
+ActorScoreInfo::ActorScoreInfo() = default;
+
+void ActorScoreInfo::init(const ByamlIter& iter) {
+    iter.tryGetStringByKey(&mFactorName, "FactorName");
+    iter.tryGetStringByKey(&mCategoryName, "CategoryName");
+}
+
 ActorScoreKeeper::ActorScoreKeeper() = default;
 
 void ActorScoreKeeper::init(const ByamlIter& iter) {
     if (iter.isTypeArray()) {
         mSize = iter.getSize();
-        allocArray();
+        mArray = new ActorScoreInfo[mSize];
         for (s32 i = 0; i < mSize; i++) {
             ByamlIter subIter;
             iter.tryGetIterByIndex(&subIter, i);
-            putEntry(i, subIter);
+            mArray[i].init(subIter);
         }
     } else {
         mSize = 1;
-        allocArray();
-        putEntry(0, iter);
+        mArray = new ActorScoreInfo[mSize];
+        mArray[0].init(iter);
     }
 }
 
-inline void ActorScoreKeeper::allocArray() {
-    Entry* local_array = new Entry[mSize];
-    if (mSize)
-        memset(local_array, 0, sizeof(Entry) * mSize);
-    mArray = local_array;
+const char* ActorScoreKeeper::getCategoryName() const {
+    return mArray[0].getCategoryName();
 }
 
-inline void ActorScoreKeeper::putEntry(s32 index, const ByamlIter& iter) {
-    const char** categoryName = &mArray[index].categoryName;
-    iter.tryGetStringByKey(categoryName - 1, "FactorName");
-    iter.tryGetStringByKey(categoryName, "CategoryName");
+const char* ActorScoreKeeper::tryGetCategoryName(const char* factorName) const {
+    for (s32 i = 0; i < mSize; i++)
+        if (mArray->getFactorName() && isEqualString(mArray[i].getFactorName(), factorName))
+            return mArray[i].getCategoryName();
+    return nullptr;
 }
 }  // namespace al

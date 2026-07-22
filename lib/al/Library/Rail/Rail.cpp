@@ -9,7 +9,6 @@ namespace al {
 
 Rail::Rail() = default;
 
-// NON_MATCHING: target keeps the rail-part count in X21 for new[] overflow sizing, then uses W21 and an offset-up constructor loop; a 64-bit source count fixes sizing but changes constructor traversal/lifetimes.
 void Rail::init(const PlacementInfo& info) {
     mIsClosed = false;
     tryGetArg(&mIsClosed, info, "IsClosed");
@@ -36,7 +35,7 @@ void Rail::init(const PlacementInfo& info) {
         return;
     }
 
-    mRailPartCount = (mIsClosed ? 1 : 0) + mRailPointsCount - 1;
+    mRailPartCount = mIsClosed ? mRailPointsCount : mRailPointsCount - 1;
     mRailPart = new RailPart[mRailPartCount];
 
     f32 totalLength = 0;
@@ -204,13 +203,15 @@ f32 Rail::normalizeLength(f32 distance) const {
     return sead::Mathf::clamp(distance, 0.0, getTotalLength());
 }
 
-// NON_MATCHING: body size/register sequence is exact; tools/check first differs at the shared anonymous FLT_MAX `.rodata.cst4` relocation (target 0x9c2a40).
+// NON_MATCHING: body size/register sequence is exact; tools/check first differs at the shared
+// anonymous FLT_MAX `.rodata.cst4` relocation (target 0x9c2a40).
 f32 Rail::calcNearestRailPosCoord(const sead::Vector3f& pos, f32 interval) const {
     f32 tmp;
     return calcNearestRailPosCoord(pos, interval, &tmp);
 }
 
-// NON_MATCHING: direct asm is instruction/register identical apart from the relocated max-number constant address; tools/check reports a fixed-address mismatch.
+// NON_MATCHING: direct asm is instruction/register identical apart from the relocated max-number
+// constant address; tools/check reports a fixed-address mismatch.
 f32 Rail::calcNearestRailPosCoord(const sead::Vector3f& pos, f32 interval, f32* distance) const {
     *distance = sead::Mathf::maxNumber();
     f32 bestParam = sead::Mathf::maxNumber();
@@ -234,7 +235,8 @@ f32 Rail::calcNearestRailPosCoord(const sead::Vector3f& pos, f32 interval, f32* 
     return bestParam;
 }
 
-// NON_MATCHING: body size/register sequence is exact; tools/check first differs at the inherited anonymous-literal/call relocation (target 0x9c2c10).
+// NON_MATCHING: body size/register sequence is exact; tools/check first differs at the inherited
+// anonymous-literal/call relocation (target 0x9c2c10).
 f32 Rail::calcNearestRailPos(sead::Vector3f* rail_pos, const sead::Vector3f& pos,
                              f32 interval) const {
     f32 coord = calcNearestRailPosCoord(pos, interval);

@@ -39,16 +39,10 @@ NERVE_IMPL(FukuwaraiFaceParts, CaptureWait)
 NERVE_IMPL(FukuwaraiFaceParts, CaptureHackStart)
 
 NERVES_MAKE_NOSTRUCT(FukuwaraiFaceParts, Appear, Vanish, CaptureHackStart)
+
 struct {
-    FukuwaraiFacePartsNrvWait Wait;
-    FukuwaraiFacePartsNrvCaptureStart CaptureStart;
-    FukuwaraiFacePartsNrvPlace Place;
-    FukuwaraiFacePartsNrvReset Reset;
-    FukuwaraiFacePartsNrvAnswer Answer;
-    FukuwaraiFacePartsNrvHide Hide;
-    FukuwaraiFacePartsNrvCaptureMove CaptureMove;
-    FukuwaraiFacePartsNrvCaptureMoveFast CaptureMoveFast;
-    FukuwaraiFacePartsNrvCaptureWait CaptureWait;
+    NERVES_MAKE_STRUCT(FukuwaraiFaceParts, Wait, CaptureStart, Place, Reset, Answer, Hide,
+                       CaptureMove, CaptureMoveFast, CaptureWait)
 
     FukuwaraiPart KuriboEyebrowLeftPart = {"FukuwaraiKuriboEyebrowLeft", 4.0f, 12.0f, 4.0f};
     FukuwaraiPart KuriboEyebrowRightPart = {"FukuwaraiKuriboEyebrowRight", 4.0f, 12.0f, 4.0f};
@@ -62,7 +56,7 @@ struct {
     FukuwaraiPart MarioMouthPart = {"FukuwaraiMarioMouth", 3.0f, 9.0f, 3.0f};
     FukuwaraiPart MarioMustachePart = {"FukuwaraiMarioMustache", 3.0f, 9.0f, 3.0f};
     FukuwaraiPart MarioNosePart = {"FukuwaraiMarioNose", 2.0f, 6.0f, 2.0f};
-} NrvFukuwaraiFaceParts;
+} FukuwaraiFacePartsData;
 }  // namespace
 
 FukuwaraiFaceParts::FukuwaraiFaceParts(const char* name, al::AreaObjGroup* group)
@@ -144,10 +138,10 @@ bool FukuwaraiFaceParts::receiveMsg(const al::SensorMsg* message, al::HitSensor*
         return true;
 
     if (rs::isMsgCapEnableLockOn(message))
-        return al::isNerve(this, &NrvFukuwaraiFaceParts.Wait);
+        return al::isNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.Wait);
 
     if (al::isSensorName(self, "Body")) {
-        if (al::isNerve(this, &NrvFukuwaraiFaceParts.Wait)) {
+        if (al::isNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.Wait)) {
             if (al::isMsgPlayerDisregard(message) || rs::isMsgPlayerDisregardHomingAttack(message))
                 return false;
         } else {
@@ -159,7 +153,7 @@ bool FukuwaraiFaceParts::receiveMsg(const al::SensorMsg* message, al::HitSensor*
             return true;
     }
 
-    if (al::isNerve(this, &NrvFukuwaraiFaceParts.Wait)) {
+    if (al::isNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.Wait)) {
         if (rs::isMsgCapCancelLockOn(message))
             return true;
 
@@ -167,14 +161,14 @@ bool FukuwaraiFaceParts::receiveMsg(const al::SensorMsg* message, al::HitSensor*
             al::invalidateClipping(this);
             mIUsePlayerHack = rs::startHack(self, other, nullptr);
             rs::startHackStartDemo(mIUsePlayerHack, this);
-            al::setNerve(this, &NrvFukuwaraiFaceParts.CaptureStart);
+            al::setNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.CaptureStart);
             return true;
         }
 
         return false;
     }
 
-    if (al::isNerve(this, &NrvFukuwaraiFaceParts.CaptureStart))
+    if (al::isNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.CaptureStart))
         return false;
 
     if (mIUsePlayerHack && (rs::isMsgCancelHack(message) || rs::isMsgHackMarioDemo(message) ||
@@ -187,9 +181,9 @@ bool FukuwaraiFaceParts::receiveMsg(const al::SensorMsg* message, al::HitSensor*
             al::offCollide(this);
             al::resetPosition(this, trans);
 
-            al::setNerve(this, &NrvFukuwaraiFaceParts.Place);
+            al::setNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.Place);
         } else {
-            al::setNerve(this, &NrvFukuwaraiFaceParts.Reset);
+            al::setNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.Reset);
         }
         return true;
     }
@@ -205,33 +199,33 @@ f32 FukuwaraiFaceParts::calcScore(bool isMario) const {
     const FukuwaraiPart* bodyPart;
 
     if (isMario) {
-        if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioEyebrowLeftPart.name))
-            bodyPart = &NrvFukuwaraiFaceParts.MarioEyebrowLeftPart;
-        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioEyebrowRightPart.name))
-            bodyPart = &NrvFukuwaraiFaceParts.MarioEyebrowRightPart;
-        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioEyeLeftPart.name))
-            bodyPart = &NrvFukuwaraiFaceParts.MarioEyeLeftPart;
-        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioEyeRightPart.name))
-            bodyPart = &NrvFukuwaraiFaceParts.MarioEyeRightPart;
-        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioMouthPart.name))
-            bodyPart = &NrvFukuwaraiFaceParts.MarioMouthPart;
-        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioMustachePart.name))
-            bodyPart = &NrvFukuwaraiFaceParts.MarioMustachePart;
-        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioNosePart.name))
-            bodyPart = &NrvFukuwaraiFaceParts.MarioNosePart;
+        if (al::isEqualString(name, FukuwaraiFacePartsData.MarioEyebrowLeftPart.name))
+            bodyPart = &FukuwaraiFacePartsData.MarioEyebrowLeftPart;
+        else if (al::isEqualString(name, FukuwaraiFacePartsData.MarioEyebrowRightPart.name))
+            bodyPart = &FukuwaraiFacePartsData.MarioEyebrowRightPart;
+        else if (al::isEqualString(name, FukuwaraiFacePartsData.MarioEyeLeftPart.name))
+            bodyPart = &FukuwaraiFacePartsData.MarioEyeLeftPart;
+        else if (al::isEqualString(name, FukuwaraiFacePartsData.MarioEyeRightPart.name))
+            bodyPart = &FukuwaraiFacePartsData.MarioEyeRightPart;
+        else if (al::isEqualString(name, FukuwaraiFacePartsData.MarioMouthPart.name))
+            bodyPart = &FukuwaraiFacePartsData.MarioMouthPart;
+        else if (al::isEqualString(name, FukuwaraiFacePartsData.MarioMustachePart.name))
+            bodyPart = &FukuwaraiFacePartsData.MarioMustachePart;
+        else if (al::isEqualString(name, FukuwaraiFacePartsData.MarioNosePart.name))
+            bodyPart = &FukuwaraiFacePartsData.MarioNosePart;
         else
             return -5.0f;
     } else {
-        if (al::isEqualString(name, NrvFukuwaraiFaceParts.KuriboEyebrowLeftPart.name))
-            bodyPart = &NrvFukuwaraiFaceParts.KuriboEyebrowLeftPart;
-        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.KuriboEyebrowRightPart.name))
-            bodyPart = &NrvFukuwaraiFaceParts.KuriboEyebrowRightPart;
-        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.KuriboEyeLeftPart.name))
-            bodyPart = &NrvFukuwaraiFaceParts.KuriboEyeLeftPart;
-        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.KuriboEyeRightPart.name))
-            bodyPart = &NrvFukuwaraiFaceParts.KuriboEyeRightPart;
-        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.KuriboMouthAngryPart.name))
-            bodyPart = &NrvFukuwaraiFaceParts.KuriboMouthAngryPart;
+        if (al::isEqualString(name, FukuwaraiFacePartsData.KuriboEyebrowLeftPart.name))
+            bodyPart = &FukuwaraiFacePartsData.KuriboEyebrowLeftPart;
+        else if (al::isEqualString(name, FukuwaraiFacePartsData.KuriboEyebrowRightPart.name))
+            bodyPart = &FukuwaraiFacePartsData.KuriboEyebrowRightPart;
+        else if (al::isEqualString(name, FukuwaraiFacePartsData.KuriboEyeLeftPart.name))
+            bodyPart = &FukuwaraiFacePartsData.KuriboEyeLeftPart;
+        else if (al::isEqualString(name, FukuwaraiFacePartsData.KuriboEyeRightPart.name))
+            bodyPart = &FukuwaraiFacePartsData.KuriboEyeRightPart;
+        else if (al::isEqualString(name, FukuwaraiFacePartsData.KuriboMouthAngryPart.name))
+            bodyPart = &FukuwaraiFacePartsData.KuriboMouthAngryPart;
         else
             return -5.0f;
     }
@@ -244,8 +238,8 @@ f32 FukuwaraiFaceParts::calcScore(bool isMario) const {
 }
 
 bool FukuwaraiFaceParts::isPlaced() const {
-    return al::isNerve(this, &NrvFukuwaraiFaceParts.Place) ||
-           al::isNerve(this, &NrvFukuwaraiFaceParts.Hide);
+    return al::isNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.Place) ||
+           al::isNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.Hide);
 }
 
 f32 FukuwaraiFaceParts::calcScoreAngleRate() const {
@@ -281,7 +275,7 @@ f32 FukuwaraiFaceParts::calcScoreDistRate() const {
 void FukuwaraiFaceParts::show() {
     appear();
     al::showModelIfHide(this);
-    al::setNerve(this, &NrvFukuwaraiFaceParts.Answer);
+    al::setNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.Answer);
 }
 
 void FukuwaraiFaceParts::reset() {
@@ -304,7 +298,7 @@ void FukuwaraiFaceParts::exePlace() {
     }
 
     if (al::isActionEnd(this))
-        al::setNerve(this, &NrvFukuwaraiFaceParts.Hide);
+        al::setNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.Hide);
 }
 
 void FukuwaraiFaceParts::exeReset() {
@@ -321,10 +315,12 @@ void FukuwaraiFaceParts::exeReset() {
 void FukuwaraiFaceParts::exeAppear() {
     if (al::isFirstStep(this))
         al::startAction(this,
-                        al::isNerve(this, &NrvFukuwaraiFaceParts.Answer) ? "Answer" : "Appear");
+                        al::isNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.Answer) ?
+                            "Answer" :
+                            "Appear");
 
     if (al::isActionEnd(this))
-        al::setNerve(this, &NrvFukuwaraiFaceParts.Wait);
+        al::setNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.Wait);
 }
 
 void FukuwaraiFaceParts::exeWait() {
@@ -339,7 +335,7 @@ void FukuwaraiFaceParts::exeCaptureWait() {
     }
 
     if (rs::isOnHackMoveStick(mIUsePlayerHack)) {
-        al::setNerve(this, &NrvFukuwaraiFaceParts.CaptureMove);
+        al::setNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.CaptureMove);
         return;
     }
 
@@ -358,20 +354,20 @@ void FukuwaraiFaceParts::exeCaptureWait() {
 void FukuwaraiFaceParts::exeCaptureMove() {
     if (al::isFirstStep(this)) {
         al::startAction(this, "Move");
-        if (al::isNerve(this, &NrvFukuwaraiFaceParts.CaptureMoveFast))
+        if (al::isNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.CaptureMoveFast))
             al::setSklAnimFrameRate(this, 1.3f, 0);
         else
             al::setSklAnimFrameRate(this, 1.0f, 0);
     }
 
     if (!rs::isOnHackMoveStick(mIUsePlayerHack)) {
-        al::setNerve(this, &NrvFukuwaraiFaceParts.CaptureWait);
+        al::setNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.CaptureWait);
         return;
     }
 
     sead::Vector3f dir = {0, 0, 0};
     f32 accel = 7.0f;
-    if (al::isNerve(this, &NrvFukuwaraiFaceParts.CaptureMoveFast))
+    if (al::isNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.CaptureMoveFast))
         accel = 12.0f;
     rs::addHackActorAccelStick(this, mIUsePlayerHack, &dir, accel, sead::Vector3f::ey);
 
@@ -388,9 +384,9 @@ void FukuwaraiFaceParts::exeCaptureMove() {
     }
 
     if (al::isGreaterStep(this, 30))
-        al::setNerve(this, &NrvFukuwaraiFaceParts.CaptureMove);
+        al::setNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.CaptureMove);
     else if (rs::isTriggerHackSwing(mIUsePlayerHack))
-        al::setNerve(this, &NrvFukuwaraiFaceParts.CaptureMoveFast);
+        al::setNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.CaptureMoveFast);
 }
 
 void FukuwaraiFaceParts::exeHide() {
@@ -416,7 +412,7 @@ void FukuwaraiFaceParts::exeCaptureHackStart() {
     if (al::isActionEnd(this)) {
         mPlayerHackStartShaderCtrl->end();
         rs::endHackStartDemo(mIUsePlayerHack, this);
-        al::setNerve(this, &NrvFukuwaraiFaceParts.CaptureWait);
+        al::setNerve(this, &FukuwaraiFacePartsData.NrvFukuwaraiFaceParts.CaptureWait);
     }
 }
 

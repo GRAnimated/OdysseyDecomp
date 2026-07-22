@@ -1,6 +1,5 @@
 #include "Library/Scene/SceneUtil.h"
 
-#include <new>
 #include <common/aglRenderBuffer.h>
 #include <math/seadVector.h>
 
@@ -11,7 +10,6 @@
 #include "Library/Audio/AudioDirectorInitInfo.h"
 #include "Library/Audio/System/AudioKeeper.h"
 #include "Library/Audio/System/AudioKeeperFunction.h"
-#include "Library/Base/Macros.h"
 #include "Library/Base/StringUtil.h"
 #include "Library/Camera/CameraDirector.h"
 #include "Library/Camera/CameraFlagCtrl.h"
@@ -219,58 +217,32 @@ void initLayoutInitInfo(LayoutInitInfo* layoutInfo, const Scene* scene,
     }
 }
 
-union LazyByamlIter {
-    ByamlIter value;
+static bool tryInitPlacementAreaObjByStageInfo(AreaInitInfo* areaInitInfo,
+                                               const StageInfo* stageInfo,
+                                               const ActorInitInfo& actorInfo) {
+    PlacementInfo placementInfo;
+    if (!tryGetPlacementInfo(&placementInfo, stageInfo, "AreaList"))
+        return false;
 
-    LazyByamlIter() { return; }
-    ~LazyByamlIter() { return; }
-};
-
-ALWAYS_INLINE void initPlacementAreaObjImpl(Scene* scene, const ActorInitInfo& actorInfo,
-                                                AreaInitInfo* areaInitInfo, s32* entries) {
-    for (s32 i = 0; i < getStageInfoMapNum(scene); i++) {
-        StageInfo* stageInfo = getStageInfoMap(scene, i);
-        LazyByamlIter areaList;
-        PlacementInfo placementInfo;
-        new (&areaList.value) ByamlIter;
-        if (stageInfo->getPlacementIter().tryGetIterByKey(&areaList.value, "AreaList")) {
-            AreaInitInfo* entry = &areaInitInfo[*entries];
-            placementInfo.set(areaList.value, stageInfo->getZoneIter());
-            initAreaInitInfo(entry, placementInfo, actorInfo);
-            (*entries)++;
-        }
-    }
-    for (s32 i = 0; i < getStageInfoDesignNum(scene); i++) {
-        StageInfo* stageInfo = getStageInfoDesign(scene, i);
-        LazyByamlIter areaList;
-        PlacementInfo placementInfo;
-        new (&areaList.value) ByamlIter;
-        if (stageInfo->getPlacementIter().tryGetIterByKey(&areaList.value, "AreaList")) {
-            AreaInitInfo* entry = &areaInitInfo[*entries];
-            placementInfo.set(areaList.value, stageInfo->getZoneIter());
-            initAreaInitInfo(entry, placementInfo, actorInfo);
-            (*entries)++;
-        }
-    }
-    for (s32 i = 0; i < getStageInfoSoundNum(scene); i++) {
-        StageInfo* stageInfo = getStageInfoSound(scene, i);
-        LazyByamlIter areaList;
-        PlacementInfo placementInfo;
-        new (&areaList.value) ByamlIter;
-        if (stageInfo->getPlacementIter().tryGetIterByKey(&areaList.value, "AreaList")) {
-            AreaInitInfo* entry = &areaInitInfo[*entries];
-            placementInfo.set(areaList.value, stageInfo->getZoneIter());
-            initAreaInitInfo(entry, placementInfo, actorInfo);
-            (*entries)++;
-        }
-    }
+    initAreaInitInfo(areaInitInfo, placementInfo, actorInfo);
+    return true;
 }
 
-// https://decomp.me/scratch/CBhyQ
 void initPlacementAreaObj(Scene* scene, const ActorInitInfo& actorInfo) {
     AreaInitInfo areaInitInfo[256];
     s32 entries = 0;
-    initPlacementAreaObjImpl(scene, actorInfo, areaInitInfo, &entries);
+    for (s32 i = 0; i < getStageInfoMapNum(scene); i++)
+        if (tryInitPlacementAreaObjByStageInfo(&areaInitInfo[entries], getStageInfoMap(scene, i),
+                                               actorInfo))
+            entries++;
+    for (s32 i = 0; i < getStageInfoDesignNum(scene); i++)
+        if (tryInitPlacementAreaObjByStageInfo(&areaInitInfo[entries], getStageInfoDesign(scene, i),
+                                               actorInfo))
+            entries++;
+    for (s32 i = 0; i < getStageInfoSoundNum(scene); i++)
+        if (tryInitPlacementAreaObjByStageInfo(&areaInitInfo[entries], getStageInfoSound(scene, i),
+                                               actorInfo))
+            entries++;
     actorInfo.actorSceneInfo.areaObjDirector->placement(areaInitInfo, entries);
 }
 

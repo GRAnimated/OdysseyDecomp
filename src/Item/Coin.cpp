@@ -1,7 +1,5 @@
 #include "Item/Coin.h"
 
-#include <new>
-
 #include "Library/Collision/CollisionPartsKeeperUtil.h"
 #include "Library/Collision/CollisionPartsTriangle.h"
 #include "Library/Collision/PartsConnectorUtil.h"
@@ -168,16 +166,14 @@ void Coin::makeActorAlive() {
 }
 
 namespace {
-union LazyCoinSafeString {
-    sead::SafeString value;
-    LazyCoinSafeString() { return; }
-    ~LazyCoinSafeString() { return; }
-};
+// needed to destruct the sead::SafeString early
+void startSe(const al::IUseAudioKeeper* actor, const char* seName) {
+    const sead::SafeString name(seName);
+    al::startSe(actor, name);
 }
+}  // namespace
 
-// https://decomp.me/scratch/5pT1P
 void Coin::control() {
-    LazyCoinSafeString blinkSeName;
     sead::Vector3f force = sead::Vector3f::zero;
     mExternalForceKeeper->calcForce(&force);
     mExternalForceKeeper->reset();
@@ -196,8 +192,7 @@ void Coin::control() {
             return;
         }
         if (!(mTimeLimit >= 201) && al::blinkModel(this, mTimeLimit, 6, 0))
-            al::startSe(
-                this, *new (&blinkSeName.value) sead::SafeString("PgBlink"));
+            startSe(this, "PgBlink");
     }
 
     if (!al::isNerve(this, &NrvCoin.Got))

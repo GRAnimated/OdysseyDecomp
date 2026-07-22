@@ -9,15 +9,15 @@ namespace {
 inline bool convertUInt(u32* value, const ByamlData* data) {
     s32 val = data->getValue<s32>();
     if (data->getType() == ByamlDataType::Int) {
+        bool result = val >= 0;
         *value = val < 0 ? 0 : val;
-        if (val < 0)
-            return false;
-    } else if (data->getType() == ByamlDataType::UInt) {
-        *value = val;
-    } else {
-        return false;
+        return result;
     }
-    return true;
+    if (data->getType() == ByamlDataType::UInt) {
+        *value = val;
+        return true;
+    }
+    return false;
 }
 }  // namespace
 
@@ -315,7 +315,9 @@ bool ByamlIter::tryGetUIntByIndex(u32* value, s32 index) const {
     if (!getByamlDataByIndex(&data, index))
         return false;
 
-    return convertUInt(value, &data);
+    if (!convertUInt(value, &data))
+        return false;
+    return true;
 }
 
 bool ByamlIter::tryGetUIntByKey(u32* value, const char* key) const {
@@ -325,22 +327,13 @@ bool ByamlIter::tryGetUIntByKey(u32* value, const char* key) const {
 
     if (data.getType() == ByamlDataType::Null)
         return false;
-    return convertUInt(value, &data);
+    if (!convertUInt(value, &data))
+        return false;
+    return true;
 }
 
 bool ByamlIter::tryConvertUInt(u32* value, const ByamlData* data) const {
-    s32 val = data->getValue<s32>();
-    if (data->getType() == ByamlDataType::Int) {
-        bool result = val >= 0;
-        *value = val < 0 ? 0 : val;
-        return result;
-    }
-    if (data->getType() == ByamlDataType::UInt) {
-        *value = val;
-        return true;
-    }
-
-    return false;
+    return convertUInt(value, data);
 }
 
 bool ByamlIter::tryGetFloatByIndex(f32* value, s32 index) const {

@@ -9,8 +9,13 @@
 FixMapPartsAppearKillAsync::FixMapPartsAppearKillAsync(const char* actorName)
     : al::LiveActor(actorName) {}
 
-// NON_MATCHING: X19/X20 regswap
 void FixMapPartsAppearKillAsync::init(const al::ActorInitInfo& info) {
+// Pins X19 to the class so Clang doesn't swap it with X20
+#ifdef MATCHING_HACK_NX_CLANG
+    register auto* self asm("x19") = this;
+    __asm__("" ::"r"(self));
+#endif
+
     const char* suffix = nullptr;
 
     al::tryGetStringArg(&suffix, info, "Suffix");

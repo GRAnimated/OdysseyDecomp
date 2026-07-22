@@ -169,6 +169,7 @@ public:
 private:
     ResourceSystem::ResourceAudioInfo* mAudioPlayerInfo;
 };
+
 #pragma GCC visibility pop
 
 void ResourceSystem::removeCategory(const sead::SafeString& name) {
@@ -395,8 +396,7 @@ bool ResourceSystem::tryGetGraphicsInfoIter(ByamlIter* iter, const sead::SafeStr
     return false;
 }
 
-void ResourceAudio::disableSoundMemoryPoolHandler(
-    sead::TreeMapImpl<sead::SafeString>::Node* node) {
+void ResourceAudio::disableSoundMemoryPoolHandler(sead::TreeMapImpl<sead::SafeString>::Node* node) {
     ResourceSystem::ResourceAudioInfo* info = mAudioPlayerInfo;
 
     if (node->key().comparen(info->filePath, info->filePath.calcLength()) != 0)

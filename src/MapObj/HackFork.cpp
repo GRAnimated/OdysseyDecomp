@@ -425,9 +425,7 @@ void HackFork::bendAndTwist(const sead::Vector3f& direction, const sead::Vector3
         mJointRotationHolder[i]->setVector28(mSideDir);
 }
 
-// NON_MATCHING: Sole diff at 0x29ec34: PostRA schedules &mPlayerHack before the speed load.
-// Self-scale preserves the original S3-S6 allocation; direct products fix order but rotate it.
-// Next hypothesis: an untested sead vector helper/operator combined both DAG properties.
+// NON_MATCHING: Wrong loading order and registers https://decomp.me/scratch/8ReuA
 void HackFork::shoot() {
     sead::Vector3f frontDir;
     al::calcFrontDir(&frontDir, this);

@@ -226,6 +226,15 @@ bool Pecho::tryStartFind() {
     return true;
 }
 
+static void updateVelocityEscapeWallAndFallTail(Pecho* actor) {
+    if (al::isOnGroundNoVelocity(actor, 0))
+        al::addVelocityToGravityFittedGround(actor, 1.0f, 0);
+    else
+        al::addVelocityToGravity(actor, 1.0f);
+
+    al::scaleVelocity(actor, 0.89f);
+}
+
 void Pecho::updateVelocityEscapeWallAndFall(f32 force, f32 velocity) {
     sead::Vector3f direction = sead::Vector3f::zero;
     s32 i = 0;
@@ -251,22 +260,12 @@ void Pecho::updateVelocityEscapeWallAndFall(f32 force, f32 velocity) {
     }
 
     if (hitCount <= 0) {
-        if (al::isOnGroundNoVelocity(this, 0))
-            al::addVelocityToGravityFittedGround(this, 1.0f, 0);
-        else
-            al::addVelocityToGravity(this, 1.0f);
-        al::scaleVelocity(this, 0.89f);
+        updateVelocityEscapeWallAndFallTail(this);
         return;
     }
 
     al::addVelocity(this, direction * -velocity * (1.0f / hitCount));
-
-    if (al::isOnGroundNoVelocity(this, 0))
-        al::addVelocityToGravityFittedGround(this, 1.0f, 0);
-    else
-        al::addVelocityToGravity(this, 1.0f);
-
-    al::scaleVelocity(this, 0.89f);
+    updateVelocityEscapeWallAndFallTail(this);
 }
 
 bool Pecho::isEnablePush() const {

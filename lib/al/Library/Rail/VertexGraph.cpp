@@ -264,7 +264,6 @@ Graph::Edge* tryFindEdgeEndVertex(const Graph::Vertex* vertexA, const Graph::Ver
     return nullptr;
 }
 
-// NON_MATCHING: Inverted registers https://decomp.me/scratch/CxUxe
 Graph::PosVertex* findNearestPosVertex(const Graph* graph, const sead::Vector3f& pos,
                                        f32 maxDistance) {
     Graph::PosVertex* nearestVertex = nullptr;
@@ -272,20 +271,21 @@ Graph::PosVertex* findNearestPosVertex(const Graph* graph, const sead::Vector3f&
     for (s32 i = 0; i < graph->getVertexCount(); i++) {
         Graph::PosVertex* vertex = reinterpret_cast<Graph::PosVertex*>(graph->getVertex(i));
         f32 distance = (vertex->getPos() - pos).length();
-        if (maxDistance < 0.0f && distance < minDistance) {
-            nearestVertex = vertex;
-            minDistance = distance;
-        }
-
-        if (maxDistance >= 0.0f && distance < minDistance && distance < maxDistance) {
-            nearestVertex = vertex;
-            minDistance = distance;
+        if (maxDistance < 0.0f) {
+            if (distance < minDistance) {
+                nearestVertex = vertex;
+                minDistance = distance;
+            }
+        } else if (maxDistance >= 0.0f) {
+            if (distance < maxDistance && distance < minDistance) {
+                nearestVertex = vertex;
+                minDistance = distance;
+            }
         }
     }
     return nearestVertex;
 }
 
-// NON_MATCHING: Same as findNearestPosVertex but inverted
 Graph::PosVertex* findFarthestPosVertex(const Graph* graph, const sead::Vector3f& pos,
                                         f32 minDistance) {
     Graph::PosVertex* farthestVertex = nullptr;
@@ -293,14 +293,16 @@ Graph::PosVertex* findFarthestPosVertex(const Graph* graph, const sead::Vector3f
     for (s32 i = 0; i < graph->getVertexCount(); i++) {
         Graph::PosVertex* vertex = reinterpret_cast<Graph::PosVertex*>(graph->getVertex(i));
         f32 distance = (vertex->getPos() - pos).length();
-        if (minDistance < 0.0f && distance > maxDistance) {
-            farthestVertex = vertex;
-            maxDistance = distance;
-        }
-
-        if (minDistance >= 0.0f && distance > maxDistance && distance > minDistance) {
-            farthestVertex = vertex;
-            maxDistance = distance;
+        if (minDistance < 0.0f) {
+            if (distance > maxDistance) {
+                farthestVertex = vertex;
+                maxDistance = distance;
+            }
+        } else if (minDistance >= 0.0f) {
+            if (distance > minDistance && distance > maxDistance) {
+                farthestVertex = vertex;
+                maxDistance = distance;
+            }
         }
     }
     return farthestVertex;

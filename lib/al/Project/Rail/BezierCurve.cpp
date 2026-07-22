@@ -1,9 +1,10 @@
 #include "Project/Rail/BezierCurve.h"
 
-#include <functional>
+#include <math/seadMathCalcCommon.h>
 
 namespace al {
 BezierCurve::BezierCurve() = default;
+
 void BezierCurve::set(const sead::Vector3f& start, const sead::Vector3f& startHandle,
                       const sead::Vector3f& endHandle, const sead::Vector3f& end) {
     sead::Vector3f diff1 = startHandle - start;
@@ -86,7 +87,7 @@ f32 BezierCurve::calcCurveParam(f32 distance) const {
         return percent;
 
     for (s32 i = 0; i <= 4; i++) {
-        f32 len = std::max(calcDeltaLength(percent), 0.001f);
+        f32 len = sead::Mathf::clampMin(calcDeltaLength(percent), 0.001f);
         f32 newPercent = percent + ((distance - partLength) / len);
 
         percent = sead::Mathf::clamp(newPercent, 0.0f, 1.0f);
@@ -95,7 +96,8 @@ f32 BezierCurve::calcCurveParam(f32 distance) const {
             return percent;
     }
 
-    if (std::greater<f32>()(percent, 1.0f) || partLength < 0.0f)
+    const f32& currentPercent = percent;
+    if (currentPercent > 1.0f || partLength < 0.0f)
         percent = sead::Mathf::clamp(percent, 0.0f, 1.0f);
     return percent;
 }

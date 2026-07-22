@@ -1659,8 +1659,7 @@ void tiltQuatDegree(sead::Quatf* outQuat, const sead::Quatf& quat, const sead::V
                     const sead::Vector3f& dir, f32 degree) {
     f32 projection = axis.dot(dir);
     sead::Vector3f parallelVec;
-    parallelVec.set(dir.x - axis.x * projection, dir.y - axis.y * projection,
-                    dir.z - axis.z * projection);
+    parallelVec.setScaleAdd(-projection, axis, dir);
     if (!tryNormalizeOrZero(&parallelVec)) {
         outQuat->set(quat);
         return;
@@ -1889,9 +1888,7 @@ void calcSpherePointPicking(sead::Vector3f* outPoint, f32 x, f32 y) {
     f32 radius = sead::Mathf::sqrt(1.0f - xx * xx);
     f32 cos = radius * sead::Mathf::cos(angle);
     f32 sin = radius * sead::Mathf::sin(angle);
-    outPoint->x = cos;
-    outPoint->y = sin;
-    outPoint->z = xx;
+    outPoint->set(cos, sin, xx);
 }
 
 void pickUniformPointOnSphere(sead::Vector3f* outPoint) {
