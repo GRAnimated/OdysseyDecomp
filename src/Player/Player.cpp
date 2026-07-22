@@ -135,17 +135,16 @@ void Player::control() {
     }
 }
 
-// NON_MATCHING: issue with getting actorTrans (https://decomp.me/scratch/yXJNN)
 void Player::attackSensor(al::HitSensor* self, al::HitSensor* other) {
-    const sead::Vector3f& actorTransRef = al::getActorTrans(other);
-    const sead::Vector3f& transRef = al::getTrans(this);
-    sead::Vector3f actorTrans = actorTransRef;
-    sead::Vector3f trans = transRef;
+    const sead::Vector3f& actorTrans = al::getActorTrans(other);
+    const sead::Vector3f& trans = al::getTrans(this);
+    sead::Vector3f delta;
+    delta.setSub(actorTrans, trans);
 
     if ((al::isNerve(this, &NrvPlayer.Jump) || al::isNerve(this, &NrvPlayer.Fall)) &&
         (al::isSensorEnemy(other) || al::isSensorPlayer(other)) &&
         (al::getVelocity(this).dot(al::getGravity(this)) > 0.0f) &&
-        ((actorTrans - trans).dot(al::getGravity(this)) > 0.0f) &&
+        (delta.dot(al::getGravity(this)) > 0.0f) &&
         al::sendMsgPlayerAttackTrample(other, self, nullptr))
         al::setVelocityJump(this, 23.0f);
 }

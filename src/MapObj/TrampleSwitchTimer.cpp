@@ -111,7 +111,6 @@ void TrampleSwitchTimer::exeOffWait() {
 
 void TrampleSwitchTimer::exeFreeze() {}
 
-// NON_MATCHING: extra register used for the last comparsion, https://decomp.me/scratch/IEP6S
 bool TrampleSwitchTimer::receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                                     al::HitSensor* self) {
     if (al::isNerve(this, &NrvTrampleSwitchTimer.Freeze))
@@ -132,14 +131,19 @@ bool TrampleSwitchTimer::receiveMsg(const al::SensorMsg* message, al::HitSensor*
     bool v10 = (rs::isMsgCapTouchWall(message) || rs::isMsgCapAttackCollide(message)) &&
                (mIsFacingUp || !al::isNearZeroOrGreater(al::getActorVelocity(other).y));
     bool v11 = rs::isMsgCapHipDrop(message);
-    bool v12 = al::isMsgPlayerTouch(message);
 
-    if (v12 || v10 || v11) {
-        if (al::isNerve(this, &NrvTrampleSwitchTimer.OffWait)) {
-            al::invalidateClipping(this);
-            al::setNerve(this, &NrvTrampleSwitchTimer.On);
-            return true;
-        }
+    bool shouldSet;
+    if (al::isMsgPlayerTouch(message))
+        shouldSet = true;
+    else if (v10)
+        shouldSet = true;
+    else
+        shouldSet = v11;
+
+    if (shouldSet && al::isNerve(this, &NrvTrampleSwitchTimer.OffWait)) {
+        al::invalidateClipping(this);
+        al::setNerve(this, &NrvTrampleSwitchTimer.On);
+        return true;
     }
     return false;
 }

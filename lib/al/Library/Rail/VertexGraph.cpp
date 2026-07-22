@@ -88,7 +88,6 @@ bool Graph::tryAppendEdge(s32 index_vertex1, s32 index_vertex2, f32 weight) {
 }
 
 // Note: This is Dijkstra's algorithm
-// NON_MATCHING: Different implementation https://decomp.me/scratch/7pP7o
 bool calcShortestPath(sead::ObjArray<Graph::VertexInfo>* vertexInfos, const Graph* graph,
                       s32 startVertexIndex, s32 endVertexIndex) {
     sead::FixedObjArray<Graph::VertexInfo, 512> unvisitedSet;
@@ -106,19 +105,16 @@ bool calcShortestPath(sead::ObjArray<Graph::VertexInfo>* vertexInfos, const Grap
 
     Graph::Vertex* currentVertex = graph->getVertex(startVertexIndex);
 
-    while (unvisitedSet.size() > 0) {
+    do {
+        if (unvisitedSet.size() < 1)
+            return false;
+
         bool found = false;
         s32 currentIndex = -1;
         Graph::VertexInfo* currentInfo = nullptr;
 
-        for (s32 i = 0; i < unvisitedSet.size(); i++) {
-            currentInfo = unvisitedSet[i];
-            if (currentInfo->vertex == currentVertex) {
-                currentIndex = i;
-                found = true;
-                break;
-            }
-        }
+        Graph::CurrentVertexFinder finder{unvisitedSet, currentInfo, currentVertex, &currentIndex};
+        found = finder.isFound();
 
         if (found) {
             vertexInfos->emplaceBack(*currentInfo);
@@ -149,29 +145,17 @@ bool calcShortestPath(sead::ObjArray<Graph::VertexInfo>* vertexInfos, const Grap
         }
 
         // Select the current node to be the one with the smallest distance
-        f32 minWeight = sead::Mathf::maxNumber();
-        for (s32 i = 0; i < unvisitedSet.size(); i++) {
-            if (unvisitedSet[i]->weight < minWeight) {
-                minWeight = unvisitedSet[i]->weight;
-                currentVertex = unvisitedSet[i]->vertex;
-            }
-        }
-
-        if (!found)
+        Graph::NextVertexSelector selector{unvisitedSet};
+        if (!selector.select(currentVertex, found))
             return false;
+    } while (currentVertex->getIndex() != endVertexIndex);
 
-        // If we are on our goal index we are done
-        if (currentVertex->getIndex() == endVertexIndex) {
-            while (unvisitedSet.size() > 0) {
-                vertexInfos->emplaceBack(*unvisitedSet[0]);
-                unvisitedSet.erase(0);
-            }
-            vertexInfos->sort();
-            return true;
-        }
+    while (unvisitedSet.size() > 0) {
+        vertexInfos->emplaceBack(*unvisitedSet[0]);
+        unvisitedSet.erase(0);
     }
-
-    return false;
+    vertexInfos->sort();
+    return true;
 }
 
 f32 calcDistanceAndNearestPos(sead::Vector3f* outPos, const Graph::PosEdge* edge,

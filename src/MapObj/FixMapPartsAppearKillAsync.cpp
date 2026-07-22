@@ -9,6 +9,7 @@
 FixMapPartsAppearKillAsync::FixMapPartsAppearKillAsync(const char* actorName)
     : al::LiveActor(actorName) {}
 
+// NON_MATCHING: X19/X20 regswap
 void FixMapPartsAppearKillAsync::init(const al::ActorInitInfo& info) {
     const char* suffix = nullptr;
 

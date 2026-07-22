@@ -30,56 +30,49 @@ NERVES_MAKE_STRUCT(SignBoardDanger, Wait, Dead, Reaction);
 
 SignBoardDanger::SignBoardDanger(const char* name) : al::LiveActor(name) {}
 
-// Mismatch: https://decomp.me/scratch/mqOky
 void SignBoardDanger::init(const al::ActorInitInfo& info) {
     al::initMapPartsActor(this, info, nullptr);
-
-    sead::Vector3f upDir;
-    al::calcUpDir(&upDir, this);
-
-    sead::Vector3f trans;
-    al::getTrans(&trans, info);
-
+    {
+        sead::Vector3f upDir;
+        al::calcUpDir(&upDir, this);
+        sead::Vector3f trans;
+        al::getTrans(&trans, info);
+    }
     mSignBoardBlow = new SignBoardBlow("壊れモデル", "SignBoardDangerBreak");
-
     al::initCreateActorNoPlacementInfo(mSignBoardBlow, info);
-
     mYRotation = al::getRotate(this).y;
-
     al::initNerve(this, &NrvSignBoardDanger.Wait, 0);
-
     makeActorAlive();
 
-    // Mismatch starts here
-    sead::Vector3f upDir2;
-    sead::Vector3f rightDir;
-    sead::Vector3f frontDir;
-    al::calcUpDir(&upDir2, this);
-    al::calcRightDir(&rightDir, this);
-    al::calcFrontDir(&frontDir, this);
-    al::getTrans(this);
-
-    f32 rotation = mYRotation;
-    al::calcUpDir(&upDir2, this);
-    al::calcRightDir(&rightDir, this);
-    al::calcFrontDir(&frontDir, this);
-    sead::Vector3f trans2 = al::getTrans(this);
-
-    sead::Quatf yDegree;
+    sead::Vector3f secondUpDir;
+    sead::Vector3f secondRightDir;
+    sead::Vector3f secondFrontDir;
     sead::Quatf zDegree;
+    sead::Vector3f firstUpDir;
+    sead::Vector3f firstRightDir;
+    sead::Vector3f firstFrontDir;
+    sead::Vector3f targetTrans;
+    sead::Quatf yDegree;
+
+    al::calcUpDir(&firstUpDir, this);
+    al::calcRightDir(&firstRightDir, this);
+    al::calcFrontDir(&firstFrontDir, this);
+    al::getTrans(this);
+    const f32 rotation = mYRotation;
+    al::calcUpDir(&secondUpDir, this);
+    al::calcRightDir(&secondRightDir, this);
+    al::calcFrontDir(&secondFrontDir, this);
+    const sead::Vector3f trans = al::getTrans(this);
     al::makeQuatYDegree(&yDegree, rotation);
     al::makeQuatZDegree(&zDegree, -18.0f);
-
-    sead::Vector3f targetTrans = trans2 + 315.0f * upDir2 + -69.0f * rightDir + 0.0f * frontDir;
-
-    sead::Quatf quat = zDegree * yDegree;
-    // Mismatch ends here
-
+    targetTrans = trans + 315.0f * secondUpDir + -69.0f * secondRightDir +
+                  0.0f * secondFrontDir;
+    yDegree = yDegree * zDegree;
     mCapHanger = new CapHanger("CapHanger", false);
     al::initCreateActorNoPlacementInfo(mCapHanger, info);
     al::setTrans(mCapHanger, targetTrans);
-    al::setQuat(mCapHanger, quat);
-    s32 itemType = rs::getItemType(info);
+    al::setQuat(mCapHanger, yDegree);
+    const s32 itemType = rs::getItemType(info);
     if (itemType != -1)
         mCapHanger->initItem(itemType, 1, info);
     mCapHanger->makeActorAlive();
@@ -94,7 +87,7 @@ bool SignBoardDanger::receiveMsg(const al::SensorMsg* message, al::HitSensor* ot
         }
 
         if (al::isSensorName(self, "Cap") && !al::isSensorCollision(other))
-            mRespawnTimer = sead::Mathi::max(mRespawnTimer, 6);
+            mRespawnTimer = mRespawnTimer > 6 ? mRespawnTimer : 6;
 
         return false;
     }

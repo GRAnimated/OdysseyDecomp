@@ -17,7 +17,7 @@ public:
     f32 calcCurveParam(f32 distance) const;
     f32 calcNearestParam(const sead::Vector3f& pos, f32 interval) const;
     f32 calcNearestLength(f32* param, const sead::Vector3f& pos, f32 max, f32 interval) const;
-    void calcNearestPos(sead::Vector3f* nearest, const sead::Vector3f& pos, f32 interval) const;
+    f32 calcNearestPos(sead::Vector3f* nearest, const sead::Vector3f& pos, f32 interval) const;
     void calcStartPos(sead::Vector3f* pos) const;
     void calcCtrlPos1(sead::Vector3f* pos) const;
     void calcCtrlPos2(sead::Vector3f* pos) const;

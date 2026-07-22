@@ -110,24 +110,6 @@ void FukanKunShineHolder::interact(FlyObject* flyObject) {
 
 FlyObject::FlyObject(const char* name) : al::LiveActor(name) {}
 
-inline FukanKunInteractionEmpty* createFukanKunInteraction(const al::ActorInitInfo& info) {
-    FukanKunInteractionType interactionType = FukanKunInteractionType::None;
-    if (al::tryGetArg((s32*)&interactionType, info, "FukanKunInteractionType")) {
-        switch (interactionType) {
-        case FukanKunInteractionType::None:
-            return new FukanKunInteractionEmpty();
-        case FukanKunInteractionType::Message:
-            return new FukanKunMessageHolder();
-        case FukanKunInteractionType::Shine:
-            return new FukanKunShineHolder();
-        default:
-            return nullptr;
-        }
-    }
-    return nullptr;
-}
-
-// NON_MATCHING: Bad load order https://decomp.me/scratch/4Q3he
 void FlyObject::init(const al::ActorInitInfo& info) {
     al::initActor(this, info);
     if (al::isExistRail(this))
@@ -140,16 +122,35 @@ void FlyObject::init(const al::ActorInitInfo& info) {
     al::tryGetArg(mBehavior->getWaveController()->getVerticalAmplitudePtr(), info,
                   "VerticalAmplitude");
 
-    FukanKunInteractionEmpty* interaction = createFukanKunInteraction(info);
-    if (interaction) {
-        mFukanKunInteraction = interaction;
-    } else {
+    FukanKunInteractionEmpty* interaction = nullptr;
+    FukanKunInteractionType interactionType = FukanKunInteractionType::None;
+    if (al::tryGetArg((s32*)&interactionType, info, "FukanKunInteractionType")) {
+        switch (interactionType) {
+        case FukanKunInteractionType::None:
+            mFukanKunInteraction = new FukanKunInteractionEmpty();
+            interaction = mFukanKunInteraction;
+            break;
+        case FukanKunInteractionType::Message:
+            mFukanKunInteraction = new FukanKunMessageHolder();
+            interaction = mFukanKunInteraction;
+            break;
+        case FukanKunInteractionType::Shine:
+            mFukanKunInteraction = new FukanKunShineHolder();
+            interaction = mFukanKunInteraction;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (!interaction) {
         bool isFukanKunMessageNeed = false;
         al::tryGetArg(&isFukanKunMessageNeed, info, "IsFukanKunMessageNeed");
         if (isFukanKunMessageNeed)
-            mFukanKunInteraction = new FukanKunMessageHolder();
+            interaction = new FukanKunMessageHolder();
         else
-            mFukanKunInteraction = new FukanKunInteractionEmpty();
+            interaction = new FukanKunInteractionEmpty();
+        mFukanKunInteraction = interaction;
     }
 
     mFukanKunInteraction->init(this, info);

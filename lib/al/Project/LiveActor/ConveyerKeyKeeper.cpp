@@ -57,8 +57,6 @@ void ConveyerKeyKeeper::init(const ActorInitInfo& info) {
     }
 }
 
-// Mismatch: Same as calcPosAndQuatByKeyIndex
-// https://decomp.me/scratch/kmQvB
 void ConveyerKeyKeeper::calcPosAndQuat(sead::Vector3f* pos, sead::Quatf* quat, s32* index,
                                        f32 coord) const {
     if (coord <= 0.0f) {
@@ -74,11 +72,10 @@ void ConveyerKeyKeeper::calcPosAndQuat(sead::Vector3f* pos, sead::Quatf* quat, s
     }
 
     if (coord >= mTotalMoveDistance) {
-        // Pretty sure this should be a call to calcPosAndQuatByKeyIndex, but the match becomes
-        // worse
         const ConveyerKey& key = getConveyerKey(mConveyerKeyCount - 1);
+        const sead::Vector3f vertical = key.moveDistanceVertical;
         if (pos)
-            pos->set(key.moveDistanceVertical + key.moveDistance * mMoveDirection + mTrans);
+            pos->set(key.moveDistance * mMoveDirection + mTrans + vertical);
 
         if (quat)
             quat->set(getConveyerKey(mConveyerKeyCount - 1).quat);
@@ -105,17 +102,16 @@ void ConveyerKeyKeeper::calcPosAndQuat(sead::Vector3f* pos, sead::Quatf* quat, s
         q.set(key.quat);
         moveDistance = 0.0f;
     } else {
-        const ConveyerKey& key = getConveyerKey(keyIndex);
-        const ConveyerKey& prevKey = getConveyerKey(keyIndex - 1);
-        sead::Vector3f prevKeyVec = prevKey.moveDistanceVertical;
-        sead::Vector3f keyVec = key.moveDistanceVertical;
-        f32 totalMoveDistance = key.totalMoveDistance - prevKey.totalMoveDistance;
+        sead::Vector3f prevKeyVec = getConveyerKey(keyIndex - 1).moveDistanceVertical;
+        sead::Vector3f keyVec = getConveyerKey(keyIndex).moveDistanceVertical;
+        f32 totalMoveDistance = getConveyerKey(keyIndex).totalMoveDistance -
+                                getConveyerKey(keyIndex - 1).totalMoveDistance;
         f32 t;
 
         if (isNearZero(totalMoveDistance))
             t = 0.0f;
         else
-            t = (coord - prevKey.totalMoveDistance) / totalMoveDistance;
+            t = (coord - getConveyerKey(keyIndex - 1).totalMoveDistance) / totalMoveDistance;
 
         f32 ease = easeByType(t, getConveyerKey(keyIndex - 1).interpolateType);
         lerpVec(&moveDistanceVertical, prevKeyVec, keyVec, ease);
@@ -138,32 +134,27 @@ void ConveyerKeyKeeper::calcPosAndQuat(sead::Vector3f* pos, sead::Quatf* quat, s
     return;
 }
 
-// Mismatch: The math is right, but the registers don't match
-// probably inlined (and optimized) in a few other places
-// https://decomp.me/scratch/kmQvB
 void ConveyerKeyKeeper::calcPosAndQuatByKeyIndex(sead::Vector3f* pos, sead::Quatf* quat,
                                                  s32 index) const {
     const ConveyerKey& key = getConveyerKey(index);
+    const sead::Vector3f vertical = key.moveDistanceVertical;
     if (pos)
-        pos->set(key.moveDistance * mMoveDirection + mTrans + key.moveDistanceVertical);
+        pos->set(key.moveDistance * mMoveDirection + mTrans + vertical);
 
     if (quat)
         quat->set(getConveyerKey(index).quat);
 }
 
-// Mismatch: Same as calcPosAndQuatByKeyIndex
-// https://decomp.me/scratch/kmQvB
 void ConveyerKeyKeeper::calcClippingSphere(sead::Vector3f* clippingTrans, f32* clippingRadius,
                                            f32 offset) const {
-    if (clippingTrans) {
-        const ConveyerKey& key = getConveyerKey(0);
-        clippingTrans->set(key.moveDistance * mMoveDirection + mTrans + key.moveDistanceVertical);
-    }
+    if (clippingTrans)
+        calcPosAndQuatByKeyIndex(clippingTrans, nullptr, 0);
+
     *clippingRadius = offset;
 
     for (s32 i = 1; i < mConveyerKeyCount; i++) {
-        const ConveyerKey& key = getConveyerKey(i);
-        sead::Vector3f pos = key.moveDistance * mMoveDirection + mTrans + key.moveDistanceVertical;
+        sead::Vector3f pos;
+        calcPosAndQuatByKeyIndex(&pos, nullptr, i);
         calcSphereMargeSpheres(clippingTrans, clippingRadius, *clippingTrans, *clippingRadius, pos,
                                offset);
     }

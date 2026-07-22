@@ -227,24 +227,24 @@ s32 compareStringIgnoreCase(const char* str1, const char* str2) {
 }
 
 inline bool isLetter(char ch) {
-    return ch - 'A' < 26u || ch - 'a' < 26u;
+    return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
 }
 
 inline bool isDigit(char ch) {
     return ch - '0' < 10u;
 }
 
-// NON_MATCHING: Using inverse sub operation https://decomp.me/scratch/rPdbr
+inline bool isAlphaNumeric(char ch) { return isDigit(ch) | isLetter(ch); }
+
 void makeUrlEncodeString(char* out, u32 outLen, const char* str) {
     out[0] = '\0';
-
     for (; str[0] != '\0'; str++) {
         char newSymbols[4] = {'\0', '\0', '\0', '\0'};
         s64 bytesWritten = 1;
 
         if (str[0] == ' ') {
             newSymbols[0] = '+';
-        } else if (isLetter(str[0]) || isDigit(str[0])) {
+        } else if (isAlphaNumeric(str[0])) {
             newSymbols[0] = str[0];
         } else {
             char digit1 = (str[0] & 0xf0) >> 4;

@@ -45,7 +45,6 @@ void HammerBrosHammer::init(const al::ActorInitInfo& initInfo) {
     makeActorDead();
 }
 
-// NON_MATCHING: Register swap https://decomp.me/scratch/VjUUZ
 void HammerBrosHammer::shoot(const sead::Vector3f& trans, const sead::Quatf& quat,
                              const sead::Vector3f& force, bool isHack, s32 unknown, bool isFast) {
     al::showModelIfHide(this);
@@ -58,9 +57,9 @@ void HammerBrosHammer::shoot(const sead::Vector3f& trans, const sead::Quatf& qua
 
     if (mIsHack && mIsSearch) {
         mSearchCooldown = 100;
-        al::invalidateHitSensor(this, "Search");
-    } else {
         al::validateHitSensor(this, "Search");
+    } else {
+        al::invalidateHitSensor(this, "Search");
     }
 
     al::setQuat(this, quat);
@@ -104,18 +103,18 @@ void HammerBrosHammer::shoot(const sead::Vector3f& trans, const sead::Quatf& qua
         sead::Vector3f upVelocity = upDir * 40.0f;
         sead::Vector3f sideVelocity = sideDir * sideRandom;
 
-        al::setVelocity(this, frontVelocity + upVelocity + sideVelocity +
-                                  sead::Vector3f(force.x, 0.0f, force.z));
+        al::setVelocity(this, sead::Vector3f(force.x, 0.0f, force.z) +
+                                  (frontVelocity + upVelocity + sideVelocity));
     } else {
-        f32 scale = sead::Mathi::clampMax(unknown, 5) * 8.0f;
+        f32 scale = (unknown > 5 ? 5 : unknown) * 8.0f;
         f32 sideRandom = al::getRandom(0.0f, 23.0f) - 11.5f;
 
         sead::Vector3f frontVelocity = frontDir * speed;
         sead::Vector3f upVelocity = upDir * scale;
         sead::Vector3f sideVelocity = sideDir * sideRandom;
 
-        al::setVelocity(this, frontVelocity + upVelocity + sideVelocity +
-                                  sead::Vector3f(force.x, 0.0f, force.z));
+        al::setVelocity(this, sead::Vector3f(force.x, 0.0f, force.z) +
+                                  (frontVelocity + upVelocity + sideVelocity));
     }
 
     al::faceToVelocity(this);

@@ -42,14 +42,14 @@ ByamlStringTableIter::ByamlStringTableIter(const u8* data, bool isRev)
     : mData(data), mIsRev(isRev) {}
 
 s32 ByamlStringTableIter::getSize() const {
-    u32 type_and_size = *reinterpret_cast<const u32*>(mData);
+    u32 type_and_size = *(const u32*)mData;
     return mIsRev ? bswap_24(type_and_size >> 8) : type_and_size >> 8;
 }
 
 const u32* ByamlStringTableIter::getAddressTable() const {
     // mData is an integer pointer, so getting to the table is just increasing the pointer by 1
     // (which is + 4)
-    return reinterpret_cast<const u32*>(mData + 4);
+    return (const u32*)(mData + 4);
 }
 
 u32 ByamlStringTableIter::getStringAddress(s32 index) const {
@@ -59,14 +59,20 @@ u32 ByamlStringTableIter::getStringAddress(s32 index) const {
     return getAddressTable()[index];
 }
 
-// NON_MATCHING: regalloc (https://decomp.me/scratch/AdRVH)
 u32 ByamlStringTableIter::getEndAddress() const {
-    u32 val = getAddressTable()[getSize()];
-    return mIsRev ? bswap_32(val) : val;
+    const u32* data = (const u32*)mData;
+    bool isRev = mIsRev;
+    u32 value = *data;
+    u32 size = value >> 8;
+    size = isRev ? bswap_24(size) : size;
+    const u32* addressTable = data + 1;
+    u32 endAddress = addressTable[(s32)size];
+    u32 reversedEndAddress = bswap_32(endAddress);
+    return isRev == false ? endAddress : reversedEndAddress;
 }
 
 const char* ByamlStringTableIter::getString(s32 index) const {
-    return reinterpret_cast<const char*>(&mData[getStringAddress(index)]);
+    return (const char*)&mData[getStringAddress(index)];
 }
 
 s32 ByamlStringTableIter::getStringSize(s32 index) const {
@@ -133,7 +139,7 @@ const char* getDataTypeString(s32 type) {
 }
 
 al::ByamlStringTableIter getHashKeyTable(const u8* data) {
-    const al::ByamlHeader* header = reinterpret_cast<const al::ByamlHeader*>(data);
+    const al::ByamlHeader* header = (const al::ByamlHeader*)data;
     s32 off = header->getHashKeyTableOffset();
     if (off == 0)
         return {};
@@ -141,7 +147,7 @@ al::ByamlStringTableIter getHashKeyTable(const u8* data) {
 }
 
 al::ByamlStringTableIter getStringTable(const u8* data) {
-    const al::ByamlHeader* header = reinterpret_cast<const al::ByamlHeader*>(data);
+    const al::ByamlHeader* header = (const al::ByamlHeader*)data;
     s32 off = header->getStringTableOffset();
     if (off == 0)
         return {};
@@ -149,7 +155,7 @@ al::ByamlStringTableIter getStringTable(const u8* data) {
 }
 
 u64 getData64Bit(const u8* data, u32 off, bool isRev) {
-    u64 val = *reinterpret_cast<const u64*>(&data[off]);
+    u64 val = *(const u64*)&data[off];
     return isRev ? bswap_32_64(val) : val;
 }
 
@@ -165,24 +171,23 @@ void writeU24(sead::WriteStream* stream, s32 val) {
     }
 }
 
-// NON_MATCHING: inlined verifiHeader, splitted loads for unswappedAfterOffset and diff in final
-// logic (https://decomp.me/scratch/5xOvy)
 bool verifiByaml(const u8* data) {
     if (!verifiByamlHeader(data))
         return false;
 
-    bool isRev = *((const u16*)data) == BYAML_LE_TAG;
+    bool isRev = *(const u16*)data == BYAML_LE_TAG;
     const u32* biggerData = (const u32*)data;
 
     u32 afterHashOffset = 0;
     u32 hashOffset = isRev ? bswap_32(biggerData[1]) : biggerData[1];
     if (hashOffset) {
-        const u8* hashData = &data[hashOffset];
-        if (!verifiByamlStringTable(hashData, isRev))
+        const u32* hashData = (const u32*)(data + hashOffset);
+        if (!verifiByamlStringTable((const u8*)hashData, isRev))
             return false;
-        u32 type_and_size = *reinterpret_cast<const u32*>(hashData);
-        s32 hash_size = isRev ? bswap_24(type_and_size >> 8) : type_and_size >> 8;
-        s32 unswappedAfterOffset = *(s32*)&hashData[(hash_size * 4) + 4];
+
+        u32 typeAndSize = *hashData;
+        s32 hashSize = isRev ? bswap_24(typeAndSize >> 8) : typeAndSize >> 8;
+        s32 unswappedAfterOffset = ((const s32*)(hashData + 1))[hashSize];
         u32 swappedAfterOffset = bswap_32(unswappedAfterOffset);
         afterHashOffset = isRev ? swappedAfterOffset : unswappedAfterOffset;
     }
@@ -190,12 +195,13 @@ bool verifiByaml(const u8* data) {
     u32 afterStringOffset = 0;
     u32 stringOffset = isRev ? bswap_32(biggerData[2]) : biggerData[2];
     if (stringOffset) {
-        const u8* stringData = &data[stringOffset];
-        if (!verifiByamlStringTable(stringData, isRev))
+        const u32* stringData = (const u32*)(data + stringOffset);
+        if (!verifiByamlStringTable((const u8*)stringData, isRev))
             return false;
-        u32 type_and_size = *reinterpret_cast<const u32*>(stringData);
-        s32 string_size = isRev ? bswap_24(type_and_size >> 8) : type_and_size >> 8;
-        s32 unswappedAfterOffset = *(s32*)&stringData[4 * string_size + 4];
+
+        u32 typeAndSize = *stringData;
+        s32 stringSize = isRev ? bswap_24(typeAndSize >> 8) : typeAndSize >> 8;
+        s32 unswappedAfterOffset = ((const s32*)(stringData + 1))[stringSize];
         u32 swappedAfterOffset = bswap_32(unswappedAfterOffset);
         afterStringOffset = isRev ? swappedAfterOffset : unswappedAfterOffset;
     }
@@ -205,19 +211,22 @@ bool verifiByaml(const u8* data) {
     return (((!hashOffset && !stringOffset) || rootOffset) &&
             (!hashOffset || ((!stringOffset || afterHashOffset <= stringOffset) &&
                              (!rootOffset || afterHashOffset <= rootOffset)))) &&
-           (afterStringOffset <= rootOffset || !stringOffset || !rootOffset);
+           ((rootOffset == 0 || stringOffset == 0) || afterStringOffset <= rootOffset);
 }
 
-// NON_MATCHING: missing & 0xFFFF (https://decomp.me/scratch/dRP3R)
 bool verifiByamlHeader(const u8* data) {
-    const al::ByamlHeader* header = reinterpret_cast<const al::ByamlHeader*>(data);
-    return header->getTag() == BYAML_BE_TAG && (u32)(header->getVersion() - 1) < 3;
+    const al::ByamlHeader* header = (const al::ByamlHeader*)data;
+    if (header->getTag() != BYAML_BE_TAG)
+        return false;
+
+    u16 version = header->getVersion();
+    return version >= 1 && version <= 3;
 }
 
 bool verifiByamlStringTable(const u8* data, bool isRev) {
-    const s32* address_table = reinterpret_cast<const s32*>(data + 4);
+    const s32* address_table = (const s32*)(data + 4);
 
-    u32 type_and_size = *reinterpret_cast<const u32*>(data);
+    u32 type_and_size = *(const u32*)data;
     if ((al::ByamlDataType)type_and_size != al::ByamlDataType::StringTable)
         return false;
     s32 size = isRev ? bswap_24(type_and_size >> 8) : type_and_size >> 8;

@@ -1,5 +1,7 @@
 #include "Item/Coin.h"
 
+#include <new>
+
 #include "Library/Collision/CollisionPartsKeeperUtil.h"
 #include "Library/Collision/CollisionPartsTriangle.h"
 #include "Library/Collision/PartsConnectorUtil.h"
@@ -165,9 +167,17 @@ void Coin::makeActorAlive() {
     al::showModelIfHide(this);
 }
 
+namespace {
+union LazyCoinSafeString {
+    sead::SafeString value;
+    LazyCoinSafeString() { return; }
+    ~LazyCoinSafeString() { return; }
+};
+}
+
 // https://decomp.me/scratch/5pT1P
-// NON_MATCHING: Different stack pointer order
 void Coin::control() {
+    LazyCoinSafeString blinkSeName;
     sead::Vector3f force = sead::Vector3f::zero;
     mExternalForceKeeper->calcForce(&force);
     mExternalForceKeeper->reset();
@@ -186,7 +196,8 @@ void Coin::control() {
             return;
         }
         if (!(mTimeLimit >= 201) && al::blinkModel(this, mTimeLimit, 6, 0))
-            al::startSe(this, "PgBlink");
+            al::startSe(
+                this, *new (&blinkSeName.value) sead::SafeString("PgBlink"));
     }
 
     if (!al::isNerve(this, &NrvCoin.Got))
@@ -714,9 +725,9 @@ void Coin::exeCountUp() {
 
         if (al::isNerve(this, &NrvCoin.CountUpFive))
             for (u32 i = 0; i < 5; i++)
-                GameDataFunction::addCoin(this, 1);
+                GameDataFunction::addCoin(GameDataHolderWriter(this), 1);
         else
-            GameDataFunction::addCoin(this, 1);
+            GameDataFunction::addCoin(GameDataHolderWriter(this), 1);
         al::showModelIfHide(this);
     }
 
@@ -762,7 +773,7 @@ void Coin::exeGot() {
     if (al::isFirstStep(this)) {
         al::startAction(this, "Got");
         if (!al::isNerve(this, &NrvCoin.GotNoCoin))
-            GameDataFunction::addCoin(this, 1);
+            GameDataFunction::addCoin(GameDataHolderWriter(this), 1);
 
         al::onStageSwitch(this, "SwitchGetOn");
         alPadRumbleFunction::startPadRumble(this, "コッ（最小）", 1000.0f, 5000.0f);

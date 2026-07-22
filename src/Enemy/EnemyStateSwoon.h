@@ -17,6 +17,8 @@ struct EnemyStateSwoonInitParam {
           trampledAnimName(trampledAnimName), startFallAnimName(startFallAnimName),
           startLandAnimName(startLandAnimName) {}
 
+    EnemyStateSwoonInitParam() = default;
+
     const char* startAnimName = "SwoonStart";
     const char* loopAnimName = "Swoon";
     const char* endAnimName = "SwoonEnd";

@@ -113,7 +113,6 @@ void ExecuteDirector::createExecutorListTable() {
         mDrawTables[i]->createExecutorListTable();
 }
 
-// NON_MATCHING: https://decomp.me/scratch/P7VLh
 void ExecuteDirector::execute(const char* tableName) const {
     if (!tableName) {
         mRequestKeeper->executeRequestActorMovementAllOn();
@@ -138,14 +137,17 @@ void ExecuteDirector::execute(const char* tableName) const {
     for (s32 i = 0; i < mUpdateTableCount; i++) {
         if (isEqualString(tableName, mUpdateTables[i]->getName())) {
             mUpdateTables[i]->execute();
+            if (!isActorEnabled)
+                return;
             break;
         }
     }
 
-    if (isActorEnabled) {
-        mRequestKeeper->executeRequestActorMovementAllOff();
-        mRequestKeeper->executeRequestActorDrawAllOff();
-    }
+    if (!isActorEnabled)
+        return;
+
+    mRequestKeeper->executeRequestActorMovementAllOff();
+    mRequestKeeper->executeRequestActorDrawAllOff();
 }
 
 void ExecuteDirector::executeList(const char* tableName, const char* listName) const {

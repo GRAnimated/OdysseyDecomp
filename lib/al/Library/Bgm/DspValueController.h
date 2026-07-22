@@ -35,11 +35,11 @@ public:
     f32 getCurrent() const { return mCurrent; }
 
 private:
-    f32 mUpdateFreq = 0.0f;
+    f32 mUpdateFreq;
     f32 mFreq = 0.0f;
-    f32 mDelta = 0.0f;
-    f32 mAngle = 0.0f;
-    f32 mCurrent = 0.0f;
+    f32 mDelta;
+    f32 mAngle;
+    f32 mCurrent;
     DspLinearValueController* mAmplitude;
 };
 

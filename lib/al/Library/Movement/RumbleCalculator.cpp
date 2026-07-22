@@ -18,9 +18,8 @@ void al::RumbleCalculator::start(u32 maxFrame) {
     mOut.set(0.0f, 0.0f, 0.0f);
 }
 
-// NON-MATCHING: https://decomp.me/scratch/4Dxv4
 void al::RumbleCalculator::calc() {
-    if (mFrame >= mMaxFrame) {
+    if (isEnd()) {
         mOut.set(0.0f, 0.0f, 0.0f);
         return;
     }

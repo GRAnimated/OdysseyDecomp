@@ -13,6 +13,7 @@ public:
     void start(u32 maxFrame);
     void calc();
     void reset();
+    bool isEnd() const { return mFrame >= mMaxFrame; }
 
     virtual void calcValues(sead::Vector3f* out, const sead::Vector3f& in) = 0;
 

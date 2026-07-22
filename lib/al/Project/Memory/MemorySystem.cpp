@@ -82,8 +82,9 @@ ALWAYS_INLINE u64 MemorySystem::getSceneResourceHeapSize(const char* stageName) 
         return 0x80000LL;
 
     if (stageName && mIsExistFileResource) {
-        ByamlIter heapSizeMap =
+        const auto* heapSizeByml =
             findOrCreateResource("SystemData/MemorySystem", 0LL)->getByml("HeapSizeDefine");
+        ByamlIter heapSizeMap(heapSizeByml);
 
         for (s32 i = 0; i < heapSizeMap.getSize(); i++) {
             ByamlIter heapSizeEntry;
@@ -92,11 +93,11 @@ ALWAYS_INLINE u64 MemorySystem::getSceneResourceHeapSize(const char* stageName) 
             const char* stage = nullptr;
             heapSizeEntry.tryGetStringByKey(&stage, "Stage");
             if (isEqualString(stage, stageName)) {
-                f32 sceneResourceMB = 0.0;
+                f32 sceneResourceMB = 0.0f;
                 if (!heapSizeEntry.tryGetFloatByKey(&sceneResourceMB, "SceneResourceNx"))
                     heapSizeEntry.tryGetFloatByKey(&sceneResourceMB, "SceneResource");
 
-                return sceneResourceMB * 1024.0f * 1024.0f;
+                return (u32)(sceneResourceMB * 1024.0f * 1024.0f);
             }
         }
     }

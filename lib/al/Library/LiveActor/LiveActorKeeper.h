@@ -2,10 +2,35 @@
 
 #include <basis/seadTypes.h>
 
+#include "Library/LiveActor/LiveActorInfo.h"
+
 namespace al {
 struct ActorInitInfo;
 class LiveActor;
-struct SubActorInfo;
+
+struct SubActorSync {
+    enum Enum {
+        cNone = 0,                                       // 0
+        cAppear = 1 << 0,                                // 1
+        cClipping = 1 << 1,                              // 2
+        cHide = 1 << 2,                                  // 4
+        cAlphaMask = 1 << 3,                             // 8
+        cAll = cAppear | cClipping | cHide | cAlphaMask  // 15
+    };
+
+    AL_BITS(SubActorSync)
+};
+
+struct SubActorInfo {
+public:
+    SubActorInfo();
+
+    SubActorInfo(LiveActor* actor, SubActorSync syncType) : subActor(actor), syncType(syncType) {}
+
+    LiveActor* subActor = nullptr;
+    void* field_8 = nullptr;
+    SubActorSync syncType = SubActorSync::cNone;
+};
 
 class SubActorKeeper {
 public:

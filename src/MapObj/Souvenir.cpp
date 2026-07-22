@@ -24,7 +24,7 @@ NERVES_MAKE_STRUCT(Souvenir, Wait, ReactionCap);
 
 Souvenir::Souvenir(const char* name) : al::LiveActor(name) {}
 
-// Non-matching: regswap (https://decomp.me/scratch/8qJEm)
+// NON_MATCHING: X19/X20 regswap (https://decomp.me/scratch/8qJEm)
 void Souvenir::init(const al::ActorInitInfo& info) {
     const char* suffix = nullptr;
     al::tryGetStringArg(&suffix, info, "Suffix");

@@ -108,7 +108,6 @@ ActionFlagCtrlInfo* ActionFlagCtrl::findFlagInfo(const char* name) const {
     return nullptr;
 }
 
-// NON_MATCHING: Wrong compiler optimization https://decomp.me/scratch/3VkWo
 void ActionFlagCtrl::startCtrlFlag() {
     if (isFlagValidOn(0, !isHideModel(mParentActor)))
         showModel(mParentActor);
@@ -116,10 +115,16 @@ void ActionFlagCtrl::startCtrlFlag() {
         hideModel(mParentActor);
 
     if (mParentActor->getCollisionParts()) {
-        if (isFlagValidOn(1, isValidCollisionParts(mParentActor)))
+        bool isValid = isValidCollisionParts(mParentActor);
+        if (!mCurrentCtrlInfo) {
+            if (isFlagValidOff(1, isValidCollisionParts(mParentActor)))
+                invalidateCollisionParts(mParentActor);
+        } else if (isValid | (mCurrentCtrlInfo->ctrlFlags[1] != CtrlFlag::ValidOn)) {
+            if (isFlagValidOff(1, isValidCollisionParts(mParentActor)))
+                invalidateCollisionParts(mParentActor);
+        } else {
             validateCollisionParts(mParentActor);
-        else if (isFlagValidOff(1, isValidCollisionParts(mParentActor)))
-            invalidateCollisionParts(mParentActor);
+        }
     }
 
     if (mParentActor->getCollider()) {
@@ -129,10 +134,16 @@ void ActionFlagCtrl::startCtrlFlag() {
             offCollide(mParentActor);
     }
 
-    if (isFlagValidOn(3, isInvalidClipping(mParentActor)))
+    bool isInvalid = isInvalidClipping(mParentActor);
+    if (!mCurrentCtrlInfo) {
+        if (isFlagValidOff(3, isInvalidClipping(mParentActor)))
+            validateClipping(mParentActor);
+    } else if (isInvalid | (mCurrentCtrlInfo->ctrlFlags[3] != CtrlFlag::ValidOn)) {
+        if (isFlagValidOff(3, isInvalidClipping(mParentActor)))
+            validateClipping(mParentActor);
+    } else {
         invalidateClipping(mParentActor);
-    else if (isFlagValidOff(3, isInvalidClipping(mParentActor)))
-        validateClipping(mParentActor);
+    }
 }
 
 void ActionFlagCtrl::startCtrlSensor() {

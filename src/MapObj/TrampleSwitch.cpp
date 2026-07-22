@@ -162,7 +162,6 @@ bool TrampleSwitch::isOn() const {
     return al::isNerve(this, &NrvTrampleSwitch.OnWait);
 }
 
-// NON_MATCHING: extra register used for the last comparsion, https://decomp.me/scratch/HyCSL
 bool TrampleSwitch::receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                                al::HitSensor* self) {
     if (al::isNerve(this, &NrvTrampleSwitch.Off))
@@ -178,11 +177,17 @@ bool TrampleSwitch::receiveMsg(const al::SensorMsg* message, al::HitSensor* othe
     bool v10 = (rs::isMsgCapTouchWall(message) || rs::isMsgCapAttackCollide(message)) &&
                (mIsFacingUp || !al::isNearZeroOrGreater(al::getActorVelocity(other).y));
     bool v11 = rs::isMsgCapHipDrop(message);
-    bool v12 = al::isMsgPlayerTouch(message);
 
-    if (v12 || v10 || v11)
+    bool shouldSet;
+    if (al::isMsgPlayerTouch(message))
+        shouldSet = true;
+    else if (v10)
+        shouldSet = true;
+    else
+        shouldSet = v11;
+
+    if (shouldSet)
         return trySetNerveOn();
-
     return false;
 }
 

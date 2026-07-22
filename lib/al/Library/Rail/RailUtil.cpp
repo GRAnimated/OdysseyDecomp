@@ -494,44 +494,30 @@ void calcRailDirAtCoord(sead::Vector3f* dir, const IUseRail* railHolder, f32 coo
     getRail(railHolder)->calcDirection(dir, coord);
 }
 
-// Mismatch: https://decomp.me/scratch/0vmMR
 void calcRailPosFront(sead::Vector3f* pos, const IUseRail* railHolder, f32 offset) {
     if (!isRailGoingToEnd(railHolder))
         offset = -offset;
 
     f32 coordOffset = offset + getRailCoord(railHolder);
     const Rail* rail = getRail(railHolder);
-
-    if (rail->isClosed()) {
-        f32 totalLength = rail->getTotalLength();
-        f32 distance = wrapValue(coordOffset, totalLength);
-        rail->calcPos(pos, distance);
-        return;
-    }
-
-    f32 length = rail->getTotalLength();
-    f32 beep = (coordOffset <= length) ? coordOffset : 0.0f;
-    rail->calcPos(pos, (coordOffset < 0.0f) ? beep : length);
+    bool isClosed = rail->isClosed();
+    f32 totalLength = rail->getTotalLength();
+    f32 distance = isClosed ? wrapValue(coordOffset, totalLength)
+                                    : sead::Mathf::clamp(coordOffset, 0.0f, totalLength);
+    rail->calcPos(pos, distance);
 }
 
-// Mismatch: https://decomp.me/scratch/0vmMR
 void calcRailDirFront(sead::Vector3f* pos, const IUseRail* railHolder, f32 offset) {
     if (!isRailGoingToEnd(railHolder))
         offset = -offset;
 
     f32 coordOffset = offset + getRailCoord(railHolder);
     const Rail* rail = getRail(railHolder);
-
-    if (rail->isClosed()) {
-        f32 totalLength = rail->getTotalLength();
-        f32 distance = wrapValue(coordOffset, totalLength);
-        rail->calcDirection(pos, distance);
-        return;
-    }
-
-    f32 length = rail->getTotalLength();
-    f32 beep = (coordOffset <= length) ? coordOffset : 0.0f;
-    rail->calcDirection(pos, (coordOffset < 0.0f) ? beep : length);
+    bool isClosed = rail->isClosed();
+    f32 totalLength = rail->getTotalLength();
+    f32 distance = isClosed ? wrapValue(coordOffset, totalLength)
+                                    : sead::Mathf::clamp(coordOffset, 0.0f, totalLength);
+    rail->calcDirection(pos, distance);
 }
 
 void calcRailPointPose(sead::Quatf* pose, const IUseRail* railHolder, s32 index) {

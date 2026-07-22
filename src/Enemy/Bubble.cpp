@@ -1649,7 +1649,6 @@ void Bubble::updateCollisionPartsMove() {
     mLandVelocity.set(trans - al::getTrans(this));
 }
 
-// NON_MATCHING: Bad branch order https://decomp.me/scratch/ACufd
 void Bubble::accelStick() {
     sead::Vector3f upDir;
     if (al::isOnGroundNoVelocity(this, 0))
@@ -1677,49 +1676,56 @@ void Bubble::accelStick() {
                     (al::getVelocity(this) - velocityDir) * 0.92f + (velocityDir - upDir * 1.1f));
     mStickForce.set({0.0f, 0.0f, 0.0f});
 
-    if (mIsPlayerCaptured) {
-        mHackTurnAngle *= 0.9f;
-        return;
-    }
-
-    // this screams for addHackActorAccelStick(&stickAccel, scale, upDir)
     sead::Vector3f stickAccel;
-    f32 scale = rs::isHoldHackAction(mPlayerHack) ? 1.6f : 1.4f;
+    bool isStickAccelValid;
     if (mIsPlayerCaptured) {
         stickAccel.set(0.0f, 0.0f, 0.0f);
+        isStickAccelValid = false;
+    } else {
+        bool isHoldHackAction = rs::isHoldHackAction(mPlayerHack);
+        if (mIsPlayerCaptured) {
+            stickAccel.set(0.0f, 0.0f, 0.0f);
+            isStickAccelValid = false;
+        } else {
+            f32 scale = isHoldHackAction ? 1.6f : 1.4f;
+            isStickAccelValid =
+                rs::addHackActorAccelStick(this, mPlayerHack, &stickAccel, scale, upDir);
+        }
+    }
+
+    if (!isStickAccelValid) {
         mHackTurnAngle *= 0.9f;
         return;
     }
 
-    if (rs::addHackActorAccelStick(this, mPlayerHack, &stickAccel, scale, upDir)) {
-        al::turnToDirection(this, stickAccel, 10.0f);
+    al::turnToDirection(this, stickAccel, 10.0f);
 
-        sead::Vector3f rotationAxis;
-        rotationAxis.setRotated(mGroundRotation, sead::Vector3f::ez);
-        stickAccel.y = 0.0f;
+    sead::Vector3f rotationAxis;
+    rotationAxis.setRotated(mGroundRotation, sead::Vector3f::ez);
+    stickAccel.y = 0.0f;
 
-        if (!al::tryNormalizeOrZero(&stickAccel))
-            stickAccel.set(rotationAxis);
+    if (!al::tryNormalizeOrZero(&stickAccel))
+        stickAccel.set(rotationAxis);
 
-        f32 dot = stickAccel.dot(rotationAxis);
-        f32 angle = atan2f(rotationAxis.cross(stickAccel).length(), dot);
-        angle = (sead::Mathf::clamp(angle, 0.0f, sead::Mathf::piHalf()) * 72.0f) /
-                sead::Mathf::piHalf();
+    f32 dot = stickAccel.dot(rotationAxis);
+    f32 angle = atan2f(rotationAxis.cross(stickAccel).length(), dot);
+    angle = (sead::Mathf::clamp(angle, 0.0f, sead::Mathf::piHalf()) * 72.0f) /
+            sead::Mathf::piHalf();
 
-        if (rotationAxis.z * stickAccel.x - rotationAxis.x * stickAccel.z > 0.0f)
-            angle = -angle;
+    if (rotationAxis.z * stickAccel.x - rotationAxis.x * stickAccel.z > 0.0f)
+        angle = -angle;
 
-        bool condition = !(mHackTurnAngle * angle < 0.0f) &&
-                         sead::Mathf::abs(mHackTurnAngle) > sead::Mathf::abs(angle);
-
-        if (condition) {
-            mHackTurnAngle *= 0.4f;
-            mHackTurnAngle += angle * 0.6f;
-        } else {
-            mHackTurnAngle *= 0.95f;
-            mHackTurnAngle += angle * 0.05f;
-        }
+    f32 turnAngle;
+    f32 angleRate;
+    if (mHackTurnAngle * angle < 0.0f ||
+        sead::Mathf::abs(mHackTurnAngle) > sead::Mathf::abs(angle)) {
+        turnAngle = mHackTurnAngle * 0.4f;
+        angleRate = 0.6f;
+    } else {
+        turnAngle = mHackTurnAngle * 0.95f;
+        angleRate = 0.05f;
     }
+    mHackTurnAngle = turnAngle + angle * angleRate;
 }
 
 bool Bubble::addHackActorAccelStick(sead::Vector3f* stickAccel, f32 scale,
@@ -2092,7 +2098,6 @@ inline sead::Quatf getQuatZY() {
     return quatZ * quatY;
 }
 
-// NON_MATCHING: Wrong math operation https://decomp.me/scratch/P9h4T
 void Bubble::exeHackJump() {
     bool isJumpSwing = al::isNerve(this, &NrvBubble.HackJumpHigh);
     f32 gravity = !isJumpSwing ? 1.1f : 1.2f;
@@ -2170,14 +2175,18 @@ void Bubble::exeHackJump() {
             al::verticalizeVec(&velH, sead::Vector3f::ey, al::getVelocity(this));
             al::addVelocity(this, -velH);
             f32 frontHSpeed = frontDir.dot(velH);
-            sead::Vector3f velHtoFront = (velH - frontDir * frontHSpeed) * 0.98f;
+            velH = (velH - frontDir * frontHSpeed) * 0.98f;
 
             f32 newFrontSpeed =
                 frontHSpeed * 0.92f +
-                frontAccel * sead::Mathf::clamp(frontDir.dot(hackerMoveDir), 0.0f, 1.0f);
+                frontAccel *
+                    sead::Mathf::clamp(frontDir.dot(hackerMoveDir), 0.0f, 1.0f);
 
-            al::addVelocity(this, velHtoFront +
-                                      frontDir * sead::Mathf::clampMax(newFrontSpeed, frontHSpeed));
+            if (newFrontSpeed > frontHSpeed)
+                frontHSpeed = newFrontSpeed;
+
+            velH += frontDir * frontHSpeed;
+            al::addVelocity(this, velH);
             flipDirection = false;
         }
     }

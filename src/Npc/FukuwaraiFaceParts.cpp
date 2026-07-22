@@ -39,23 +39,31 @@ NERVE_IMPL(FukuwaraiFaceParts, CaptureWait)
 NERVE_IMPL(FukuwaraiFaceParts, CaptureHackStart)
 
 NERVES_MAKE_NOSTRUCT(FukuwaraiFaceParts, Appear, Vanish, CaptureHackStart)
-NERVES_MAKE_STRUCT(FukuwaraiFaceParts, Wait, CaptureStart, Place, Reset, Answer, Hide, CaptureMove,
-                   CaptureMoveFast, CaptureWait)
+struct {
+    FukuwaraiFacePartsNrvWait Wait;
+    FukuwaraiFacePartsNrvCaptureStart CaptureStart;
+    FukuwaraiFacePartsNrvPlace Place;
+    FukuwaraiFacePartsNrvReset Reset;
+    FukuwaraiFacePartsNrvAnswer Answer;
+    FukuwaraiFacePartsNrvHide Hide;
+    FukuwaraiFacePartsNrvCaptureMove CaptureMove;
+    FukuwaraiFacePartsNrvCaptureMoveFast CaptureMoveFast;
+    FukuwaraiFacePartsNrvCaptureWait CaptureWait;
+
+    FukuwaraiPart KuriboEyebrowLeftPart = {"FukuwaraiKuriboEyebrowLeft", 4.0f, 12.0f, 4.0f};
+    FukuwaraiPart KuriboEyebrowRightPart = {"FukuwaraiKuriboEyebrowRight", 4.0f, 12.0f, 4.0f};
+    FukuwaraiPart KuriboEyeLeftPart = {"FukuwaraiKuriboEyeLeft", 4.0f, 12.0f, 4.0f};
+    FukuwaraiPart KuriboEyeRightPart = {"FukuwaraiKuriboEyeRight", 4.0f, 12.0f, 4.0f};
+    FukuwaraiPart KuriboMouthAngryPart = {"FukuwaraiKuriboMouthAngry", 4.0f, 12.0f, 4.0f};
+    FukuwaraiPart MarioEyebrowLeftPart = {"FukuwaraiMarioEyebrowLeft", 3.0f, 9.0f, 3.0f};
+    FukuwaraiPart MarioEyebrowRightPart = {"FukuwaraiMarioEyebrowRight", 3.0f, 9.0f, 3.0f};
+    FukuwaraiPart MarioEyeLeftPart = {"FukuwaraiMarioEyeLeft", 3.0f, 9.0f, 3.0f};
+    FukuwaraiPart MarioEyeRightPart = {"FukuwaraiMarioEyeRight", 3.0f, 9.0f, 3.0f};
+    FukuwaraiPart MarioMouthPart = {"FukuwaraiMarioMouth", 3.0f, 9.0f, 3.0f};
+    FukuwaraiPart MarioMustachePart = {"FukuwaraiMarioMustache", 3.0f, 9.0f, 3.0f};
+    FukuwaraiPart MarioNosePart = {"FukuwaraiMarioNose", 2.0f, 6.0f, 2.0f};
+} NrvFukuwaraiFaceParts;
 }  // namespace
-
-FukuwaraiPart KuriboEyebrowLeftPart = {"FukuwaraiKuriboEyebrowLeft", 4.0f, 12.0f, 4.0f};
-FukuwaraiPart KuriboEyebrowRightPart = {"FukuwaraiKuriboEyebrowRight", 4.0f, 12.0f, 4.0f};
-FukuwaraiPart KuriboEyeLeftPart = {"FukuwaraiKuriboEyeLeft", 4.0f, 12.0f, 4.0f};
-FukuwaraiPart KuriboEyeRightPart = {"FukuwaraiKuriboEyeRight", 4.0f, 12.0f, 4.0f};
-FukuwaraiPart KuriboMouthAngryPart = {"FukuwaraiKuriboMouthAngry", 4.0f, 12.0f, 4.0f};
-
-FukuwaraiPart MarioEyebrowLeftPart = {"FukuwaraiMarioEyebrowLeft", 3.0f, 9.0f, 3.0f};
-FukuwaraiPart MarioEyebrowRightPart = {"FukuwaraiMarioEyebrowRight", 3.0f, 9.0f, 3.0f};
-FukuwaraiPart MarioEyeLeftPart = {"FukuwaraiMarioEyeLeft", 3.0f, 9.0f, 3.0f};
-FukuwaraiPart MarioEyeRightPart = {"FukuwaraiMarioEyeRight", 3.0f, 9.0f, 3.0f};
-FukuwaraiPart MarioMouthPart = {"FukuwaraiMarioMouth", 3.0f, 9.0f, 3.0f};
-FukuwaraiPart MarioMustachePart = {"FukuwaraiMarioMustache", 3.0f, 9.0f, 3.0f};
-FukuwaraiPart MarioNosePart = {"FukuwaraiMarioNose", 2.0f, 6.0f, 2.0f};
 
 FukuwaraiFaceParts::FukuwaraiFaceParts(const char* name, al::AreaObjGroup* group)
     : al::LiveActor(name), mFukuwaraiArea(group) {}
@@ -189,48 +197,50 @@ bool FukuwaraiFaceParts::receiveMsg(const al::SensorMsg* message, al::HitSensor*
     return false;
 }
 
-// NON_MATCHING: https://decomp.me/scratch/bIDOJ
 f32 FukuwaraiFaceParts::calcScore(bool isMario) const {
     if (!isPlaced())
         return 0.0f;
 
     const char* name = al::getModelName(this);
-    FukuwaraiPart bodyPart;
+    const FukuwaraiPart* bodyPart;
 
     if (isMario) {
-        if (al::isEqualString(name, MarioEyebrowLeftPart.name))
-            bodyPart = MarioEyebrowLeftPart;
-        else if (al::isEqualString(name, MarioEyebrowRightPart.name))
-            bodyPart = MarioEyebrowRightPart;
-        else if (al::isEqualString(name, MarioEyeLeftPart.name))
-            bodyPart = MarioEyeLeftPart;
-        else if (!al::isEqualString(name, MarioEyeRightPart.name))
-            bodyPart = MarioEyeRightPart;
-        else if (al::isEqualString(name, MarioMouthPart.name))
-            bodyPart = MarioMouthPart;
-        else if (al::isEqualString(name, MarioMustachePart.name))
-            bodyPart = MarioMustachePart;
-        else if (al::isEqualString(name, MarioNosePart.name))
-            bodyPart = MarioNosePart;
+        if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioEyebrowLeftPart.name))
+            bodyPart = &NrvFukuwaraiFaceParts.MarioEyebrowLeftPart;
+        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioEyebrowRightPart.name))
+            bodyPart = &NrvFukuwaraiFaceParts.MarioEyebrowRightPart;
+        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioEyeLeftPart.name))
+            bodyPart = &NrvFukuwaraiFaceParts.MarioEyeLeftPart;
+        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioEyeRightPart.name))
+            bodyPart = &NrvFukuwaraiFaceParts.MarioEyeRightPart;
+        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioMouthPart.name))
+            bodyPart = &NrvFukuwaraiFaceParts.MarioMouthPart;
+        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioMustachePart.name))
+            bodyPart = &NrvFukuwaraiFaceParts.MarioMustachePart;
+        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.MarioNosePart.name))
+            bodyPart = &NrvFukuwaraiFaceParts.MarioNosePart;
         else
             return -5.0f;
     } else {
-        if (al::isEqualString(name, KuriboEyebrowLeftPart.name))
-            bodyPart = KuriboEyebrowLeftPart;
-        else if (al::isEqualString(name, KuriboEyebrowRightPart.name))
-            bodyPart = KuriboEyebrowRightPart;
-        else if (al::isEqualString(name, KuriboEyeLeftPart.name))
-            bodyPart = KuriboEyeLeftPart;
-        else if (al::isEqualString(name, KuriboEyeRightPart.name))
-            bodyPart = KuriboEyeRightPart;
-        else if (al::isEqualString(name, KuriboMouthAngryPart.name))
-            bodyPart = KuriboMouthAngryPart;
+        if (al::isEqualString(name, NrvFukuwaraiFaceParts.KuriboEyebrowLeftPart.name))
+            bodyPart = &NrvFukuwaraiFaceParts.KuriboEyebrowLeftPart;
+        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.KuriboEyebrowRightPart.name))
+            bodyPart = &NrvFukuwaraiFaceParts.KuriboEyebrowRightPart;
+        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.KuriboEyeLeftPart.name))
+            bodyPart = &NrvFukuwaraiFaceParts.KuriboEyeLeftPart;
+        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.KuriboEyeRightPart.name))
+            bodyPart = &NrvFukuwaraiFaceParts.KuriboEyeRightPart;
+        else if (al::isEqualString(name, NrvFukuwaraiFaceParts.KuriboMouthAngryPart.name))
+            bodyPart = &NrvFukuwaraiFaceParts.KuriboMouthAngryPart;
         else
             return -5.0f;
     }
 
-    return bodyPart.basePoints + bodyPart.distancePoints * calcScoreDistRate() +
-           bodyPart.anglePoints * calcScoreAngleRate();
+    f32 distancePoints = bodyPart->distancePoints;
+    f32 anglePoints = bodyPart->anglePoints;
+    f32 angleRate = calcScoreAngleRate();
+    f32 distanceRate = calcScoreDistRate();
+    return anglePoints * angleRate + distancePoints * distanceRate + bodyPart->basePoints;
 }
 
 bool FukuwaraiFaceParts::isPlaced() const {

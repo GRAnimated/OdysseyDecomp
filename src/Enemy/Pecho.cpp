@@ -226,12 +226,12 @@ bool Pecho::tryStartFind() {
     return true;
 }
 
-// NON_MATCHING: regswap (https://decomp.me/scratch/D3wWz)
 void Pecho::updateVelocityEscapeWallAndFall(f32 force, f32 velocity) {
     sead::Vector3f direction = sead::Vector3f::zero;
+    s32 i = 0;
     s32 hitCount = 0;
 
-    for (s32 i = 0; i < 8; i++) {
+    for (; i < 8; i++) {
         f32 rad = sead::Mathf::deg2rad(i * 45.0f);
         sead::Vector3f arrowDirection(sead::Mathf::sin(rad), 0.0f, sead::Mathf::cos(rad));
 
@@ -250,8 +250,16 @@ void Pecho::updateVelocityEscapeWallAndFall(f32 force, f32 velocity) {
         }
     }
 
-    if (hitCount > 0)
-        al::addVelocity(this, direction * -velocity * (1.0f / hitCount));
+    if (hitCount <= 0) {
+        if (al::isOnGroundNoVelocity(this, 0))
+            al::addVelocityToGravityFittedGround(this, 1.0f, 0);
+        else
+            al::addVelocityToGravity(this, 1.0f);
+        al::scaleVelocity(this, 0.89f);
+        return;
+    }
+
+    al::addVelocity(this, direction * -velocity * (1.0f / hitCount));
 
     if (al::isOnGroundNoVelocity(this, 0))
         al::addVelocityToGravityFittedGround(this, 1.0f, 0);

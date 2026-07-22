@@ -17,7 +17,6 @@ NERVES_MAKE_STRUCT(TestMusaGraph, Wait)
 
 TestMusaGraph::TestMusaGraph(const char* name) : al::LiveActor(name) {}
 
-// NON-MATCHING: Different stack pointer reference https://decomp.me/scratch/IDKIq
 void TestMusaGraph::init(const al::ActorInitInfo& info) {
     al::initActorSceneInfo(this, info);
     al::initActorPoseTRSV(this);
@@ -49,7 +48,7 @@ void TestMusaGraph::init(const al::ActorInitInfo& info) {
     mGraph->appendEdge(mGraph->getVertexCount() - 2, mGraph->getVertexCount() - 1, 1500.0f);
     mGraph->appendEdge(2, 8, 1000.0f);
 
-    al::Graph::PosEdge* edge = reinterpret_cast<al::Graph::PosEdge*>(mGraph->tryFindEdge(0, 1));
+    al::Graph::PosEdge* edge = (al::Graph::PosEdge*)mGraph->tryFindEdge(0, 1);
     if (edge) {
         al::Graph::PosVertex* newEdge =
             new al::Graph::PosVertex(mGraph->getVertexCount(), {-1000.0f, 0.0f, -1000.0f}, 4);

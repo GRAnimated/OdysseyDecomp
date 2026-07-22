@@ -31,24 +31,21 @@ bool CameraTicketId::isEqual(const CameraTicketId& ticket1, const CameraTicketId
     return ticket1.isEqual(ticket2);
 }
 
-// NON_MATCHING: https://decomp.me/scratch/4vdbx
 bool CameraTicketId::isEqual(const ByamlIter& iter) const {
     const char* id = getObjId();
     const char* otherId = tryGetByamlKeyStringOrNULL(iter, "ObjId");
     if (id && otherId) {
-        if (!isEqualString(id, otherId))
+        if (__builtin_expect(!isEqualString(id, otherId), 0))
             return false;
-    } else if (id || otherId)
+    } else if (__builtin_expect(id != nullptr, 0) || __builtin_expect(otherId != nullptr, 0)) {
         return false;
+    }
 
     const char* suffix = mSuffix;
     const char* otherSuffix = tryGetByamlKeyStringOrNULL(iter, "Suffix");
-    if (suffix && otherSuffix) {
-        if (!isEqualString(suffix, otherSuffix))
-            return false;
-    } else
-        return !suffix && !otherSuffix;
-    return true;
+    if (__builtin_expect(suffix && otherSuffix, 1))
+        return isEqualString(suffix, otherSuffix);
+    return !suffix && !otherSuffix;
 }
 
 const char* CameraTicketId::tryGetObjId() const {

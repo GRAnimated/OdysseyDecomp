@@ -38,9 +38,12 @@ void DspLinearValueController::changeTarget(f32 target, s32 stepCount) {
     mStep = difference / stepCount;
 }
 
-// NON_MATCHING: https://decomp.me/scratch/q2k8I
 DspSinValueController::DspSinValueController(f32 updateFreq, f32 value)
-    : mUpdateFreq(updateFreq), mCurrent(value) {
+    : mUpdateFreq(updateFreq) {
+    mDelta = 0.0f;
+    mFreq = 0.0f;
+    mAngle = 0.0f;
+    mCurrent = value;
     mAmplitude = new DspLinearValueController(0.0f);
 }
 

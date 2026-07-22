@@ -1,9 +1,9 @@
 #include "Project/Rail/BezierCurve.h"
 
+#include <functional>
+
 namespace al {
-
 BezierCurve::BezierCurve() = default;
-
 void BezierCurve::set(const sead::Vector3f& start, const sead::Vector3f& startHandle,
                       const sead::Vector3f& endHandle, const sead::Vector3f& end) {
     sead::Vector3f diff1 = startHandle - start;
@@ -79,8 +79,6 @@ f32 BezierCurve::calcDeltaLength(f32 param) const {
     return tmp.length();
 }
 
-// NON_MATCHING: flipped parts of if in last statement and unoptimized 1.0f - load
-// (https://decomp.me/scratch/hGwGZ)
 f32 BezierCurve::calcCurveParam(f32 distance) const {
     f32 percent = distance / mDistance;
     f32 partLength = calcLength(0, percent, 10);
@@ -97,8 +95,8 @@ f32 BezierCurve::calcCurveParam(f32 distance) const {
             return percent;
     }
 
-    if (partLength < 0.0f || percent > 1.0f)
-        return sead::Mathf::clamp(percent, 0.0f, 1.0f);
+    if (std::greater<f32>()(percent, 1.0f) || partLength < 0.0f)
+        percent = sead::Mathf::clamp(percent, 0.0f, 1.0f);
     return percent;
 }
 
@@ -140,10 +138,11 @@ f32 BezierCurve::calcNearestLength(f32* param, const sead::Vector3f& pos, f32 ma
     return bestDist;
 }
 
-// NON_MATCHING: Difference in loading for calcNearestParam (https://decomp.me/scratch/mFZVT)
-void BezierCurve::calcNearestPos(sead::Vector3f* nearest, const sead::Vector3f& pos,
-                                 f32 interval) const {
-    calcPos(nearest, calcNearestParam(pos, interval));
+f32 BezierCurve::calcNearestPos(sead::Vector3f* nearest, const sead::Vector3f& pos,
+                                f32 interval) const {
+    f32 nearestParam = calcNearestParam(pos, interval);
+    calcPos(nearest, nearestParam);
+    return nearestParam;
 }
 
 void BezierCurve::calcStartPos(sead::Vector3f* pos) const {

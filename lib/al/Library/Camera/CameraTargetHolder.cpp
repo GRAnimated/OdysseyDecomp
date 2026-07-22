@@ -105,31 +105,59 @@ CameraSubTargetBase* CameraTargetHolder::getTopSubTarget() const {
     return mTopSubTarget;
 }
 
-// NON_MATCHING: Depends on removeSubTarget
 void CameraTargetHolder::addSubTarget(CameraSubTargetBase* subTarget) {
-    removeSubTarget(subTarget);
+    CameraSubTargetBase** subTargets = mSubTargetArray.data();
+    s32 index = -1;
+    for (s32 i = 0; i < mSubTargetArray.size(); i++) {
+        if (subTargets[i] == subTarget) {
+            index = i;
+            break;
+        }
+    }
+    if (index > -1)
+        mSubTargetArray.erase(index);
     subTarget->enableTarget();
     mSubTargetArray.pushFront(subTarget);
 }
 
-// NON_MATCHING: https://decomp.me/scratch/qrlL5
 void CameraTargetHolder::removeSubTarget(CameraSubTargetBase* subTarget) {
-    s32 index = mSubTargetArray.indexOf(subTarget);
+    CameraSubTargetBase** subTargets = mSubTargetArray.data();
+    s32 index = -1;
+    for (s32 i = 0; i < mSubTargetArray.size(); i++) {
+        if (subTargets[i] == subTarget) {
+            index = i;
+            break;
+        }
+    }
     if (index > -1)
         mSubTargetArray.erase(index);
     subTarget->disableTarget();
 }
 
-// NON_MATCHING: Depends on removePlacementSubTarget
 void CameraTargetHolder::addPlacementSubTarget(CameraSubTargetBase* subTarget) {
-    removePlacementSubTarget(subTarget);
+    CameraSubTargetBase** subTargets = mPlacementSubTargetArray.data();
+    s32 index = -1;
+    for (s32 i = 0; i < mPlacementSubTargetArray.size(); i++) {
+        if (subTargets[i] == subTarget) {
+            index = i;
+            break;
+        }
+    }
+    if (index > -1)
+        mPlacementSubTargetArray.erase(index);
     subTarget->enableTarget();
     mPlacementSubTargetArray.pushFront(subTarget);
 }
 
-// NON_MATCHING: https://decomp.me/scratch/Sv3mo
 void CameraTargetHolder::removePlacementSubTarget(CameraSubTargetBase* subTarget) {
-    s32 index = mPlacementSubTargetArray.indexOf(subTarget);
+    CameraSubTargetBase** subTargets = mPlacementSubTargetArray.data();
+    s32 index = -1;
+    for (s32 i = 0; i < mPlacementSubTargetArray.size(); i++) {
+        if (subTargets[i] == subTarget) {
+            index = i;
+            break;
+        }
+    }
     if (index > -1)
         mPlacementSubTargetArray.erase(index);
     subTarget->disableTarget();

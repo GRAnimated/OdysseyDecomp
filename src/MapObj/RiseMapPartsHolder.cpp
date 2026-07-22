@@ -40,7 +40,6 @@ NERVES_MAKE_STRUCT(RiseMapPartsHolder, Wait, Stop, Move, MoveEnd, RequestDemo, D
 
 RiseMapPartsHolder::RiseMapPartsHolder(const char* name) : al::LiveActor(name) {}
 
-// NON_MATCHING: https://decomp.me/scratch/lCb5J
 void RiseMapPartsHolder::init(const al::ActorInitInfo& info) {
     using RiseMapPartsHolderFunctor =
         al::FunctorV0M<RiseMapPartsHolder*, void (RiseMapPartsHolder::*)()>;
@@ -93,6 +92,8 @@ void RiseMapPartsHolder::init(const al::ActorInitInfo& info) {
         return;
     }
 
+    s32 scenarioNo;
+
     bool isStageSwitchListening = al::listenStageSwitchOnStart(
         this, RiseMapPartsHolderFunctor(this, &RiseMapPartsHolder::startRise));
 
@@ -130,13 +131,12 @@ void RiseMapPartsHolder::init(const al::ActorInitInfo& info) {
         return;
     }
 
-    if (isStageSwitchListening) {
-        makeActorAlive();
-        return;
+    if (!isStageSwitchListening) {
+        scenarioNo = -1;
+        isStageSwitchListening = al::tryGetArg(&scenarioNo, info, "ScenarioNo");
     }
 
-    s32 scenarioNo = -1;
-    if (!al::tryGetArg(&scenarioNo, info, "ScenarioNo")) {
+    if (!isStageSwitchListening) {
         makeActorDead();
         return;
     }

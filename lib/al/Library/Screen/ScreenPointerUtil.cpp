@@ -22,25 +22,30 @@ s32 compareScreenPointTarget(const ScreenPointTargetHitInfo* targetHitInfoA,
                                                                                        0;
 }
 
-// NON_MATCHING: https://decomp.me/scratch/bBeTv
 s32 compareScreenPointTargetPriorDirectPoint(const ScreenPointTargetHitInfo* targetHitInfoA,
                                              const ScreenPointTargetHitInfo* targetHitInfoB) {
     f32 screenA = targetHitInfoA->screenPointDistance;
     f32 screenB = targetHitInfoB->screenPointDistance;
 
-    if (screenB <= 0.0f && screenA > 0.0f)
+    s32 screenACompare = screenA < 0.0f ? -1 : screenA <= 0.0f ? 0 : 1;
+    if (screenB > 0.0f && screenACompare <= 0)
         return -1;
-    if (screenB > 0.0f && screenA <= 0.0f)
-        return 1;
-
-    f32 diffDirect = targetHitInfoA->directPointDistance - targetHitInfoB->directPointDistance;
-
-    if (screenB <= 0.0f && screenA < 0.0f) {
+    f32 diffDirect;
+    if (screenB <= 0.0f) {
+        if (screenA > 0.0f)
+            return 1;
+        diffDirect =
+            targetHitInfoA->directPointDistance - targetHitInfoB->directPointDistance;
+    } else {
+        diffDirect =
+            targetHitInfoA->directPointDistance - targetHitInfoB->directPointDistance;
+    }
+    s32 screenACompareDirect = screenA == 0.0f ? 0 : screenA <= 0.0f ? -1 : 1;
+    if (screenB < 0.0f && screenACompareDirect <= 0) {
         if (diffDirect < 0.0f)
             return -1;
         if (diffDirect > 0.0f)
             return 1;
-
         if (screenA < screenB)
             return -1;
         if (screenB < screenA)
@@ -52,7 +57,6 @@ s32 compareScreenPointTargetPriorDirectPoint(const ScreenPointTargetHitInfo* tar
         return -1;
     if (screenB < screenA)
         return 1;
-
     if (diffDirect < 0.0f)
         return -1;
     if (diffDirect > 0.0f)

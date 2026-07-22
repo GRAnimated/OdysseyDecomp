@@ -2,6 +2,5 @@
 
 namespace al {
 
-SubActorInfo::SubActorInfo() = default;
 
 }

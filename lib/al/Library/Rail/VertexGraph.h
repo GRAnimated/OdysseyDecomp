@@ -17,6 +17,10 @@ public:
     class PosVertex;
     struct VertexInfo;
 
+    // Made-up names for the structs used in calcShortestPath
+    struct CurrentVertexFinder;
+    struct NextVertexSelector;
+
     Graph(s32 vertices_size, s32 edges_size);
     void appendVertex(s32 size);
     void appendVertex(Vertex* vertex);
@@ -146,6 +150,52 @@ struct Graph::VertexInfo {
 };
 
 static_assert(sizeof(Graph::VertexInfo) == 0x10);
+
+struct Graph::CurrentVertexFinder {
+    bool isFound() const {
+        for (s32 i = 0; i < unvisitedSet.size(); i++) {
+            currentInfo = unvisitedSet[i];
+            if (currentInfo->vertex == currentVertex) {
+                *currentIndex = i;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    sead::FixedObjArray<Graph::VertexInfo, 512>& unvisitedSet;
+    Graph::VertexInfo*& currentInfo;
+    Graph::Vertex* currentVertex;
+    s32* currentIndex;
+};
+
+struct Graph::NextVertexSelector {
+    bool select(Graph::Vertex*& currentVertex, bool found) const {
+        Graph::Vertex* nextVertex = nullptr;
+        f32 minWeight = sead::Mathf::maxNumber();
+        if (unvisitedSet.size() < 1)
+            return found;
+
+        for (s32 i = 0; i < unvisitedSet.size(); i++) {
+            Graph::VertexInfo* info = unvisitedSet.unsafeAt(i);
+            f32 weight = info->weight;
+            const bool isMinimum = weight < minWeight;
+            Graph::Vertex* vertex = info->vertex;
+            nextVertex = isMinimum ? vertex : nextVertex;
+            minWeight = isMinimum ? weight : minWeight;
+        }
+
+        if (nextVertex) {
+            currentVertex = nextVertex;
+            if (found)
+                return true;
+            return false;
+        }
+        return found;
+    }
+
+    sead::FixedObjArray<Graph::VertexInfo, 512>& unvisitedSet;
+};
 
 bool calcShortestPath(sead::ObjArray<Graph::VertexInfo>* vertexInfos, const Graph* graph,
                       s32 startVertexIndex, s32 endVertexIndex);

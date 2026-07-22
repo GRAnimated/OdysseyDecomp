@@ -9,7 +9,7 @@ namespace al {
 
 Rail::Rail() = default;
 
-// NON_MATCHING: mismatch during `mRailPart`-array creation (https://decomp.me/scratch/e80kr)
+// NON_MATCHING: target keeps the rail-part count in X21 for new[] overflow sizing, then uses W21 and an offset-up constructor loop; a 64-bit source count fixes sizing but changes constructor traversal/lifetimes.
 void Rail::init(const PlacementInfo& info) {
     mIsClosed = false;
     tryGetArg(&mIsClosed, info, "IsClosed");
@@ -67,22 +67,23 @@ void Rail::calcPos(sead::Vector3f* pos, f32 distance) const {
     part->calcPos(pos, part->calcCurveParam(partDistance));
 }
 
-// NON_MATCHING: minor reorderings (https://decomp.me/scratch/bWw2E)
 s32 Rail::getIncludedSection(const RailPart** part, f32* partDistance, f32 distance) const {
     f32 distanceOnRail = normalizeLength(distance);
     f32 startDistanceOnRail = 0.0;
     s32 maxRailPart = -1;
     s64 longI = -0x100000000;
-    for (s32 i = 0; i < mRailPartCount; i++) {
+    for (s32 i = 0; i < mRailPartCount; i++, longI += 0x100000000) {
+        const s32 currentPart = i;
         if (distanceOnRail <= mRailPart[i].getTotalDistance()) {
-            if (i <= 0)
-                startDistanceOnRail = distanceOnRail;
-            else
+            if (i > 0) {
                 startDistanceOnRail = distanceOnRail - mRailPart[longI >> 32].getTotalDistance();
-            maxRailPart = i;
+                maxRailPart = i;
+                break;
+            }
+            maxRailPart = currentPart;
+            startDistanceOnRail = distanceOnRail;
             break;
         }
-        longI += 0x100000000;
     }
 
     if (part)
@@ -169,7 +170,6 @@ void Rail::calcNearestRailPointNo(s32* index, const sead::Vector3f& pos) const {
     }
 }
 
-// NON_MATCHING: mismatch in storing *rail_pos = tmp; (https://decomp.me/scratch/gS1CT)
 void Rail::calcNearestRailPointPos(sead::Vector3f* rail_pos, const sead::Vector3f& pos) const {
     if (mRailPointsCount == 0)
         return;
@@ -180,7 +180,11 @@ void Rail::calcNearestRailPointPos(sead::Vector3f* rail_pos, const sead::Vector3
 
     s32 curr_index = 1;
     for (s64 i = 1; i < mRailPointsCount; i++) {
-        calcRailPointPos(&tmp, curr_index);
+        if (!mIsClosed && curr_index == mRailPointsCount - 1)
+            mRailPart[curr_index - 1].calcEndPos(&tmp);
+        else
+            mRailPart[curr_index].calcStartPos(&tmp);
+
         if ((pos - tmp).squaredLength() < best_distance) {
             best_distance = (pos - tmp).squaredLength();
             *rail_pos = tmp;
@@ -200,13 +204,13 @@ f32 Rail::normalizeLength(f32 distance) const {
     return sead::Mathf::clamp(distance, 0.0, getTotalLength());
 }
 
-// NON_MATCHING: diff issue due to bug in tools/check (https://decomp.me/scratch/UFGsO)
+// NON_MATCHING: body size/register sequence is exact; tools/check first differs at the shared anonymous FLT_MAX `.rodata.cst4` relocation (target 0x9c2a40).
 f32 Rail::calcNearestRailPosCoord(const sead::Vector3f& pos, f32 interval) const {
     f32 tmp;
     return calcNearestRailPosCoord(pos, interval, &tmp);
 }
 
-// NON_MATCHING: diff issue due to bug in tools/check (https://decomp.me/scratch/zJvN3)
+// NON_MATCHING: direct asm is instruction/register identical apart from the relocated max-number constant address; tools/check reports a fixed-address mismatch.
 f32 Rail::calcNearestRailPosCoord(const sead::Vector3f& pos, f32 interval, f32* distance) const {
     *distance = sead::Mathf::maxNumber();
     f32 bestParam = sead::Mathf::maxNumber();
@@ -230,7 +234,7 @@ f32 Rail::calcNearestRailPosCoord(const sead::Vector3f& pos, f32 interval, f32* 
     return bestParam;
 }
 
-// NON_MATCHING: diff issue due to bug in tools/check (https://decomp.me/scratch/gRZVD)
+// NON_MATCHING: body size/register sequence is exact; tools/check first differs at the inherited anonymous-literal/call relocation (target 0x9c2c10).
 f32 Rail::calcNearestRailPos(sead::Vector3f* rail_pos, const sead::Vector3f& pos,
                              f32 interval) const {
     f32 coord = calcNearestRailPosCoord(pos, interval);

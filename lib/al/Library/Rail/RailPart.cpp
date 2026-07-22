@@ -75,7 +75,7 @@ f32 RailPart::calcNearestParam(const sead::Vector3f& pos, f32 interval) const {
 
 void RailPart::calcNearestPos(sead::Vector3f* nearest, const sead::Vector3f& pos,
                               f32 interval) const {
-    return mBezierCurve ? mBezierCurve->calcNearestPos(nearest, pos, interval) :
+    return mBezierCurve ? static_cast<void>(mBezierCurve->calcNearestPos(nearest, pos, interval)) :
                           mLinearCurve->calcNearestPos(nearest, pos);
 }
 

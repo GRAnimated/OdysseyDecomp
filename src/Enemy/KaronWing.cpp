@@ -50,7 +50,6 @@ NERVES_MAKE_STRUCT(KaronWing, Wait, Hack, Swoon, Break, Revive, HackStart, Wande
 static al::ActorParamMove cMoveParam{0.1f, 0.0f, 0.95f, 0.7f};
 static FlyerStateWanderParam cWanderParam{30, 540, 180, "EnemyFly", &cMoveParam};
 
-// NON_MATCHING: creating the `EnemyStateSwoonInitParam` (https://decomp.me/scratch/CDB2W)
 void KaronWing::init(const al::ActorInitInfo& info) {
     al::initActor(this, info);
     bool wearingCap = true;
@@ -64,13 +63,17 @@ void KaronWing::init(const al::ActorInitInfo& info) {
     al::initNerveState(this, mStateHack, &NrvKaronWing.Hack, "キャプチャー");
     mStateSwoon = new EnemyStateSwoon(this, "SwoonStart", "Swoon", "SwoonEnd", false, true);
 
-    EnemyStateSwoonInitParam swoonParam{"Trampled",      "BreakWait", "Recover",
-                                        "BreakReaction", "Break",     "BreakGroundHit"};
-    swoonParam.hasStartLandAnimation = true;
-    swoonParam.hasLockOnDelay = true;
-    swoonParam.isCancelLoopOnProhibitedArea = false;
+    EnemyStateSwoonInitParam swoonParam;
+    swoonParam.startAnimName = "Trampled";
+    swoonParam.loopAnimName = "BreakWait";
+    swoonParam.endAnimName = "Recover";
     swoonParam.swoonDuration = 180;
-    swoonParam.endSignDelay = 60;
+    swoonParam.trampledAnimName = "BreakReaction";
+    swoonParam.startFallAnimName = "Break";
+    swoonParam.startLandAnimName = "BreakGroundHit";
+    swoonParam.hasStartLandAnimation = true;
+    swoonParam.isCancelLoopOnProhibitedArea = false;
+    swoonParam.hasLockOnDelay = true;
     swoonParam.endSignAnimName = "RecoverSign";
 
     mStateSwoon->initParams(swoonParam);

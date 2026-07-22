@@ -199,10 +199,27 @@ bool tryFindNearestPlayerPos(sead::Vector3f* pos, const LiveActor* actor) {
     return true;
 }
 
-// NON_MATCHING: regalloc (https://decomp.me/scratch/XLeWX)
 bool tryFindNearestPlayerDisatanceFromTarget(f32* distance, const LiveActor* actor,
                                              const sead::Vector3f& target) {
-    s32 nearestPlayerId = findNearestPlayerIdCondition(actor, target, &isDead, -1.0f);
+    PlayerHolder* holder = actor->getSceneInfo()->playerHolder;
+    s32 playerNum = getPlayerNumMax(holder);
+    if (playerNum < 1)
+        return false;
+
+    f32 minDistance = sead::Mathf::maxNumber();
+    s32 nearestPlayerId = -1;
+    for (s32 i = 0; i < playerNum; i++) {
+        LiveActor* player = holder->getPlayer(i);
+        if (!player || isDead(player))
+            continue;
+
+        f32 playerDistance = (getTrans(player) - target).squaredLength();
+        if (playerDistance < minDistance) {
+            nearestPlayerId = i;
+            minDistance = playerDistance;
+        }
+    }
+
     if (nearestPlayerId < 0)
         return false;
 
@@ -320,33 +337,40 @@ u32 calcAlivePlayerActor(const LiveActor* actor, const LiveActor** actorList, u3
     u32 playerNum = getPlayerNumMax(actor);
     s32 flag = 2;
     u32 result;
-    u32 resultNum = 0;
+    u32 resultNum;
 
     if (playerNum != 0) {
-        for (u32 i = 0; i < playerNum; i++) {
+        u32 i = 0;
+        u32 alivePlayerNum = 0;
+        while (true) {
             LiveActor* player = getPlayerActor(actor, i);
-            if (!isDead(player)) {
-                actorList[resultNum] = player;
-                resultNum++;
-                if (resultNum >= size) {
-                    result = size;
-                    flag = 1;
-                } else {
-                    flag = 0;
-                }
-            } else {
+            if (isDead(player)) {
                 flag = 4;
+            } else {
+                actorList[alivePlayerNum] = player;
+                alivePlayerNum++;
+                flag = alivePlayerNum >= size;
+                result = alivePlayerNum < size ? result : size;
             }
 
             if ((blackBox(flag | 4) & 7) != 4)
-                goto end;
+                break;
+
+            i++;
+            if (i >= playerNum) {
+                flag = 2;
+                break;
+            }
         }
+        resultNum = alivePlayerNum;
+    } else {
+        resultNum = 0;
         flag = 2;
     }
-end:
-    if (flag != 2)
-        resultNum = result;
-    return resultNum;
+
+    if (flag == 2)
+        return resultNum;
+    return result;
 }
 
 LiveActor* tryFindNearestPlayerActorCondition(const LiveActor* actor,

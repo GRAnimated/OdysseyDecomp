@@ -157,36 +157,20 @@ Resource* ResourceSystem::createResource(const sead::SafeString& name, ResourceC
     return resource->getFileArchive() ? resource : nullptr;
 }
 
-void cleanupResGraphicsFile(sead::SafeString& key, Resource* resource) {
-    resource->cleanupResGraphicsFile();
-}
+#pragma GCC visibility push(hidden)
+void cleanupResGraphicsFile(sead::SafeString& key, Resource* resource);
 
 class ResourceAudio {
 public:
     ResourceAudio(ResourceSystem::ResourceAudioInfo* info) : mAudioPlayerInfo(info) {}
 
-    void disableSoundMemoryPoolHandler(sead::TreeMapImpl<sead::SafeString>::Node* node) {
-        ResourceSystem::ResourceAudioInfo* info = mAudioPlayerInfo;
-
-        if (node->key().comparen(info->filePath, info->filePath.calcLength()) != 0)
-            return;
-
-        SeadAudioPlayer* audioPlayer =
-            alAudioSystemFunction::tryFindAudioPlayerRegistedSoundMemoryPoolHandler(
-                node->key().cstr(), info->audioPlayerA, info->audioPlayerB);
-
-        if (audioPlayer) {
-            while (!alAudioSystemFunction::tryDisableSoundMemoryPoolHandlerByFilePath(
-                node->key().cstr(), audioPlayer)) {
-            }
-        }
-    }
+    void disableSoundMemoryPoolHandler(sead::TreeMapImpl<sead::SafeString>::Node* node);
 
 private:
     ResourceSystem::ResourceAudioInfo* mAudioPlayerInfo;
 };
+#pragma GCC visibility pop
 
-// NON_MATCHING: https://decomp.me/scratch/R5MuA
 void ResourceSystem::removeCategory(const sead::SafeString& name) {
     ResourceAudioInfo audioPlayerInfo(mAudioPlayerA, mAudioPlayerB, "SoundData/");
 
@@ -196,7 +180,6 @@ void ResourceSystem::removeCategory(const sead::SafeString& name) {
 
     (*iter)->treeMap.forEach(&cleanupResGraphicsFile);
 
-    // TODO: Find the correct implementation for this part
     ResourceCategory* category = *iter;
     {
         ResourceAudio ctx(&audioPlayerInfo);
@@ -210,6 +193,10 @@ void ResourceSystem::removeCategory(const sead::SafeString& name) {
 
     (*iter)->treeMap.clear();
     mCategories.remove(iter.getIndex());
+}
+
+void cleanupResGraphicsFile(sead::SafeString& key, Resource* resource) {
+    resource->cleanupResGraphicsFile();
 }
 
 Resource* ResourceSystem::findResource(const sead::SafeString& categoryName) {
@@ -406,6 +393,24 @@ bool ResourceSystem::tryGetGraphicsInfoIter(ByamlIter* iter, const sead::SafeStr
     }
 
     return false;
+}
+
+void ResourceAudio::disableSoundMemoryPoolHandler(
+    sead::TreeMapImpl<sead::SafeString>::Node* node) {
+    ResourceSystem::ResourceAudioInfo* info = mAudioPlayerInfo;
+
+    if (node->key().comparen(info->filePath, info->filePath.calcLength()) != 0)
+        return;
+
+    SeadAudioPlayer* audioPlayer =
+        alAudioSystemFunction::tryFindAudioPlayerRegistedSoundMemoryPoolHandler(
+            node->key().cstr(), info->audioPlayerA, info->audioPlayerB);
+
+    if (audioPlayer) {
+        while (!alAudioSystemFunction::tryDisableSoundMemoryPoolHandlerByFilePath(
+            node->key().cstr(), audioPlayer)) {
+        }
+    }
 }
 
 }  // namespace al

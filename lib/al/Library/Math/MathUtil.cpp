@@ -1567,35 +1567,49 @@ void rotateQuatLocalDirDegree(sead::Quatf* outQuat, const sead::Quatf& quat, s32
     rotateQuatRadian(outQuat, quat, vec, sead::Mathf::deg2rad(angle));
 }
 
-// https://decomp.me/scratch/WnkEF
-// NON_MATCHING: Same logic different store order
 void rotateQuatMoment(sead::Quatf* outQuat, const sead::Quatf& quat, const sead::Vector3f& vec) {
-    f32 radian = vec.length();
-
-    sead::Vector3f axis;
-    tryNormalizeOrZero(&axis, vec);
-
-    // rotateQuatRadian(...)
+    const f32 radian = vec.length();
+    const f32 squaredLength = vec.squaredLength();
+    sead::Vector3f axis = vec;
+    f32 axisX = axis.x;
+    if (squaredLength < 0.000001f) {
+        axisX = 0.0f;
+        axis = {0.0f, 0.0f, 0.0f};
+    } else {
+        const f32 length = sead::Mathf::sqrt(squaredLength);
+        if (length > 0.0f) {
+            const f32 invLength = 1.0f / length;
+            axisX *= invLength;
+            axis *= invLength;
+        }
+    }
+    axis.x = axisX;
     sead::Quatf rotation;
     rotation.setAxisRadian(axis, radian);
-
     outQuat->setMul(rotation, quat);
     outQuat->normalize();
 }
 
-// https://decomp.me/scratch/ojgnQ
-// NON_MATCHING: Same logic different store order
 void rotateQuatMomentDegree(sead::Quatf* outQuat, const sead::Quatf& quat,
                             const sead::Vector3f& vec) {
-    f32 degree = vec.length();
-
-    sead::Vector3f axis;
-    tryNormalizeOrZero(&axis, vec);
-
-    // rotateQuatDegree(...)
+    const f32 degree = vec.length();
+    const f32 squaredLength = vec.squaredLength();
+    sead::Vector3f axis = vec;
+    f32 axisX = axis.x;
+    if (squaredLength < 0.000001f) {
+        axisX = 0.0f;
+        axis = {0.0f, 0.0f, 0.0f};
+    } else {
+        const f32 length = sead::Mathf::sqrt(squaredLength);
+        if (length > 0.0f) {
+            const f32 invLength = 1.0f / length;
+            axisX *= invLength;
+            axis *= invLength;
+        }
+    }
+    axis.x = axisX;
     sead::Quatf rotation;
     rotation.setAxisAngle(axis, degree);
-
     outQuat->setMul(rotation, quat);
     outQuat->normalize();
 }
@@ -1641,11 +1655,12 @@ bool turnQuatZDirRadian(sead::Quatf* outQuat, const sead::Quatf& quat, const sea
     return turnQuat(outQuat, quat, axis, dir, radian);
 }
 
-// NON_MATCHING: Out of order multiplication https://decomp.me/scratch/kvdl1
 void tiltQuatDegree(sead::Quatf* outQuat, const sead::Quatf& quat, const sead::Vector3f& axis,
                     const sead::Vector3f& dir, f32 degree) {
+    f32 projection = axis.dot(dir);
     sead::Vector3f parallelVec;
-    parallelVec.setSub(dir, axis.dot(dir) * axis);
+    parallelVec.set(dir.x - axis.x * projection, dir.y - axis.y * projection,
+                    dir.z - axis.z * projection);
     if (!tryNormalizeOrZero(&parallelVec)) {
         outQuat->set(quat);
         return;
