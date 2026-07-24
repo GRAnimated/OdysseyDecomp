@@ -25,7 +25,7 @@ public:
 private:
     const CameraOffsetPresetData* mPresetData;
     s32 mPresetCount;
-    s32 mCurrentPresetIndex;
+    s32 mCurrentPresetIndex = 0;
 };
 
 static_assert(sizeof(CameraOffsetPreset) == 0x10);

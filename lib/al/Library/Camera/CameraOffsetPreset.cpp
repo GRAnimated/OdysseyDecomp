@@ -22,19 +22,15 @@ const CameraOffsetPresetData gCameraOffsetPresets[18] = {
     {"クッパ用", {0.0, 360.0, 0.0}},       // For Bowser
     {"崩落クッパ用", {0.0, 450.0, 0.0}},   // For Collapsing Bowser
     {"映像撮影用", {0.0, 210.0, 0.0}},     // For Video Recording
-    {"森ボス用", {0.0, 916.0, 0.0}}};      // For Forest Boss
+    {"森ボス用", {0.0, 916.0, 0.0}}        // For Forest Boss
+};
 
-CameraOffsetPreset::CameraOffsetPreset() {
-    mPresetData = gCameraOffsetPresets;
-    mPresetCount = sizeof(gCameraOffsetPresets) / sizeof(CameraOffsetPresetData);
-    mCurrentPresetIndex = 0;
-}
+CameraOffsetPreset::CameraOffsetPreset()
+    : mPresetData(gCameraOffsetPresets),
+      mPresetCount(sizeof(gCameraOffsetPresets) / sizeof(CameraOffsetPresetData)) {}
 
-CameraOffsetPreset::CameraOffsetPreset(const CameraOffsetPresetData* presetData, s32 presetCount) {
-    mPresetData = presetData;
-    mPresetCount = presetCount;
-    mCurrentPresetIndex = 0;
-}
+CameraOffsetPreset::CameraOffsetPreset(const CameraOffsetPresetData* presetData, s32 presetCount)
+    : mPresetData(presetData), mPresetCount(presetCount) {}
 
 void CameraOffsetPreset::loadParam(const ByamlIter& iter) {
     const char* offsetName = tryGetByamlKeyStringOrNULL(iter, "OffsetName");
