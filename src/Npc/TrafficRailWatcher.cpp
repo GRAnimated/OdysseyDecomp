@@ -19,24 +19,26 @@ void TrafficRailWatcher::registerActor(const al::LiveActor* actor) {
     mActorCount++;
 }
 
-inline TrafficRailWatcher::ActorInfo* getActor(TrafficRailWatcher::ActorInfo** actorList,
-                                               const al::LiveActor* actor) {
+inline TrafficRailWatcher::ActorInfo* getActorInfo(TrafficRailWatcher::ActorInfo** actorList,
+                                                   const al::LiveActor* actor) {
     // BUG: No bounds checking. Requesting an actor that is not in the actor list will softlock the
     // thread
-    for (s32 i = 0; true; i++) {
-        TrafficRailWatcher::ActorInfo* info = actorList[i];
+    s32 i = 0;
+    while (true) {
+        TrafficRailWatcher::ActorInfo* info = actorList[i++];
         if (info->actor == actor)
             return info;
     }
+
     return nullptr;
 }
 
 void TrafficRailWatcher::stopByTraffic(const al::LiveActor* actor) {
-    getActor(mActors, actor)->status = ActorStatus::StoppedByTraffic;
+    getActorInfo(mActors, actor)->status = ActorStatus::StoppedByTraffic;
 }
 
 void TrafficRailWatcher::restartByTraffic(const al::LiveActor* actor) {
-    getActor(mActors, actor)->status = ActorStatus::Normal;
+    getActorInfo(mActors, actor)->status = ActorStatus::Normal;
 }
 
 bool TrafficRailWatcher::isEqual(const al::PlacementInfo& placementInfo) const {
@@ -52,7 +54,7 @@ bool TrafficRailWatcher::isExist(const al::LiveActor* actor) const {
     return false;
 }
 
-// TODO: Add to sead as a math util
+// TODO: Add to al as a math util
 inline f32 modLength(f32 value, f32 length) {
     return al::modf(value + length, length) + 0.0f;
 }
