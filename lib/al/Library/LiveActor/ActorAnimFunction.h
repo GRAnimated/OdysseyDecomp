@@ -95,7 +95,7 @@ void setSklAnimBlendWeightQuad(LiveActor* actor, f32 weight0, f32 weight1, f32 w
                                f32 weight3);
 void setSklAnimBlendWeightFivefold(LiveActor* actor, f32 weight0, f32 weight1, f32 weight2,
                                    f32 weight3, f32 weight4);
-void setSklAnimBlendWeightSixfold(LiveActor*, f32, f32, f32, f32, f32);
+void setSklAnimBlendWeightSixfold(LiveActor*, f32, f32, f32, f32, f32, f32);
 void setSklAnimBlendFrameAll(LiveActor* actor, f32 frame, bool isSync);
 void setSklAnimBlendFrameRateAll(LiveActor* actor, f32 frameRate, bool isSync);
 
@@ -332,6 +332,7 @@ s32 calcJoitsAmountFromJoint(LiveActor*, const char*);
 bool isPartialSklAnimEnd(const LiveActor* actor, s32 index);
 bool isPartialSklAnimOneTime(const LiveActor* actor, s32 index);
 bool isPartialSklAnimAttached(const LiveActor* actor, s32 index);
+bool isPartialSklAnimPlaying(const LiveActor* actor, const char* partsName, s32 index);
 bool isPartialAnimPlaying(const LiveActor*, s32);
 
 }  // namespace al

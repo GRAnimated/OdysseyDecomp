@@ -92,7 +92,8 @@ private:
     sead::FixedSafeString<64> _128;
     al::ActorDitherAnimator* mDitherAnim;
     f32* mSklAnimBlendWeights;
-    void* _190;
+    f32 mEyeControlFrame;
+    s32 mEndEyeControlAnimDelay;
     f32 mRunStartAnimRate;
     s32 _19c;
     bool mIsNeedFullFaceAnim;

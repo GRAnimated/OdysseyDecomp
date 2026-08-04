@@ -24,6 +24,10 @@ public:
     bool isCurrentModelLabel(const char* name) const;
     bool isCurrentModelLabelSubString(const char* name) const;
 
+    al::LiveActor* getActor() const { return mCurrentModel->actor; };
+
+    const char* get_18() { return _18.cstr(); };
+
 private:
     sead::PtrArray<Entry> mBuffer;
     Entry* mCurrentModel = nullptr;

@@ -21,6 +21,12 @@ public:
     f32 getRate() const;
     bool isActionEnd() const;
 
+    void setRate(f32 rate) { mRate = rate; }
+
+    bool isActionRepeat() const { return mIsActionRepeat; }
+
+    f32 getActionFrameMax() const { return mActionFrameMax; }
+
 private:
     sead::FixedSafeString<64> mActionName = {""};
     bool mIsActionRepeat = false;
