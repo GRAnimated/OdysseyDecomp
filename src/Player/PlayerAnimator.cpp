@@ -1,5 +1,7 @@
 #include "Player/PlayerAnimator.h"
 
+#include <algorithm>
+
 #include "Library/Action/ActorActionKeeper.h"
 #include "Library/Base/StringUtil.h"
 #include "Library/Effect/EffectSystemInfo.h"
@@ -68,50 +70,38 @@ void restoreEyeAnim(al::LiveActor* player) {
 
 }  // namespace
 
-template <s32 blendType>
-__attribute__((always_inline)) inline void PlayerAnimator::startUpperBodyAnimCommon(
-    const sead::SafeString& animName) {
-    PlayerModelHolder* modelHolder = mModelHolder;
-    al::LiveActor* player = modelHolder->getActor();
-    sead::FixedSafeString<64>* upperBodyAnim = &mCurUpperBodyAnim;
-    al::LiveActor* normal = modelHolder->findModelActor("Normal");
-    upperBodyAnim->format("%s%s", animName.cstr(), modelHolder->get_18());
-    if (!al::isExistAction(normal, upperBodyAnim->cstr()))
-        upperBodyAnim->format("%s", animName.cstr());
-    al::startPartialSklAnim(player, upperBodyAnim->cstr(), 0, blendType, 0);
-    startPartsPartialAnim(upperBodyAnim->cstr());
-    _1a3 = true;
-    mIsUpperBodyAnimHeadVisKeep = false;
-}
-
 PlayerAnimator::PlayerAnimator(const PlayerModelHolder* modelHolder,
                                al::ActorDitherAnimator* ditherAnimator)
     : mModelHolder(const_cast<PlayerModelHolder*>(modelHolder)), mPlayerDeco(nullptr),
       mPlayer(nullptr), mAnimFrameCtrl(new PlayerAnimFrameCtrl), mCurAnim(""), mCurSubAnim(""),
-      mCurUpperBodyAnim(""), _128(""), mDitherAnim(ditherAnimator), mEyeControlFrame(0.0f),
-      mEndEyeControlAnimDelay(0), mRunStartAnimRate(0.0f), _19c(0), mIsNeedFullFaceAnim(false),
-      mIsSubAnimPlaying(false), _1a3(false), mIsUpperBodyAnimHeadVisKeep(false), _1a5(false),
-      _1a6(false), mIsSubAnimOnlyAir(false) {
+      mCurUpperBodyAnim(""), _128(""), mDitherAnim(ditherAnimator),
+      mEyeControlFrame(0.0f),
+      mEndEyeControlAnimDelay(0), mRunStartAnimRate(0.0f), _19c(0),
+      mIsNeedFullFaceAnim(false), mIsSubAnimPlaying(false), _1a3(false),
+      mIsUpperBodyAnimHeadVisKeep(false), _1a5(false), _1a6(false), mIsSubAnimOnlyAir(false) {
     mSklAnimBlendWeights = new f32[6];
-    mPlayer = modelHolder->getActor();
+    mPlayer = modelHolder->mCurrentModel->actor;
     mPlayerDeco = al::tryGetSubActor(modelHolder->findModelActor("Normal"), "");
     startAnim("Wait");
 }
 
 void PlayerAnimator::startAnim(const sead::SafeString& animName) {
     PlayerModelHolder* modelHolder = mModelHolder;
-    al::LiveActor* player = modelHolder->getActor();
+    al::LiveActor* player = modelHolder->mCurrentModel->actor;
     sead::FixedSafeString<64>* currentAnim = &mCurAnim;
     al::LiveActor* normal = modelHolder->findModelActor("Normal");
-    currentAnim->format("%s%s", animName.cstr(), modelHolder->get_18());
+    currentAnim->format("%s%s", animName.cstr(), modelHolder->_18.cstr());
     if (!al::isExistAction(normal, currentAnim->cstr()))
         currentAnim->format("%s", animName.cstr());
 
     mAnimFrameCtrl->startAction(player, *currentAnim);
     _1a1 = false;
-    if (!mIsSubAnimPlaying)
-        startAnimCommon(*currentAnim);
-    mAnimFrameCtrl->setRate(1.0f);
+    if (!mIsSubAnimPlaying) {
+        player = mModelHolder->mCurrentModel->actor;
+        al::startAction(player, currentAnim->cstr());
+        startPartsAnim(currentAnim->cstr());
+    }
+    mAnimFrameCtrl->mRate = 1.0f;
     if (!mIsSubAnimPlaying)
         setAnimRateCommon(1.0f);
 }
@@ -120,13 +110,19 @@ void PlayerAnimator::updateAnimFrame() {
     if (mIsSubAnimPlaying)
         mAnimFrameCtrl->update();
     else
-        mAnimFrameCtrl->updateSync(mModelHolder->getActor());
+        mAnimFrameCtrl->updateSync(mModelHolder->mCurrentModel->actor);
 }
 
 void PlayerAnimator::updateModel() {
-    al::LiveActor* current = mModelHolder->getActor();
+    al::LiveActor* current = mModelHolder->mCurrentModel->actor;
     if (mPlayer != current) {
-        copyAnim();
+        copyAnimLocal();
+        if (_1a3) {
+            al::clearPartialSklAnim(mPlayer, 0);
+            _1a3 = false;
+        }
+        mDitherAnim->reset();
+        setModelAlpha(1.0f);
         mPlayer = current;
     }
 }
@@ -137,16 +133,18 @@ void PlayerAnimator::copyAnim() {
         al::clearPartialSklAnim(mPlayer, 0);
         _1a3 = false;
     }
-    resetModelAlpha();
+    mDitherAnim->reset();
+    setModelAlpha(1.0f);
 }
 
 void PlayerAnimator::startAnimCommon(const sead::SafeString& animName) {
-    al::startAction(mModelHolder->getActor(), animName.cstr());
+    al::LiveActor* player = mModelHolder->mCurrentModel->actor;
+    al::startAction(player, animName.cstr());
     startPartsAnim(animName.cstr());
 }
 
 void PlayerAnimator::setAnimRate(f32 rate) {
-    mAnimFrameCtrl->setRate(rate);
+    mAnimFrameCtrl->mRate = rate;
     if (!mIsSubAnimPlaying)
         setAnimRateCommon(rate);
 }
@@ -155,17 +153,17 @@ void PlayerAnimator::startAnimSpinAttack(const sead::SafeString& animName) {
     PlayerModelHolder* modelHolder = mModelHolder;
     sead::FixedSafeString<64>* spinAnim = &_128;
     al::LiveActor* normal = modelHolder->findModelActor("Normal");
-    spinAnim->format("%s%s", animName.cstr(), modelHolder->get_18());
+    spinAnim->format("%s%s", animName.cstr(), modelHolder->_18.cstr());
     if (!al::isExistAction(normal, spinAnim->cstr()))
         spinAnim->format("%s", animName.cstr());
     startAnim(animName);
 }
 
 void PlayerAnimator::setAnimRateCommon(f32 rate) {
-    if (al::isSklAnimPlaying(mModelHolder->getActor(), 0))
-        al::setSklAnimBlendFrameRateAll(mModelHolder->getActor(), rate, true);
-    if (al::isVisAnimPlayingForAction(mModelHolder->getActor()))
-        al::setVisAnimFrameRateForAction(mModelHolder->getActor(), rate);
+    if (al::isSklAnimPlaying(mModelHolder->mCurrentModel->actor, 0))
+        al::setSklAnimBlendFrameRateAll(mModelHolder->mCurrentModel->actor, rate, true);
+    if (al::isVisAnimPlayingForAction(mModelHolder->mCurrentModel->actor))
+        al::setVisAnimFrameRateForAction(mModelHolder->mCurrentModel->actor, rate);
     setPartsAnimRate(rate, mCurAnim.cstr());
 }
 
@@ -176,13 +174,13 @@ void PlayerAnimator::setAnimFrame(f32 frame) {
 }
 
 void PlayerAnimator::setAnimFrameCommon(f32 frame) {
-    if (al::isSklAnimExist(mModelHolder->getActor(), mCurAnim.cstr())) {
-        al::setSklAnimBlendFrameAll(mModelHolder->getActor(), frame, true);
-    } else if (al::isVisAnimExist(mModelHolder->getActor(), mCurAnim.cstr())) {
-        f32 maxFrame = al::getVisAnimFrameMaxForAction(mModelHolder->getActor());
+    if (al::isSklAnimExist(mModelHolder->mCurrentModel->actor, mCurAnim.cstr())) {
+        al::setSklAnimBlendFrameAll(mModelHolder->mCurrentModel->actor, frame, true);
+    } else if (al::isVisAnimExist(mModelHolder->mCurrentModel->actor, mCurAnim.cstr())) {
+        f32 maxFrame = al::getVisAnimFrameMaxForAction(mModelHolder->mCurrentModel->actor);
         if (maxFrame > frame)
             maxFrame = frame;
-        al::setVisAnimFrameForAction(mModelHolder->getActor(), maxFrame);
+        al::setVisAnimFrameForAction(mModelHolder->mCurrentModel->actor, maxFrame);
     }
     setPartsAnimFrame(frame, mCurAnim.cstr());
 }
@@ -198,7 +196,7 @@ bool PlayerAnimator::isAnim(const sead::SafeString& animName) const {
 }
 
 bool PlayerAnimator::isCurrentAnimOneTime() const {
-    return !mAnimFrameCtrl->isActionRepeat();
+    return !mAnimFrameCtrl->mIsActionRepeat;
 }
 
 f32 PlayerAnimator::getAnimFrame() const {
@@ -206,7 +204,7 @@ f32 PlayerAnimator::getAnimFrame() const {
 }
 
 f32 PlayerAnimator::getAnimFrameMax() const {
-    return mAnimFrameCtrl->getActionFrameMax();
+    return mAnimFrameCtrl->mActionFrameMax;
 }
 
 f32 PlayerAnimator::getAnimFrameRate() const {
@@ -215,7 +213,7 @@ f32 PlayerAnimator::getAnimFrameRate() const {
 
 void PlayerAnimator::clearInterpolation() {
     if (!mIsSubAnimPlaying)
-        al::clearSklAnimInterpole(mModelHolder->getActor());
+        al::clearSklAnimInterpole(mModelHolder->mCurrentModel->actor);
 }
 
 void PlayerAnimator::startSubAnim(const sead::SafeString& animName) {
@@ -224,11 +222,13 @@ void PlayerAnimator::startSubAnim(const sead::SafeString& animName) {
     mIsSubAnimOnlyAir = false;
     sead::FixedSafeString<64>* subAnim = &mCurSubAnim;
     al::LiveActor* normal = modelHolder->findModelActor("Normal");
-    subAnim->format("%s%s", animName.cstr(), modelHolder->get_18());
+    subAnim->format("%s%s", animName.cstr(), modelHolder->_18.cstr());
     if (!al::isExistAction(normal, subAnim->cstr()))
         subAnim->format("%s", animName.cstr());
 
-    startAnimCommon(*subAnim);
+    al::LiveActor* player = mModelHolder->mCurrentModel->actor;
+    al::startAction(player, subAnim->cstr());
+    startPartsAnim(subAnim->cstr());
 }
 
 void PlayerAnimator::startSubAnimOnlyAir(const sead::SafeString& animName) {
@@ -243,7 +243,8 @@ void PlayerAnimator::endSubAnim() {
         return;
 
     const char* actionName = mAnimFrameCtrl->getActionName();
-    startAnimCommon(actionName);
+    al::startAction(mModelHolder->mCurrentModel->actor, actionName);
+    startPartsAnim(actionName);
     setAnimRate(mAnimFrameCtrl->getRate());
     setAnimFrame(mAnimFrameCtrl->getCurrentFrame());
     applyBlendWeight();
@@ -253,7 +254,7 @@ void PlayerAnimator::applyBlendWeight() {
     if (!_1a1)
         return;
 
-    al::LiveActor* player = mModelHolder->getActor();
+    al::LiveActor* player = mModelHolder->mCurrentModel->actor;
     al::setSklAnimBlendWeightSixfold(player, mSklAnimBlendWeights[0], mSklAnimBlendWeights[1],
                                      mSklAnimBlendWeights[2], mSklAnimBlendWeights[3],
                                      mSklAnimBlendWeights[4], mSklAnimBlendWeights[5]);
@@ -261,22 +262,31 @@ void PlayerAnimator::applyBlendWeight() {
     if (_1a3) {
         al::LiveActor* face = al::tryGetSubActor(player, "顔");
         if (face && al::isActionPlaying(face, actionName) && al::isSklAnimExist(face))
-            al::setSklAnimBlendWeightSixfold(face, mSklAnimBlendWeights[0], mSklAnimBlendWeights[1],
-                                             mSklAnimBlendWeights[2], mSklAnimBlendWeights[3],
-                                             mSklAnimBlendWeights[4], mSklAnimBlendWeights[5]);
+            al::setSklAnimBlendWeightSixfold(face, mSklAnimBlendWeights[0],
+                                             mSklAnimBlendWeights[1],
+                                             mSklAnimBlendWeights[2],
+                                             mSklAnimBlendWeights[3],
+                                             mSklAnimBlendWeights[4],
+                                             mSklAnimBlendWeights[5]);
         al::LiveActor* eye = al::tryGetSubActor(player, "目");
         if (eye && al::isActionPlaying(eye, actionName) && al::isSklAnimExist(eye))
-            al::setSklAnimBlendWeightSixfold(eye, mSklAnimBlendWeights[0], mSklAnimBlendWeights[1],
-                                             mSklAnimBlendWeights[2], mSklAnimBlendWeights[3],
-                                             mSklAnimBlendWeights[4], mSklAnimBlendWeights[5]);
-        return;
-    }
-    for (s32 i = 0; i != 5; i++) {
-        al::LiveActor* actor = al::tryGetSubActor(player, sPlayerParts[i]);
-        if (actor && al::isActionPlaying(actor, actionName) && al::isSklAnimExist(actor))
-            al::setSklAnimBlendWeightSixfold(
-                actor, mSklAnimBlendWeights[0], mSklAnimBlendWeights[1], mSklAnimBlendWeights[2],
-                mSklAnimBlendWeights[3], mSklAnimBlendWeights[4], mSklAnimBlendWeights[5]);
+            al::setSklAnimBlendWeightSixfold(eye, mSklAnimBlendWeights[0],
+                                             mSklAnimBlendWeights[1],
+                                             mSklAnimBlendWeights[2],
+                                             mSklAnimBlendWeights[3],
+                                             mSklAnimBlendWeights[4],
+                                             mSklAnimBlendWeights[5]);
+    } else {
+        for (s32 i = 0; i != 5; i++) {
+            al::LiveActor* actor = al::tryGetSubActor(player, sPlayerParts[i]);
+            if (actor && al::isActionPlaying(actor, actionName) && al::isSklAnimExist(actor))
+                al::setSklAnimBlendWeightSixfold(actor, mSklAnimBlendWeights[0],
+                                                 mSklAnimBlendWeights[1],
+                                                 mSklAnimBlendWeights[2],
+                                                 mSklAnimBlendWeights[3],
+                                                 mSklAnimBlendWeights[4],
+                                                 mSklAnimBlendWeights[5]);
+        }
     }
 }
 
@@ -291,7 +301,7 @@ void PlayerAnimator::setSubAnimRate(f32 rate) {
 bool PlayerAnimator::isSubAnimEnd() const {
     if (!mIsSubAnimPlaying)
         return true;
-    al::LiveActor* player = mModelHolder->getActor();
+    al::LiveActor* player = mModelHolder->mCurrentModel->actor;
     if (al::isSklAnimExist(player, al::getActionName(player)))
         return al::isActionEnd(player);
     return al::isVisAnimEnd(player);
@@ -302,31 +312,41 @@ bool PlayerAnimator::isSubAnim(const sead::SafeString& animName) const {
 }
 
 f32 PlayerAnimator::getSubAnimFrame() const {
-    return al::getActionFrame(mModelHolder->getActor());
+    return al::getActionFrame(mModelHolder->mCurrentModel->actor);
 }
 
 f32 PlayerAnimator::getSubAnimFrameMax() const {
-    return al::getActionFrameMax(mModelHolder->getActor());
+    return al::getActionFrameMax(mModelHolder->mCurrentModel->actor);
 }
 
 bool PlayerAnimator::isUpperBodyAnimAttached() const {
-    return al::isPartialSklAnimAttached(mModelHolder->getActor(), 0);
+    return al::isPartialSklAnimAttached(mModelHolder->mCurrentModel->actor, 0);
 }
 
 bool PlayerAnimator::isUpperBodyAnimEnd() const {
-    return al::isPartialSklAnimEnd(mModelHolder->getActor(), 0);
+    return al::isPartialSklAnimEnd(mModelHolder->mCurrentModel->actor, 0);
 }
 
 bool PlayerAnimator::isUpperBodyAnim(const sead::SafeString& animName) const {
-    return al::isPartialSklAnimPlaying(mModelHolder->getActor(), animName.cstr(), 0);
+    return al::isPartialSklAnimPlaying(mModelHolder->mCurrentModel->actor, animName.cstr(), 0);
 }
 
 void PlayerAnimator::startUpperBodyAnim(const sead::SafeString& animName) {
-    startUpperBodyAnimCommon<0>(animName);
+    PlayerModelHolder* modelHolder = mModelHolder;
+    al::LiveActor* player = modelHolder->mCurrentModel->actor;
+    sead::FixedSafeString<64>* upperBodyAnim = &mCurUpperBodyAnim;
+    al::LiveActor* normal = modelHolder->findModelActor("Normal");
+    upperBodyAnim->format("%s%s", animName.cstr(), modelHolder->_18.cstr());
+    if (!al::isExistAction(normal, upperBodyAnim->cstr()))
+        upperBodyAnim->format("%s", animName.cstr());
+    al::startPartialSklAnim(player, upperBodyAnim->cstr(), 0, 0, 0);
+    startPartsPartialAnim(upperBodyAnim->cstr());
+    _1a3 = true;
+    mIsUpperBodyAnimHeadVisKeep = false;
 }
 
 void PlayerAnimator::startPartsPartialAnim(const sead::SafeString& animName) {
-    al::LiveActor* player = mModelHolder->getActor();
+    al::LiveActor* player = mModelHolder->mCurrentModel->actor;
     for (const char* part : {"頭", "左手", "右手"}) {
         al::LiveActor* actor = al::tryGetSubActor(player, part);
         if (actor)
@@ -335,7 +355,17 @@ void PlayerAnimator::startPartsPartialAnim(const sead::SafeString& animName) {
 }
 
 void PlayerAnimator::startUpperBodyAnimSubParts(const sead::SafeString& animName) {
-    startUpperBodyAnimCommon<1>(animName);
+    PlayerModelHolder* modelHolder = mModelHolder;
+    al::LiveActor* player = modelHolder->mCurrentModel->actor;
+    sead::FixedSafeString<64>* upperBodyAnim = &mCurUpperBodyAnim;
+    al::LiveActor* normal = modelHolder->findModelActor("Normal");
+    upperBodyAnim->format("%s%s", animName.cstr(), modelHolder->_18.cstr());
+    if (!al::isExistAction(normal, upperBodyAnim->cstr()))
+        upperBodyAnim->format("%s", animName.cstr());
+    al::startPartialSklAnim(player, upperBodyAnim->cstr(), 0, 1, 0);
+    startPartsPartialAnim(upperBodyAnim->cstr());
+    _1a3 = true;
+    mIsUpperBodyAnimHeadVisKeep = false;
 }
 
 void PlayerAnimator::startUpperBodyAnimAndHeadVisKeep(const sead::SafeString& animName) {
@@ -344,8 +374,8 @@ void PlayerAnimator::startUpperBodyAnimAndHeadVisKeep(const sead::SafeString& an
 }
 
 void PlayerAnimator::clearUpperBodyAnim() {
-    al::clearPartialSklAnimWithInterpolate(mModelHolder->getActor(), 0, 5);
-    al::LiveActor* player = mModelHolder->getActor();
+    al::clearPartialSklAnimWithInterpolate(mModelHolder->mCurrentModel->actor, 0, 5);
+    al::LiveActor* player = mModelHolder->mCurrentModel->actor;
     const char* actionName = al::getActionName(player);
     f32 frame = al::getActionFrame(player);
     f32 rate = al::getActionFrameRate(player);
@@ -372,8 +402,8 @@ void PlayerAnimator::clearUpperBodyAnim() {
     mIsUpperBodyAnimHeadVisKeep = false;
 }
 
-void PlayerAnimator::setBlendWeight(f32 weight0, f32 weight1, f32 weight2, f32 weight3, f32 weight4,
-                                    f32 weight5) {
+void PlayerAnimator::setBlendWeight(f32 weight0, f32 weight1, f32 weight2, f32 weight3,
+                                    f32 weight4, f32 weight5) {
     mSklAnimBlendWeights[0] = weight0;
     mSklAnimBlendWeights[1] = weight1;
     mSklAnimBlendWeights[2] = weight2;
@@ -390,15 +420,18 @@ f32 PlayerAnimator::getBlendWeight(s32 index) {
 }
 
 void PlayerAnimator::startAnimDead() {
-    if (al::getRandom(0, 20))
-        startAnim(sDeadAnims[al::getRandom(0, 2)]);
-    else
-        startAnim("Dead04");
+    if (al::getRandom(0, 20)) {
+        sead::SafeString animName = sDeadAnims[al::getRandom(0, 2)];
+        startAnim(animName);
+    } else {
+        sead::SafeString animName = "Dead04";
+        startAnim(animName);
+    }
 }
 
 void PlayerAnimator::startPress() {
     setAnimRate(0.0f);
-    mModelHolder->getActor()->getActorActionKeeper()->tryStartActionNoAnim("Press");
+    mModelHolder->mCurrentModel->actor->getActorActionKeeper()->tryStartActionNoAnim("Press");
 }
 
 void PlayerAnimator::forceCapOn() {
@@ -431,7 +464,7 @@ void PlayerAnimator::updateModelAlpha() {
 }
 
 void PlayerAnimator::setModelAlpha(f32 alpha) {
-    al::LiveActor* player = mModelHolder->getActor();
+    al::LiveActor* player = mModelHolder->mCurrentModel->actor;
     al::setModelAlphaMask(player, alpha);
     for (const char* part : sPlayerParts) {
         al::LiveActor* actor = al::tryGetSubActor(player, part);
@@ -471,46 +504,47 @@ void PlayerAnimator::endEyeControlAnim(s32 delay) {
     _1a6 = false;
     mEndEyeControlAnimDelay = delay;
     if (delay == 0)
-        restoreEyeAnim(mModelHolder->getActor());
+        restoreEyeAnim(mModelHolder->mCurrentModel->actor);
 }
 
 void PlayerAnimator::clearEndEyeControlAnimDelay() {
     if (mEndEyeControlAnimDelay >= 1) {
         mEndEyeControlAnimDelay = 0;
-        restoreEyeAnim(mModelHolder->getActor());
+        restoreEyeAnim(mModelHolder->mCurrentModel->actor);
     }
 }
 
 void PlayerAnimator::updateEyeControlAnim() {
     if (_1a5) {
         f32 eyeControlFrame = mEyeControlFrame;
-        al::LiveActor* eye = al::tryGetSubActor(mModelHolder->getActor(), "目");
+        al::LiveActor* eye = al::tryGetSubActor(mModelHolder->mCurrentModel->actor, "目");
         if (eye && al::isMtsAnimExist(eye, "EyeMove"))
             al::startMtsAnimAndSetFrameAndStop(eye, "EyeMove", eyeControlFrame);
     } else if (mEndEyeControlAnimDelay >= 1) {
         mEndEyeControlAnimDelay = al::converge(mEndEyeControlAnimDelay, 0, 1);
         if (mEndEyeControlAnimDelay == 0)
-            restoreEyeAnim(mModelHolder->getActor());
+            restoreEyeAnim(mModelHolder->mCurrentModel->actor);
     }
 }
 
 void PlayerAnimator::startRightHandAnim(const char* animName) {
-    al::LiveActor* hand = al::tryGetSubActor(mModelHolder->getActor(), "右手");
+    al::LiveActor* hand = al::tryGetSubActor(mModelHolder->mCurrentModel->actor, "右手");
     if (hand)
         al::startAction(hand, animName);
 }
 
 void PlayerAnimator::overwrideYoshiEatVis() {
-    al::tryStartVisAnimIfNotPlayingForAction(mModelHolder->getActor(), "Eat");
+    al::tryStartVisAnimIfNotPlayingForAction(mModelHolder->mCurrentModel->actor, "Eat");
 }
 
 void PlayerAnimator::restartYoshiActionVis() {
     if (mCurAnim.getStringTop()[0] == sead::SafeStringBase<char>::cNullChar)
         return;
 
-    al::LiveActor* player = mModelHolder->getActor();
+    al::LiveActor* player = mModelHolder->mCurrentModel->actor;
+    sead::FixedSafeString<64>* currentAnim = &mCurAnim;
     al::startVisAnimForAction(player, "Wait");
-    if (al::tryStartVisAnimIfExistForAction(player, mCurAnim.cstr())) {
+    if (al::tryStartVisAnimIfExistForAction(player, currentAnim->cstr())) {
         f32 frame = al::getActionFrameMax(player);
         f32 visFrame = al::getVisAnimFrameMaxForAction(player);
         if (frame > visFrame)
@@ -524,7 +558,7 @@ f32 PlayerAnimator::getMario3DWaitFrameMax() const {
 }
 
 f32 PlayerAnimator::getRunStartAnimFrameMax() const {
-    return al::getSklAnimFrameMax(mModelHolder->getActor(), "RunStart");
+    return al::getSklAnimFrameMax(mModelHolder->mCurrentModel->actor, "RunStart");
 }
 
 f32 PlayerAnimator::getRunStartAnimBlendRate() const {
@@ -536,11 +570,11 @@ void PlayerAnimator::recordRunStartAnimRate(f32 rate) {
 }
 
 void PlayerAnimator::calcModelJointRootMtx(sead::Matrix34f* mtx) const {
-    *mtx = *al::getJointMtxPtr(mModelHolder->getActor(), "JointRoot");
+    *mtx = *al::getJointMtxPtr(mModelHolder->mCurrentModel->actor, "JointRoot");
 }
 
 void PlayerAnimator::startPartsAnim(const sead::SafeString& animName) {
-    al::LiveActor* player = mModelHolder->getActor();
+    al::LiveActor* player = mModelHolder->mCurrentModel->actor;
     bool isUpperBodyAnim = _1a3;
     al::LiveActor* face = al::tryGetSubActor(player, "顔");
     const char* finalPart;
@@ -580,7 +614,7 @@ void PlayerAnimator::startPartsAnim(const sead::SafeString& animName) {
 }
 
 void PlayerAnimator::setPartsAnimRate(f32 rate, const char* actionName) {
-    al::LiveActor* player = mModelHolder->getActor();
+    al::LiveActor* player = mModelHolder->mCurrentModel->actor;
     bool isUpperBodyAnim = _1a3;
     al::LiveActor* face = al::tryGetSubActor(player, "顔");
     const char* finalPart;
@@ -610,7 +644,7 @@ void PlayerAnimator::setPartsAnimRate(f32 rate, const char* actionName) {
 }
 
 void PlayerAnimator::setPartsAnimFrame(f32 frame, const char* actionName) {
-    al::LiveActor* player = mModelHolder->getActor();
+    al::LiveActor* player = mModelHolder->mCurrentModel->actor;
     bool isUpperBodyAnim = _1a3;
     al::LiveActor* face = al::tryGetSubActor(player, "顔");
     const char* finalPart;
@@ -640,14 +674,15 @@ void PlayerAnimator::setPartsAnimFrame(f32 frame, const char* actionName) {
 }
 
 void PlayerAnimator::copyAnimLocal() {
-    al::LiveActor* target = mModelHolder->getActor();
+    al::LiveActor* target = mModelHolder->mCurrentModel->actor;
     bool isJump = al::isStartWithString(mCurAnim.cstr(), "Jump");
     const char* fallback = isJump ? "Jump" : "Wait";
 
     if (mIsSubAnimPlaying) {
         if (al::isExistAction(target, mCurSubAnim.cstr())) {
             const char* subAnimName = mCurSubAnim.cstr();
-            startAnimCommon(subAnimName);
+            al::startAction(mModelHolder->mCurrentModel->actor, subAnimName);
+            startPartsAnim(subAnimName);
             setAnimRateCommon(al::getActionFrameRate(mPlayer));
             setAnimFrameCommon(al::getActionFrame(mPlayer));
             if (!al::isExistAction(target, mCurAnim.cstr())) {
@@ -658,28 +693,32 @@ void PlayerAnimator::copyAnimLocal() {
             mIsSubAnimPlaying = false;
             if (al::isExistAction(target, mCurAnim.cstr())) {
                 mAnimFrameCtrl->startAction(target, mCurAnim);
-                startAnimCommon(mCurAnim);
+                al::startAction(mModelHolder->mCurrentModel->actor, mCurAnim.cstr());
+                startPartsAnim(mCurAnim.cstr());
                 setAnimRateCommon(al::getActionFrameRate(mPlayer));
                 setAnimFrameCommon(al::getActionFrame(mPlayer));
             } else {
                 mCurAnim = fallback;
                 mAnimFrameCtrl->startAction(target, mCurAnim);
                 const char* currentAnimName = mCurAnim.cstr();
-                startAnimCommon(currentAnimName);
+                al::startAction(mModelHolder->mCurrentModel->actor, currentAnimName);
+                startPartsAnim(currentAnimName);
                 setAnimRateCommon(1.0f);
             }
         }
     } else {
         if (al::isExistAction(target, mCurAnim.cstr())) {
             mAnimFrameCtrl->startAction(target, mCurAnim);
-            startAnimCommon(mCurAnim);
+            al::startAction(mModelHolder->mCurrentModel->actor, mCurAnim.cstr());
+            startPartsAnim(mCurAnim.cstr());
             setAnimRateCommon(al::getActionFrameRate(mPlayer));
             setAnimFrameCommon(al::getActionFrame(mPlayer));
         } else {
             mCurAnim = fallback;
             mAnimFrameCtrl->startAction(target, mCurAnim);
             const char* currentAnimName = mCurAnim.cstr();
-            startAnimCommon(currentAnimName);
+            al::startAction(mModelHolder->mCurrentModel->actor, currentAnimName);
+            startPartsAnim(currentAnimName);
             setAnimRateCommon(1.0f);
         }
 

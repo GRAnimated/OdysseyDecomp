@@ -116,7 +116,8 @@ void EventFlowNodeAmiiboTouchLayout::touch(const al::NfpInfo* nfpInfo) {
 
     al::LiveActor* actor = getActor();
 
-    if (AmiiboFunction::isSearchAmiibo(actor, *nfpInfo))
+    if (AmiiboFunction::isSearchAmiibo(
+            actor, *nfpInfo))
         mCaseEventIdx = 3;
     else if (rs::isEnableUseStageSceneAmiibo(*nfpInfo))
         mCaseEventIdx = 0;
@@ -135,8 +136,10 @@ void EventFlowNodeAmiiboTouchLayout::touch(const al::NfpInfo* nfpInfo) {
     al::tryGetNumberingId(&numberingId, *nfpInfo);
 
     s32 id = rs::createCharacterIdS32(characterId);
-    AmiiboFunction::setTouchAmiiboName(actor, id, numberingId);
-    AmiiboFunction::trySetAmiiboCostumeName(actor, id);
+    AmiiboFunction::setTouchAmiiboName(
+        actor, id, numberingId);
+    AmiiboFunction::trySetAmiiboCostumeName(
+        actor, id);
 
     al::setNerve(this, &NrvEventFlowNodeAmiiboTouchLayout.WaitEndLayout);
 }

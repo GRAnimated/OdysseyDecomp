@@ -6,6 +6,8 @@ namespace al {
 class LiveActor;
 }
 
+class PlayerAnimator;
+
 class PlayerAnimFrameCtrl {
 public:
     PlayerAnimFrameCtrl();
@@ -21,13 +23,9 @@ public:
     f32 getRate() const;
     bool isActionEnd() const;
 
-    void setRate(f32 rate) { mRate = rate; }
-
-    bool isActionRepeat() const { return mIsActionRepeat; }
-
-    f32 getActionFrameMax() const { return mActionFrameMax; }
-
 private:
+    friend class PlayerAnimator;
+
     sead::FixedSafeString<64> mActionName = {""};
     bool mIsActionRepeat = false;
     f32 mCurrentFrame = 0.0f;

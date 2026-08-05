@@ -7,6 +7,8 @@ namespace al {
 class LiveActor;
 }
 
+class PlayerAnimator;
+
 class PlayerModelHolder {
 public:
     struct Entry {
@@ -24,11 +26,9 @@ public:
     bool isCurrentModelLabel(const char* name) const;
     bool isCurrentModelLabelSubString(const char* name) const;
 
-    al::LiveActor* getActor() const { return mCurrentModel->actor; };
-
-    const char* get_18() { return _18.cstr(); };
-
 private:
+    friend class PlayerAnimator;
+
     sead::PtrArray<Entry> mBuffer;
     Entry* mCurrentModel = nullptr;
     sead::FixedSafeString<128> _18 = sead::FixedSafeString<128>("");
