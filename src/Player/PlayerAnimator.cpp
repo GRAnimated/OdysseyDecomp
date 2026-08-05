@@ -68,6 +68,22 @@ void restoreEyeAnim(al::LiveActor* player) {
 
 }  // namespace
 
+template <s32 blendType>
+__attribute__((always_inline)) inline void PlayerAnimator::startUpperBodyAnimCommon(
+    const sead::SafeString& animName) {
+    PlayerModelHolder* modelHolder = mModelHolder;
+    al::LiveActor* player = modelHolder->getActor();
+    sead::FixedSafeString<64>* upperBodyAnim = &mCurUpperBodyAnim;
+    al::LiveActor* normal = modelHolder->findModelActor("Normal");
+    upperBodyAnim->format("%s%s", animName.cstr(), modelHolder->get_18());
+    if (!al::isExistAction(normal, upperBodyAnim->cstr()))
+        upperBodyAnim->format("%s", animName.cstr());
+    al::startPartialSklAnim(player, upperBodyAnim->cstr(), 0, blendType, 0);
+    startPartsPartialAnim(upperBodyAnim->cstr());
+    _1a3 = true;
+    mIsUpperBodyAnimHeadVisKeep = false;
+}
+
 PlayerAnimator::PlayerAnimator(const PlayerModelHolder* modelHolder,
                                al::ActorDitherAnimator* ditherAnimator)
     : mModelHolder(const_cast<PlayerModelHolder*>(modelHolder)), mPlayerDeco(nullptr),
@@ -306,17 +322,7 @@ bool PlayerAnimator::isUpperBodyAnim(const sead::SafeString& animName) const {
 }
 
 void PlayerAnimator::startUpperBodyAnim(const sead::SafeString& animName) {
-    PlayerModelHolder* modelHolder = mModelHolder;
-    al::LiveActor* player = modelHolder->getActor();
-    sead::FixedSafeString<64>* upperBodyAnim = &mCurUpperBodyAnim;
-    al::LiveActor* normal = modelHolder->findModelActor("Normal");
-    upperBodyAnim->format("%s%s", animName.cstr(), modelHolder->get_18());
-    if (!al::isExistAction(normal, upperBodyAnim->cstr()))
-        upperBodyAnim->format("%s", animName.cstr());
-    al::startPartialSklAnim(player, upperBodyAnim->cstr(), 0, 0, 0);
-    startPartsPartialAnim(upperBodyAnim->cstr());
-    _1a3 = true;
-    mIsUpperBodyAnimHeadVisKeep = false;
+    startUpperBodyAnimCommon<0>(animName);
 }
 
 void PlayerAnimator::startPartsPartialAnim(const sead::SafeString& animName) {
@@ -329,17 +335,7 @@ void PlayerAnimator::startPartsPartialAnim(const sead::SafeString& animName) {
 }
 
 void PlayerAnimator::startUpperBodyAnimSubParts(const sead::SafeString& animName) {
-    PlayerModelHolder* modelHolder = mModelHolder;
-    al::LiveActor* player = modelHolder->getActor();
-    sead::FixedSafeString<64>* upperBodyAnim = &mCurUpperBodyAnim;
-    al::LiveActor* normal = modelHolder->findModelActor("Normal");
-    upperBodyAnim->format("%s%s", animName.cstr(), modelHolder->get_18());
-    if (!al::isExistAction(normal, upperBodyAnim->cstr()))
-        upperBodyAnim->format("%s", animName.cstr());
-    al::startPartialSklAnim(player, upperBodyAnim->cstr(), 0, 1, 0);
-    startPartsPartialAnim(upperBodyAnim->cstr());
-    _1a3 = true;
-    mIsUpperBodyAnimHeadVisKeep = false;
+    startUpperBodyAnimCommon<1>(animName);
 }
 
 void PlayerAnimator::startUpperBodyAnimAndHeadVisKeep(const sead::SafeString& animName) {

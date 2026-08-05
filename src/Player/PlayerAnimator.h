@@ -82,6 +82,9 @@ public:
     bool isSubAnimPlaying() const { return mIsSubAnimPlaying; }
 
 private:
+    template <s32 blendType>
+    void startUpperBodyAnimCommon(const sead::SafeString&);
+
     PlayerModelHolder* mModelHolder;
     al::LiveActor* mPlayerDeco;
     al::LiveActor* mPlayer;
