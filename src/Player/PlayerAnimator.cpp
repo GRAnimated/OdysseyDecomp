@@ -1,7 +1,5 @@
 #include "Player/PlayerAnimator.h"
 
-#include <algorithm>
-
 #include "Library/Action/ActorActionKeeper.h"
 #include "Library/Base/StringUtil.h"
 #include "Library/Effect/EffectSystemInfo.h"
@@ -74,11 +72,10 @@ PlayerAnimator::PlayerAnimator(const PlayerModelHolder* modelHolder,
                                al::ActorDitherAnimator* ditherAnimator)
     : mModelHolder(const_cast<PlayerModelHolder*>(modelHolder)), mPlayerDeco(nullptr),
       mPlayer(nullptr), mAnimFrameCtrl(new PlayerAnimFrameCtrl), mCurAnim(""), mCurSubAnim(""),
-      mCurUpperBodyAnim(""), _128(""), mDitherAnim(ditherAnimator),
-      mEyeControlFrame(0.0f),
-      mEndEyeControlAnimDelay(0), mRunStartAnimRate(0.0f), _19c(0),
-      mIsNeedFullFaceAnim(false), mIsSubAnimPlaying(false), _1a3(false),
-      mIsUpperBodyAnimHeadVisKeep(false), _1a5(false), _1a6(false), mIsSubAnimOnlyAir(false) {
+      mCurUpperBodyAnim(""), _128(""), mDitherAnim(ditherAnimator), mEyeControlFrame(0.0f),
+      mEndEyeControlAnimDelay(0), mRunStartAnimRate(0.0f), _19c(0), mIsNeedFullFaceAnim(false),
+      mIsSubAnimPlaying(false), _1a3(false), mIsUpperBodyAnimHeadVisKeep(false), _1a5(false),
+      _1a6(false), mIsSubAnimOnlyAir(false) {
     mSklAnimBlendWeights = new f32[6];
     mPlayer = modelHolder->mCurrentModel->actor;
     mPlayerDeco = al::tryGetSubActor(modelHolder->findModelActor("Normal"), "");
@@ -262,29 +259,21 @@ void PlayerAnimator::applyBlendWeight() {
     if (_1a3) {
         al::LiveActor* face = al::tryGetSubActor(player, "顔");
         if (face && al::isActionPlaying(face, actionName) && al::isSklAnimExist(face))
-            al::setSklAnimBlendWeightSixfold(face, mSklAnimBlendWeights[0],
-                                             mSklAnimBlendWeights[1],
-                                             mSklAnimBlendWeights[2],
-                                             mSklAnimBlendWeights[3],
-                                             mSklAnimBlendWeights[4],
-                                             mSklAnimBlendWeights[5]);
+            al::setSklAnimBlendWeightSixfold(face, mSklAnimBlendWeights[0], mSklAnimBlendWeights[1],
+                                             mSklAnimBlendWeights[2], mSklAnimBlendWeights[3],
+                                             mSklAnimBlendWeights[4], mSklAnimBlendWeights[5]);
         al::LiveActor* eye = al::tryGetSubActor(player, "目");
         if (eye && al::isActionPlaying(eye, actionName) && al::isSklAnimExist(eye))
-            al::setSklAnimBlendWeightSixfold(eye, mSklAnimBlendWeights[0],
-                                             mSklAnimBlendWeights[1],
-                                             mSklAnimBlendWeights[2],
-                                             mSklAnimBlendWeights[3],
-                                             mSklAnimBlendWeights[4],
-                                             mSklAnimBlendWeights[5]);
+            al::setSklAnimBlendWeightSixfold(eye, mSklAnimBlendWeights[0], mSklAnimBlendWeights[1],
+                                             mSklAnimBlendWeights[2], mSklAnimBlendWeights[3],
+                                             mSklAnimBlendWeights[4], mSklAnimBlendWeights[5]);
     } else {
         for (s32 i = 0; i != 5; i++) {
             al::LiveActor* actor = al::tryGetSubActor(player, sPlayerParts[i]);
             if (actor && al::isActionPlaying(actor, actionName) && al::isSklAnimExist(actor))
                 al::setSklAnimBlendWeightSixfold(actor, mSklAnimBlendWeights[0],
-                                                 mSklAnimBlendWeights[1],
-                                                 mSklAnimBlendWeights[2],
-                                                 mSklAnimBlendWeights[3],
-                                                 mSklAnimBlendWeights[4],
+                                                 mSklAnimBlendWeights[1], mSklAnimBlendWeights[2],
+                                                 mSklAnimBlendWeights[3], mSklAnimBlendWeights[4],
                                                  mSklAnimBlendWeights[5]);
         }
     }
@@ -402,8 +391,8 @@ void PlayerAnimator::clearUpperBodyAnim() {
     mIsUpperBodyAnimHeadVisKeep = false;
 }
 
-void PlayerAnimator::setBlendWeight(f32 weight0, f32 weight1, f32 weight2, f32 weight3,
-                                    f32 weight4, f32 weight5) {
+void PlayerAnimator::setBlendWeight(f32 weight0, f32 weight1, f32 weight2, f32 weight3, f32 weight4,
+                                    f32 weight5) {
     mSklAnimBlendWeights[0] = weight0;
     mSklAnimBlendWeights[1] = weight1;
     mSklAnimBlendWeights[2] = weight2;
