@@ -26,3 +26,5 @@ private:
     const PlayerConst* mConst;
     const PlayerTrigger* mTrigger;
 };
+
+static_assert(sizeof(PlayerJudgeWallHitDown) == 0x28);

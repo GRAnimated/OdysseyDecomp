@@ -27,6 +27,10 @@ public:
     void reset();
     bool isExistForce() const;
     bool isExistSnapForce() const;
+    const sead::Vector3f& getExternalForce() const { return mExternalForce; }
+    const sead::Vector3f& getTotalVelocity() const { return mTotalVelocity; }
+    const sead::Vector3f& getSnapForce() const { return mSnapForce; }
+    void resetSnapForce() { mSnapForce.set(0.0f, 0.0f, 0.0f); }
 
 private:
     struct FloatParam {
@@ -35,6 +39,7 @@ private:
 
         f32 getValue(bool isOnGround) const { return isOnGround ? onGround : offGround; }
     };
+    static_assert(sizeof(FloatParam) == 0x8);
 
     ExternalForceKeeper* mExternalForceKeeper = nullptr;
     sead::Vector3f mExternalVelocity = {0.0f, 0.0f, 0.0f};

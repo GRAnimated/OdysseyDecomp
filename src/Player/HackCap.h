@@ -1,13 +1,22 @@
 #pragma once
 
+#include <container/seadRingBuffer.h>
 #include <prim/seadSafeString.h>
 
 #include "Library/LiveActor/LiveActor.h"
+
+#include "Player/HackCapAboveGroundChecker.h"
+#include "Player/HackCapJointControlKeeper.h"
+#include "Player/HackCapStateHide.h"
+#include "Player/HackCapStateThrowStay.h"
+#include "Player/HackCapTrigger.h"
+#include "Player/PlayerColliderHackCap.h"
 
 namespace al {
 class ActorDitherAnimator;
 class WaterSurfaceFinder;
 class PadRumbleKeeper;
+class SimpleLayoutAppearWaitEnd;
 }  // namespace al
 class PlayerInput;
 class PlayerAreaChecker;
@@ -22,19 +31,18 @@ class PlayerJointControlKeeper;
 class HackCapJudgePreInputSeparateThrow;
 class HackCapJudgePreInputSeparateJump;
 class CapTargetInfo;
-class PlayerColliderHackCap;
-class HackCapTrigger;
-class HackCapAboveGroundChecker;
 class HackCapThrowParam;
-class HackCapJointControlKeeper;
 class PlayerExternalVelocity;
 class PlayerPushReceiver;
-class HackCapStateThrowStay;
-class HackCapStateHide;
 
 class HackCap : public al::LiveActor {
 public:
-    enum class SwingHandType { /*TODO: missing values*/ };
+    enum class SwingHandType : u64 {
+        Value0 = 0,
+        Value1 = 1,
+        Value2 = 2,
+        Value3 = 3,
+    };
 
     HackCap(const al::LiveActor*, const char*, const PlayerInput*, const PlayerAreaChecker*,
             const PlayerWallActionHistory*, const PlayerCapActionHistory*,
@@ -196,11 +204,12 @@ public:
     void prepareTransferLockOn(al::HitSensor*);
     void collideThrowStartArrow(al::HitSensor*, const sead::Vector3f&, const sead::Vector3f&,
                                 const sead::Vector3f&);
+    bool isRecentCollideActor(al::HitSensor*) const;
     bool trySendAttackCollideAndReaction(bool*);
     bool stayWallHit();
     void endHackThrow();
 
-    CapTargetInfo* getCapTargetInfo() const { return mCapTargetInfo1; }
+    const CapTargetInfo* getCapTargetInfo() const { return mCapTargetInfo1; }
 
     bool isSeparateFlying() const { return mIsSeparateFlying; }
 
@@ -226,17 +235,17 @@ private:
     HackCapTrigger* mHackCapTrigger;
     al::ActorDitherAnimator* mActorDitherAnimator;
     HackCapAboveGroundChecker* mHackCapAboveGroundChecker;
-    void* _1a0_arr;
-    u64 _1a0_capacity;
-    s32 _1a0_current;
+    sead::RingBuffer<al::LiveActor*> mRecentCollideActors;
     void* _1b8_arr;
-    u64 _1b8_capacity;
-    s32 _1b8_current;
+    s32 _1c0;
+    s32 _1c4;
+    s32 _1c8;
+    s32 _1cc;
     const al::HitSensor* _1d0;
     al::HitSensor* mAttackSensor;
     sead::Vector3f mSpiralTailPositions[5];
     HackCapThrowParam* mHackCapThrowParam;
-    CapTargetInfo* mCapTargetInfo1;
+    const CapTargetInfo* mCapTargetInfo1;
     CapTargetInfo* mCapTargetInfo2;
     void* _238;
     sead::Vector3f _240;
@@ -253,12 +262,25 @@ private:
     f32 _288;
     f32 _28c;
     s32 _290;
-    char filler_294[4];
-    s32 _298;
-    char filler_29c[4];
-    char _2a0[4];
+    s32 _294;
+    bool _298;
+    bool _299;
+    bool _29a;
+    bool _29b;
+    bool _29c;
+    bool _29d;
+    bool _29e;
+    bool _29f;
+    bool _2a0;
+    bool _2a1;
+    bool _2a2;
+    bool _2a3;
     bool mIsSeparateFlying;
-    char _2a5[11];
+    bool _2a5;
+    u8 _2a6;
+    bool _2a7;
+    bool _2a8;
+    char _2a9[7];
     const PlayerWallActionHistory* mPlayerWallActionHistory;
     const PlayerCapActionHistory* mPlayerCapActionHistory;
     const PlayerInput* mInput;
@@ -299,10 +321,20 @@ private:
     bool _5ba;
     bool _5bb;
     s32 _5bc;
-    void* _5c0[7];
+    al::SimpleLayoutAppearWaitEnd* mTargetMarker;
+    void* _5c8;
+    void* _5d0;
+    s32 _5d8;
+    u32 _5dc;
+    void* _5e0;
+    bool _5e8;
+    u8 _5e9[7];
+    al::SimpleLayoutAppearWaitEnd* mBalloonFrame;
     bool mIsPuppet;
     bool _5f9;
     bool mIsHidePuppetCapSilhouette;
+    bool _5fb;
+    u8 _5fc[4];
     HackCapStateThrowStay* mStateThrowStay;
     HackCapStateHide* mStateHide;
 };

@@ -18,7 +18,7 @@ public:
     void init(const al::ActorInitInfo& initInfo) override;
     void initAfterPlacement() override;
     void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
-    bool receiveMsg(const al::SensorMsg* msg, al::HitSensor* other, al::HitSensor* self) override;
+    bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other, al::HitSensor* self) override;
     void control() override;
     void appear() override;
 
@@ -60,7 +60,7 @@ public:
     void breakAllIce();
 
 private:
-    char _size[0x328];
+    char mUnknown[808];
 };
 
 static_assert(sizeof(BossKnuckle) == 0x438);

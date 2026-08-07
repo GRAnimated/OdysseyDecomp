@@ -59,13 +59,17 @@ static void endInstrumentPlayback(al::LiveActor* actor, bool playAllInstrumentsF
         return;
     }
 
-    if (SessionMusicianLocalFunction::isSubscribed(actor, 0))
+    if (SessionMusicianLocalFunction::isSubscribed(
+            actor, 0))
         SessionMusicianLocalFunction::endPlayingTheDs(actor);
-    if (SessionMusicianLocalFunction::isSubscribed(actor, 1))
+    if (SessionMusicianLocalFunction::isSubscribed(
+            actor, 1))
         SessionMusicianLocalFunction::endPlayingTheBa(actor);
-    if (SessionMusicianLocalFunction::isSubscribed(actor, 2))
+    if (SessionMusicianLocalFunction::isSubscribed(
+            actor, 2))
         SessionMusicianLocalFunction::endPlayingTheGt(actor);
-    if (SessionMusicianLocalFunction::isSubscribed(actor, 3))
+    if (SessionMusicianLocalFunction::isSubscribed(
+            actor, 3))
         SessionMusicianLocalFunction::endPlayingTheTp(actor);
 
     if (stopSituationFlag)
@@ -83,13 +87,17 @@ static void startInstrumentPlayback(al::LiveActor* actor, bool playAllInstrument
         return;
     }
 
-    if (SessionMusicianLocalFunction::isSubscribed(actor, 0))
+    if (SessionMusicianLocalFunction::isSubscribed(
+            actor, 0))
         SessionMusicianLocalFunction::startPlayingTheDs(actor);
-    if (SessionMusicianLocalFunction::isSubscribed(actor, 1))
+    if (SessionMusicianLocalFunction::isSubscribed(
+            actor, 1))
         SessionMusicianLocalFunction::startPlayingTheBa(actor);
-    if (SessionMusicianLocalFunction::isSubscribed(actor, 2))
+    if (SessionMusicianLocalFunction::isSubscribed(
+            actor, 2))
         SessionMusicianLocalFunction::startPlayingTheGt(actor);
-    if (SessionMusicianLocalFunction::isSubscribed(actor, 3))
+    if (SessionMusicianLocalFunction::isSubscribed(
+            actor, 3))
         SessionMusicianLocalFunction::startPlayingTheTp(actor);
 
     if (stopSituationFlag)

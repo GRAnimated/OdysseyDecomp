@@ -20,6 +20,9 @@ public:
     f32 getCurrentFrame() const;
     f32 getRate() const;
     bool isActionEnd() const;
+    bool isActionOneTime() const { return !mIsActionRepeat; }
+    f32 getActionFrameMax() const { return mActionFrameMax; }
+    void setRate(f32 rate) { mRate = rate; }
 
 private:
     sead::FixedSafeString<64> mActionName = {""};

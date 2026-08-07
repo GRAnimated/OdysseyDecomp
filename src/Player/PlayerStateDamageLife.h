@@ -37,3 +37,5 @@ private:
     f32 mBrakeLandUpFactor = 0.0f;
     bool mIsNoDamageDown = false;
 };
+
+static_assert(sizeof(PlayerStateDamageLife) == 0x68);

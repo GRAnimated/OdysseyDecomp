@@ -38,6 +38,16 @@ public:
     void validateFallJudge();
     void updateWallCatchEnviroment();
 
+    s32 getTimeInAir() const { return mValidTimer; }
+
+    const al::CollisionParts* getCollidedWallPart() const { return mCollisionParts; }
+
+    const sead::Vector3f& getPosition() const { return mHitPos; }
+
+    const sead::Vector3f& getCollidedWallNormal() const { return _6c; }
+
+    const sead::Vector3f& getNormalAtPos() const { return mHitNormal; }
+
 private:
     const al::LiveActor* mPlayer;
     const PlayerConst* mConst;
@@ -51,7 +61,7 @@ private:
     bool mIsJudge = false;
     const al::CollisionParts* mCollisionParts = nullptr;
     sead::Vector3f mHitPos = {0.0f, 0.0f, 0.0f};
-    sead::Vector3f mHitNormal2 = {0.0f, 0.0f, 0.0f};  // TODO find proper name for this one
+    sead::Vector3f _6c = {0.0f, 0.0f, 0.0f};
     sead::Vector3f mHitNormal = {0.0f, 0.0f, 0.0f};
     s32 mValidTimer = 0;
     bool mIsOnGroundSkateCode = false;

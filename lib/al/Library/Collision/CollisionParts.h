@@ -96,6 +96,10 @@ public:
 
     bool isMoving() const { return mIsMoving; }
 
+    f32 getMtxScale() const { return mMtxScale; }
+
+    f32 getBoundingSphereRange() const { return mBoundingSphereRange; }
+
     void setIsMoving(bool isMoving) { mIsMoving = isMoving; }
 
     void setForceCollisionScaleNone() { mForceCollisionFlag = ForceCollisionFlag::ScaleNone; }

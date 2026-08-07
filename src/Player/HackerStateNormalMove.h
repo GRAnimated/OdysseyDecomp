@@ -81,3 +81,5 @@ private:
     bool _98;
     bool _99;
 };
+
+static_assert(sizeof(HackerStateNormalMove) == 0xA0);

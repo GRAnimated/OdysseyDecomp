@@ -29,3 +29,5 @@ private:
     PlayerContinuousLongJump* mContinuousLongJump;
     PlayerActionDiveInWater* mDiveInWater;
 };
+
+static_assert(sizeof(PlayerStateLongJump) == 0x58);

@@ -24,3 +24,5 @@ private:
     const IUsePlayerCollision* mCollider;
     bool mIsForceSlide = false;
 };
+
+static_assert(sizeof(PlayerJudgeForceSlopeSlide) == 0x28);

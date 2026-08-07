@@ -17,3 +17,5 @@ private:
     const PlayerTrigger* mTrigger;
     s32 mCounter = 0;
 };
+
+static_assert(sizeof(PlayerCounterQuickTurnJump) == 0x18);

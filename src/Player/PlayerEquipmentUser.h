@@ -21,6 +21,10 @@ public:
     void endEquip();
     void noticeDamage();
 
+    bool isEquip() const { return mEquipmentSensor != nullptr; }
+    bool hasEquipment() const { return mEquipmentSensor != nullptr; }
+    void setStateRolling(PlayerStateRolling* state) { mPlayerStateRolling = state; }
+
 private:
     al::HitSensor* mSourceSensor = nullptr;
     al::HitSensor* mEquipmentSensor = nullptr;

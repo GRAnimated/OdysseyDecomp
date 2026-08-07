@@ -50,3 +50,5 @@ public:
     virtual void validateSensor() = 0;
     virtual void invalidateSensor() = 0;
 };
+
+static_assert(sizeof(IUsePlayerPuppet) == 0x8);

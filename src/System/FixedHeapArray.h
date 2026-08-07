@@ -10,9 +10,15 @@ public:
 
     s32 size() const { return Size; }
 
-    T& operator[](s32 index) { return mPtr[index]; }
+    T& operator[](s32 index)
+    {
+        return mPtr[index];
+    }
 
-    const T& operator[](s32 index) const { return mPtr[index]; }
+    const T& operator[](s32 index) const
+    {
+        return mPtr[index];
+    }
 
     T* begin() const { return mPtr; }
 

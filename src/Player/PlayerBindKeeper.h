@@ -32,13 +32,19 @@ public:
 
     al::HitSensor* getBindSensor() const { return mBindSensor; }
 
+    bool isKeepDemo() const { return mIsKeepDemo; }
+    bool isBindKeepDemo() const { return mIsKeepDemo; }
+
 private:
     al::HitSensor* mBodyHitSensor;
     al::HitSensor* mBindSensor;
     PlayerBindableSensorList* mBindableSensorList;
     IUsePlayerPuppet* mPuppet;
     s32 _20;
-    bool _24;
+    union {
+        bool mIsKeepDemo;
+        bool _24;
+    };
 };
 
 static_assert(sizeof(PlayerBindKeeper) == 0x28);

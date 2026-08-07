@@ -15,6 +15,10 @@ public:
 
     void validateDitherAnim();
     void invalidateDitherAnim();
+    void reset();
+    f32 getDitherAlpha() const;
+    void setClippingJudgeDistanceParam(const char* name);
+    void resetClippingJudgeDistanceParam();
 
 private:
     unsigned char padding[0x68 - sizeof(DitherAnimator)];

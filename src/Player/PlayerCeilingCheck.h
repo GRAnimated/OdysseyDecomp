@@ -18,6 +18,12 @@ public:
     void setupCeilingCheckGrab();
     void setCollisionPartsFilter(const al::CollisionPartsFilterBase* filter);
 
+    bool isEnableStandUp() const { return mIsEnableStandUp; }
+    bool isEnableHoldUp() const { return mIsEnableHoldUp; }
+    bool isPressedCeil() const { return mIsPressedCeil; }
+    f32 getSafetyCeilSpace() const { return mSafetyCeilSpace; }
+    f32 getCeilCheckHeight() const { return mCeilCheckHeight; }
+
 private:
     PlayerCollisionCheckSphereMove* mCollisionCheckSphereMove = nullptr;
     f32 mSafetyCeilSpace = 0.0f;

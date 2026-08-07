@@ -47,3 +47,5 @@ private:
     const PlayerCounterForceRun* mCounterForceRun;
     bool mIsJudge = false;
 };
+
+static_assert(sizeof(PlayerJudgeWallKeep) == 0x68);

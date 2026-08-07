@@ -42,3 +42,5 @@ private:
     IJudge* mJudgeEnableStandUp;
     bool mIsSkipSquatStartAnim = false;
 };
+
+static_assert(sizeof(PlayerStateSquat) == 0x78);

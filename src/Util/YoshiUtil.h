@@ -11,9 +11,11 @@ class LiveActor;
 }  // namespace al
 
 class PlayerConst;
+class Yoshi;
 class YoshiTongue;
 
 namespace rs {
+void noticeCurrentHackYoshi(Yoshi* yoshi);
 bool isSensorTypeYoshiEnableSendPush(const al::HitSensor* sensor);
 bool isSensorTypeYoshiMsgReceivable(const al::HitSensor* sensor);
 bool isInPuddleHeight(const al::WaterSurfaceFinder* surfaceFinder, const PlayerConst* playerConst);

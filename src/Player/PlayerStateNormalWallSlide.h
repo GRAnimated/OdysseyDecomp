@@ -35,3 +35,5 @@ private:
     s32 _5c = 0;
     bool _60 = 0;
 };
+
+static_assert(sizeof(PlayerStateNormalWallSlide) == 0x68);

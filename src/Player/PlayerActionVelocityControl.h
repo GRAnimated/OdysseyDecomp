@@ -20,6 +20,8 @@ public:
     void calcOnGround(const sead::Vector3f& groundNormal);
     void apply();
 
+    const sead::Vector3f& getVelocityFront() const { return mVelocityFront; }
+
 private:
     al::LiveActor* mActor;
     sead::Vector3f mSide = sead::Vector3f::zero;
@@ -28,3 +30,5 @@ private:
     sead::Vector3f mVelocitySide = sead::Vector3f::zero;
     sead::Vector3f mVelocityUp = sead::Vector3f::zero;
 };
+
+static_assert(sizeof(PlayerActionVelocityControl) == 0x48);

@@ -64,7 +64,7 @@ public:
     bool isTriggerSpinCap() const;
     bool isTriggerToggleStayCap() const;
     bool isTriggerSpinAttackSeparate() const;
-    s32 getSeparatePlay1P();
+    static s32 getSeparatePlay1P();
     bool isTriggerCapReturn() const;
     bool isTriggerCapAttackSeparate() const;
     bool isTriggerSwingActionCap() const;
@@ -99,7 +99,7 @@ public:
     void calcMoveInput(sead::Vector3f*, const sead::Vector3f&) const;
     void calc2DSnapJumpMoveInput(sead::Vector3f*, const sead::Vector3f&) const;
     bool isPoleMoveInputReverseX() const;
-    const sead::Matrix34f& getInputViewMtx() const;
+    const sead::Matrix34f* getInputViewMtx() const;
     void calcPoleMoveInput(sead::Vector2f*) const;
     void calcCapThrowInput(sead::Vector3f*, const sead::Vector3f&) const;
     void calcCapSeparateMoveInput(sead::Vector3f*, const sead::Vector3f&) const;
@@ -117,8 +117,10 @@ public:
     bool isHoldCameraSnapShotRollLeft() const;
     bool isHoldCameraSnapShotRollRight() const;
     bool isEnableShowTutorialInput() const;
-    bool isEnableRecoveryLifeInput();
+    bool isEnableRecoveryLifeInput() const;
     const sead::Vector2f& getCapThrowDir() const;
+
+    f32 get_50() const { return _50; }
     const sead::Vector2f& getSwingThrowDir() const;
     bool isSwingDirLeft() const;
     bool isSwingDirRight() const;
@@ -149,18 +151,105 @@ public:
     void resetHoldInfo3D();
     void resetHoldInfo2D();
 
+    void resetDemoInput() {
+        mDemoInputState = 0;
+        isDisableInput = false;
+        isDisableInput2 = false;
+    }
+
+    void setPuppetableDemo(bool isPuppetable) {
+        mIsPuppetableDemo = isPuppetable;
+        mIsPuppetableDemo2 = isPuppetable;
+    }
+
+    void setupSceneStartFall() {
+        mDemoInputState = 1;
+        mDisableInputFlags = 1;
+    }
+
+    void startSceneStartFall() { setupSceneStartFall(); }
+
+    void startDimensionSnap() { setPuppetableDemo(true); }
+
+    void startBind() { setPuppetableDemo(true); }
+
+    void startHipDropDemoTrigger() {
+        mDemoInputState = 30;
+        isDisableInput = true;
+        isDisableInput2 = true;
+    }
+
+    void startHipDropSwitch() {
+        mDemoInputState = 30;
+        isDisableInput = true;
+        isDisableInput2 = false;
+    }
+
+    bool isDamageInputLocked() const { return isDisableInput2; }
+
 private:
     const al::LiveActor* mLiveActor;
     const IUsePlayerCollision* mPlayerCollision;
     const IUseDimension* mDimension;
-    void* gap[11];
+    bool _18;
+    u8 _19[3];
+    s32 _1c;
+    f32 _20;
+    sead::Vector3f _24;
+    sead::Vector2f _30;
+    bool _38;
+    u8 _39[3];
+    sead::Vector3f _3c;
+    sead::Vector2f _48;
+    f32 _50;
+    u8 _54[4];
+    f32* _58;
+    s32 _60;
+    s32 _64;
+    s32 _68;
+    u8 _6c[4];
     al::SpinInputAnalyzer* mSpinInputAnalyzer;
     al::JoyPadAccelPoseAnalyzer* mJoyPadAccelPoseAnalyzer1;
     al::JoyPadAccelPoseAnalyzer* mJoyPadAccelPoseAnalyzer2;
     s32 _88;
-    void* gap2[1];
-    bool mIsDisableInput;
-    void* gap3[20];
+    u32 _8c;
+    u32 _90;
+
+    union {
+        u32 mDemoInputState;
+        s32 mInputLockCounter;
+    };
+
+    union {
+        struct {
+            bool isDisableInput;
+            bool isDisableInput2;
+        };
+
+        u16 mDisableInputFlags;
+    };
+
+    bool _9a;
+    bool mIsPuppetableDemo;
+    bool _9c;
+    u8 _9d[3];
+    sead::Vector2f _a0;
+    sead::Vector3f _a8;
+    sead::Vector3f _b4;
+    sead::Vector3f _c0;
+    bool mIsPuppetableDemo2;
+    bool _cd;
+    u8 _ce[2];
+    sead::Vector2f _d0;
+    sead::Vector2f _d8;
+    sead::Vector3f _e0;
+    sead::Vector3f _ec;
+    sead::Vector3f _f8;
+    sead::Vector3f _104;
+    sead::Vector3f _110;
+    sead::Vector3f _11c;
+    sead::Vector3f _128;
+    sead::Vector3f _134;
 };
 
 static_assert(sizeof(PlayerInput) == 0x140);

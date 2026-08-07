@@ -42,3 +42,5 @@ private:
     const IUsePlayerCollision* mCollision;
     PlayerWallActionHistory* mWallActionHistory;
 };
+
+static_assert(sizeof(PlayerStateWallAir) == 0x58);

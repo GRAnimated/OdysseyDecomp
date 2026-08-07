@@ -143,7 +143,9 @@ private:
 
 class SphereInterpolator {
 public:
-    SphereInterpolator() {}
+    SphereInterpolator()
+        : mPos(0.0f, 0.0f, 0.0f), mMove(0.0f, 0.0f, 0.0f), mSizeStart(0.0f),
+          mSizeEnd(0.0f), mStepSize(0.0f), mCurrentStep(0.0f), mPrevStep(0.0f) {}
 
     void startInterp(const sead::Vector3f& posStart, const sead::Vector3f& posEnd, f32 sizeStart,
                      f32 sizeEnd, f32 steps);
@@ -153,6 +155,9 @@ public:
     void calcRemainMoveVector(sead::Vector3f* remainMoveVec) const;
     void getMoveVector(sead::Vector3f* moveVec);
     void calcStepMoveVector(sead::Vector3f* moveVec) const;
+
+    f32 getCurrentStep() const { return mCurrentStep; }
+    f32 getPrevStep() const { return mPrevStep; }
 
 private:
     sead::Vector3f mPos;
@@ -178,6 +183,10 @@ public:
     void calcRemainMoveVector(sead::Vector3f* remainMoveVec) const;
     f32 calcRadiusBaseScale(f32 unk) const;
     void getMoveVector(sead::Vector3f* moveVec);
+
+    bool isInterpolationEnd() const { return mPrevStep == 1.0f && mCurrentStep == 1.0f; }
+
+    bool isCurrentStepEnd() const { return mCurrentStep >= 1.0f; }
 
 private:
     sead::Vector3f mPos;

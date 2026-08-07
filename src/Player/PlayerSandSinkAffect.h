@@ -21,6 +21,8 @@ public:
     void reduceVelocity(sead::Vector3f*);
     bool isEnableCapThrow() const;
     f32 calcSandSinkDeathRate() const;
+    f32 getSinkVelocity() const { return mSinkVelocity; }
+    bool isSafe() const { return mIsSafe; }
 
 private:
     const al::LiveActor* mPlayer;

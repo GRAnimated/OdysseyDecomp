@@ -23,6 +23,7 @@ class PlayerConst;
 class PlayerCounterForceRun;
 class PlayerEffect;
 class PlayerInput;
+class PlayerJudgePreInputJump;
 class WorldEndBorderKeeper;
 
 struct PlayerBindEndJumpInfo {
@@ -88,12 +89,25 @@ public:
                                    const al::AreaObj*);
     bool tryUpdateRecoveryInfo(bool*, bool*, sead::Vector3f*, sead::Vector3f*, const al::AreaObj**);
     bool isBinding() const;
+    void setJudgePreInputJump(PlayerJudgePreInputJump* judge) { mJudgePreInputJump = judge; }
+
+    bool isEnableGuideArrow() const { return _b4; }
 
     bool isBindEndCapThrow() const { return mIsBindEndCapThrow; }
 
     const PlayerBindEndJumpInfo* getBindEndJumpInfo() const { return mBindEndJumpInfo; }
 
     bool isNoCollide() const;
+    bool isDemoPushDisabled() const { return _ac; }
+    bool isBindPushDisabled() const { return _ac; }
+    bool isBindSeparateCapEnabled() const { return _b3; }
+    bool isBindRecoveryEnabled() const { return _b2; }
+    bool isSensorValid() const { return mIsSensorValid; }
+    bool isWaterSurfaceShadowEnabled() const { return _b5; }
+    bool isBindDimensionChangeEnabled() const { return _ae; }
+    bool isLookAtEnabled() const { return _b0; }
+    bool isLookAtTargetPositionEnabled() const { return _b1; }
+    const sead::Vector3f& getLookAtTargetPosition() const { return mLookAtTargetPosition; }
 
 private:
     al::LiveActor* mActor;
@@ -106,7 +120,7 @@ private:
     PlayerCounterForceRun* mPlayerCounterForceRun;
     PlayerDamageKeeper* mPlayerDamageKeeper;
     PlayerEffect* mPlayerEffect;
-    void* _58;
+    PlayerJudgePreInputJump* mJudgePreInputJump;
     PlayerInput* mPlayerInput;
     PlayerConst* mPlayerConst;
     al::HitSensor* _70;
@@ -123,7 +137,7 @@ private:
     bool mIsValidCollisionCheck;
     bool _ac;
     bool mIsRequestDamage;
-    bool _ae;
+    u8 _ae;
     bool mIsSensorValid;
     bool _b0;
     bool _b1;
@@ -132,8 +146,9 @@ private:
     bool _b4;
     bool _b5;
     bool _b6;
-
-    char filler[0x10];
+    u8 _b7;
+    sead::Vector3f mLookAtTargetPosition;
+    u8 mPaddingC4[4];
     PlayerBindEndJumpInfo* mBindEndJumpInfo;
 };
 

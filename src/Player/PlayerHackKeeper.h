@@ -5,6 +5,8 @@
 #include <math/seadQuat.h>
 #include <math/seadVector.h>
 
+#include "Player/PlayerHackStartTexKeeper.h"
+
 namespace al {
 class LiveActor;
 class HitSensor;
@@ -15,13 +17,15 @@ struct ActorInitInfo;
 class PlayerRecoverySafetyPoint;
 class HackCap;
 class PlayerInput;
+class PlayerJudgePreInputJump;
+class PlayerJudgePreInputHackAction;
 class PlayerDamageKeeper;
 class IPlayerModelChanger;
 class IUsePlayerHeightCheck;
+class IUsePlayerCollision;
 struct HackObjInfo;
 class PlayerCollider;
 class CapTargetInfo;
-class PlayerHackStartTexKeeper;
 class IUsePlayerHack;
 
 struct HackEndParam {
@@ -35,8 +39,12 @@ struct HackEndParam {
     bool hasVelocity = false;
 };
 
+static_assert(sizeof(HackEndParam) == 0x40);
+
 class PlayerHackKeeper {
 public:
+    friend class PlayerActorHakoniwa;
+
     PlayerHackKeeper(al::LiveActor* player, HackCap* cap, PlayerRecoverySafetyPoint* safetyPoint,
                      const PlayerInput* input, const sead::Matrix34f* mtx,
                      const PlayerDamageKeeper* damageKeeper,
@@ -57,25 +65,26 @@ public:
     void killHackDemoModel();
     bool isActiveHackStartDemo() const;
     void recordHack();
-    void cancelHackArea();
+    bool cancelHackArea();
     void cancelHack();
     void cancelForceRecovery();
-    void tryEscapeHack();
-    void sendTransferHack();
+    bool tryEscapeHack();
+    bool sendTransferHack();
     void sendMarioDemo();
+    void sendMarioCheckpointFlagWarp();
     void forceKillHack();
     void sendMarioDead();
-    void sendMarioInWater();
-    void sendMarioDeathArea();
+    bool sendMarioInWater();
+    bool sendMarioDeathArea();
     void sendMsgEnableMapCheckPointWarp();
-    void sendMsgSelfCeilingCheckMiss();
+    bool sendMsgSelfCeilingCheckMiss();
     bool receiveRequestTransferHack(al::HitSensor*);
     bool requestDamage();
-    void receiveRequestDamage();
+    bool receiveRequestDamage();
     void sendSyncDamageVisibility();
     void pushWorldEndBorder(const sead::Vector3f&);
     const char* getCurrentHackName() const;
-    PlayerCollider* getPlayerCollision() const;
+    IUsePlayerCollision* getPlayerCollision() const;
     f32 getHackGuideHeight() const;
     bool isHackGuideEnable() const;
     f32 getHackStayGravityMargine() const;
@@ -107,6 +116,11 @@ public:
 
     void setPuppetable(bool isPuppetable) { mIsPuppetable = isPuppetable; }
 
+    void setPreInputJudges(PlayerJudgePreInputJump* jump, PlayerJudgePreInputHackAction* hack) {
+        mJudgePreInputJump = jump;
+        mJudgePreInputHackAction = hack;
+    }
+
     bool isPuppetable() const { return mIsPuppetable; }
 
     bool isCancellingHack() const { return mIsCancellingHack; }
@@ -119,6 +133,10 @@ public:
 
     bool isStartedHacking() const { return mIsStartedHacking; }
 
+    void setStartedHacking(bool isStartedHacking) { mIsStartedHacking = isStartedHacking; }
+
+    void setHack(bool isHack) { mIsHack = isHack; }
+
     al::LiveActor* getHack() const { return mHackActor; }
 
     al::HitSensor* getHackSensor() const { return mHackHitSensor; }
@@ -127,8 +145,8 @@ private:
     al::LiveActor* mParent;
     HackCap* mHackCap;
     PlayerRecoverySafetyPoint* mRecoverySafePoint;
-    void* field_18;
-    void* field_20;
+    PlayerJudgePreInputJump* mJudgePreInputJump;
+    PlayerJudgePreInputHackAction* mJudgePreInputHackAction;
     PlayerInput* mInput;
     sead::Matrix34f* field_30;
     PlayerDamageKeeper* mDamageKeeper;

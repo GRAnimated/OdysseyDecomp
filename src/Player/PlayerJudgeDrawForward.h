@@ -25,3 +25,5 @@ private:
     const al::LiveActor* mPlayerActor;
     const PlayerJudgeDeadWipeStart* mPlayerJudgeDeadWipeStart;
 };
+
+static_assert(sizeof(PlayerJudgeDrawForward) == 0x18);

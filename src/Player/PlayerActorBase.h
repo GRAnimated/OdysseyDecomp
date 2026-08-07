@@ -84,3 +84,5 @@ private:
     sead::Matrix34f* mViewMtx = nullptr;
     u32 mPortNo = 0;
 };
+
+static_assert(sizeof(PlayerActorBase) == 0x120);

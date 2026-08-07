@@ -191,7 +191,7 @@ s32 WorldList::getWorldNum() const {
 }
 
 s32 WorldList::getMainQuestMin(s32 worldId, s32 questId) const {
-    worldId = sead::Mathi::clampMin(worldId, 0);
+    worldId = worldId < 0 ? 0 : worldId;
     return mWorldList[worldId]->mainQuestIndexes[questId - 1];
 }
 
@@ -251,7 +251,7 @@ bool WorldList::isEqualMoonRockScenarioNo(s32 worldId, s32 scenarioNo) const {
 }
 
 const char* WorldList::getWorldDevelopName(s32 worldId) const {
-    return mWorldList[sead::Mathi::clampMin(worldId, 0)]->worldDevelopName;
+    return mWorldList[worldId < 0 ? 0 : worldId]->worldDevelopName;
 }
 
 s32 WorldList::getWorldScenarioNum(s32 worldId) const {

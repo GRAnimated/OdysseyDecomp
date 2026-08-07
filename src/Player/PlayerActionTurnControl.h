@@ -14,11 +14,17 @@ public:
     void reset();
     void update(const sead::Vector3f&, const sead::Vector3f&);
     void calcTilt(sead::Vector3f*, const sead::Vector3f&, f32);
-    void calcTurnPowerRate(const sead::Vector3f&) const;
+    f32 calcTurnPowerRate(const sead::Vector3f&) const;
 
-    const sead::Vector3f& get_5c() { return _5c; }
+    const sead::Vector3f& get_50() const { return _50; }
+
+    const sead::Vector3f& get_5c() const { return _5c; }
+
+    bool get_68() const { return _68; }
 
     bool get_69() const { return _69; }
+
+    bool get_6a() const { return _6a; }
 
     void set_88(bool value) { _88 = value; }
 

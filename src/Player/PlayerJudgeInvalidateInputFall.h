@@ -18,6 +18,7 @@ public:
     void update() override;
 
     bool judge() const override { return mInvalidateInputFallArea != nullptr; }
+    const al::AreaObj* getArea() const { return mInvalidateInputFallArea; }
 
 private:
     const al::LiveActor* mActor = nullptr;
@@ -25,3 +26,5 @@ private:
     const IUsePlayerCollision* mCollision = nullptr;
     const al::AreaObj* mInvalidateInputFallArea = nullptr;
 };
+
+static_assert(sizeof(PlayerJudgeInvalidateInputFall) == 0x28);

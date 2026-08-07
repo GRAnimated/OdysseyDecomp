@@ -1,5 +1,6 @@
 #pragma once
 
+#include <container/seadPtrArray.h>
 #include <math/seadVector.h>
 
 #include "Library/Collision/IUseCollision.h"
@@ -8,7 +9,12 @@ namespace al {
 class CollisionDirector;
 class CollisionParts;
 class CollisionPartsFilterBase;
+class Triangle;
 }  // namespace al
+
+namespace alCollisionUtil {
+struct SphereMoveHitInfo;
+}
 
 class PlayerCollisionCheckSphereMove : public al::IUseCollision {
 public:
@@ -32,7 +38,16 @@ public:
     }
 
 private:
-    void* _8[0x50 / 8];
+    al::CollisionDirector* mCollisionDirector;
+    u32 mMaxNum;
+    u32 mNum;
+    f32* mTValues;
+    sead::Vector3f* mPositions;
+    al::Triangle* mTriangles;
+    alCollisionUtil::SphereMoveHitInfo* mHitInfos;
+    void* _38;
+    u32* mIndices;
+    sead::PtrArray<al::CollisionParts> mCollisionParts;
     const al::CollisionPartsFilterBase* mCollisionPartsFilter;
 };
 

@@ -1868,3 +1868,4 @@ private:
     f32 mCoinDashSpeedLimit;
     f32 mAdditionalSpeedLimit;
 };
+static_assert(sizeof(PlayerConst) == 0x9A8);

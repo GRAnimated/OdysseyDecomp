@@ -21,6 +21,7 @@ public:
     void createNoseNeedle(const PlayerModelHolder* modelHolder,
                           const al::ActorInitInfo& actorInitInfo);
     void appearNeedle();
+    void setModelAlphaMask(f32 alpha) { mModelAlphaMask = alpha; }
 
 private:
     const al::LiveActor* mLiveActor;
@@ -31,3 +32,5 @@ private:
     al::PartsModel* mNeedlesActor = nullptr;
     s32 mTimer = 0;
 };
+
+static_assert(sizeof(PlayerPainPartsKeeper) == 0x30);

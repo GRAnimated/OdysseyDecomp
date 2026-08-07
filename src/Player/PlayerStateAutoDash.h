@@ -17,3 +17,5 @@ public:
 private:
     s32 mRunTimer = 0;
 };
+
+static_assert(sizeof(PlayerStateAutoDash) == 0x28);

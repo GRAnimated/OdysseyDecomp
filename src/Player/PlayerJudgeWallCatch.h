@@ -33,6 +33,11 @@ public:
     void update() override;
     bool judge() const override;
 
+    const al::CollisionParts* getCollidedWallPart() const { return mCollidedWallPart; }
+    const sead::Vector3f& getPosition() const { return mPosition; }
+    const sead::Vector3f& getCollidedWallNormal() const { return mCollidedWallNormal; }
+    const sead::Vector3f& getNormalAtPos() const { return mNormalAtPos; }
+
 private:
     const al::LiveActor* mPlayer;
     const PlayerConst* mConst;

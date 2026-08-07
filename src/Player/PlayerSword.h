@@ -19,3 +19,5 @@ private:
     const sead::Matrix34f* mPlayerBaseMtx = nullptr;
     bool mIsInvisible = false;
 };
+
+static_assert(sizeof(PlayerSword) == 0x128);

@@ -17,6 +17,8 @@ public:
     void appear() override;
     void exeGroundSpin();
 
+    bool isSpinClockwise() const { return mIsSpinClockwise; }
+
 private:
     const IUsePlayerCollision* mCollision;
     const PlayerInput* mPlayerInput;
@@ -25,3 +27,5 @@ private:
     PlayerActionGroundMoveControl* mGroundMoveCtrl = nullptr;
     bool mIsSpinClockwise = false;
 };
+
+static_assert(sizeof(PlayerStateGroundSpin) == 0x50);

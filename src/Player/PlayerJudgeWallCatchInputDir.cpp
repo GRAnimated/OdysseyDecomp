@@ -37,7 +37,7 @@ void PlayerJudgeWallCatchInputDir::reset() {
     mIsOnGroundSkateCode = false;
     mHitPos = {0.0f, 0.0f, 0.0f};
     mHitNormal = {0.0f, 0.0f, 0.0f};
-    mHitNormal2 = {0.0f, 0.0f, 0.0f};
+    _6c = {0.0f, 0.0f, 0.0f};
     al::disconnectMtxConnector(mCollisionPartsConnector);
     mGroundNormal = {0.0f, 0.0f, 0.0f};
     mTimeInAir = 0;
@@ -89,7 +89,7 @@ bool PlayerJudgeWallCatchInputDir::updateJudgeKids() {
         return false;
 
     return rs::findWallCatchPosWallHit(
-        &mCollisionParts, &mHitPos, &mHitNormal2, &mHitNormal, mPlayer, verticalDir,
+        &mCollisionParts, &mHitPos, &_6c, &mHitNormal, mPlayer, verticalDir,
         al::getTrans(mPlayer), 200.0f, 90.0f, mConst->getWallCatchDegree(),
         mConst->getWallCatchHeightEdgeTop(), 0.0f, mConst->getWallCatchHeightBottom(),
         mConst->getCollisionRadius(), mConst->getCollisionRadiusStand());
@@ -114,7 +114,7 @@ bool PlayerJudgeWallCatchInputDir::updateJudgeNormal() {
         moveSpeed += sead::Mathf::clampMax(moveDir.dot(al::getVelocity(mPlayer)), 0.0f);
 
     return rs::findWallCatchPosWallHit(
-        &mCollisionParts, &mHitPos, &mHitNormal2, &mHitNormal, mPlayer, moveDir,
+        &mCollisionParts, &mHitPos, &_6c, &mHitNormal, mPlayer, moveDir,
         al::getTrans(mPlayer), moveSpeed, mConst->getWallKeepDegree(), mConst->getWallCatchDegree(),
         mConst->getWallCatchHeightEdgeTop(), 0.0f, mConst->getWallCatchHeightBottom(),
         mConst->getCollisionRadius(), mConst->getCollisionRadiusStand());

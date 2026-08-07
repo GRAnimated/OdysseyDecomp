@@ -91,8 +91,65 @@ bool PlayerTrigger::isOn(EMaterialChangeTrigger flag) const {
     return mMaterialChangeTrigger.isOnBit(flag);
 }
 
+bool PlayerTrigger::isOnUpperPunchHit() const {
+    if (mCollisionTrigger.isOn(0x1))
+        return true;
+
+    return mAttackSensorTrigger.isOn(0x10);
+}
+
+bool PlayerTrigger::isOnUpperPunchHitToss() const {
+    return mAttackSensorTrigger.isOn(0x10);
+}
+
+// NON_MATCHING: exact semantics and target source shape; LLVM narrows the 64-bit action-trigger bit test and folds the target's two CSEL stages.
+bool PlayerTrigger::isOnAnyDamage() const {
+    const u32 collisionTrigger = mCollisionTrigger.getDirect();
+    if (collisionTrigger & 0x44)
+        return true;
+
+    const u32 receiveSensorTrigger = mReceiveSensorTrigger.getDirect();
+    if (receiveSensorTrigger & 0x1)
+        return true;
+
+    bool isDamage = (receiveSensorTrigger & 0xC) != 0;
+    if ((mActionTrigger.getDirect() & 0x800000) != 0)
+        isDamage = true;
+    return (receiveSensorTrigger & 0x2) | (collisionTrigger & 0x18) || isDamage;
+}
+
+bool PlayerTrigger::isOnDamageFire() const {
+    if (mCollisionTrigger.isOn(0x18))
+        return true;
+
+    return mReceiveSensorTrigger.isOn(0x2);
+}
+
+bool PlayerTrigger::isOnEndHackWithDamage() const {
+    return mReceiveSensorTrigger.isOn(0xC);
+}
+
+bool PlayerTrigger::isOnNoDamageDown() const {
+    if (mActionTrigger.isOn(0x400))
+        return true;
+
+    return mPreMovementTrigger.isOn(0x10);
+}
+
+bool PlayerTrigger::isOnSpinMoveCapThrow() const {
+    return mActionTrigger.isOn(0x18000000);
+}
+
+bool PlayerTrigger::isOnHipDropCancelThrow() const {
+    return mActionTrigger.isOn(0x40000);
+}
+
 bool PlayerTrigger::isOnYoshiHackEnd() const {
     return mCollisionTrigger.isOn(ECollisionTrigger_val1024);
+}
+
+bool PlayerTrigger::isOnCollisionExpandCheck() const {
+    return mActionTrigger.isOn(0x8);
 }
 
 bool PlayerTrigger::tryGetRecMaterialCode(const char** dest) const {

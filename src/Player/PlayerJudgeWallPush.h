@@ -24,3 +24,5 @@ private:
     const IUsePlayerCollision* mCollider;
     const PlayerInput* mInput;
 };
+
+static_assert(sizeof(PlayerJudgeWallPush) == 0x20);

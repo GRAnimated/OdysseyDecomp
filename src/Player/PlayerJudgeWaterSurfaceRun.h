@@ -33,3 +33,5 @@ private:
     const al::WaterSurfaceFinder* mWaterSurfaceFinder;
     const PlayerCounterForceRun* mCounterForceRun;
 };
+
+static_assert(sizeof(PlayerJudgeWaterSurfaceRun) == 0x30);

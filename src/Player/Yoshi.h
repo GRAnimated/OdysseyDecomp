@@ -66,3 +66,5 @@ private:
     al::HitSensor* mHitSensor = nullptr;
     sead::Matrix34f mLocalMtx = sead::Matrix34f::ident;
 };
+
+static_assert(sizeof(Yoshi) == 0x1B8);

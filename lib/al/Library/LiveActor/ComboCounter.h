@@ -5,13 +5,13 @@
 namespace al {
 class ComboCounter {
 public:
-    ComboCounter() = default;
-
+    ComboCounter() : mCount(0) {}
     virtual void increment() { mCount++; }
 
     s32 getCount() const { return mCount; }
+    void reset() { mCount = 0; }
 
 private:
-    s32 mCount = 0;
+    s32 mCount;
 };
 }  // namespace al

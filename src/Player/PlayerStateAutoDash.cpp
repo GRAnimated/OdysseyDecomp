@@ -46,7 +46,7 @@ void PlayerStateAutoDash::exeDash() {
     sead::Vector3f accelDir = {0.0f, 0.0f, 0.0f};
     al::addPlayerAccelStickGravity(mActor, &accelDir, 6.0f, {0.0f, 1.0f, 0.0f},
                                    PlayerFunction::getPlayerInputPort(mActor),
-                                   &PlayerFunction::getPlayerViewMtx(mActor));
+                                   PlayerFunction::getPlayerViewMtx(mActor));
     al::faceToDirection(mActor, accelDir);
 
     if (al::isVelocitySlow(mActor, 6.0f)) {
@@ -69,7 +69,7 @@ void PlayerStateAutoDash::exeRun() {
     sead::Vector3f accelDir = {0.0f, 0.0f, 0.0f};
     al::addPlayerAccelStickGravity(mActor, &accelDir, 3.0f, {0.0f, 1.0f, 0.0f},
                                    PlayerFunction::getPlayerInputPort(mActor),
-                                   &PlayerFunction::getPlayerViewMtx(mActor));
+                                   PlayerFunction::getPlayerViewMtx(mActor));
     al::faceToDirection(mActor, accelDir);
 
     al::LiveActor* player = mActor;

@@ -66,3 +66,6 @@ private:
     const PlayerBodyCostumeInfo* mBodyInfo = nullptr;
     const PlayerHeadCostumeInfo* mHeadInfo = nullptr;
 };
+static_assert(sizeof(PlayerHeadCostumeInfo) == 0x18);
+static_assert(sizeof(PlayerBodyCostumeInfo) == 0x20);
+static_assert(sizeof(PlayerCostumeInfo) == 0x10);

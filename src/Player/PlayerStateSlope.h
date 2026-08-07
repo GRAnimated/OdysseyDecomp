@@ -30,3 +30,5 @@ private:
     s32 mTimeInAir = 0;
     s32 mSlopeForceCounter = 0;
 };
+
+static_assert(sizeof(PlayerStateSlope) == 0x50);

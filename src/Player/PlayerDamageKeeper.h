@@ -25,6 +25,8 @@ public:
     void updateKidsModeLifeRecovery(bool isRecover);
 
     bool isDamageInvalid() const { return mIsDamageInvalid; }
+    bool isAbyssDamageInvalid() const { return mDamageInvalidCountAbyss > 0; }
+    bool isPushInvalid() const { return mDamageInvalidCountAbyss > 0; }
 
 private:
     al::LiveActor* mPlayer = nullptr;

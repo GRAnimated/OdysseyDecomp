@@ -21,3 +21,5 @@ private:
     const sead::Matrix34f* mPlayerBaseMtx = nullptr;
     bool mIsInvisible = false;
 };
+
+static_assert(sizeof(PlayerPowerGlove) == 0x128);

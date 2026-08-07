@@ -14,3 +14,5 @@ public:
 private:
     const PlayerStateWait* mStateWait;
 };
+
+static_assert(sizeof(PlayerJudgeSleep) == 0x10);

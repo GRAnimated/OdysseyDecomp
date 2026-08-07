@@ -26,3 +26,5 @@ private:
     bool mIsActive = false;
     f32 mRate = 1.0f;
 };
+
+static_assert(sizeof(GaugeAir) == 0x130);

@@ -103,7 +103,7 @@ private:
     const AreaObj* mCurArea = nullptr;
     const AreaObj* mPrevArea = nullptr;
 
-    u8* unk = nullptr;  // Unused? Also (seemingly) unused in RedCarpet.
+    const AreaObj* mUnknownArea = nullptr;
 
     AreaObjDirector* mAreaObjDirector = nullptr;
     const PlayerHolder* mPlayerHolder = nullptr;

@@ -20,7 +20,7 @@ void PlayerCapActionHistory::update() {
 void PlayerCapActionHistory::clearLandLimit() {
     clearLimitHeight();
     clearCapJump();
-    _39 = true;
+    mIsCapCatchPopEnabled = true;
 }
 
 void PlayerCapActionHistory::clearLimitHeight() {
@@ -33,14 +33,14 @@ void PlayerCapActionHistory::clearCapJump() {
 
 void PlayerCapActionHistory::clearLandLimitStandAngle() {
     clearLimitHeight();
-    _39 = true;
+    mIsCapCatchPopEnabled = true;
     if (rs::isOnGroundLessAngle(mPlayer, mCollision, mConst->getStandAngleMin()))
         clearCapJump();
 }
 
 void PlayerCapActionHistory::clearWallAirLimit() {
     clearLimitHeight();
-    _39 = true;
+    mIsCapCatchPopEnabled = true;
 }
 
 void PlayerCapActionHistory::recordLimitHeight() {

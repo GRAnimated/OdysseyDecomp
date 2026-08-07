@@ -10,3 +10,5 @@ public:
     virtual f32 getSafetyCeilSpace() const = 0;
     virtual f32 getCeilCheckHeight() const = 0;
 };
+
+static_assert(sizeof(IUsePlayerCeilingCheck) == 0x8);

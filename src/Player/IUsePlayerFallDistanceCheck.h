@@ -6,3 +6,5 @@ class IUsePlayerFallDistanceCheck {
 public:
     virtual f32 getFallDistance() const = 0;
 };
+
+static_assert(sizeof(IUsePlayerFallDistanceCheck) == 0x8);

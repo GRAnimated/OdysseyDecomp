@@ -8,3 +8,5 @@ public:
     virtual f32 getGroundHeight() const = 0;
     virtual f32 getShadowDropHeight() const = 0;
 };
+
+static_assert(sizeof(IUsePlayerHeightCheck) == 0x8);

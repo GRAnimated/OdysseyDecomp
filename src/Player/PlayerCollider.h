@@ -1,5 +1,6 @@
 #pragma once
 
+#include <container/seadBuffer.h>
 #include <container/seadPtrArray.h>
 #include <math/seadMatrix.h>
 #include <prim/seadBitFlag.h>
@@ -51,6 +52,15 @@ public:
     void setCollisionPartsFilter(const al::CollisionPartsFilterBase*);
     void calcBoundingCenter(sead::Vector3f*) const;
     void validateCorrectMovePartsCheck();
+
+    void setInFastMoveCollisionArea(bool value) { mIsInFastMoveCollisionArea = value; }
+
+    void setValidGroundSupport(bool value) { mIsValidGroundSupport = value; }
+
+    void setDuringRecovery(bool value) { mIsDuringRecovery = value; }
+
+    CollisionShapeKeeper* getCollisionShapeKeeper() const { return mCollisionShapeKeeper; }
+
     al::CollisionDirector* getCollisionDirector() const override;
 
     f32 get_70() const { return _70; }
@@ -95,10 +105,8 @@ private:
     u32 _160;
     s32 _164;
     sead::PtrArray<al::HitInfo> _168;
-    s32 _178;
-    f32* _180;
-    s32 _188;
-    f32* _190;
+    sead::Buffer<f32> mHitDistanceArray;
+    sead::Buffer<f32> mHitValueArray;
     sead::Vector3f _198;
     sead::Vector3f mCollidedGroundNormal;
     f32 _1b0;

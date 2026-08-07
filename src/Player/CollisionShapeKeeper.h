@@ -12,6 +12,7 @@ class CollidedShapeResult;
 
 class CollisionShapeKeeper {
 public:
+    friend class CollisionMultiShape;
     CollisionShapeKeeper(s32 maxShapes, s32 maxCollideResults, s32 maxCollideSupportResults);
     // TODO: rename parameters
     void createShapeArrow(const char* name, const sead::Vector3f& start, const sead::Vector3f& end,
@@ -52,7 +53,25 @@ public:
     const CollidedShapeResult* getCollidedShapeResult(s32 index) const;
     const CollidedShapeResult* getCollidedShapeSupportResult(s32 index) const;
 
+    s32 getNumCollidedShapeResults() const { return mNumCollideResult; }
+
+    s32 getNumCollidedShapeSupportResults() const { return mNumCollideSupportResult; }
+
+    const sead::Vector3f& getBoundingCenter() const { return mBoundingCenter; }
+
+    f32 getBoundingRadius() const { return mBoundingRadius; }
+
+    f32 getCheckStepRange() const { return mCheckStepRange; }
+
+    f32 get54() const { return _54; }
+
+    f32 get58() const { return _58; }
+
+    bool hasShapeArrow() const { return mHasShapeArrow; }
+
     void set54(f32 value) { _54 = value; }
+
+    void set58(f32 value) { _58 = value; }
 
 private:
     sead::Vector3f mBoundingCenter = {0.0f, 0.0f, 0.0f};

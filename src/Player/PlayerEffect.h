@@ -2,6 +2,7 @@
 
 #include <math/seadMatrix.h>
 #include <math/seadVector.h>
+#include <prim/seadSafeString.h>
 
 namespace al {
 class LiveActor;
@@ -20,6 +21,7 @@ public:
     void tryDeleteInvincibleEffect();
     void restartInvincibleEffect();
     void updateInvincibleEffect(const IPlayerModelChanger*, bool);
+    bool isInvincibleEffectActive() const { return mIsInvincibleEffectActive; }
     void clearRunEffect();
     bool isRunEffectDashFast() const;
     void tryStartRunEffectRunStart();
@@ -43,7 +45,18 @@ public:
     void tryDeleteDamageFireRunEffect();
 
 private:
-    char filler[0xc0];
+    al::LiveActor* mPlayer;
+    const PlayerModelHolder* mModelHolder;
+    sead::Matrix34f mWaterSurfaceMtx;
+    sead::Matrix34f mWaterInOutMtx;
+    sead::Matrix34f mSandSinkMtx;
+    sead::SafeString mRunEffectName;
+    al::LiveActor* mInvincibleActor;
+    bool mIsInvincibleEffectActive;
+    bool mIsInvincibleEffectSuspended;
+    bool mIsStainEffectSuspended;
+    char _bb;
+    s32 mInvincibleEffectRestartDelay;
 };
 
 static_assert(sizeof(PlayerEffect) == 0xc0);

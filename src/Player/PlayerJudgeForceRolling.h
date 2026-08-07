@@ -21,3 +21,5 @@ private:
     const al::LiveActor* mPlayer;
     const IUsePlayerCollision* mCollider;
 };
+
+static_assert(sizeof(PlayerJudgeForceRolling) == 0x18);

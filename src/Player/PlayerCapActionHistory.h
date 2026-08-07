@@ -18,10 +18,16 @@ public:
     void clearLandLimit();
     void clearLimitHeight();
     void clearCapJump();
+    void invalidateCapJump() { mIsCapJumpPossible = false; }
     void clearLandLimitStandAngle();
     void clearWallAirLimit();
     void recordLimitHeight();
     bool isOverLimitHeight() const;
+
+    void recordCapCatchPop() { mIsCapCatchPopEnabled = false; }
+    void invalidateCapCatchPop() { mIsCapCatchPopEnabled = false; }
+    bool isCapCatchPopEnabled() const { return mIsCapCatchPopEnabled; }
+    PlayerCounterAfterCapCatch* getCounterAfterCapCatch() const { return mCounterAfterCapCatch; }
 
 private:
     const al::LiveActor* mPlayer;
@@ -33,5 +39,7 @@ private:
     sead::Vector3f mHeightLimit = sead::Vector3f::zero;
     bool mIsCapJumpPossible = true;
     // seems to be always set to `true`
-    bool _39 = true;
+    bool mIsCapCatchPopEnabled = true;
 };
+
+static_assert(sizeof(PlayerCapActionHistory) == 0x40);

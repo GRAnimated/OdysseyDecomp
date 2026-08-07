@@ -40,6 +40,8 @@ struct SafetyPoint {
     }
 };
 
+static_assert(sizeof(SafetyPoint) == 0x30);
+
 class PlayerRecoverySafetyPoint {
 public:
     PlayerRecoverySafetyPoint(const al::LiveActor* actor, const HackCap* hackCap,
@@ -69,6 +71,7 @@ public:
     void updateRecoveryAreaValidity();
 
     void setRecoveryArea(const al::AreaObj* area);
+    void setDefaultSafetyPos(sead::Vector3f* pos) { mDefaultSafetyPos = pos; }
 
     bool isActiveRecoveryArea() const;
 

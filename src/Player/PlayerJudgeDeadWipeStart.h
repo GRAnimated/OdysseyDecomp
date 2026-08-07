@@ -25,9 +25,13 @@ public:
     bool isDeadEnableCoinAppear() const;
     void getWipeInfo(const char** name, s32* wait) const;
 
+    void setDeathType(DeathType deathType) { mDeathType = deathType; }
+
 private:
     const al::LiveActor* mPlayerActor;
     const PlayerConst* mPlayerConst;
     DeathType mDeathType = DeathType::Damage;
     s32 mCounter = -1;
 };
+
+static_assert(sizeof(PlayerJudgeDeadWipeStart) == 0x20);

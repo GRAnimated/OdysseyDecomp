@@ -23,6 +23,8 @@ public:
         mPlayerCollision = playerCollision;
     }
 
+    void set_10(s32 value) { _10 = value; }
+
 private:
     al::LiveActor* mActor;
     s32 _10;

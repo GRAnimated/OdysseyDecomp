@@ -73,3 +73,4 @@ private:
     bool mIsJudgeFall = false;
     f32 mFallFrame = 0;
 };
+static_assert(sizeof(HackerStateWingFly) == 0x98);

@@ -11,6 +11,8 @@ public:
     void reduce();
     void reset();
     void setup(s32 no_reduce_frame, s32 reduce_frame, s32 recovery_frame, s32 damage_interval);
+    f32 getRate() const { return mOxygenLevel; }
+    bool isReducing() const { return mFramesReducing > 0; }
 
 private:
     f32 mOxygenLevel = 1.0;
@@ -21,3 +23,5 @@ private:
     s32 mOxygenRecoveryFrame = 0;
     s32 mOxygenDamageInterval = 0;
 };
+
+static_assert(sizeof(PlayerOxygen) == 0x1C);

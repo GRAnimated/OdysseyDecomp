@@ -27,7 +27,41 @@ public:
 
     const char* getHackName() const { return mHackName; }
 
+    const char* getLockOnAnimName() const { return mLockOnAnimName; }
+
+    const al::LiveActor* getActor() const { return mActor; }
+
+    bool isExistModel() const { return mIsExistModel; }
+
+    bool get_72() const { return _72; }
+
     void setIsLockOnOnly() { mIsLockOnOnly = true; }
+
+    f32 getLockOnScale() const { return mLockOnScale; }
+
+    bool isLockOnOnly() const { return mIsLockOnOnly; }
+
+    bool isDisableInvincibleEffect() const { return _7d; }
+
+    bool get_7e() const { return _7e; }
+
+    bool get_78() const { return _78; }
+
+    bool get_7f() const { return _7f; }
+
+    bool isUseDepthShadow() const { return mIsUseDepthShadow; }
+
+    bool isLockOn() const { return mIsLockOn; }
+
+    bool isInvalidCapEye() const { return mIsInvalidCapEye; }
+
+    bool isInvalidHackThrow() const { return mIsInvalidHackThrow; }
+
+    bool isSetHackNameToCamera() const { return mIsSetHackNameToCamera; }
+
+    bool isEscapeLocalOffset() const { return mIsEscapeLocalOffset; }
+
+    const sead::Vector3f& getEscapeLocalOffset() const { return mEscapeLocalOffset; }
 
 private:
     friend CapTargetInfoFunction;
@@ -69,3 +103,6 @@ public:
     static void initIterCapTargetInfo(CapTargetInfo* capTargetInfo, IUsePlayerCollision*,
                                       const al::LiveActor* actor, const char* name);
 };
+
+static_assert(sizeof(CapTargetInfo) == 0x80);
+static_assert(sizeof(CapTargetInfoFunction) == 0x1);

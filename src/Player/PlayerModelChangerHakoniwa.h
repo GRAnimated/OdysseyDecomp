@@ -25,9 +25,11 @@ public:
     void syncHost(bool);
     void syncShowHide(al::LiveActor*);
     void startDamageStopDemo();
+    void updateDamageStopDemo();
     void syncHostDamageStopDemo(bool);
-    s32 calcCostumeWarmLevel(s32);
+    s32 calcCostumeWarmLevel(s32) const;
     void syncModelBoneVisibility();
+    bool isDamageStopDemo() const { return mIsBlinkingFromDamage; }
 
     void resetPosition() override;
     void hideModel() override;
@@ -65,3 +67,5 @@ private:
     bool mIsSyncStrap;
     bool mIsPreventHeadPain;
 };
+
+static_assert(sizeof(PlayerModelChangerHakoniwa) == 0x58);

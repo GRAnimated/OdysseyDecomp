@@ -43,3 +43,5 @@ private:
     bool mIsLandGround = false;
     sead::Vector3f mLandPos = {0.0f, 0.0f, 0.0f};
 };
+
+static_assert(sizeof(PlayerStateHipDrop) == 0x60);

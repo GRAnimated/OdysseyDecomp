@@ -52,6 +52,7 @@ public:
     void setBlendWeight(f32, f32, f32, f32, f32, f32);
     f32 getBlendWeight(s32);
     void startAnimDead();
+    void validateFullFaceAnim() { mIsNeedFullFaceAnim = true; }
     void startPress();
     void forceCapOn();
     void forceCapOff();
@@ -80,9 +81,13 @@ public:
     void copyAnimLocal();
 
     bool isSubAnimPlaying() const { return mIsSubAnimPlaying; }
+    bool isSubAnimOnlyAir() const { return mIsSubAnimOnlyAir; }
+    bool isEyeControlAnimActive() const { return _1a5; }
+    bool isEyeControlAnimTilt() const { return _1a6; }
+    void setEyeControlFrame(f32 frame) { mEyeControlFrame = frame; }
 
 private:
-    PlayerModelHolder* mModelHolder;
+    const PlayerModelHolder* mModelHolder;
     al::LiveActor* mPlayerDeco;
     al::LiveActor* mPlayer;
     PlayerAnimFrameCtrl* mAnimFrameCtrl;
@@ -92,9 +97,10 @@ private:
     sead::FixedSafeString<64> _128;
     al::ActorDitherAnimator* mDitherAnim;
     f32* mSklAnimBlendWeights;
-    void* _190;
+    f32 mEyeControlFrame;
+    s32 mEndEyeControlAnimDelay;
     f32 mRunStartAnimRate;
-    s32 _19c;
+    s32 mModelAlphaDelay;
     bool mIsNeedFullFaceAnim;
     bool _1a1;
     bool mIsSubAnimPlaying;

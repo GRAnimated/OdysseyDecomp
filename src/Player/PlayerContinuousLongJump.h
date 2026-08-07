@@ -17,3 +17,5 @@ private:
     s32 mCount = 0;
     s32 mTimer = 0;
 };
+
+static_assert(sizeof(PlayerContinuousLongJump) == 0x10);

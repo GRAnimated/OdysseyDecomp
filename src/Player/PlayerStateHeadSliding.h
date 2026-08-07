@@ -33,3 +33,5 @@ private:
     PlayerAnimator* mAnimator;
     bool mIsEnableDiveInWater = false;
 };
+
+static_assert(sizeof(PlayerStateHeadSliding) == 0x50);

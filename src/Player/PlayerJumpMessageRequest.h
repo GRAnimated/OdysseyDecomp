@@ -4,7 +4,8 @@
 
 enum class PlayerJumpType : u32 {
     Standard = 0,
-    // more unknown
+    SwimJumpPop = 2,
+    SwimJumpHipDrop = 17,
 };
 
 struct PlayerJumpMessageRequest {
@@ -19,3 +20,5 @@ struct PlayerJumpMessageRequest {
     bool isSpinClockwise = 0;
     bool isEnableStandUp = 0;
 };
+
+static_assert(sizeof(PlayerJumpMessageRequest) == 0x28);

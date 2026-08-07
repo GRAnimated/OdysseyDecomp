@@ -69,6 +69,7 @@ public:
     void setFollowPosOffset(const sead::Vector3f& offset) { mFollowPosOffset.set(offset); }
 
     void setRadius(f32 radius) { mRadius = radius; }
+    void setSensorType(HitSensorType sensorType) { mSensorType = sensorType; }
 
     LiveActor* getParentActor() const { return mParentActor; }
 

@@ -35,3 +35,4 @@ private:
     sead::Quatf mQuat;
     PlayerHackStartShaderParam* mParam;
 };
+static_assert(sizeof(PlayerHackStartShaderCtrl) == 0x38);

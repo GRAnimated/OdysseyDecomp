@@ -6,6 +6,8 @@
 
 #include "Library/Base/StringUtil.h"
 
+#include "Player/PlayerInitInfo.h"
+
 namespace al {
 class GamePadSystem;
 class HitSensor;
@@ -16,7 +18,6 @@ struct SklAnimRetargettingInfo;
 
 class CapTargetInfo;
 class PlayerActorBase;
-class PlayerInitInfo;
 
 namespace rs {
 

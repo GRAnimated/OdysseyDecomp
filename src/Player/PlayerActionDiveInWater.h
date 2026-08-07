@@ -20,3 +20,4 @@ private:
     const PlayerCarryKeeper* mCarryKeeper;
     const PlayerJudgeDiveInWater* mJudgeDiveInWater;
 };
+static_assert(sizeof(PlayerActionDiveInWater) == 0x20);

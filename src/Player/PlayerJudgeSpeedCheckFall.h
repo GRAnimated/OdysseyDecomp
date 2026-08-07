@@ -28,3 +28,5 @@ private:
     const IJudge* mJudgeStartWaterSurfaceRun;
     s32 mFramesNoCollideGround = 0;
 };
+
+static_assert(sizeof(PlayerJudgeSpeedCheckFall) == 0x30);

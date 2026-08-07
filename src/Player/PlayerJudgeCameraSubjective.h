@@ -15,6 +15,7 @@ public:
                                 const PlayerInput* input);
 
     bool isEnableKeepSubjectiveCamera() const;
+    al::CameraTicket* getTicket() const { return mTicket; }
 
     bool judge() const override;
 

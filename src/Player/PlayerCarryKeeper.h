@@ -5,6 +5,8 @@
 
 #include "Library/Nerve/NerveExecutor.h"
 
+#include "Player/PlayerJointParamHandLegAngle.h"
+
 namespace al {
 class LiveActor;
 class HitSensor;
@@ -13,7 +15,6 @@ class IUsePlayerCollision;
 class PlayerAnimator;
 class IPlayerModelChanger;
 class IUsePlayerCeilingCheck;
-class PlayerJointParamHandLegAngle;
 class PlayerPushReceiver;
 
 class PlayerCarryKeeper : public al::NerveExecutor {
@@ -24,7 +25,8 @@ public:
                       PlayerJointParamHandLegAngle* handLegAngleParam);
 
     void update();
-    bool updateCollideLockUp(const IUsePlayerCollision* collider, PlayerPushReceiver* pushReceiver);
+    bool updateCollideLockUp(const IUsePlayerCollision* collider,
+                             const PlayerPushReceiver* pushReceiver);
     void updateHandJointAngle();
 
     bool startCarry(al::HitSensor* heldSensor);
@@ -69,12 +71,20 @@ private:
     IPlayerModelChanger* mModelChanger;
     IUsePlayerCeilingCheck* mCeilingCheck;
     PlayerJointParamHandLegAngle* mHandLegAngleParam;
-    s32 _48;
-    bool mIsCarryAbove;
-    bool mIsCarryWallKeep;
-    sead::Vector3f _50;
-    s32 _5c;
-    sead::Vector3f _60;
+    s32 mCarryDelay;
+
+    union {
+        struct {
+            bool carryAboveFlag;
+            bool carryWallKeepFlag;
+        };
+
+        u16 mCarryFlags;
+    };
+
+    sead::Vector3f mHandJointAngle;
+    s32 mCollideLockCounter;
+    sead::Vector3f mCarryActorPos;
 };
 
 static_assert(sizeof(PlayerCarryKeeper) == 0x70);

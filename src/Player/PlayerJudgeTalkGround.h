@@ -41,3 +41,5 @@ private:
     const PlayerConst* mPlayerConst;
     const PlayerStateWait* mPlayerStateWait;
 };
+
+static_assert(sizeof(PlayerJudgeTalkGround) == 0x48);

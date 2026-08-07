@@ -4,12 +4,13 @@
 #include "Util/IUseDimension.h"
 
 namespace al {
+class ComboCounter;
 class FootPrintHolder;
 class HitSensor;
 class WaterSurfaceFinder;
 }  // namespace al
 
-class ComboCounter;
+class IJudge;
 class PlayerInfo;
 class PlayerConst;
 class PlayerInput;
@@ -202,7 +203,7 @@ public:
     void exePoleClimb();
     void exeHipDrop();
     void exeHeadSliding();
-    void exeLongJump();
+    __attribute__((noinline)) void exeLongJump();
     void exeFall();
     void exeSandSink();
     void exeSandGeyser();
@@ -273,7 +274,7 @@ private:
     GaugeAir* mGaugeAir;
     WaterSurfaceShadow* mWaterSurfaceShadow;
     WorldEndBorderKeeper* mWorldEndBorderKeeper;
-    ComboCounter* mComboCounter;
+    al::ComboCounter* mComboCounter;
     PlayerSeCtrl* mSeCtrl;
     al::HitSensor* mBodyHitSensor;
     bool mIsLongShadow;
@@ -316,7 +317,7 @@ private:
     PlayerJudgeForceSlopeSlide* mJudgeForceSlopeSlide;
     PlayerJudgeForceRolling* mJudgeForceRolling;
     PlayerJudgeGrabCeil* mJudgeGrabCeil;
-    PlayerJudgeInWater* mJudgeInWater[4];
+    IJudge* mJudgeInWater[4];
     PlayerJudgeInvalidateInputFall* mJudgeInvalidateInputFall;
     PlayerJudgeLongFall* mJudgeLongFall;
     PlayerJudgeOutInWater* mJudgeOutInWater;
@@ -345,3 +346,4 @@ private:
     PlayerJudgeWallKeep* mJudgeWallKeep;
     bool mIsReduceOxygen;
 };
+static_assert(sizeof(PlayerActorHakoniwa) == 0x508);

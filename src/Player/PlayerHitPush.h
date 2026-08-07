@@ -18,6 +18,10 @@ public:
     void setHitPushVeryStrong(const sead::Vector3f& dir);
     void setHitPushBlowDown(const sead::Vector3f& dir);
 
+    bool isHit() const { return mIsHit; }
+    bool isBlowDown() const { return mIsBlowDown; }
+    const sead::Vector3f& getPush() const { return mPush; }
+
 private:
     const al::LiveActor* mPlayer = nullptr;
     const PlayerConst* mPlayerConst = nullptr;

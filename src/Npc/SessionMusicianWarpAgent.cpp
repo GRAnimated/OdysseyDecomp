@@ -94,5 +94,6 @@ bool SessionMusicianWarpAgent::tryStartWarp() {
     if (!mChangeStageNormal && !mChangeStageTalk)
         return rs::requestStartDemoWarp(mActor);
 
-    return GameDataFunction::tryChangeNextStage(mActor, getNextStage(this));
+    return GameDataFunction::tryChangeNextStage(
+        mActor, getNextStage(this));
 }

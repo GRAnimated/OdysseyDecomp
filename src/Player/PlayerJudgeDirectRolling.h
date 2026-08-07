@@ -35,3 +35,5 @@ private:
     const PlayerCounterForceRun* mCounterForceRun;
     bool mIsJudge = false;
 };
+
+static_assert(sizeof(PlayerJudgeDirectRolling) == 0x48);

@@ -20,3 +20,5 @@ private:
     const IUsePlayerCollision* mCollider;
     const IUsePlayerCeilingCheck* mCeilingChecker;
 };
+
+static_assert(sizeof(PlayerJudgeEnableStandUp) == 0x18);

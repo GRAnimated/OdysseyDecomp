@@ -21,7 +21,7 @@ class PlayerActionGroundMoveControl;
 class PlayerAnimator;
 class PlayerConst;
 class PlayerInput;
-class PlayerJointParamCenterDynamics;
+struct PlayerJointParamCenterDynamics;
 class PlayerModelHolder;
 class PlayerTrigger;
 class PlayerWallActionHistory;

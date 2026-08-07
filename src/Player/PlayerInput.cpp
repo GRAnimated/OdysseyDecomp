@@ -10,7 +10,7 @@
 #include "Util/ActorDimensionUtil.h"
 
 bool PlayerInput::isEnableCarry() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
 
     return PlayerInputFunction::isHoldAction(mLiveActor,
@@ -18,7 +18,7 @@ bool PlayerInput::isEnableCarry() const {
 }
 
 bool PlayerInput::isTriggerCarryStart() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
 
     return PlayerInputFunction::isTriggerAction(mLiveActor,
@@ -26,54 +26,54 @@ bool PlayerInput::isTriggerCarryStart() const {
 }
 
 bool PlayerInput::isTriggerCarryRelease() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
 
     if (PlayerInputFunction::isTriggerAction(mLiveActor,
                                              PlayerFunction::getPlayerInputPort(mLiveActor)))
         return true;
 
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
 
     return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerSwingActionMario() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
 
     return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerCarryReleaseBySwing() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (!PlayerInputFunction::isTriggerAction(mLiveActor,
                                               PlayerFunction::getPlayerInputPort(mLiveActor))) {
-        if (mIsDisableInput)
+        if (isDisableInput)
             return false;
         if (!mJoyPadAccelPoseAnalyzer1->isSwingAnyHand())
             return false;
     }
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerAction() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isTriggerAction(mLiveActor,
                                                 PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isTriggerJump() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     auto* dimension = mDimension;
     if (dimension && rs::is2D(dimension) && rs::isIn2DArea(dimension)) {
-        if (!mIsDisableInput && mJoyPadAccelPoseAnalyzer1->isSwingAnyHand())
+        if (!isDisableInput && mJoyPadAccelPoseAnalyzer1->isSwingAnyHand())
             return true;
     }
     return PlayerInputFunction::isTriggerJump(mLiveActor,
@@ -81,32 +81,32 @@ bool PlayerInput::isTriggerJump() const {
 }
 
 bool PlayerInput::isTriggerHipDrop() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isTriggerSubAction(mLiveActor,
                                                    PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isTriggerHeadSliding() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (PlayerInputFunction::isTriggerAction(mLiveActor,
                                              PlayerFunction::getPlayerInputPort(mLiveActor)))
         return true;
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerPaddle() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isTriggerJump(mLiveActor,
                                               PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isTriggerRolling(bool a1) const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (!PlayerInputFunction::isHoldSubAction(mLiveActor,
                                               PlayerFunction::getPlayerInputPort(mLiveActor)) &&
@@ -115,19 +115,19 @@ bool PlayerInput::isTriggerRolling(bool a1) const {
     if (PlayerInputFunction::isTriggerAction(mLiveActor,
                                              PlayerFunction::getPlayerInputPort(mLiveActor)))
         return true;
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerRollingRestartSwing() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerRollingCancelHipDrop(bool a1) const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (!PlayerInputFunction::isHoldSubAction(mLiveActor,
                                               PlayerFunction::getPlayerInputPort(mLiveActor)) &&
@@ -136,40 +136,40 @@ bool PlayerInput::isTriggerRollingCancelHipDrop(bool a1) const {
     if (PlayerInputFunction::isTriggerAction(mLiveActor,
                                              PlayerFunction::getPlayerInputPort(mLiveActor)))
         return true;
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerHackAction() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isTriggerAction(mLiveActor,
                                                 PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isTriggerHackJump() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isTriggerJump(mLiveActor,
                                               PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isTriggerHackSwing() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerHackEnd() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     u32 inputPort = PlayerFunction::getPlayerInputPort(mLiveActor);
     return PlayerInputFunction::isTriggerSubAction(mLiveActor, inputPort);
 }
 
 bool PlayerInput::isTriggerHackSeparateJump() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (!rs::isSeparatePlay(mLiveActor))
         return false;
@@ -178,7 +178,7 @@ bool PlayerInput::isTriggerHackSeparateJump() const {
 }
 
 bool PlayerInput::isTriggerSeparateCapJangoHelp() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (!rs::isSeparatePlay(mLiveActor))
         return false;
@@ -189,7 +189,7 @@ bool PlayerInput::isTriggerSeparateCapJangoHelp() const {
 }
 
 bool PlayerInput::isHoldHackSeparateJump() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (!rs::isSeparatePlay(mLiveActor))
         return false;
@@ -198,21 +198,21 @@ bool PlayerInput::isHoldHackSeparateJump() const {
 }
 
 bool PlayerInput::isTriggerGetOff() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isTriggerSubAction(mLiveActor,
                                                    PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isHoldAction() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isHoldAction(mLiveActor,
                                              PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isHoldJump() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     auto* dimension = mDimension;
     if (dimension && rs::is2D(dimension) && rs::isIn2DArea(dimension) && _88 > 0)
@@ -222,46 +222,46 @@ bool PlayerInput::isHoldJump() const {
 }
 
 bool PlayerInput::isHoldHipDrop() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isHoldSubAction(mLiveActor,
                                                 PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isTriggerStartTalk() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isTriggerTalk(mLiveActor,
                                               PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isTriggerStartWorldWarp() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isTriggerStartWorldWarp(
         mLiveActor, PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isTriggerCancelWorldWarp() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isTriggerCancelWorldWarp(
         mLiveActor, PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isTriggerSpinCap() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     u32 inputPort = PlayerFunction::getPlayerInputPort(mLiveActor);
     if (PlayerInputFunction::isTriggerAction(mLiveActor, inputPort))
         return true;
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerToggleStayCap() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (!rs::isSeparatePlay(mLiveActor))
         return false;
@@ -270,11 +270,11 @@ bool PlayerInput::isTriggerToggleStayCap() const {
 }
 
 bool PlayerInput::isTriggerSpinAttackSeparate() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (!rs::isSeparatePlay(mLiveActor))
         return false;
-    if (!mIsDisableInput && mJoyPadAccelPoseAnalyzer1->isSwingAnyHand())
+    if (!isDisableInput && mJoyPadAccelPoseAnalyzer1->isSwingAnyHand())
         return true;
     return PlayerInputFunction::isTriggerAction(mLiveActor, al::getPlayerControllerPort(0));
 }
@@ -284,59 +284,59 @@ s32 PlayerInput::getSeparatePlay1P() {
 }
 
 bool PlayerInput::isTriggerCapReturn() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (!rs::isSeparatePlay(mLiveActor)) {
-        if (mIsDisableInput)
+        if (isDisableInput)
             return false;
         u32 inputPort = PlayerFunction::getPlayerInputPort(mLiveActor);
         if (PlayerInputFunction::isTriggerAction(mLiveActor, inputPort))
             return true;
-        if (mIsDisableInput)
+        if (isDisableInput)
             return false;
         return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
     }
-    if (mIsDisableInput || !rs::isSeparatePlay(mLiveActor))
+    if (isDisableInput || !rs::isSeparatePlay(mLiveActor))
         return false;
     s32 inputPort = al::getPlayerControllerPort(1);
     if (PlayerInputFunction::isTriggerAction(mLiveActor, inputPort))
         return true;
-    if (mIsDisableInput || !rs::isSeparatePlay(mLiveActor))
+    if (isDisableInput || !rs::isSeparatePlay(mLiveActor))
         return false;
     return mJoyPadAccelPoseAnalyzer2->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerCapAttackSeparate() const {
-    if (mIsDisableInput || !rs::isSeparatePlay(mLiveActor))
+    if (isDisableInput || !rs::isSeparatePlay(mLiveActor))
         return false;
     s32 inputPort = al::getPlayerControllerPort(1);
     if (PlayerInputFunction::isTriggerAction(mLiveActor, inputPort))
         return true;
-    if (mIsDisableInput || !rs::isSeparatePlay(mLiveActor))
+    if (isDisableInput || !rs::isSeparatePlay(mLiveActor))
         return false;
     return mJoyPadAccelPoseAnalyzer2->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerSwingActionCap() const {
-    if (mIsDisableInput || !rs::isSeparatePlay(mLiveActor))
+    if (isDisableInput || !rs::isSeparatePlay(mLiveActor))
         return false;
     return mJoyPadAccelPoseAnalyzer2->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerCapSingleHandThrow() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
 }
 
 bool PlayerInput::isTriggerCapDoubleHandThrow() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return mJoyPadAccelPoseAnalyzer1->isSwingDoubleHandSameDir();
 }
 
 bool PlayerInput::isTriggerCapSeparateJump() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (!rs::isSeparatePlay(mLiveActor))
         return false;
@@ -345,7 +345,7 @@ bool PlayerInput::isTriggerCapSeparateJump() const {
 }
 
 bool PlayerInput::isTriggerCapSeparateHipDrop() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (!rs::isSeparatePlay(mLiveActor))
         return false;
@@ -354,40 +354,40 @@ bool PlayerInput::isTriggerCapSeparateHipDrop() const {
 }
 
 bool PlayerInput::isTriggerSwingPoleClimbFast() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
 }
 
 bool PlayerInput::isHoldPoleClimbDown() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isHoldSubAction(mLiveActor,
                                                 PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isTriggerAppendCapAttack(bool a1) const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (!rs::isSeparatePlay(mLiveActor) || a1) {
-        if (mIsDisableInput)
+        if (isDisableInput)
             return false;
         return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
     }
-    if (mIsDisableInput || !rs::isSeparatePlay(mLiveActor))
+    if (isDisableInput || !rs::isSeparatePlay(mLiveActor))
         return false;
     return mJoyPadAccelPoseAnalyzer2->isSwingAnyHand();
 }
 
 bool PlayerInput::isHoldSpinCap() const {
-    if (mIsDisableInput || rs::isSeparatePlay(mLiveActor))
+    if (isDisableInput || rs::isSeparatePlay(mLiveActor))
         return false;
     return PlayerInputFunction::isHoldAction(mLiveActor,
                                              PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isHoldCapAction() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     if (rs::isSeparatePlay(mLiveActor))
         return !PlayerInputFunction::isTriggerAction(mLiveActor, al::getPlayerControllerPort(1));
@@ -396,70 +396,70 @@ bool PlayerInput::isHoldCapAction() const {
 }
 
 bool PlayerInput::isHoldPoleClimbFast() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isHoldAction(mLiveActor,
                                              PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isHoldWallCatchMoveFast() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isHoldAction(mLiveActor,
                                              PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isHoldHackAction() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isHoldAction(mLiveActor,
                                              PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isHoldHackJump() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isHoldJump(mLiveActor,
                                            PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isTriggerChange2D() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     u32 inputPort = PlayerFunction::getPlayerInputPort(mLiveActor);
     return al::isPadTriggerZL(inputPort) || al::isPadTriggerZR(inputPort);
 }
 
 bool PlayerInput::isTriggerChange3D() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     u32 inputPort = PlayerFunction::getPlayerInputPort(mLiveActor);
     return al::isPadTriggerZL(inputPort) || al::isPadTriggerZR(inputPort);
 }
 
 bool PlayerInput::isReleaseJump() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isReleaseJump(mLiveActor,
                                               PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isReleaseHackAction() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isReleaseAction(mLiveActor,
                                                 PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isReleaseHackJump() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isReleaseJump(mLiveActor,
                                               PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
 bool PlayerInput::isEnableDashInput() const {
-    if (mIsDisableInput)
+    if (isDisableInput)
         return false;
     return PlayerInputFunction::isHoldAction(mLiveActor,
                                              PlayerFunction::getPlayerInputPort(mLiveActor));
@@ -479,4 +479,21 @@ bool PlayerInput::isThrowTypeRolling(const sead::Vector2f& a1) const {
     f32 absX = (a1.x > 0 ? a1.x : -a1.x);
     f32 absY = (a1.y > 0 ? a1.y : -a1.y);
     return !(absX > absY) && !al::isNearZero(a1.y, 0.001);
+}
+
+void PlayerInput::resetAlongWall() {
+    _1c = 0;
+    _20 = 0.0f;
+}
+
+s32 PlayerInput::getSeparatePlay2P() {
+    return al::getPlayerControllerPort(1);
+}
+
+const sead::Matrix34f* PlayerInput::getInputViewMtx() const {
+    return PlayerFunction::getPlayerViewMtx(mLiveActor);
+}
+
+bool PlayerInput::isEnableRecoveryLifeInput() const {
+    return isEnableShowTutorialInput();
 }

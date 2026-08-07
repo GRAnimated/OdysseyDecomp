@@ -14,3 +14,5 @@ private:
     s32 mTimer = 0;
     s32 mDuration = 0;
 };
+
+static_assert(sizeof(PlayerCounterGetCoin) == 0x8);

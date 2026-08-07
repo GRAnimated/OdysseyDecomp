@@ -32,3 +32,5 @@ private:
     const PlayerCounterForceRun* mCounterForceRun;
     const IJudge* mJudgeForceLand;
 };
+
+static_assert(sizeof(PlayerJudgeStartRun) == 0x30);

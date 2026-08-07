@@ -24,3 +24,5 @@ private:
     const IJudge* mInWaterJudge;
     const al::WaterSurfaceFinder* mWaterSurfaceFinder;
 };
+
+static_assert(sizeof(PlayerJudgeCameraInWater) == 0x20);

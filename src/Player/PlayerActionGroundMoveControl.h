@@ -51,7 +51,7 @@ private:
     f32 mMaxSpeed;
     f32 mMinSpeed;
     f32 _40;
-    s32 _44;
+    f32 _44;
     s32 mRunFrame;
     s32 mStickOnBrakeFrame;
     s32 mBrakeFrame;
@@ -67,9 +67,7 @@ private:
     f32 _7c;
     bool mHasStopped;
     sead::Vector3f _84;
-    f32 _90;
-    f32 _94;
-    f32 _98;
+    sead::Vector3f _90;
     bool mIsForceRunCtrlActive;
     f32 _a0;
     bool mAlwaysFalse;

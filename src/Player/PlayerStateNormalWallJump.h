@@ -36,3 +36,5 @@ private:
     sead::Vector3f mFront;
     bool mIsJumpTowardsWall = false;
 };
+
+static_assert(sizeof(PlayerStateNormalWallJump) == 0x70);

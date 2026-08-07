@@ -28,3 +28,5 @@ private:
     const IUsePlayerCollision* mCollider;
     s32 mCounterAirForce = 0;
 };
+
+static_assert(sizeof(PlayerJudgeAirForceCount) == 0x28);

@@ -29,3 +29,5 @@ private:
     const IPlayerModelChanger* mModelChanger;
     bool mIsJudge = false;
 };
+
+static_assert(sizeof(PlayerJudgeSlopeSlide) == 0x38);
