@@ -36,4 +36,5 @@ bool isGraphicsQualityModeConsole(const al::LiveActor* actor);
 void requestUpdateMaterialInfo(al::Scene*);
 void validateGpuStressAnalyzer(al::Scene*);
 void invalidateGpuStressAnalyzer(al::Scene*);
+void requestChangeShaderVariation(const al::LiveActor*, const char*, const char*, bool);
 }  // namespace alGraphicsFunction

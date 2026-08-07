@@ -50,61 +50,45 @@ void createCollisionShapeArrows2D(CollisionShapeKeeper* collisionShapeKeeper) {
 
 PlayerColliderHakoniwa::PlayerColliderHakoniwa(al::LiveActor* player,
                                                const PlayerConst* playerConst)
-    : mPlayer(player),
-      mConst(playerConst),
-      mCollider(nullptr),
-      mCeilingCheck(nullptr),
-      mIsAboveGround(false),
-      mGroundHeight(0.0f),
-      mShadowDropHeight(0.0f),
-      mGroundNormal(0.0f, 0.0f, 0.0f),
-      mFallStartPos(0.0f, 0.0f, 0.0f),
-      mFallDistance(0.0f),
-      mNoGroundFrames(0),
-      mGroundSensor(nullptr),
-      mCollisionNormal(nullptr),
-      mCollisionMini(nullptr),
-      mCollisionSwim(nullptr),
-      mCollisionGrabCeil(nullptr),
-      mCollisionWallGrab(nullptr),
-      mCollisionPoleClimb(nullptr),
-      mCollision2DNormal(nullptr),
-      mCollision2DMini(nullptr),
-      mCollisionFilter2D(rs::createCollisionPartsFilter2DOnly()) {}
+    : mPlayer(player), mConst(playerConst), mCollider(nullptr), mCeilingCheck(nullptr),
+      mIsAboveGround(false), mGroundHeight(0.0f), mShadowDropHeight(0.0f),
+      mGroundNormal(0.0f, 0.0f, 0.0f), mFallStartPos(0.0f, 0.0f, 0.0f), mFallDistance(0.0f),
+      mNoGroundFrames(0), mGroundSensor(nullptr), mCollisionNormal(nullptr),
+      mCollisionMini(nullptr), mCollisionSwim(nullptr), mCollisionGrabCeil(nullptr),
+      mCollisionWallGrab(nullptr), mCollisionPoleClimb(nullptr), mCollision2DNormal(nullptr),
+      mCollision2DMini(nullptr), mCollisionFilter2D(rs::createCollisionPartsFilter2DOnly()) {}
 
-
-// NON_MATCHING: exact 1912-byte body; named wall-grab vector lifetimes align the target through 0x4361F0, with one remaining head-offset multiply scheduling delta at 0x4361F4.
+// NON_MATCHING: exact 1912-byte body; named wall-grab vector lifetimes align the target through
+// 0x4361F0, with one remaining head-offset multiply scheduling delta at 0x4361F4.
 void PlayerColliderHakoniwa::init() {
     mCollisionNormal = new CollisionShapeKeeper(5, 64, 32);
     mCollisionNormal->set54(25.0f);
     mCollisionNormal->set58(25.0f);
     createCollisionShapeArrows(mCollisionNormal, sead::Vector3f::zero);
-    mCollisionNormal->createShapeSphereSupportGround(
-        "Body", 55.0f, sead::Vector3f::ey * 65.0f, sead::Vector3f::ey, 14.5f);
+    mCollisionNormal->createShapeSphereSupportGround("Body", 55.0f, sead::Vector3f::ey * 65.0f,
+                                                     sead::Vector3f::ey, 14.5f);
     mCollisionNormal->createShapeSphere("Head", 55.0f, sead::Vector3f::ey * 105.0f);
     mCollisionNormal->updateShape();
 
     mCollisionMini = new CollisionShapeKeeper(5, 64, 32);
     createCollisionShapeArrows(mCollisionMini, sead::Vector3f::zero);
-    mCollisionMini->createShapeSphereSupportGround(
-        "Body", 55.0f, sead::Vector3f::ey * 55.0f, sead::Vector3f::ey, 14.5f);
+    mCollisionMini->createShapeSphereSupportGround("Body", 55.0f, sead::Vector3f::ey * 55.0f,
+                                                   sead::Vector3f::ey, 14.5f);
     mCollisionMini->set58(25.0f);
     mCollisionMini->updateShape();
 
     mCollisionSwim = new CollisionShapeKeeper(5, 64, 32);
     mCollisionSwim->set54(25.0f);
     createCollisionShapeArrows(mCollisionSwim, sead::Vector3f::zero);
-    mCollisionSwim->createShapeSphereIgnoreGround("Body", 55.0f,
-                                                   sead::Vector3f::ey * 55.0f);
+    mCollisionSwim->createShapeSphereIgnoreGround("Body", 55.0f, sead::Vector3f::ey * 55.0f);
     mCollisionSwim->createShapeSphere("Head", 55.0f, sead::Vector3f::ey * 105.0f);
     mCollisionSwim->updateShape();
 
     mCollisionGrabCeil = new CollisionShapeKeeper(5, 64, 32);
     createCollisionShapeArrows(mCollisionGrabCeil, sead::Vector3f::ey * -140.0f);
-    mCollisionGrabCeil->createShapeSphereSupportGround(
-        "Body", 55.0f, sead::Vector3f::ey * -75.0f, sead::Vector3f::ey, 30.0f);
-    mCollisionGrabCeil->createShapeSphereIgnoreGround("Head", 55.0f,
-                                                       sead::Vector3f::ey * -35.0f);
+    mCollisionGrabCeil->createShapeSphereSupportGround("Body", 55.0f, sead::Vector3f::ey * -75.0f,
+                                                       sead::Vector3f::ey, 30.0f);
+    mCollisionGrabCeil->createShapeSphereIgnoreGround("Head", 55.0f, sead::Vector3f::ey * -35.0f);
     mCollisionGrabCeil->updateShape();
 
     mCollisionWallGrab = new CollisionShapeKeeper(5, 64, 32);
@@ -113,12 +97,12 @@ void PlayerColliderHakoniwa::init() {
     createCollisionShapeArrows(mCollisionWallGrab, wallGrabDepth - wallGrabVertical);
     const sead::Vector3f wallGrabBodyVertical = sead::Vector3f::ey * 75.0f;
     const sead::Vector3f wallGrabBodyDepth = sead::Vector3f::ez * -50.0f;
-    mCollisionWallGrab->createShapeSphereIgnoreGround(
-        "Body", 55.0f, wallGrabBodyDepth - wallGrabBodyVertical);
+    mCollisionWallGrab->createShapeSphereIgnoreGround("Body", 55.0f,
+                                                      wallGrabBodyDepth - wallGrabBodyVertical);
     const sead::Vector3f wallGrabHeadVertical = sead::Vector3f::ey * 35.0f;
     const sead::Vector3f wallGrabHeadDepth = sead::Vector3f::ez * -50.0f;
-    mCollisionWallGrab->createShapeSphereIgnoreGround(
-        "Head", 55.0f, wallGrabHeadDepth - wallGrabHeadVertical);
+    mCollisionWallGrab->createShapeSphereIgnoreGround("Head", 55.0f,
+                                                      wallGrabHeadDepth - wallGrabHeadVertical);
     mCollisionWallGrab->updateShape();
 
     mCollisionPoleClimb = new CollisionShapeKeeper(5, 64, 32);
@@ -133,20 +117,20 @@ void PlayerColliderHakoniwa::init() {
 
     mCollision2DNormal = new CollisionShapeKeeper(5, 64, 32);
     createCollisionShapeArrows2D(mCollision2DNormal);
-    mCollision2DNormal->createShapeDiskSupportGround(
-        "Body", 55.0f, sead::Vector3f::ey * 55.0f, sead::Vector3f::ex, 5.0f,
-        sead::Vector3f::ey, 14.5f);
+    mCollision2DNormal->createShapeDiskSupportGround("Body", 55.0f, sead::Vector3f::ey * 55.0f,
+                                                     sead::Vector3f::ex, 5.0f, sead::Vector3f::ey,
+                                                     14.5f);
     mCollision2DNormal->createShapeDisk("Head", 55.0f, sead::Vector3f::ey * 130.0f,
-                                         sead::Vector3f::ex, 5.0f);
+                                        sead::Vector3f::ex, 5.0f);
     mCollision2DNormal->updateShape();
 
     mCollision2DMini = new CollisionShapeKeeper(5, 64, 32);
     createCollisionShapeArrows2D(mCollision2DMini);
-    mCollision2DMini->createShapeDiskSupportGround(
-        "Body", 55.0f, sead::Vector3f::ey * 55.0f, sead::Vector3f::ex, 5.0f,
-        sead::Vector3f::ey, 14.5f);
-    mCollision2DMini->createShapeDisk("Head", 55.0f, sead::Vector3f::ey * 55.0f,
-                                       sead::Vector3f::ex, 5.0f);
+    mCollision2DMini->createShapeDiskSupportGround("Body", 55.0f, sead::Vector3f::ey * 55.0f,
+                                                   sead::Vector3f::ex, 5.0f, sead::Vector3f::ey,
+                                                   14.5f);
+    mCollision2DMini->createShapeDisk("Head", 55.0f, sead::Vector3f::ey * 55.0f, sead::Vector3f::ex,
+                                      5.0f);
     mCollision2DMini->updateShape();
 
     mCollider = new PlayerCollider(mPlayer->getCollisionDirector(), mPlayer->getBaseMtx(),
@@ -155,10 +139,10 @@ void PlayerColliderHakoniwa::init() {
     mCeilingCheck = new PlayerCeilingCheck(mPlayer->getCollisionDirector());
 }
 
-
 sead::Vector3f PlayerColliderHakoniwa::updateCollider(const sead::Vector3f& velocity) {
-    mCollider->setInFastMoveCollisionArea(al::isInAreaObj(
-        static_cast<const al::IUseAreaObj*>(mPlayer), "FastMoveCollisionArea", al::getTrans(mPlayer)));
+    mCollider->setInFastMoveCollisionArea(
+        al::isInAreaObj(static_cast<const al::IUseAreaObj*>(mPlayer), "FastMoveCollisionArea",
+                        al::getTrans(mPlayer)));
     sead::Vector3f result = mCollider->collide(velocity);
 
     if (rs::isCollidedGround(this)) {
@@ -171,7 +155,7 @@ sead::Vector3f PlayerColliderHakoniwa::updateCollider(const sead::Vector3f& velo
 }
 
 void PlayerColliderHakoniwa::updateHeightCheck(const sead::Vector3f& trans,
-                                                const sead::Vector3f& up, bool isGrounded) {
+                                               const sead::Vector3f& up, bool isGrounded) {
     if (rs::isCollidedGround(this) && isGrounded) {
         mGroundHeight = 0.0f;
         mIsAboveGround = true;
@@ -182,24 +166,22 @@ void PlayerColliderHakoniwa::updateHeightCheck(const sead::Vector3f& trans,
         mGroundNormal = groundNormal;
     } else {
         mGroundHeight = 1700.0f;
-        mIsAboveGround =
-            rs::calcGroundHeight(&mGroundHeight, &mGroundNormal, mCollider, trans, up, 30.0f,
-                                 1700.0f);
+        mIsAboveGround = rs::calcGroundHeight(&mGroundHeight, &mGroundNormal, mCollider, trans, up,
+                                              30.0f, 1700.0f);
         mShadowDropHeight = mGroundHeight;
     }
 }
 
 void PlayerColliderHakoniwa::updateCeilingCheck(const sead::Vector3f& trans,
-                                                 const sead::Vector3f& up, f32 headClearance,
-                                                 f32 holdHeight) {
+                                                const sead::Vector3f& up, f32 headClearance,
+                                                f32 holdHeight) {
     mCeilingCheck->update(trans, up, mConst->getTall(), mConst->getCollisionRadiusSquat(),
                           headClearance, holdHeight);
 }
 
 void PlayerColliderHakoniwa::updateFallDistanceCheck(const sead::Vector3f& trans,
-                                                      const sead::Vector3f& velocity,
-                                                      const sead::Vector3f& gravity,
-                                                      f32 threshold) {
+                                                     const sead::Vector3f& velocity,
+                                                     const sead::Vector3f& gravity, f32 threshold) {
     if (rs::isOnGround(mPlayer, this) && !rs::isJustLand(this)) {
         mFallStartPos.set(0.0f, 0.0f, 0.0f);
         mFallDistance = 0.0f;
@@ -218,7 +200,6 @@ void PlayerColliderHakoniwa::updateFallDistanceCheck(const sead::Vector3f& trans
         }
     }
 }
-
 
 void PlayerColliderHakoniwa::changeCollisionNormal() {
     mCollider->setCollisionShapeKeeper(mCollisionNormal);
@@ -336,7 +317,7 @@ void PlayerColliderHakoniwa::changeCollisionAbyss(const sead::Vector3f& cutDir) 
     mCollider->setCollisionPartsFilter(nullptr);
     mCollider->setDuringRecovery(false);
     mCollider->onCutCollideAffectDir(cutDir);
-    mCollider->setWallBorderCheckTypeAll();
+    mCollider->setWallBorderCheckTypeNoFace();
     mCeilingCheck->setupCeilingCheckNormal();
     mCeilingCheck->setCollisionPartsFilter(nullptr);
 }

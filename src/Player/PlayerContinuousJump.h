@@ -14,6 +14,8 @@ public:
     u32 getCount() const { return mCount; }
 
 private:
+    friend class PlayerStateJump2D3D;
+
     const PlayerConst* mConst;
     u32 mCount = 0;
     u32 mTimer = 0;

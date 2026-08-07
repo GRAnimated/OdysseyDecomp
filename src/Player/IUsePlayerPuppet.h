@@ -35,7 +35,7 @@ public:
     virtual void showSilhouette() = 0;
     virtual void hideShadow() = 0;
     virtual void showShadow() = 0;
-    virtual void requestDamage() = 0;
+    virtual bool requestDamage() = 0;
     virtual void clearRequestDamage() = 0;
     virtual bool isRequestDamage() const = 0;
     virtual void setBindEndOnGround() = 0;

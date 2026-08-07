@@ -11,7 +11,7 @@ class HitSensor;
 class LiveActor;
 class MtxConnector;
 class WaterSurfaceFinder;
-}
+}  // namespace al
 class IJudge;
 class IUsePlayerCollision;
 class IUsePlayerHeightCheck;
@@ -101,7 +101,7 @@ private:
     bool mIsIgnoreLifeOne;
     u8 _af;
     s32 _b0;
-    bool mIsInvalidateInput;
+    u8 mIsInvalidateInput;
     u8 _b5[3];
     const char* mRequestAnimName;
     sead::Vector3f _c0;

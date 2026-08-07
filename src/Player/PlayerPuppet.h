@@ -65,7 +65,7 @@ public:
     void showSilhouette() override;
     void hideShadow() override;
     void showShadow() override;
-    void requestDamage() override;
+    bool requestDamage() override;
     void clearRequestDamage() override;
     bool isRequestDamage() const override;
     void setBindEndOnGround() override;
@@ -89,6 +89,7 @@ public:
                                    const al::AreaObj*);
     bool tryUpdateRecoveryInfo(bool*, bool*, sead::Vector3f*, sead::Vector3f*, const al::AreaObj**);
     bool isBinding() const;
+
     void setJudgePreInputJump(PlayerJudgePreInputJump* judge) { mJudgePreInputJump = judge; }
 
     bool isEnableGuideArrow() const { return _b4; }
@@ -98,15 +99,25 @@ public:
     const PlayerBindEndJumpInfo* getBindEndJumpInfo() const { return mBindEndJumpInfo; }
 
     bool isNoCollide() const;
+
     bool isDemoPushDisabled() const { return _ac; }
+
     bool isBindPushDisabled() const { return _ac; }
+
     bool isBindSeparateCapEnabled() const { return _b3; }
+
     bool isBindRecoveryEnabled() const { return _b2; }
+
     bool isSensorValid() const { return mIsSensorValid; }
+
     bool isWaterSurfaceShadowEnabled() const { return _b5; }
+
     bool isBindDimensionChangeEnabled() const { return _ae; }
+
     bool isLookAtEnabled() const { return _b0; }
+
     bool isLookAtTargetPositionEnabled() const { return _b1; }
+
     const sead::Vector3f& getLookAtTargetPosition() const { return mLookAtTargetPosition; }
 
 private:
@@ -121,8 +132,8 @@ private:
     PlayerDamageKeeper* mPlayerDamageKeeper;
     PlayerEffect* mPlayerEffect;
     PlayerJudgePreInputJump* mJudgePreInputJump;
-    PlayerInput* mPlayerInput;
-    PlayerConst* mPlayerConst;
+    const PlayerInput* mPlayerInput;
+    const PlayerConst* mPlayerConst;
     al::HitSensor* _70;
     al::HitSensor* _78;
     bool _80;
@@ -130,7 +141,7 @@ private:
     bool _82;
     sead::Vector3f _84;
     sead::Vector3f _90;
-    al::AreaObj* mAreaObj;
+    const al::AreaObj* mAreaObj;
     bool mIsBindEndOnGround;
     bool mIsBindEndJump;
     bool mIsBindEndCapThrow;

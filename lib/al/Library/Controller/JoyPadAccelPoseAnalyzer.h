@@ -38,7 +38,14 @@ public:
     bool isSwingRightHand() const;
     void setSwingBorder(f32, f32);
     void update();
-    JoyPadAccelPoseAnalyzer getSwingDirDoubleHandSameDir() const;
+    const sead::Vector2f& getSwingDirDoubleHandSameDir() const;
+
+    const sead::Vector2f& getSwingLeftHandDir() const { return mAccelLeftVel; }
+    const sead::Vector2f& getSwingRightHandDir() const { return mAccelRightVel; }
+    const sead::Vector2f& getSwingVelLeftHand() const { return mAccelLeftAccel; }
+    const sead::Vector2f& getSwingVelRightHand() const { return mAccelRightAccel; }
+    f32 getPoseRotZDegreeLeft() const { return mGyroRoll.x; }
+    f32 getPoseRotZDegreeRight() const { return mGyroRoll.y; }
 
 private:
     s32 mControllerPort;               // port of the controller

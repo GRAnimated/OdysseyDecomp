@@ -30,7 +30,7 @@ public:
     s32 getSeparatePlay2P();
     bool isMove() const;
     bool isMoveDeepDown() const;
-    const sead::Vector2f& getStickMoveRaw() const;
+    sead::Vector2f getStickMoveRaw() const;
     bool isMoveDeepDownNoSnap() const;
     bool isEnableCarry() const;
     bool isTriggerCarryStart() const;
@@ -105,9 +105,9 @@ public:
     void calcCapSeparateMoveInput(sead::Vector3f*, const sead::Vector3f&) const;
     bool isSameStickMove(const sead::Vector2f&, f32) const;
     f32 getRadiconInputSteeringValue() const;
-    const sead::Vector2f& getStickCameraRaw() const;
-    const sead::Vector2f& getCameraInputRaw() const;
-    const sead::Vector2f& getStickCameraSubRaw() const;
+    sead::Vector2f getStickCameraRaw() const;
+    sead::Vector2f getCameraInputRaw() const;
+    sead::Vector2f getStickCameraSubRaw() const;
     bool isTriggerCameraReset() const;
     bool isTriggerCameraSubjective() const;
     bool isHoldBalloonSet() const;
@@ -153,8 +153,8 @@ public:
 
     void resetDemoInput() {
         mDemoInputState = 0;
-        isDisableInput = false;
-        isDisableInput2 = false;
+        _98 = false;
+        _99 = false;
     }
 
     void setPuppetableDemo(bool isPuppetable) {
@@ -175,17 +175,17 @@ public:
 
     void startHipDropDemoTrigger() {
         mDemoInputState = 30;
-        isDisableInput = true;
-        isDisableInput2 = true;
+        _98 = true;
+        _99 = true;
     }
 
     void startHipDropSwitch() {
         mDemoInputState = 30;
-        isDisableInput = true;
-        isDisableInput2 = false;
+        _98 = true;
+        _99 = false;
     }
 
-    bool isDamageInputLocked() const { return isDisableInput2; }
+    bool isDamageInputLocked() const { return _99; }
 
 private:
     const al::LiveActor* mLiveActor;
@@ -222,8 +222,8 @@ private:
 
     union {
         struct {
-            bool isDisableInput;
-            bool isDisableInput2;
+            bool _98;
+            bool _99;
         };
 
         u16 mDisableInputFlags;

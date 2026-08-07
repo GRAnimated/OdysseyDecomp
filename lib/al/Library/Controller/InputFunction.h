@@ -10,6 +10,7 @@ namespace al {
 class IUseCamera;
 
 bool isPadTypeJoySingle(s32 port = -1);
+s32 getPadAccelerationDeviceNum(s32 port = -1);
 
 bool isPadTrigger(s32 port, s32 button);
 bool isPadTriggerA(s32 port = -1);

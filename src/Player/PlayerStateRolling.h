@@ -7,7 +7,7 @@
 namespace al {
 class HitSensor;
 class LiveActor;
-}
+}  // namespace al
 class IJudge;
 class IUsePlayerCollision;
 class PlayerActionAirMoveControl;
@@ -25,14 +25,13 @@ class PlayerTrigger;
 
 class PlayerStateRolling : public al::ActorStateBase {
 public:
-    PlayerStateRolling(al::LiveActor* player, const PlayerConst* pConst,
-                       const PlayerInput* input, const IUsePlayerCollision* collision,
-                       PlayerTrigger* trigger, PlayerAnimator* animator, PlayerEffect* effect,
+    PlayerStateRolling(al::LiveActor* player, const PlayerConst* pConst, const PlayerInput* input,
+                       const IUsePlayerCollision* collision, PlayerTrigger* trigger,
+                       PlayerAnimator* animator, PlayerEffect* effect,
                        PlayerJudgeStartRolling* judgeStartRolling, IJudge* judgeDirectRolling,
                        PlayerJudgePreInputJump* judgePreInputJump,
-                       PlayerJudgePreInputCapThrow* judgePreInputCapThrow,
-                       IJudge* judgeStartRise, PlayerContinuousLongJump* continuousLongJump,
-                       PlayerSeCtrl* seCtrl);
+                       PlayerJudgePreInputCapThrow* judgePreInputCapThrow, IJudge* judgeStartRise,
+                       PlayerContinuousLongJump* continuousLongJump, PlayerSeCtrl* seCtrl);
     ~PlayerStateRolling() override;
 
     void appear() override;
@@ -46,6 +45,7 @@ public:
     bool isEndStandUp() const;
     bool isEnableTrample(const al::HitSensor* self, const al::HitSensor* other) const;
     f32 getInverseKinematicsRate() const;
+    PlayerEffect* getEffect() const { return mEffect; }
     void exeBoostStart();
     void updateRollingAnimFrameRate();
     void exeStart();

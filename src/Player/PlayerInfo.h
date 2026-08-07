@@ -48,12 +48,15 @@ class WorldEndBorderKeeper;
 class PlayerInfo {
 public:
     friend class PlayerActorHakoniwa;
-
     PlayerInfo();
 
     HackCap* getHackCap() const { return mHackCap; }
+    PlayerDamageKeeper* getDamageKeeper() const { return mDamageKeeper; }
+    PlayerHackKeeper* getHackKeeper() const { return mHackKeeper; }
 
     PlayerJudgeDead* getJudgeDead() const { return mJudgeDead; }
+    PlayerJudgeDeadWipeStart* getJudgeDeadWipeStart() const { return mJudgeDeadWipeStart; }
+    PlayerJudgeDrawForward* getJudgeDrawForward() const { return mJudgeDrawForward; }
 
     PlayerJudgeSafetyPointRecovery* getJudgeSafetyPointRecovery() const {
         return mJudgeSafetyPointRecovery;

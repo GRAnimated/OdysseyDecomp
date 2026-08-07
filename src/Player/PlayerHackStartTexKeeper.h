@@ -8,6 +8,7 @@ namespace agl {
 class DrawContext;
 class SamplerLocation;
 class TextureData;
+
 namespace g3d {
 class ResFile;
 }
@@ -22,11 +23,14 @@ public:
     void activateHackStartTexture(agl::DrawContext*, const agl::SamplerLocation&) const;
     const char* getSceneObjName() const override;
 
+    void setCaptureTextureCleared(bool value) { mIsCaptureTextureCleared = value; }
+
 private:
     agl::TextureData* mHackStartTexture;
     agl::g3d::ResFile* mResource;
     bool mIsTextureCleared;
-    u8 mPadding19[7];
+    bool mIsCaptureTextureCleared;
+    u8 mPadding1a[6];
     agl::TextureData* mCaptureTexture;
     u8 mCaptureImageMemory[24];
 };

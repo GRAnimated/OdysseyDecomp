@@ -26,6 +26,8 @@ public:
     bool judge() const override { return mIsWaterSurfaceRun; }
 
 private:
+    friend class PlayerStateRunHakoniwa2D3D;
+
     bool mIsWaterSurfaceRun = false;
     bool mIsEnable = false;
     const al::LiveActor* mPlayer;

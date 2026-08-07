@@ -9,7 +9,7 @@ namespace al {
 class CollisionParts;
 class HitSensor;
 class LiveActor;
-}
+}  // namespace al
 class IUsePlayerCollision;
 class PlayerActionCollisionSnap;
 class PlayerActionDiveInWater;
@@ -26,10 +26,10 @@ class PlayerWallActionHistory;
 
 class PlayerStatePoleClimb : public al::ActorStateBase {
 public:
-    PlayerStatePoleClimb(al::LiveActor* player, const PlayerConst* pConst,
-                         const PlayerInput* input, const PlayerTrigger* trigger,
-                         PlayerModelHolder* modelHolder, IUsePlayerCollision* collision,
-                         PlayerAnimator* animator, PlayerWallActionHistory* wallActionHistory,
+    PlayerStatePoleClimb(al::LiveActor* player, const PlayerConst* pConst, const PlayerInput* input,
+                         const PlayerTrigger* trigger, PlayerModelHolder* modelHolder,
+                         IUsePlayerCollision* collision, PlayerAnimator* animator,
+                         PlayerWallActionHistory* wallActionHistory,
                          PlayerJointParamHandLegAngle* handLegAngle,
                          PlayerJudgePreInputJump* judgePreInputJump,
                          PlayerActionDiveInWater* actionDiveInWater);
@@ -40,8 +40,8 @@ public:
     bool isFormPoleClimb() const;
     bool update() override;
     void setup(const al::CollisionParts* collisionParts, const sead::Vector3f& position,
-               const sead::Vector3f& front, const sead::Vector3f& up, f32 depth,
-               f32 moveRate, const char* animationName);
+               const sead::Vector3f& front, const sead::Vector3f& up, f32 depth, f32 moveRate,
+               const char* animationName);
     void updatePoleDepth(f32 depth, f32 rate);
     bool isAttachPole() const;
     bool isPoleJump() const;
@@ -50,10 +50,12 @@ public:
     bool isForceFollowCap() const;
     const sead::Vector3f& getPoleFront() const;
     al::HitSensor* getPoleSensor() const;
+
     const char* getMaterialCode() const { return mMaterialCode; }
+
     void updateLeavePoleTrans() const;
     void exeStart();
-    void followCollision();
+    bool followCollision();
     bool tryStartClimbMove(s32 direction, s32* moveDirection);
     void exeWait();
     void exeUp();

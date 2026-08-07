@@ -9,6 +9,7 @@ class SpinInputAnalyzer {
 public:
     SpinInputAnalyzer();
     void update(const sead::Vector2f& controllerInput);
+    s32 getSpinDirection() const { return mSpinDirection; }
 
 private:
     sead::Buffer<f32> mChangeHistory;

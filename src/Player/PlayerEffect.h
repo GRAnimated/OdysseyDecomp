@@ -21,7 +21,9 @@ public:
     void tryDeleteInvincibleEffect();
     void restartInvincibleEffect();
     void updateInvincibleEffect(const IPlayerModelChanger*, bool);
+
     bool isInvincibleEffectActive() const { return mIsInvincibleEffectActive; }
+
     void clearRunEffect();
     bool isRunEffectDashFast() const;
     void tryStartRunEffectRunStart();
@@ -43,6 +45,8 @@ public:
     void tryEmitSandSinkEffect(const sead::Vector3f&, const sead::Vector3f&, bool);
     void tryDeleteSandSinkEffect();
     void tryDeleteDamageFireRunEffect();
+
+    void resumeStainEffect() { mIsStainEffectSuspended = false; }
 
 private:
     al::LiveActor* mPlayer;

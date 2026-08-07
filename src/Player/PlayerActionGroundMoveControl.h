@@ -37,6 +37,9 @@ public:
     void updatePoseUpFront(const sead::Vector3f&, const sead::Vector3f&, f32);
 
     const sead::Vector3f& getGroundNormal() const { return mGroundNormal; }
+    bool isBrake2D() const { return _64; }
+    bool isStopped() const { return mHasStopped; }
+    void setIs2D(bool is2D) { _d5 = is2D; }
 
     void set_c4(bool c4) { _c4 = c4; }
 

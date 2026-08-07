@@ -62,10 +62,14 @@ public:
     bool isInvisibleHead() const;
     s32 calcWarmLevel(s32 baseLevel) const;
 
+    const PlayerBodyCostumeInfo* getBodyInfo() const { return mBodyInfo; }
+    const PlayerHeadCostumeInfo* getHeadInfo() const { return mHeadInfo; }
+
 private:
     const PlayerBodyCostumeInfo* mBodyInfo = nullptr;
     const PlayerHeadCostumeInfo* mHeadInfo = nullptr;
 };
+
 static_assert(sizeof(PlayerHeadCostumeInfo) == 0x18);
 static_assert(sizeof(PlayerBodyCostumeInfo) == 0x20);
 static_assert(sizeof(PlayerCostumeInfo) == 0x10);

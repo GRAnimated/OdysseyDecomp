@@ -5,8 +5,6 @@
 #include <math/seadQuat.h>
 #include <math/seadVector.h>
 
-#include "Player/PlayerHackStartTexKeeper.h"
-
 namespace al {
 class LiveActor;
 class HitSensor;
@@ -26,6 +24,7 @@ class IUsePlayerCollision;
 struct HackObjInfo;
 class PlayerCollider;
 class CapTargetInfo;
+class PlayerHackStartTexKeeper;
 class IUsePlayerHack;
 
 struct HackEndParam {
@@ -44,7 +43,6 @@ static_assert(sizeof(HackEndParam) == 0x40);
 class PlayerHackKeeper {
 public:
     friend class PlayerActorHakoniwa;
-
     PlayerHackKeeper(al::LiveActor* player, HackCap* cap, PlayerRecoverySafetyPoint* safetyPoint,
                      const PlayerInput* input, const sead::Matrix34f* mtx,
                      const PlayerDamageKeeper* damageKeeper,
@@ -52,9 +50,9 @@ public:
                      const IUsePlayerHeightCheck* heightCheck);
 
     void createHackModel(const al::ActorInitInfo&);
-    void startHack(al::HitSensor*, al::HitSensor*, al::LiveActor*);
+    bool startHack(al::HitSensor*, al::HitSensor*, al::LiveActor*);
     void setupHack(al::HitSensor*, al::HitSensor*, al::LiveActor*);
-    void endHack(const HackEndParam*);
+    bool endHack(const HackEndParam*);
     void endHackStartDemo(al::LiveActor*);
     void startHackStartDemo(al::LiveActor*);
     void startHackStartDemoPuppetable(al::LiveActor*);
@@ -66,23 +64,23 @@ public:
     bool isActiveHackStartDemo() const;
     void recordHack();
     bool cancelHackArea();
-    void cancelHack();
-    void cancelForceRecovery();
+    u32 cancelHack();
+    u32 cancelForceRecovery();
     bool tryEscapeHack();
     bool sendTransferHack();
-    void sendMarioDemo();
+    u32 sendMarioDemo();
     void sendMarioCheckpointFlagWarp();
     void forceKillHack();
-    void sendMarioDead();
+    u32 sendMarioDead();
     bool sendMarioInWater();
     bool sendMarioDeathArea();
-    void sendMsgEnableMapCheckPointWarp();
+    bool sendMsgEnableMapCheckPointWarp();
     bool sendMsgSelfCeilingCheckMiss();
     bool receiveRequestTransferHack(al::HitSensor*);
     bool requestDamage();
     bool receiveRequestDamage();
-    void sendSyncDamageVisibility();
-    void pushWorldEndBorder(const sead::Vector3f&);
+    bool sendSyncDamageVisibility();
+    bool pushWorldEndBorder(const sead::Vector3f&);
     const char* getCurrentHackName() const;
     IUsePlayerCollision* getPlayerCollision() const;
     f32 getHackGuideHeight() const;
@@ -163,7 +161,7 @@ private:
     al::CollisionPartsFilterBase* mCollisionFilter;
     al::LiveActor* mHackActor;
     al::HitSensor* mHackHitSensor;
-    HackObjInfo* mHackObjectInfo;
+    const HackObjInfo* mHackObjectInfo;
     al::HitSensor* mStageStartActorSensor;
     al::LiveActor* mStageStartActor;
     CapTargetInfo* mStageStartCapTargetInfo;

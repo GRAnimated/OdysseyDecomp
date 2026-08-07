@@ -45,6 +45,8 @@ public:
     bool isSnapPartsValid() const;
     bool isSnapParts(const al::CollisionParts* parts) const;
     al::HitSensor* tryGetConnectedSensor() const;
+    const sead::Vector3f& getSnapFront() const { return mState.snapFront; }
+    s32 getMoveFrame() const { return mMoveFrame; }
     void calcFollowDir(sead::Vector3f* outDir, const sead::Vector3f& dir) const;
 
 private:

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <math/seadVector.h>
+
 #include "Library/Anim/DitherAnimator.h"
 
 namespace al {
@@ -13,12 +15,17 @@ public:
 
     ActorDitherAnimator(LiveActor* host);
 
+    void update() override;
     void validateDitherAnim();
     void invalidateDitherAnim();
     void reset();
     f32 getDitherAlpha() const;
     void setClippingJudgeDistanceParam(const char* name);
     void resetClippingJudgeDistanceParam();
+    void initSphereByProgram(f32, bool);
+    void initSubJudgeTableByProgram(bool);
+    void initSubJudgeBoundingBoxByProgram(const char*, const sead::Vector3f&,
+                                          const sead::Vector3f&);
 
 private:
     unsigned char padding[0x68 - sizeof(DitherAnimator)];

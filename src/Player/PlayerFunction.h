@@ -43,7 +43,7 @@ PlayerCostumeInfo* initMarioModelActorCloset(PlayerJointControlPartsDynamics**, 
                                              const PlayerConst*, sead::Vector3f*, sead::Vector3f*,
                                              PlayerJointControlFollowMtxPtr**, sead::Matrix34f*);
 void initYoshiModelActor(al::LiveActor*, const al::ActorInitInfo&, const char*);
-al::ActorParamHolder* initYoshiTongueParamHolder(al::LiveActor*);
+void initYoshiTongueParamHolder(al::LiveActor*);
 void showHairVisibility(al::LiveActor*);
 void getMarioFaceNoseShrinkScale(sead::Vector3f*);
 void getMarioFaceBigEarScale(sead::Vector3f*);

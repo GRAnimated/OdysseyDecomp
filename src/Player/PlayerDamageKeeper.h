@@ -25,7 +25,10 @@ public:
     void updateKidsModeLifeRecovery(bool isRecover);
 
     bool isDamageInvalid() const { return mIsDamageInvalid; }
+    bool isPreventDamage() const { return mIsPreventDamage; }
+
     bool isAbyssDamageInvalid() const { return mDamageInvalidCountAbyss > 0; }
+
     bool isPushInvalid() const { return mDamageInvalidCountAbyss > 0; }
 
 private:

@@ -57,6 +57,12 @@ public:
 
     bool isInvalidHackThrow() const { return mIsInvalidHackThrow; }
 
+    IUsePlayerCollision* getPlayerCollision() const { return mPlayerCollision; }
+
+    bool isHackCancelCeilingCheck() const { return !_79; }
+
+    bool isHackInvalidLifeRecovery() const { return _7c; }
+
     bool isSetHackNameToCamera() const { return mIsSetHackNameToCamera; }
 
     bool isEscapeLocalOffset() const { return mIsEscapeLocalOffset; }
