@@ -13,11 +13,9 @@ public:
     PlayerJudgeWallPush(const al::LiveActor* player, const IUsePlayerCollision* collider,
                         const PlayerInput* input);
 
-    void reset() override {}
-
-    void update() override {}
-
     bool judge() const override;
+    void reset() override {}
+    void update() override {}
 
 private:
     const al::LiveActor* mPlayer;

@@ -1,13 +1,18 @@
 #include "Player/PlayerHackKeeper.h"
 
+#include <prim/seadMemUtil.h>
+
+#include "Library/Collision/CollisionParts.h"
+#include "Library/Collision/KCollisionServer.h"
+#include "Library/Effect/EffectSystemInfo.h"
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/LiveActor/ActorSensorUtil.h"
+#include "Library/Scene/SceneObjUtil.h"
 #include "Library/Se/SeFunction.h"
-#include "Library/Effect/EffectSystemInfo.h"
 
-#include "Player/HackCap.h"
 #include "Player/CapTargetInfo.h"
+#include "Player/HackCap.h"
 #include "Player/PlayerCapFunction.h"
 #include "Player/PlayerHackStartTexKeeper.h"
 #include "System/GameDataFunction.h"
@@ -15,6 +20,38 @@
 #include "System/GameDataHolderWriter.h"
 #include "Util/DemoUtil.h"
 #include "Util/SensorMsgFunction.h"
+
+namespace {
+class HackHostCollisionPartsFilter : public al::CollisionPartsFilterBase {
+public:
+    HackHostCollisionPartsFilter(al::LiveActor** hackActor) : mHackActor(hackActor) {}
+
+    bool isInvalidParts(al::CollisionParts* collisionParts) override {
+        al::HitSensor* sensor = collisionParts->getConnectedSensor();
+        return sensor && al::getSensorHost(sensor) == *mHackActor;
+    }
+
+private:
+    al::LiveActor** mHackActor;
+};
+}  // namespace
+
+PlayerHackKeeper::PlayerHackKeeper(al::LiveActor* player, HackCap* cap,
+                                   PlayerRecoverySafetyPoint* safetyPoint, const PlayerInput* input,
+                                   const sead::Matrix34f* mtx,
+                                   const PlayerDamageKeeper* damageKeeper,
+                                   const IPlayerModelChanger* modelChanger,
+                                   const IUsePlayerHeightCheck* heightCheck)
+    : mParent(player), mHackCap(cap), mRecoverySafePoint(safetyPoint),
+      mInput(const_cast<PlayerInput*>(input)), field_30(mtx),
+      mDamageKeeper(const_cast<PlayerDamageKeeper*>(damageKeeper)),
+      mModelChanger(const_cast<IPlayerModelChanger*>(modelChanger)),
+      mHeightCheck(const_cast<IUsePlayerHeightCheck*>(heightCheck)) {
+    sead::MemUtil::fillZero(&mHackActor, 0x64);
+    mCollisionFilter = new HackHostCollisionPartsFilter(&mHackActor);
+    mHackStartTexKeeper = new PlayerHackStartTexKeeper();
+    al::setSceneObj(mParent, mHackStartTexKeeper, 0x2b);
+}
 
 bool PlayerHackKeeper::startHack(al::HitSensor* hackSensor, al::HitSensor* parentSensor,
                                  al::LiveActor* hackActor) {
@@ -79,12 +116,8 @@ void PlayerHackKeeper::startHackStartDemo(al::LiveActor*) {
     rs::addDemoActor(mHackModel, false);
 }
 
-void PlayerHackKeeper::startHackStartDemoPuppetable(al::LiveActor*) {
-    mIsHackDemoStarted = true;
-    rs::requestStartDemoHackStart(mHackActor);
-    mHackStartTexKeeper->setCaptureTextureCleared(true);
-    mHackCap->addHackStartDemo();
-    rs::addDemoActor(mHackModel, false);
+void PlayerHackKeeper::startHackStartDemoPuppetable(al::LiveActor* actor) {
+    startHackStartDemo(actor);
     mIsPuppetable = true;
     al::tryStopSe(mParent, "HackStart", -1, nullptr);
     mIsPuppetable2 = true;
@@ -110,8 +143,7 @@ bool PlayerHackKeeper::isActiveHackStartDemo() const {
 void PlayerHackKeeper::recordHack() {
     const char* hackName = mHackCap->getCapTargetInfo()->getHackName();
     if (hackName) {
-        GameDataHolderWriter writer(mHackCap);
-        GameDataFunction::addHackDictionary(writer, hackName);
+        GameDataFunction::addHackDictionary(GameDataHolderWriter(mHackCap), hackName);
     }
 }
 
@@ -140,14 +172,7 @@ u32 PlayerHackKeeper::cancelHack() {
 }
 
 u32 PlayerHackKeeper::cancelForceRecovery() {
-    u32 result = 1;
-    mIsCancellingHack = true;
-    if (!rs::sendMsgCancelHack(mHackHitSensor, mParentBodySensor)) {
-        al::startHitReaction(mParent, "ひょうい解除失敗");
-        result = 0;
-    }
-    mIsCancellingHack = false;
-    return result;
+    return cancelHack();
 }
 
 bool PlayerHackKeeper::tryEscapeHack() {

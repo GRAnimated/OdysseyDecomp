@@ -161,6 +161,11 @@ void PlayerModelChangerHakoniwa::syncShowHide(al::LiveActor* modelActor) {
         al::hideSilhouetteModel(modelActor);
 }
 
+void PlayerModelChangerHakoniwa::startDamageStopDemo() {
+    mIsBlinkingFromDamage = true;
+    mDamageTimer = 63;
+}
+
 void PlayerModelChangerHakoniwa::updateDamageStopDemo() {
     mIsChange = false;
     if (mDamageTimer) {
@@ -185,6 +190,10 @@ void PlayerModelChangerHakoniwa::syncHostDamageStopDemo(bool syncVisibility) {
     al::resetPosition(mLiveActor2);
 }
 
+s32 PlayerModelChangerHakoniwa::calcCostumeWarmLevel(s32 level) const {
+    return mPlayerCostumeInfo->calcWarmLevel(level);
+}
+
 void PlayerModelChangerHakoniwa::resetPosition() {
     al::copyPose(mLiveActor2, mLiveActor);
     al::resetPosition(mLiveActor2);
@@ -195,45 +204,6 @@ void PlayerModelChangerHakoniwa::resetPosition() {
     for (s32 i = 0; i < subActorNum; i++)
         al::resetPosition(al::getSubActor(mLiveActor2, i));
     mPlayerPainPartsKeeper->resetPosition();
-}
-
-void PlayerModelChangerHakoniwa::syncModelBoneVisibility() {
-    if (is2DModel())
-        return;
-
-    al::LiveActor* modelActor = mPlayerModelHolder->getCurrentModelActor();
-    al::LiveActor* head = al::tryGetSubActor(modelActor, "頭");
-    if (!head)
-        return;
-
-    if (mIsNeedSyncBodyHair)
-        PlayerFunction::syncBodyHairVisibility(al::getSubActor(modelActor, "髪"), head);
-    if (mIsSyncFaceBeard)
-        PlayerFunction::syncMarioFaceBeardVisibility(al::getSubActor(modelActor, "顔"), head);
-    if (mIsSyncStrap)
-        PlayerFunction::syncMarioHeadStrapVisibility(head);
-    if (mIsNeedHairControl)
-        PlayerFunction::hideHairVisibility(head);
-}
-
-s32 PlayerModelChangerHakoniwa::calcCostumeWarmLevel(s32 level) const {
-    return mPlayerCostumeInfo->calcWarmLevel(level);
-}
-
-bool PlayerModelChangerHakoniwa::isFireFlower() const {
-    return false;
-}
-
-bool PlayerModelChangerHakoniwa::isMini() const {
-    return false;
-}
-
-bool PlayerModelChangerHakoniwa::isChange() const {
-    return mIsChange;
-}
-
-bool PlayerModelChangerHakoniwa::is2DModel() const {
-    return mIsMode2D;
 }
 
 void PlayerModelChangerHakoniwa::hideModel() {
@@ -270,15 +240,45 @@ void PlayerModelChangerHakoniwa::showShadowMask() {
     mIsShadowMaskVisible = true;
 }
 
+void PlayerModelChangerHakoniwa::syncModelBoneVisibility() {
+    if (is2DModel())
+        return;
+
+    al::LiveActor* modelActor = mPlayerModelHolder->getCurrentModelActor();
+    al::LiveActor* head = al::tryGetSubActor(modelActor, "頭");
+    if (!head)
+        return;
+
+    if (mIsNeedSyncBodyHair)
+        PlayerFunction::syncBodyHairVisibility(al::getSubActor(modelActor, "髪"), head);
+    if (mIsSyncFaceBeard)
+        PlayerFunction::syncMarioFaceBeardVisibility(al::getSubActor(modelActor, "顔"), head);
+    if (mIsSyncStrap)
+        PlayerFunction::syncMarioHeadStrapVisibility(head);
+    if (mIsNeedHairControl)
+        PlayerFunction::hideHairVisibility(head);
+}
+
+bool PlayerModelChangerHakoniwa::isFireFlower() const {
+    return false;
+}
+
+bool PlayerModelChangerHakoniwa::isMini() const {
+    return false;
+}
+
+bool PlayerModelChangerHakoniwa::isChange() const {
+    return mIsChange;
+}
+
+bool PlayerModelChangerHakoniwa::is2DModel() const {
+    return mIsMode2D;
+}
+
 bool PlayerModelChangerHakoniwa::isHiddenModel() const {
     return !mIsModelVisible;
 }
 
 bool PlayerModelChangerHakoniwa::isHiddenShadowMask() const {
     return !mIsShadowMaskVisible;
-}
-
-void PlayerModelChangerHakoniwa::startDamageStopDemo() {
-    mIsBlinkingFromDamage = true;
-    mDamageTimer = 63;
 }

@@ -16,17 +16,7 @@ HackCapJudgeHoldHoveringJump::HackCapJudgeHoldHoveringJump(const al::LiveActor* 
                                                            const PlayerInput* input,
                                                            const PlayerConst* playerConst)
     : mPlayer(player), mCollider(collider), mHackCap(hackCap), mInput(input),
-      mPlayerConst(playerConst) {
-    return;
-}
-
-void HackCapJudgeHoldHoveringJump::reset() {
-    return;
-}
-
-void HackCapJudgeHoldHoveringJump::update() {
-    return;
-}
+      mPlayerConst(playerConst) {}
 
 // NON_MATCHING: exact 240-byte size, but the terminal true/false block layout differs at 0x40AF20; next try a differently scoped boolean temporary while preserving the outer condition chain.
 bool HackCapJudgeHoldHoveringJump::judge() const {
@@ -47,3 +37,8 @@ bool HackCapJudgeHoldHoveringJump::judge() const {
     }
     return result;
 }
+
+void HackCapJudgeHoldHoveringJump::reset() {}
+
+void HackCapJudgeHoldHoveringJump::update() {}
+

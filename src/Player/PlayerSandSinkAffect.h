@@ -12,13 +12,14 @@ class PlayerEffect;
 
 class PlayerSandSinkAffect {
 public:
-    PlayerSandSinkAffect(const al::LiveActor*, const PlayerConst*, const PlayerInput*,
-                         IUsePlayerCollision*, PlayerEffect*);
+    PlayerSandSinkAffect(const al::LiveActor* player, const PlayerConst* pConst,
+                         const PlayerInput* input, IUsePlayerCollision* collider,
+                         PlayerEffect* effect);
     void clear();
     bool isSink() const;
     void update(bool);
     bool isSinkDeathHeight() const;
-    void reduceVelocity(sead::Vector3f*);
+    void reduceVelocity(sead::Vector3f* velocity);
     bool isEnableCapThrow() const;
     f32 calcSandSinkDeathRate() const;
     f32 getSinkVelocity() const { return mSinkVelocity; }
@@ -30,9 +31,9 @@ private:
     const PlayerInput* mInput;
     IUsePlayerCollision* mCollider;
     PlayerEffect* mEffect;
-    f32 mSinkVelocity;
-    f32 mSinkAmount;
-    bool mIsSafe;
+    f32 mSinkVelocity = 0.0f;
+    f32 mSinkAmount = 0.0f;
+    bool mIsSafe = false;
 };
 
 static_assert(sizeof(PlayerSandSinkAffect) == 0x38);

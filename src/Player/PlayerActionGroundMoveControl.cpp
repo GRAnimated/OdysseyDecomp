@@ -83,9 +83,10 @@ void PlayerActionGroundMoveControl::appear() {
     _c0 = 0.0f;
 }
 
-// NON_MATCHING: exact 0x50 size; `set(const Vector3f&)` changes the target scalar load/store
-// schedule into an unaligned pair copy before reloading for `_c8`. Next hypothesis is a sanctioned
-// sead helper form that preserves the three loaded components across both destinations.
+// NON_MATCHING: exact 0x50 size; explicit x/y/z locals plus component stores reproduce the target
+// exactly but are rejected by the source validator. `set(const Vector3f&)` changes that scalar
+// schedule into an unaligned pair copy/reload; next hypothesis is a sanctioned sead helper form that
+// preserves the three loaded components across both destinations.
 void PlayerActionGroundMoveControl::reset(const sead::Vector3f& groundNormal) {
     mGroundNormal.set(groundNormal);
     _c8 = mGroundNormal;
@@ -121,7 +122,10 @@ f32 PlayerActionGroundMoveControl::update() {
     return updateNormalMove();
 }
 
-// NON_MATCHING: faithful corpus implementation; exact register allocation and scheduling pending.
+// NON_MATCHING: target is 0xa5c bytes and current is 0xa64. Restoring the corpus-observed late
+// tryNormalizeOrZero makes the direct-call sequence exact (39/39), but current stack/register
+// scheduling is still larger by 8 bytes (target stack 0x150, current 0x140). Next hypothesis is to
+// recover the target no-input/turn temporary lifetimes, including its D15/D14 save pressure.
 f32 PlayerActionGroundMoveControl::updateSkateMove() {
     if (mJudge)
         rs::updateJudge(mJudge);
@@ -255,8 +259,12 @@ f32 PlayerActionGroundMoveControl::updateSkateMove() {
 
     const sead::Vector2f speedComponents = {speedAcross, speedSlide};
     const f32 speed = speedComponents.length();
-    if (speed > 3.0f && nextVelocity.dot(front) < 0.0f)
-        al::holdSe(mParent, "SlipIceLv");
+    if (speed > 3.0f) {
+        sead::Vector3f normalizedVelocity = sead::Vector3f::zero;
+        al::tryNormalizeOrZero(&normalizedVelocity, nextVelocity);
+        if (nextVelocity.dot(front) < 0.0f)
+            al::holdSe(mParent, "SlipIceLv");
+    }
 
     const sead::Vector3f poseFront = _b8 ? mTurnCtrl->get_5c() : front;
     updatePoseUpFront(mGroundNormal, poseFront, speed);
@@ -264,7 +272,12 @@ f32 PlayerActionGroundMoveControl::updateSkateMove() {
     return speed;
 }
 
-// NON_MATCHING: faithful corpus implementation; exact register allocation and scheduling pending.
+// NON_MATCHING: target is 0xbbc bytes and current is 0xb90. Corpus review recovered the target's
+// conditional `_c0` reset, preserved sub-0.1 scalar speed, manual sqrt/scale velocity clamp, and
+// shared fallback tail with one target-shaped late setVelocity; the semantic direct-call count is
+// target-equal (43/43). Remaining differences are
+// register/lifetime pressure (target saves D15/D14, current only D14); next hypothesis is the
+// front/pose-front and velocity temporary lifetimes around the early-return blocks.
 f32 PlayerActionGroundMoveControl::updateNormalMove() {
     if (mJudge)
         rs::updateJudge(mJudge);
@@ -272,15 +285,13 @@ f32 PlayerActionGroundMoveControl::updateNormalMove() {
     mHasStopped = false;
     _bc = false;
 
-    sead::Vector3f velocity = sead::Vector3f::zero;
+    sead::Vector3f velocity = {0.0f, 0.0f, 0.0f};
     updateNormalAndSnap(&velocity);
     f32 speed = velocity.length();
-    if (speed < 0.1f) {
-        velocity = sead::Vector3f::zero;
-        speed = 0.0f;
-    }
+    if (speed < 0.1f)
+        velocity = {0.0f, 0.0f, 0.0f};
 
-    sead::Vector3f velocityDir = sead::Vector3f::zero;
+    sead::Vector3f velocityDir = {0.0f, 0.0f, 0.0f};
     al::tryNormalizeOrZero(&velocityDir, velocity);
 
     const f32 roundRate = sead::Mathf::clamp(
@@ -312,16 +323,16 @@ f32 PlayerActionGroundMoveControl::updateNormalMove() {
                      turnBrake);
     mTurnCtrl->set_88(_b9 || mIsForceRunCtrlActive);
 
-    sead::Vector3f moveInput = sead::Vector3f::zero;
+    sead::Vector3f moveInput = {0.0f, 0.0f, 0.0f};
     calcMoveInput(&moveInput, mGroundNormal);
     _84 = moveInput;
 
-    sead::Vector3f moveDir = sead::Vector3f::zero;
+    sead::Vector3f moveDir = {0.0f, 0.0f, 0.0f};
     const bool hasMoveInput = al::tryNormalizeOrZero(&moveDir, moveInput);
     mTurnCtrl->update(moveInput, mGroundNormal);
 
-    sead::Vector3f front;
-    sead::Vector3f poseFront;
+    sead::Vector3f front = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f poseFront = {0.0f, 0.0f, 0.0f};
     if (_b8 || !hasMoveInput) {
         front = mTurnCtrl->get_5c();
         poseFront = front;
@@ -400,41 +411,42 @@ f32 PlayerActionGroundMoveControl::updateNormalMove() {
     mHasStopped = !hasMoveInput && al::isNearZero(speed, 0.001f);
 
     sead::Vector3f nextVelocity;
-    if (_bd && al::isNormalize(velocityDir, 0.001f)) {
-        const f32 turnRate = sead::Mathf::abs(mTurnCtrl->calcTurnPowerRate(mGroundNormal));
-        const f32 turnDelta = sead::Mathf::clamp(turnRate - _c0, 0.0f, 1.0f);
-        _c0 = al::lerpValue(_c0, turnRate, 0.15f);
+    bool hasSetVelocity = false;
+    if (_bd) {
+        if (al::isNormalize(velocityDir, 0.001f)) {
+            const f32 turnRate = sead::Mathf::abs(mTurnCtrl->calcTurnPowerRate(mGroundNormal));
+            const f32 turnDelta = sead::Mathf::clamp(turnRate - _c0, 0.0f, 1.0f);
+            _c0 = al::lerpValue(_c0, turnRate, 0.15f);
 
-        sead::Vector3f verticalFront = sead::Vector3f::zero;
-        al::verticalizeVec(&verticalFront, front, velocityDir);
-        if (al::tryNormalizeOrZero(&verticalFront)) {
-            const f32 blend = al::lerpValue(0.3f, 0.9f, turnDelta);
-            const f32 forwardSpeed =
-                sead::Mathf::max(speed * front.dot(velocityDir), mMinSpeed);
-            const f32 verticalDot = velocityDir.dot(verticalFront);
-            nextVelocity = forwardSpeed * front +
-                           blend * speed * verticalDot * verticalFront;
-            if (!al::isNearZero(nextVelocity, 0.001f))
-                al::limitLength(&nextVelocity, nextVelocity, speed);
-            adjustGroundVelocityForWall(&nextVelocity, -mGravityMove * mGroundNormal,
-                                        mCollision, -al::getGravity(mParent));
-            nextVelocity -= mGravityMove * mGroundNormal;
-            al::setVelocity(mParent, nextVelocity);
+            sead::Vector3f verticalFront = {0.0f, 0.0f, 0.0f};
+            al::verticalizeVec(&verticalFront, front, velocityDir);
+            if (al::tryNormalizeOrZero(&verticalFront)) {
+                const f32 blend = al::lerpValue(0.3f, 0.9f, turnDelta);
+                const f32 forwardSpeed =
+                    sead::Mathf::max(speed * front.dot(velocityDir), mMinSpeed);
+                const f32 verticalDot = velocityDir.dot(verticalFront);
+                nextVelocity = forwardSpeed * front +
+                               blend * speed * verticalDot * verticalFront;
+                const f32 nextSpeed = nextVelocity.length();
+                if (nextSpeed > 0.0f)
+                    nextVelocity *= speed / nextSpeed;
+                adjustGroundVelocityForWall(&nextVelocity, -mGravityMove * mGroundNormal,
+                                            mCollision, -al::getGravity(mParent));
+                nextVelocity -= mGravityMove * mGroundNormal;
+                hasSetVelocity = true;
+            }
         } else {
-            nextVelocity = speed * front;
-            adjustGroundVelocityForWall(&nextVelocity, -mGravityMove * mGroundNormal,
-                                        mCollision, -al::getGravity(mParent));
-            nextVelocity -= mGravityMove * mGroundNormal;
-            al::setVelocity(mParent, nextVelocity);
+            _c0 = 0.0f;
         }
-    } else {
-        _c0 = 0.0f;
-        nextVelocity = speed * front;
-        adjustGroundVelocityForWall(&nextVelocity, -mGravityMove * mGroundNormal,
-                                    mCollision, -al::getGravity(mParent));
-        nextVelocity -= mGravityMove * mGroundNormal;
-        al::setVelocity(mParent, nextVelocity);
     }
+
+    if (!hasSetVelocity) {
+        nextVelocity = speed * front;
+        adjustGroundVelocityForWall(&nextVelocity, -mGravityMove * mGroundNormal, mCollision,
+                                    -al::getGravity(mParent));
+        nextVelocity -= mGravityMove * mGroundNormal;
+    }
+    al::setVelocity(mParent, nextVelocity);
 
     sead::Vector3f poseUp = mGroundNormal;
     if (_bb)
@@ -489,9 +501,10 @@ bool PlayerActionGroundMoveControl::isActiveSquatBrake() const {
     return _d5 && !mHack && mPlayerInput->isHoldSquat();
 }
 
-// NON_MATCHING: exact 0x29c size and exact prefix through the hill-rate clamp; first mismatch
-// is the no-input branch target because the target advances its `_7c` base pointer before the
-// shared tail, while current code retains `this` and uses offset loads.
+// NON_MATCHING: exact 0x29c size and 12/12 semantic calls; target roots the `_7c` and
+// `mPlayerConst` member addresses in registers while current keeps `this` live. Explicit
+// member-pointer spelling shrinks the body to 0x294, so the next hypothesis is surrounding local
+// lifetime through the virtual-call/converge tail rather than explicit member indirection.
 void PlayerActionGroundMoveControl::updateHillAffect(const sead::Vector3f& groundNormal,
                                                      const sead::Vector3f& moveInput,
                                                      bool hasMoveInput) {
@@ -602,9 +615,10 @@ void PlayerActionGroundMoveControl::updatePoseUpFront(const sead::Vector3f& up,
                      rate * mPlayerConst->getHillPoseDegreeMax());
 }
 namespace {
-// NON_MATCHING: exact 0x130 size and instruction order; final scalar FMULs use the opposite
-// commutative operand encoding from the target. Next hypothesis is a vector/scalar expression form
-// that preserves component-first multiplication without folding the stores.
+// NON_MATCHING: exact 0x130 size and 5/5 semantic calls; only the final three scalar FMULs use
+// the opposite commutative operand encoding. Reversing source operands or dropping `const` does not
+// change the encoding, while a vector expression shrinks the body; next hypothesis is SSA/lifetime
+// scheduling before the scalar tail.
 bool adjustGroundVelocityForWall(sead::Vector3f* velocity, const sead::Vector3f& gravityMove,
                                  const IUsePlayerCollision* collision,
                                  const sead::Vector3f& gravityUp) {
@@ -621,9 +635,9 @@ bool adjustGroundVelocityForWall(sead::Vector3f* velocity, const sead::Vector3f&
     if (!al::isNearZeroOrGreater(push, 0.001f))
         return false;
 
-    velocity->x -= push * gravityUp.x;
-    velocity->y -= push * gravityUp.y;
-    velocity->z -= push * gravityUp.z;
+    velocity->x -= gravityUp.x * push;
+    velocity->y -= gravityUp.y * push;
+    velocity->z -= gravityUp.z * push;
     return true;
 }
 }  // namespace

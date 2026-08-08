@@ -2,8 +2,7 @@
 
 #include "Player/PlayerInput.h"
 
-PlayerJudgeStartDash::PlayerJudgeStartDash(const PlayerInput* input)
-    : mInput(input), mIsEnable(false) {}
+PlayerJudgeStartDash::PlayerJudgeStartDash(const PlayerInput* input) : mInput(input) {}
 
 void PlayerJudgeStartDash::reset() {
     mIsEnable = false;

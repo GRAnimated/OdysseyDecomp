@@ -60,8 +60,14 @@ public:
     }
 
     SeDirector* getSeDirector() const { return mSeDirector; }
-
+    BgmDirector* getBgmDirector() const { return mBgmDirector; }
+    AudioMic* getAudioMic() const { return mAudioMic; }
+    AudioEventController* getAudioEventController() const { return mAudioEventController; }
+    AudioRequestKeeperSyncedBgm* getAudioRequestKeeperSyncedBgm() const {
+        return mAudioRequestKeeperSyncedBgm;
+    }
     const AudioSystemInfo* getAudioSystemInfo() const { return mAudioSystemInfo; }
+    AudioEffectController* getAudioEffectController() const { return mAudioEffectController; }
 
 private:
     SeDirector* mSeDirector;

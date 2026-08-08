@@ -72,8 +72,8 @@ void updateEggMovement(al::LiveActor* actor, const IUsePlayerCollision* collisio
         rs::waitGround(actor, collision, playerConst->getGravity(), playerConst->getFallSpeedMax(),
                        playerConst->getSlerpQuatGrav(), 0.0f);
     } else {
-        sead::Vector3f gravity = al::getGravity(actor) * playerConst->getGravity();
-        al::tryAddVelocityLimit(actor, gravity, playerConst->getFallSpeedMax());
+        al::tryAddVelocityLimit(actor, al::getGravity(actor) * playerConst->getGravity(),
+                                playerConst->getFallSpeedMax());
     }
 }
 }  // namespace

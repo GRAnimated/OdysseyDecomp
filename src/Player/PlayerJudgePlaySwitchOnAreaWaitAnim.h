@@ -8,9 +8,9 @@ class PlayerJudgePlaySwitchOnAreaWaitAnim : public IJudge {
 public:
     PlayerJudgePlaySwitchOnAreaWaitAnim(const PlayerStateWait* stateWait);
 
+    bool judge() const override;
     void reset() override {}
     void update() override {}
-    bool judge() const override;
 
 private:
     const PlayerStateWait* mStateWait;

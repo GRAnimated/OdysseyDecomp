@@ -56,9 +56,9 @@ private:
     const PlayerTrigger* mTrigger;
     bool mIsJudge = false;
     const al::CollisionParts* mCollidedParts = nullptr;
-    sead::Vector3f mPosition = sead::Vector3f::zero;
-    sead::Vector3f mUp = sead::Vector3f::zero;
-    sead::Vector3f mFront = sead::Vector3f::zero;
+    sead::Vector3f mPosition = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f mUp = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f mFront = {0.0f, 0.0f, 0.0f};
     f32 mAngleOffsetWall = 0.0f;
     f32 mPoleHeight = 0.0f;
     const char* mCollisionCode = "NoCollide";

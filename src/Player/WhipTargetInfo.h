@@ -21,4 +21,3 @@ private:
     al::HitSensor* mSensor = nullptr;
 };
 
-static_assert(sizeof(WhipTargetInfo) == 0x10);

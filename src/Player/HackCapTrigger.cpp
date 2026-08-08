@@ -1,6 +1,6 @@
 #include "Player/HackCapTrigger.h"
 
-HackCapTrigger::HackCapTrigger() : mAfterMovementTriggers(0) {}
+HackCapTrigger::HackCapTrigger() {}
 
 void HackCapTrigger::clearAfterMovemetTrigger() {
     mAfterMovementTriggers = 0;

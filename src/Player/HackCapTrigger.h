@@ -14,11 +14,11 @@ public:
     HackCapTrigger();
 
     void clearAfterMovemetTrigger();
-    void set(EAfterMovementTrigger);
-    bool isOn(EAfterMovementTrigger) const;
+    void set(EAfterMovementTrigger trigger);
+    bool isOn(EAfterMovementTrigger trigger) const;
 
 private:
-    u32 mAfterMovementTriggers;
+    u32 mAfterMovementTriggers = 0;
 };
 
 static_assert(sizeof(HackCapTrigger) == 4);

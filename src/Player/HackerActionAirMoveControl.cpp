@@ -1,7 +1,5 @@
 #include "Player/HackerActionAirMoveControl.h"
 
-#include <cstring>
-
 #include "Library/Collision/Collider.h"
 #include "Library/Collision/CollisionPartsKeeperUtil.h"
 #include "Library/LiveActor/ActorCollisionFunction.h"
@@ -24,7 +22,7 @@ HackerActionAirMoveControl::HackerActionAirMoveControl(al::LiveActor* actor, boo
       mIsClampSpeed(false), mClampSpeedMin(0.0f), mClampSpeedMax(0.0f),
       mStartMoveDir(sead::Vector3f::zero), mSideDir(sead::Vector3f::zero), mSpeedH(0.0f),
       mGravityAccel(0.0f), mFallSpeedMax(0.0f), mIsScaleWallVelocity(false),
-      mScaleWallFront(1.0f), mScaleWallSide(0.0f), mScaleWallUp(0.0f), mSlerpQuatRate(0.0f),
+      mVelocityScaleWallH(1.0f), mMaxVelocityWallH(0.0f), mMaxScaledVelocityWallH(0.0f), mSlerpQuatRate(0.0f),
       mPrevInput{0.0f, 0.0f, 0.0f}, mAccelFront(0.0f), mAccelBack(0.0f), mAccelTurn(0.0f),
       mCollision(nullptr) {
     mTurnControl = new PlayerActionTurnControl(actor);
@@ -33,7 +31,9 @@ HackerActionAirMoveControl::HackerActionAirMoveControl(al::LiveActor* actor, boo
     mTurnControl->setup(1.0f, 135.0f, 6.0f, 25.0f, 20, 1, 10);
 }
 
-// NON_MATCHING: exact 912-byte size; first mismatch at 0x40E0F0 is initial member-store/cross-product scheduling, with a later extend-frame compare difference.
+// NON_MATCHING: exact 912-byte size; first mismatch at 0x40E0F0 is initial
+// member-store/cross-product scheduling, with a later extend-frame compare difference; next
+// source-level hypothesis is to group the initial vector derivation before committing scalar members.
 void HackerActionAirMoveControl::setup(f32 speedMax, f32 inertiaAdd, s32 extendFrame,
                                        f32 velocityV, f32 gravityAccel, s32 noInputFrame,
                                        f32 inertiaRate, f32 fallSpeedMax, f32 normalMinSpeed,
@@ -119,11 +119,11 @@ void HackerActionAirMoveControl::setup(f32 speedMax, f32 inertiaAdd, s32 extendF
     mTurnControl->reset();
 }
 
-void HackerActionAirMoveControl::setupTurn(f32 angleStart, f32 angleFast, f32 angleLimit,
-                                           f32 angleFastLimit, s32 accelFrame,
-                                           s32 accelFrameFast, s32 brakeFrame) {
-    mTurnControl->setup(angleStart, angleFast, angleLimit, angleFastLimit, accelFrame,
-                        accelFrameFast, brakeFrame);
+void HackerActionAirMoveControl::setupTurn(f32 turnAngleStart, f32 turnAngleFast, f32 turnAngleLimit,
+                                           f32 turnAngleFastLimit, s32 turnAccelFrame,
+                                           s32 turnAccelFrameFast, s32 turnBrakeFrame) {
+    mTurnControl->setup(turnAngleStart, turnAngleFast, turnAngleLimit, turnAngleFastLimit, turnAccelFrame,
+                        turnAccelFrameFast, turnBrakeFrame);
     mTurnControl->reset();
 }
 
@@ -131,12 +131,12 @@ void HackerActionAirMoveControl::setExtendFrame(s32 frame) {
     mExtendFrame = frame;
 }
 
-void HackerActionAirMoveControl::setupCollideWallScaleVelocity(f32 scaleFront, f32 scaleSide,
-                                                               f32 scaleUp) {
+void HackerActionAirMoveControl::setupCollideWallScaleVelocity(f32 velocityScaleH, f32 maxVelocityH,
+                                                               f32 maxScaledVelocityH) {
     mIsScaleWallVelocity = true;
-    mScaleWallFront = scaleFront;
-    mScaleWallSide = scaleSide;
-    mScaleWallUp = scaleUp;
+    mVelocityScaleWallH = velocityScaleH;
+    mMaxVelocityWallH = maxVelocityH;
+    mMaxScaledVelocityWallH = maxScaledVelocityH;
 }
 
 void HackerActionAirMoveControl::verticalizeStartMoveDir(const sead::Vector3f& vertical) {
@@ -145,7 +145,7 @@ void HackerActionAirMoveControl::verticalizeStartMoveDir(const sead::Vector3f& v
     const sead::Vector3f* verticalDir = &vertical;
     al::verticalizeVec(&moveDir, *verticalDir, *startMoveDir);
     if (!al::tryNormalizeOrZero(&moveDir)) {
-        std::memcpy(&moveDir, &mSideDir, sizeof(moveDir));
+        moveDir.set(mSideDir);
         al::verticalizeVec(&moveDir, *verticalDir, mSideDir);
         if (!al::tryNormalizeOrZero(&moveDir))
             return;
@@ -155,7 +155,7 @@ void HackerActionAirMoveControl::verticalizeStartMoveDir(const sead::Vector3f& v
     if (al::isParallelDirection(up, moveDir, 0.01f))
         return;
 
-    std::memcpy(startMoveDir, &moveDir, sizeof(moveDir));
+    startMoveDir->set(moveDir);
     mSideDir.setCross(up, *startMoveDir);
     al::normalize(&mSideDir);
 }
@@ -165,13 +165,13 @@ void HackerActionAirMoveControl::update() {
     if (mIsScaleWallVelocity) {
         if (mCollision) {
             if (!rs::isCollisionCodeGrabCeilWall(mCollision))
-                rs::scaleVelocityInertiaWallHit(mActor, mCollision, mScaleWallFront,
-                                                mScaleWallSide, mScaleWallUp);
+                rs::scaleVelocityInertiaWallHit(mActor, mCollision, mVelocityScaleWallH,
+                                                mMaxVelocityWallH, mMaxScaledVelocityWallH);
         } else if (al::isCollidedWall(mActor)) {
             if (!al::isCollidedWall(mActor) ||
                 !al::isFloorCode(al::getActorCollider(mActor)->getWallHit().triangle, "GrabCeil"))
-                al::scaleVelocityInertiaWallHit(mActor, mScaleWallFront, mScaleWallSide,
-                                                mScaleWallUp);
+                al::scaleVelocityInertiaWallHit(mActor, mVelocityScaleWallH, mMaxVelocityWallH,
+                                                mMaxScaledVelocityWallH);
         }
     }
 

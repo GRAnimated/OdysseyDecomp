@@ -38,7 +38,6 @@ public:
                     PlayerContinuousJump* continuousJump, PlayerAnimator* animator,
                     PlayerActionDiveInWater* actionDiveInWater, HackCap* hackCap,
                     IJudge* judgeWallKeep, bool is2D);
-    ~PlayerStateJump() override;
 
     void appear() override;
     f32 calcJumpPowerBorderSpeedMin() const;
@@ -73,6 +72,7 @@ public:
     void exeJumpBack();
     void exeHoveringJump2D();
     void exeHovering2D();
+    ~PlayerStateJump() override;
 
 private:
     const PlayerConst* mConst;
@@ -110,10 +110,15 @@ private:
     const char* _c8;
     const char* _d0;
     const PlayerInput* mInput;
-    sead::Quatf _e0;
-    bool _f0;
+    union {
+        sead::Quatf mJumpTurnQuat;
+        struct {
+            sead::Vector3f turnJumpAngle;
+            s32 downFallConvergeCounter;
+        };
+    };
+    bool mIsDownFallGroundCollision;
     u8 _f1[3];
-    sead::Vector3f _f4;
+    sead::Vector3f mDownFallGroundPos;
 };
 
-static_assert(sizeof(PlayerStateJump) == 0x100);

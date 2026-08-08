@@ -13,19 +13,23 @@ class PlayerInput;
 
 class PlayerActionPivotTurnControl {
 public:
-    PlayerActionPivotTurnControl(al::LiveActor*, const PlayerConst*, const PlayerInput*,
-                                 const IUsePlayerCollision*, f32);
+    PlayerActionPivotTurnControl(al::LiveActor* player, const PlayerConst* playerConst,
+                                 const PlayerInput* input, const IUsePlayerCollision* collision,
+                                 f32 gravity);
 
     void reset();
     void update();
-    void calcMoveDirection(sead::Vector3f*, const sead::Vector3f&);
+    void calcMoveDirection(sead::Vector3f* moveDirection, const sead::Vector3f& up);
+    void setPlayerHack(IUsePlayerHack** playerHack) { mPlayerHack = playerHack; }
+    bool isTurnFinished() const { return _45; }
+    bool hasMoveDirection() const { return _44; }
 
 private:
     al::LiveActor* mPlayer;
     const PlayerConst* mConst;
     const PlayerInput* mInput;
     const IUsePlayerCollision* mCollision;
-    const IUsePlayerHack* const* mPlayerHack;
+    IUsePlayerHack** mPlayerHack;
     sead::Vector3f _28;
     f32 _34;
     sead::Vector3f _38;

@@ -1,7 +1,6 @@
 #include "Player/EquipmentInfo.h"
 
-EquipmentInfo::EquipmentInfo(const al::LiveActor* actor)
-    : mActor(actor), mFlags(0), mForceDashDirection(0), mForceDashSpeed(0.0f) {}
+EquipmentInfo::EquipmentInfo(const al::LiveActor* actor) : mActor(actor) {}
 
 void EquipmentInfo::onNoCapThrow() {
     mFlags |= 1;

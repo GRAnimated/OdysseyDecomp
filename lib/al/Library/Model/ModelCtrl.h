@@ -20,13 +20,13 @@ public:
     ModelCtrl();
     ~ModelCtrl();
 
+    void recreateDisplayList();
+    void setModelProgProjMtx0(const sead::Matrix44f&);
     void initResource(Resource*, Resource*);
     void show();
     void hide();
-    void recreateDisplayList();
     void setCameraInfo(const sead::Matrix34f*, const sead::Matrix34f*, const sead::Matrix44f*,
                        const sead::Matrix44f*);
-    void setModelProgProjMtx0(const sead::Matrix44f&);
 
     nn::g3d::ModelObj* getModelObj() const { return mModelObj; }
 

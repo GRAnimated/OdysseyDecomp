@@ -21,11 +21,11 @@ public:
     void appear() override;
 
     bool isEnableLongJump() const;
-    void setNerveStandUpOrKill();
-    void fixPressRumble();
-
     void exeBrake();
+    void setNerveStandUpOrKill();
+
     void exeWait();
+    void fixPressRumble();
     void exeWalk();
     void exeStandUp();
 

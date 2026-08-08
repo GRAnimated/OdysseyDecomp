@@ -53,6 +53,16 @@ public:
     void calcSeparateCapLocalOffset(sead::Vector3f* offset) const;
     void validateGroundSupport();
     void invalidateGroundSupport();
+    bool isEnableStandUp() const override;
+    bool isEnableHoldUp() const override;
+    bool isPressedCeil() const override;
+    f32 getSafetyCeilSpace() const override;
+    f32 getCeilCheckHeight() const override;
+    PlayerCollider* getPlayerCollider() const override;
+    bool isAboveGround() const override;
+    f32 getGroundHeight() const override;
+    f32 getShadowDropHeight() const override;
+    f32 getFallDistance() const override;
     void resetFallDistance() {
         mFallStartPos.set(0.0f, 0.0f, 0.0f);
         mFallDistance = 0.0f;
@@ -63,40 +73,29 @@ public:
     const sead::Vector3f& getGroundNormal() const { return mGroundNormal; }
     al::CollisionPartsFilterBase* getCollisionFilter2D() const { return mCollisionFilter2D; }
 
-    PlayerCollider* getPlayerCollider() const override;
-    bool isEnableStandUp() const override;
-    bool isEnableHoldUp() const override;
-    bool isPressedCeil() const override;
-    f32 getSafetyCeilSpace() const override;
-    f32 getCeilCheckHeight() const override;
-    bool isAboveGround() const override;
-    f32 getGroundHeight() const override;
-    f32 getShadowDropHeight() const override;
-    f32 getFallDistance() const override;
-
 private:
     al::LiveActor* mPlayer;
     const PlayerConst* mConst;
-    PlayerCollider* mCollider;
-    PlayerCeilingCheck* mCeilingCheck;
-    bool mIsAboveGround;
+    PlayerCollider* mCollider = nullptr;
+    PlayerCeilingCheck* mCeilingCheck = nullptr;
+    bool mIsAboveGround = false;
     u8 _41[3];
-    f32 mGroundHeight;
-    f32 mShadowDropHeight;
-    sead::Vector3f mGroundNormal;
-    sead::Vector3f mFallStartPos;
-    f32 mFallDistance;
-    s32 mNoGroundFrames;
+    f32 mGroundHeight = 0.0f;
+    f32 mShadowDropHeight = 0.0f;
+    sead::Vector3f mGroundNormal = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f mFallStartPos = {0.0f, 0.0f, 0.0f};
+    f32 mFallDistance = 0.0f;
+    s32 mNoGroundFrames = 0;
     u32 _6c;
-    al::HitSensor* mGroundSensor;
-    CollisionShapeKeeper* mCollisionNormal;
-    CollisionShapeKeeper* mCollisionMini;
-    CollisionShapeKeeper* mCollisionSwim;
-    CollisionShapeKeeper* mCollisionGrabCeil;
-    CollisionShapeKeeper* mCollisionWallGrab;
-    CollisionShapeKeeper* mCollisionPoleClimb;
-    CollisionShapeKeeper* mCollision2DNormal;
-    CollisionShapeKeeper* mCollision2DMini;
+    al::HitSensor* mGroundSensor = nullptr;
+    CollisionShapeKeeper* mCollisionNormal = nullptr;
+    CollisionShapeKeeper* mCollisionMini = nullptr;
+    CollisionShapeKeeper* mCollisionSwim = nullptr;
+    CollisionShapeKeeper* mCollisionGrabCeil = nullptr;
+    CollisionShapeKeeper* mCollisionWallGrab = nullptr;
+    CollisionShapeKeeper* mCollisionPoleClimb = nullptr;
+    CollisionShapeKeeper* mCollision2DNormal = nullptr;
+    CollisionShapeKeeper* mCollision2DMini = nullptr;
     al::CollisionPartsFilterBase* mCollisionFilter2D;
 };
 

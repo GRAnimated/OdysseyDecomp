@@ -8,10 +8,7 @@
 PlayerJudgeOutInWater::PlayerJudgeOutInWater(const al::LiveActor* player,
                                              const IJudge* judgeInWater,
                                              const IJudge* judgeInWaterSurface)
-    : mPlayer(player), mJudgeInWater(judgeInWater), mJudgeInWaterSurface(judgeInWaterSurface),
-      mIsInWater(true) {
-    return;
-}
+    : mPlayer(player), mJudgeInWater(judgeInWater), mJudgeInWaterSurface(judgeInWaterSurface) {}
 
 void PlayerJudgeOutInWater::reset() {
     mIsInWater = true;
@@ -23,9 +20,7 @@ void PlayerJudgeOutInWater::update() {
 
     bool isInWater;
     if (rs::isJudge(mJudgeInWaterSurface)) {
-        const sead::Vector3f& velocity = al::getVelocity(mPlayer);
-        const sead::Vector3f& gravity = al::getGravity(mPlayer);
-        isInWater = velocity.dot(gravity) < 0.0f;
+        isInWater = al::getVelocity(mPlayer).dot(al::getGravity(mPlayer)) < 0.0f;
     } else {
         isInWater = false;
     }

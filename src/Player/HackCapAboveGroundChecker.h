@@ -9,7 +9,7 @@ class LiveActor;
 
 class HackCapAboveGroundChecker {
 public:
-    explicit HackCapAboveGroundChecker(const al::LiveActor*);
+    HackCapAboveGroundChecker(const al::LiveActor* actor);
 
     void update(const sead::Vector3f& gravityDirection);
 

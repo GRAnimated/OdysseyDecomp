@@ -39,7 +39,7 @@ bool requestDownToDefaultCameraAngleBySpeed(const al::LiveActor* actor, f32 requ
 bool requestUpToTargetCameraAngleBySpeed(const al::LiveActor* actor, f32 targetAngleV,
                                          f32 requestAngleSpeed, s32 poseUpdaterIdx);
 bool requestMoveDownCameraAngleV(const al::LiveActor* actor, s32 poseUpdaterIdx);
-bool requestRiseCameraAngleByPlayerCollideJumpCode(const al::LiveActor* actor);
+bool requestRiseCameraAngleByPlayerCollideJumpCode(al::LiveActor* actor);
 bool requestCameraTurnToFront(const al::LiveActor* actor, f32, f32, s32 poseUpdaterIdx);
 bool requestCameraTurnToFront(const al::LiveActor* actor, const sead::Vector3f& trans, f32, f32,
                               s32 poseUpdaterIdx);

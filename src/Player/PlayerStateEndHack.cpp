@@ -15,18 +15,15 @@ namespace {
 NERVE_IMPL(PlayerStateEndHack, Jump)
 NERVES_MAKE_STRUCT(PlayerStateEndHack, Jump)
 }  // namespace
-
 PlayerStateEndHack::PlayerStateEndHack(al::LiveActor* player, const PlayerConst* pConst,
                                        const IUsePlayerCollision* collision,
                                        const PlayerInput* input, PlayerTrigger* trigger,
                                        PlayerAnimator* animator)
     : al::ActorStateBase("", player), mConst(pConst), mCollision(collision), mInput(input),
-      mTrigger(trigger), mAnimator(animator), mAirMoveControl(nullptr) {
+      mTrigger(trigger), mAnimator(animator) {
     mAirMoveControl = new PlayerActionAirMoveControl(player, pConst, input, collision, false);
     initNerve(&NrvPlayerStateEndHack.Jump, 0);
 }
-
-PlayerStateEndHack::~PlayerStateEndHack() = default;
 
 void PlayerStateEndHack::appear() {
     al::setVelocity(mActor, mEndVelocity);
@@ -54,3 +51,6 @@ void PlayerStateEndHack::exeJump() {
     if (rs::isOnGround(actor, mCollision))
         kill();
 }
+
+PlayerStateEndHack::~PlayerStateEndHack() = default;
+

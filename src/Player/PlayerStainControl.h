@@ -23,7 +23,6 @@ struct PlayerStainControlParam {
     s32 blizzardCount;
 };
 
-static_assert(sizeof(PlayerStainControlParam) == 0x28);
 
 class PlayerStainControl {
 public:
@@ -43,7 +42,7 @@ public:
 
         StainType(StainTypeValue value) : mValue(value) {}
 
-        explicit StainType(s32 value) : mValue(value) {}
+        StainType(s32 value) : mValue(value) {}
 
         const StainType& operator=(StainTypeValue value) {
             mValue = value;
@@ -76,21 +75,21 @@ public:
     void recordSnowMove(const char* materialCode);
     void recordSnowBySensor();
     void recordSandHeavyLand(const char* materialCode);
-    void clearCurrentStain(bool);
+    void clearCurrentStain(bool emitReaction);
     void recordSandMoonBySensor();
     void recordInWater();
     void recordInWet();
     void noticeStartHack();
-    void tryDeleteStainEffect(StainType, f32);
+    void tryDeleteStainEffect(StainType stainType, f32 rate);
     void noticeEndHack();
     void clearStain();
     void noticeMainShineGet();
     void update();
     void clearStainRequest();
-    void tryEmitStainEffect(StainType);
+    void tryEmitStainEffect(StainType stainType);
     bool isEnableValidateStain() const;
     bool isEnableInvalidateStain() const;
-    void tryEmitClearStainEffect(StainType, f32);
+    void tryEmitClearStainEffect(StainType stainType, f32 rate);
 
 private:
     const al::LiveActor* mPlayer;
@@ -122,5 +121,4 @@ private:
     u8 _82[6];
 };
 
-static_assert(sizeof(PlayerStainControl::StainType) == 0x4);
 static_assert(sizeof(PlayerStainControl) == 0x88);

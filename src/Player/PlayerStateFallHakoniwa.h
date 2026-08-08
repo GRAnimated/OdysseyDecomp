@@ -25,15 +25,14 @@ public:
                             const IUsePlayerCollision* collision, const PlayerInput* input,
                             const PlayerTrigger* trigger, const PlayerAreaChecker* areaChecker,
                             const IUseDimension* dimension, PlayerAnimator* animator);
-    ~PlayerStateFallHakoniwa() override;
-
     void appear() override;
     void updateFallTargetArea();
     bool isValidWallCatch() const;
     bool isInvalidInputFall() const { return mIsInvalidInputFall; }
     bool isRunFall() const { return mIsRunFall; }
-    bool hasFallTargetArea() const { return mFallTargetArea != nullptr; }
+    bool hasFallTargetArea() const { return mFallTargetArea; }
     void exeFall();
+    ~PlayerStateFallHakoniwa() override;
 
 private:
     const PlayerConst* mConst;
@@ -41,17 +40,17 @@ private:
     const PlayerTrigger* mTrigger;
     const IUseDimension* mDimension;
     PlayerAnimator* mAnimator;
-    PlayerJudgeInvalidateInputFall* mJudgeInvalidateInputFall;
-    PlayerActionAirMoveControl* mAirMoveControl;
-    s32 _58;
-    s32 _5c;
-    sead::Vector3f _60;
-    bool mIsInvalidInputFall;
-    bool mIsRunFall;
-    u8 _6e[2];
-    const al::AreaObj* mFallTargetArea;
-    f32 mFallSpeed;
-    u8 _7c[4];
+    PlayerJudgeInvalidateInputFall* mJudgeInvalidateInputFall = nullptr;
+    PlayerActionAirMoveControl* mAirMoveControl = nullptr;
+    s32 _58 = 0;
+    s32 _5c = 0;
+    sead::Vector3f _60{};
+    bool mIsInvalidInputFall = false;
+    bool mIsRunFall = false;
+    u8 _6e[2]{};
+    const al::AreaObj* mFallTargetArea = nullptr;
+    f32 mFallSpeed = 0.0f;
+    u8 _7c[4]{};
 };
 
 static_assert(sizeof(PlayerStateFallHakoniwa) == 0x80);

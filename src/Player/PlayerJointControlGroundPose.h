@@ -13,31 +13,31 @@ class LiveActor;
 
 class PlayerJointControlGroundPose : public al::JointControllerBase {
 public:
-    explicit PlayerJointControlGroundPose(const al::LiveActor*);
+    PlayerJointControlGroundPose(const al::LiveActor*);
 
-    void calcJointCallback(s32 jointIndex, sead::Matrix34f*) override;
-    void calcTilt(s32 jointIndex, sead::Matrix34f*);
+    void calcJointCallback(s32 jointIndex, sead::Matrix34f* jointMtx) override;
+    void calcTilt(s32 jointIndex, sead::Matrix34f* jointMtx);
     void calcCenterTilt(s32 jointIndex, sead::Matrix34f*);
     void calcCenterBalance(s32 jointIndex, sead::Matrix34f*);
     void calcIK(s32 jointIndex, sead::Matrix34f*);
-    void calcRootMtxTilt(sead::Matrix34f*);
-    void calcSpineMtxTilt(sead::Matrix34f*);
-    void calcHeadMtxTilt(sead::Matrix34f*);
-    void calcLegTopMtxTilt(sead::Matrix34f*, bool isRight);
+    void calcRootMtxTilt(sead::Matrix34f* jointMtx);
+    void calcSpineMtxTilt(sead::Matrix34f* jointMtx);
+    void calcHeadMtxTilt(sead::Matrix34f* jointMtx);
+    void calcLegTopMtxTilt(sead::Matrix34f* jointMtx, bool isRight);
     f32 initCenterBalanceRate() const;
     f32 calcCenterBalanceBlendRate() const;
-    void calcRootMtx(sead::Matrix34f*);
-    void calcHipMtx(sead::Matrix34f*);
-    void calcSpineMtx(sead::Matrix34f*);
+    void calcRootMtx(sead::Matrix34f* jointMtx);
+    void calcHipMtx(sead::Matrix34f* jointMtx);
+    void calcSpineMtx(sead::Matrix34f* jointMtx);
     void calcLegBottomMtx(sead::Matrix34f*, const sead::SafeArray<sead::Matrix34f, 2>&,
                           const sead::SafeArray<s32, 2>&);
     void update(f32 tiltRate, f32 centerTiltRate, f32 centerBalanceRate, f32 ikRate,
                 bool isGroundPose);
     void resetTiltRate();
-    void calcGroundPoseUp(sead::Vector3f*) const;
+    void calcGroundPoseUp(sead::Vector3f* up) const;
     void updateCenterBalance(bool, bool, bool, const sead::Vector3f&, const sead::Vector3f&,
                              bool);
-    void updateCenterTilt(f32, const sead::Vector3f&);
+    void updateCenterTilt(f32 targetRate, const sead::Vector3f& direction);
     const char* getCtrlTypeName() const override;
 
     f32 get_1e8() const { return _1e8; }

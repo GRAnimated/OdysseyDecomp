@@ -84,32 +84,7 @@ s32 classifyHitNormal(const sead::Vector3f& normal, const sead::Vector3f& gravit
     return 2;
 }
 
-void accumulateHitFix(sead::BitFlag32* flags, sead::Vector3f* staticMin,
-                      sead::Vector3f* staticMax, sead::Vector3f* movingMin,
-                      sead::Vector3f* movingMax, sead::Vector3f* fix,
-                      const sead::Vector3f& fallback, const al::HitInfo& hitInfo) {
-    if (!alCollisionUtil::isCollisionMoving(&hitInfo)) {
-        includeVectorBounds(staticMin, staticMax, *fix);
-        updateDirectionFlags(flags, *fix, fallback);
-        return;
-    }
-
-    f32 length = 0.0f;
-    sead::Vector3f direction(0.0f, 0.0f, 0.0f);
-    if (al::separateScalarAndDirection(&length, &direction, *fix) ||
-        direction.dot(hitInfo.collisionMovingReaction) >= 0.0f) {
-        includeVectorBounds(movingMin, movingMax, *fix);
-        includeVectorBounds(movingMin, movingMax, hitInfo.collisionMovingReaction);
-        return;
-    }
-
-    const f32 adjustedLength = sead::Mathf::max(direction.dot(hitInfo.collisionMovingReaction) +
-                                                    length,
-                                                0.0f);
-    *fix = direction * adjustedLength;
-    includeVectorBounds(movingMin, movingMax, *fix);
-}
-
+// NON_MATCHING: target is 632 bytes while current is 628 with the exact 7/7 semantic call sequence; next source-level hypothesis is recovering the target conditional/FP lifetime shape around the ground-normal test.
 void collectGroundArrowHit(sead::PtrArray<al::HitInfo>* hitInfos,
                            sead::Buffer<f32>* hitDistances, sead::Buffer<f32>* hitValues,
                            const CollidedShapeResult* result, const sead::Vector3f& gravity,
@@ -123,7 +98,8 @@ void collectGroundArrowHit(sead::PtrArray<al::HitInfo>* hitInfos,
         return;
 
     const f32 dot = normal.dot(gravity);
-    if (dot >= 0.0f || sead::Mathf::abs(dot) < sead::Mathf::cos(sead::Mathf::deg2rad(groundAngle)))
+    const f32 absDot = dot <= 0.0f ? -dot : dot;
+    if (!(dot < 0.0f && absDot >= sead::Mathf::cos(sead::Mathf::deg2rad(groundAngle))))
         return;
 
     const CollisionShapeInfoArrow* shapeInfo = result->getShapeInfoArrow();
@@ -133,28 +109,12 @@ void collectGroundArrowHit(sead::PtrArray<al::HitInfo>* hitInfos,
 
     *(*hitInfos)[index] = hitInfo;
     (*hitDistances)[index] = hitInfo._70;
-    (*hitValues)[index] = shapeInfo->getRadius();
+    (*hitValues)[index] = result->getShapeInfoArrow()->getRadius();
 }
 
-f32 stabilizeFixAxis(f32 current, f32 previous, u32 positiveBit, u32 negativeBit,
-                     u32 previousFlags, u32 currentFlags) {
-    if ((previousFlags & negativeBit) && current > 0.0f && current > previous &&
-        al::isNearZeroOrGreater(previous, 0.001f)) {
-        if ((currentFlags & positiveBit) != 0)
-            return (current + previous) * 0.5f;
-        return previous;
-    }
-    if ((previousFlags & positiveBit) && current < 0.0f && current < previous &&
-        al::isNearZeroOrLess(previous, 0.001f)) {
-        if ((currentFlags & negativeBit) != 0)
-            return (current + previous) * 0.5f;
-        return previous;
-    }
-    return current;
-}
 }  // namespace
 
-// NON_MATCHING: implementation is 76 bytes smaller; recover original container initialization and inlining order.
+// NON_MATCHING: target is 1776 bytes while current is 1700; next source-level hypothesis is recovering the original PtrArray/buffer initialization expression and constructor temporary order.
 PlayerCollider::PlayerCollider(al::CollisionDirector* collisionDirector,
                                const sead::Matrix34f* mtx, const sead::Vector3f* trans,
                                const sead::Vector3f* gravity, bool isLargeCollisionBuffer)
@@ -256,7 +216,7 @@ void PlayerCollider::resetPose(const sead::Quatf& quat) {
     mMtx.fromQuat(quat);
 }
 
-// NON_MATCHING: implementation is 80 bytes smaller; recover final press-state branches and exact temporary lifetime order.
+// NON_MATCHING: target is 1748 bytes while current is 1668; next source-level hypothesis is recovering the final press-state branches and exact temporary lifetime order.
 sead::Vector3f PlayerCollider::collide(const sead::Vector3f& move) {
     for (s32 i = 0; i < 3; i++)
         _128[i].clear();
@@ -372,7 +332,9 @@ bool PlayerCollider::calcMovePowerByContact(sead::Vector3f* movePower,
     return true;
 }
 
-// NON_MATCHING: implementation is 124 bytes smaller; recover remaining retry and interpolation edge handling.
+// NON_MATCHING: target is 1276 bytes while current is 1152 with all 15 semantic calls present;
+// target-faithful unordered floating-point continuation predicates are restored, but loop/block placement keeps
+// the retry startInterp/nextStep/calcInterpPos calls emitted ahead of the main calcInterp/calcResultVec block.
 void PlayerCollider::moveCollide(sead::Vector3f* pos, f32* size, sead::Quatf* quat,
                                  const sead::Vector3f& targetPos, f32 targetSize,
                                  const sead::Quatf& targetQuat, const sead::Vector3f& moveVec,
@@ -408,17 +370,19 @@ void PlayerCollider::moveCollide(sead::Vector3f* pos, f32* size, sead::Quatf* qu
             if (fixLength > 0.0f) {
                 fixDir = fixVec / fixLength;
                 const f32 dot = fixDir.dot(remainMove);
-                if (dot >= 0.0f)
-                    remainMove -= fixDir * sead::Mathf::min(dot, fixLength);
-                else
+                if (dot >= 0.0f) {
+                    const f32 removeLength = dot < fixLength ? dot : fixLength;
+                    remainMove -= fixDir * removeLength;
+                } else {
                     remainMove -= fixDir * dot;
+                }
             }
         }
 
         const f32 moveDot = moveVec.dot(remainMove);
-        if (moveDot < 0.0f && !al::isNearZero(moveDot, 0.001f))
+        if (!(moveDot >= 0.0f || al::isNearZero(moveDot, 0.001f)))
             break;
-        if (al::isNearZero(remainMove, 0.001f) && previousFixDir.dot(fixDir) < 0.0f)
+        if (al::isNearZero(remainMove, 0.001f) && !(previousFixDir.dot(fixDir) >= 0.0f))
             break;
 
         const sead::Vector3f startPos = *pos - fixVec;
@@ -474,7 +438,10 @@ bool PlayerCollider::findCollidePos(al::SpherePoseInterpolator* interpolator) {
     }
 }
 
-// NON_MATCHING: implementation is 1044 bytes smaller; recover omitted press-strike correction and exact result aggregation.
+// NON_MATCHING: target is 3252 bytes while current is 3268 with an exact 57/57 semantic call
+// sequence after restoring press-code contact selection, strike-clearance correction, cumulative
+// _a0/_a1 collision bits, and the target-inline per-axis stabilization logic. Remaining mismatch is
+// broad stack/register lifetime (current 0x1A0 frame versus target 0x190).
 void PlayerCollider::calcResultVec(sead::Vector3f* fixResult,
                                    sead::Vector3f* collideResult,
                                    const sead::Vector3f& previousFix) {
@@ -563,9 +530,35 @@ void PlayerCollider::calcResultVec(sead::Vector3f* fixResult,
     else if (fix.z < 0.0f && (_108 & 0x800))
         fix.z = staticSum.z;
 
-    fix.set(stabilizeFixAxis(fix.x, previousFix.x, 0x80, 0x100, previousFlags, _108),
-            stabilizeFixAxis(fix.y, previousFix.y, 0x200, 0x400, previousFlags, _108),
-            stabilizeFixAxis(fix.z, previousFix.z, 0x800, 0x1000, previousFlags, _108));
+    if (previousFlags & 0x100) {
+        if (fix.x > 0.0f && fix.x > previousFix.x &&
+            (previousFix.x >= 0.0f || al::isNearZero(previousFix.x, 0.001f))) {
+            fix.x = (_108 & 0x80) ? (fix.x + previousFix.x) * 0.5f : previousFix.x;
+        }
+    } else if ((previousFlags & 0x80) && fix.x < 0.0f && fix.x < previousFix.x &&
+               (previousFix.x <= 0.0f || al::isNearZero(previousFix.x, 0.001f))) {
+        fix.x = (_108 & 0x100) ? (fix.x + previousFix.x) * 0.5f : previousFix.x;
+    }
+
+    if (previousFlags & 0x400) {
+        if (fix.y > 0.0f && fix.y > previousFix.y &&
+            (previousFix.y >= 0.0f || al::isNearZero(previousFix.y, 0.001f))) {
+            fix.y = (_108 & 0x200) ? (fix.y + previousFix.y) * 0.5f : previousFix.y;
+        }
+    } else if ((previousFlags & 0x200) && fix.y < 0.0f && fix.y < previousFix.y &&
+               (previousFix.y <= 0.0f || al::isNearZero(previousFix.y, 0.001f))) {
+        fix.y = (_108 & 0x400) ? (fix.y + previousFix.y) * 0.5f : previousFix.y;
+    }
+
+    if (previousFlags & 0x1000) {
+        if (fix.z > 0.0f && fix.z > previousFix.z &&
+            (previousFix.z >= 0.0f || al::isNearZero(previousFix.z, 0.001f))) {
+            fix.z = (_108 & 0x800) ? (fix.z + previousFix.z) * 0.5f : previousFix.z;
+        }
+    } else if ((previousFlags & 0x800) && fix.z < 0.0f && fix.z < previousFix.z &&
+               (previousFix.z <= 0.0f || al::isNearZero(previousFix.z, 0.001f))) {
+        fix.z = (_108 & 0x1000) ? (fix.z + previousFix.z) * 0.5f : previousFix.z;
+    }
 
     sead::Vector3f overlap(0.0f, 0.0f, 0.0f);
     const sead::Vector3f range = combinedMax - combinedMin;
@@ -578,16 +571,81 @@ void PlayerCollider::calcResultVec(sead::Vector3f* fixResult,
 
     sead::Vector3f parallel(0.0f, 0.0f, 0.0f);
     sead::Vector3f vertical(0.0f, 0.0f, 0.0f);
-    if (!al::isNearZero(overlap, 0.001f))
+    bool addParallelCollision = false;
+    bool addVerticalCollision = false;
+    if (!al::isNearZero(overlap, 0.001f)) {
         al::separateVectorParallelVertical(&parallel, &vertical, *mGravityPtr, overlap);
-    _a0 = !al::isNearZero(parallel, 0.001f);
-    _a1 = !al::isNearZero(vertical, 0.001f);
+        addParallelCollision = !al::isNearZero(parallel, 0.001f);
+        const bool isVerticalZero = al::isNearZero(vertical, 0.001f);
+        addVerticalCollision = !isVerticalZero;
 
+        if (!isVerticalZero || addParallelCollision) {
+            sead::Vector3f pressPos(0.0f, 0.0f, 0.0f);
+            sead::Vector3f pressNormal(0.0f, 0.0f, 0.0f);
+            bool hasPressContact = false;
+            bool canCorrect = !isVerticalZero;
+
+            if (addParallelCollision || isVerticalZero) {
+                if (_70 >= 0.0f && rs::isCollisionCodePress(*_68)) {
+                    pressPos = _198;
+                    pressNormal = mCollidedGroundNormal;
+                    hasPressContact = true;
+                    canCorrect = true;
+                } else if (_8c >= 0.0f && rs::isCollisionCodePress(*_88)) {
+                    pressPos = alCollisionUtil::getCollisionHitPos(_88);
+                    pressNormal = alCollisionUtil::getCollisionHitNormal(_88);
+                    hasPressContact = true;
+                    canCorrect = true;
+                }
+            }
+
+            bool shouldCorrect = false;
+            if (!isVerticalZero) {
+                if (_7c >= 0.0f && rs::isCollisionCodePress(*_78)) {
+                    if (!hasPressContact || vertical.length() > parallel.length()) {
+                        pressPos = alCollisionUtil::getCollisionHitPos(_78);
+                        pressNormal = alCollisionUtil::getCollisionHitNormal(_78);
+                    }
+                    shouldCorrect = canCorrect;
+                } else {
+                    shouldCorrect = canCorrect && hasPressContact;
+                }
+            } else {
+                shouldCorrect = canCorrect;
+            }
+
+            if (shouldCorrect) {
+                sead::Vector3f localCenter = mCollisionShapeKeeper->getBoundingCenter();
+                localCenter.y += 35.0f;
+                const sead::Vector3f checkPos = mCollidePosMtx * localCenter;
+                sead::Vector3f projected = checkPos - pressPos;
+                al::verticalizeVec(&projected, pressNormal, projected);
+
+                sead::Vector3f pushDir(0.0f, 0.0f, 0.0f);
+                if (al::tryNormalizeOrZero(&pushDir, projected)) {
+                    const f32 pushRemain = 50.0f - projected.length();
+                    const f32 pushDistance = pushRemain < 0.0f ? 0.0f : pushRemain;
+                    const sead::Vector3f strikeOrigin =
+                        checkPos + pushDir * pushDistance + pressNormal;
+                    const sead::Vector3f strikeArrow = pressNormal * -200.0f;
+                    if (!alCollisionUtil::checkStrikeArrow(this, strikeOrigin, strikeArrow, nullptr,
+                                                           nullptr)) {
+                        fix += pushDir * (pushDistance * 0.05f);
+                        addParallelCollision = false;
+                        addVerticalCollision = false;
+                    }
+                }
+            }
+        }
+    }
+
+    _a0 |= addParallelCollision;
+    _a1 |= addVerticalCollision;
     *fixResult = fix;
     *collideResult = staticSum;
 }
 
-// NON_MATCHING: size and control flow match, but floating accumulator registers differ; recover original accumulator declaration order.
+// NON_MATCHING: target/current are both 776 bytes, but floating accumulator registers differ; next source-level hypothesis is restoring the original position/normal accumulator declaration and update order.
 void PlayerCollider::calcGroundArrowAverage(bool* hasGroundPos, sead::Vector3f* groundPos,
                                               bool* hasGroundNormal,
                                               sead::Vector3f* groundNormal,
@@ -599,13 +657,13 @@ void PlayerCollider::calcGroundArrowAverage(bool* hasGroundPos, sead::Vector3f* 
 
     const s32 resultCount = shapeKeeper->getNumCollidedShapeResults();
     if (resultCount >= 1) {
-        for (u32 i = 0; i != resultCount; i++)
+        for (s32 i = 0; i != resultCount; i++)
             collectGroundArrowHit(&_168, &mHitDistanceArray, &mHitValueArray,
                                   shapeKeeper->getCollidedShapeResult(i), *mGravityPtr, _1b0);
     }
     const s32 supportResultCount = shapeKeeper->getNumCollidedShapeSupportResults();
     if (supportResultCount >= 1) {
-        for (u32 i = 0; i != supportResultCount; i++)
+        for (s32 i = 0; i != supportResultCount; i++)
             collectGroundArrowHit(&_168, &mHitDistanceArray, &mHitValueArray,
                                   shapeKeeper->getCollidedShapeSupportResult(i), *mGravityPtr, _1b0);
     }
@@ -647,7 +705,7 @@ void PlayerCollider::calcGroundArrowAverage(bool* hasGroundPos, sead::Vector3f* 
     }
 }
 
-// NON_MATCHING: implementation is 512 bytes smaller; recover moving-collision and ground-arrow correction paths.
+// NON_MATCHING: target is 1220 bytes while current is 1180 with the exact 10/10 semantic call sequence after removing the non-target accumulateHitFix abstraction; next source-level hypothesis is recovering target stack/vector lifetimes around fix calculation.
 void PlayerCollider::calcResultVecArrow(sead::BitFlag32* flags, sead::Vector3f* staticMin,
                                           sead::Vector3f* staticMax,
                                           sead::Vector3f* movingMin,
@@ -664,11 +722,27 @@ void PlayerCollider::calcResultVecArrow(sead::BitFlag32* flags, sead::Vector3f* 
     const CollisionShapeInfoArrow* shapeInfo = result->getShapeInfoArrow();
     sead::Vector3f arrowDirection = shapeInfo->getArrowWorld();
     al::tryNormalizeOrZero(&arrowDirection);
-    const f32 penetration = sead::Mathf::max(hitInfo._70 - shapeInfo->getRadius(), 0.0f);
+    const f32 penetrationValue = hitInfo._70 - shapeInfo->getRadius();
+    const f32 penetration = penetrationValue < 0.0f ? 0.0f : penetrationValue;
     sead::Vector3f fix = mCollidedGroundNormal *
                          (-penetration * arrowDirection.dot(mCollidedGroundNormal));
-    accumulateHitFix(flags, staticMin, staticMax, movingMin, movingMax, &fix,
-                     mCollidedGroundNormal, hitInfo);
+    if (!alCollisionUtil::isCollisionMoving(&hitInfo)) {
+        includeVectorBounds(staticMin, staticMax, fix);
+        updateDirectionFlags(flags, fix, mCollidedGroundNormal);
+    } else {
+        f32 length = 0.0f;
+        sead::Vector3f direction(0.0f, 0.0f, 0.0f);
+        if (al::separateScalarAndDirection(&length, &direction, fix) ||
+            direction.dot(hitInfo.collisionMovingReaction) >= 0.0f) {
+            includeVectorBounds(movingMin, movingMax, fix);
+            includeVectorBounds(movingMin, movingMax, hitInfo.collisionMovingReaction);
+        } else {
+            const f32 adjustedLengthValue = direction.dot(hitInfo.collisionMovingReaction) + length;
+            const f32 adjustedLength = adjustedLengthValue < 0.0f ? 0.0f : adjustedLengthValue;
+            fix = direction * adjustedLength;
+            includeVectorBounds(movingMin, movingMax, fix);
+        }
+    }
 
     if (_70 < hitInfo._70) {
         *_68 = hitInfo;
@@ -677,71 +751,125 @@ void PlayerCollider::calcResultVecArrow(sead::BitFlag32* flags, sead::Vector3f* 
     collectHitInfoArray(hitInfo, 0);
 }
 
-// NON_MATCHING: implementation is 1124 bytes smaller; recover support-ground and hit-normal branch details.
+// NON_MATCHING: target is 2960 bytes while current is 2896 with the exact 36/36 semantic call sequence after recovering ground-edge correction, branch-local shape queries, repeated hit classification, and direct updateDirectionFlags factoring; next source-level hypothesis is matching remaining support-ground/frame lifetimes.
 void PlayerCollider::calcResultVecSphere(sead::BitFlag32* flags, sead::Vector3f* staticMin,
-                                           sead::Vector3f* staticMax,
-                                           sead::Vector3f* movingMin,
-                                           sead::Vector3f* movingMax,
-                                           const CollidedShapeResult* result) {
+                                         sead::Vector3f* staticMax,
+                                         sead::Vector3f* movingMin,
+                                         sead::Vector3f* movingMax,
+                                         const CollidedShapeResult* result) {
     const al::SphereHitInfo& sphereHit = result->getSphereHitInfo();
     const al::HitInfo& hitInfo = **sphereHit;
-    const CollisionShapeInfoSphere* shapeInfo = result->getShapeInfoSphere();
     sead::Vector3f normal = hitInfo.triangle.getNormal(0);
-    const s32 hitType = classifyHitNormal(normal, *mGravityPtr, _1b0);
 
     sead::Vector3f fix(0.0f, 0.0f, 0.0f);
     sead::Vector3f fixNormal(0.0f, 0.0f, 0.0f);
-    if (hitType == 0) {
-        if (!mIsValidGroundSupport || shapeInfo->isIgnoreGround())
-            return;
+    bool skipHitInfo = false;
+    if (!isGroundNormal(normal, *mGravityPtr, _1b0)) {
+        const f32 normalDot = normal.dot(*mGravityPtr);
+        const bool isWall = !al::isNearZero(normal, 0.001f) &&
+                            sead::Mathf::abs(normalDot) <
+                                sead::Mathf::cos(sead::Mathf::deg2rad(_1b0));
+        if (isWall) {
+            if (isNeedWallBorderCheck(hitInfo) &&
+                rs::calcExistCollisionBorder(this, hitInfo.collisionHitPos, normal))
+                return;
 
-        if (mCollisionShapeKeeper->hasShapeArrow()) {
-            if (shapeInfo->isSupportGround()) {
-                sead::Vector3f supportDelta = hitInfo.collisionHitPos - hitInfo._80;
-                al::verticalizeVec(&supportDelta, shapeInfo->getUpWorld(), supportDelta);
-                if (supportDelta.length() < shapeInfo->getSupportGroundRangeWorld())
-                    sphereHit.calcFixVectorNormal(&fix, &fixNormal);
-                else
-                    sphereHit.calcFixVectorNormal(&fix, &fixNormal);
-            } else {
+            if ((_108 & 2) != 0) {
                 sphereHit.calcFixVectorNormal(&fix, &fixNormal);
+            } else {
+                sphereHit.calcFixVector(&fix, &fixNormal);
+                if (!hitInfo.isCollisionAtFace()) {
+                    al::verticalizeVec(&fix, *mGravityPtr, fix);
+                    al::tryNormalizeOrZero(&fixNormal, fix);
+                }
             }
-        } else if ((_108 & 1) != 0) {
-            sphereHit.calcFixVectorNormal(&fix, &fixNormal);
         } else {
-            sphereHit.calcFixVector(&fix, &fixNormal);
-        }
-    } else if (hitType == 1) {
-        if (isNeedWallBorderCheck(hitInfo) &&
-            rs::calcExistCollisionBorder(this, hitInfo.collisionHitPos, normal))
-            return;
-
-        if ((_108 & 2) != 0) {
-            sphereHit.calcFixVectorNormal(&fix, &fixNormal);
-        } else {
-            sphereHit.calcFixVector(&fix, &fixNormal);
-            if (!hitInfo.isCollisionAtFace()) {
-                al::verticalizeVec(&fix, *mGravityPtr, fix);
-                al::tryNormalizeOrZero(&fixNormal, fix);
-            }
+            if (result->getShapeInfoSphere()->is69())
+                return;
+            if ((_108 & 4) != 0)
+                sphereHit.calcFixVectorNormal(&fix, &fixNormal);
+            else
+                sphereHit.calcFixVector(&fix, &fixNormal);
         }
     } else {
-        if (shapeInfo->is69())
+        if (!mIsValidGroundSupport || result->getShapeInfoSphere()->isIgnoreGround())
             return;
-        if ((_108 & 4) != 0)
+
+        if (!mCollisionShapeKeeper->hasShapeArrow()) {
+            if ((_108 & 1) != 0)
+                sphereHit.calcFixVectorNormal(&fix, &fixNormal);
+            else
+                sphereHit.calcFixVector(&fix, &fixNormal);
+        } else if (!result->getShapeInfoSphere()->isSupportGround()) {
             sphereHit.calcFixVectorNormal(&fix, &fixNormal);
-        else
-            sphereHit.calcFixVector(&fix, &fixNormal);
+            skipHitInfo = true;
+        } else {
+            const sead::Vector3f& supportUp = result->getShapeInfoSphere()->getUpWorld();
+            const f32 supportRange =
+                result->getShapeInfoSphere()->getSupportGroundRangeWorld();
+            sead::Vector3f supportDelta = hitInfo.collisionHitPos - hitInfo._80;
+            al::verticalizeVec(&supportDelta, supportUp, supportDelta);
+            if (supportDelta.length() < supportRange) {
+                sphereHit.calcFixVectorNormal(&fix, &fixNormal);
+            } else if ((_108 & 0x40) == 0) {
+                sphereHit.calcFixVectorNormal(&fix, &fixNormal);
+                skipHitInfo = true;
+            } else {
+                const bool isGroundHeightValid = al::isNearZeroOrGreater(
+                    mCollisionShapeKeeper->get58() +
+                        mGravityPtr->dot(hitInfo.collisionHitPos - _198),
+                    0.001f);
+                sphereHit.calcFixVectorNormal(&fix, &fixNormal);
+                skipHitInfo = !isGroundHeightValid;
+            }
+        }
+
+        if (skipHitInfo) {
+            if ((_108 & 0x40) != 0 &&
+                (hitInfo.collisionHitPos - _198).dot(mCollidedGroundNormal) < 2.5f)
+                return;
+
+            sead::Vector3f edgeDirection = hitInfo._80 - hitInfo.collisionHitPos;
+            if (!al::tryNormalizeOrZero(&edgeDirection))
+                return;
+
+            fix = edgeDirection * fix.dot(edgeDirection);
+            al::verticalizeVec(&fix, *mGravityPtr, fix);
+            if (!al::tryNormalizeOrZero(&fixNormal, fix))
+                return;
+
+            normal = fixNormal;
+        }
     }
 
-    accumulateHitFix(flags, staticMin, staticMax, movingMin, movingMax, &fix, fixNormal, hitInfo);
+    if (!alCollisionUtil::isCollisionMoving(&hitInfo)) {
+        includeVectorBounds(staticMin, staticMax, fix);
+        updateDirectionFlags(flags, fix, normal);
+    } else {
+        f32 length = 0.0f;
+        sead::Vector3f direction(0.0f, 0.0f, 0.0f);
+        if (al::separateScalarAndDirection(&length, &direction, fix) ||
+            direction.dot(hitInfo.collisionMovingReaction) >= 0.0f) {
+            includeVectorBounds(movingMin, movingMax, fix);
+            includeVectorBounds(movingMin, movingMax, hitInfo.collisionMovingReaction);
+        } else {
+            const f32 adjustedLengthValue = direction.dot(hitInfo.collisionMovingReaction) + length;
+            const f32 adjustedLength = adjustedLengthValue < 0.0f ? 0.0f : adjustedLengthValue;
+            fix = direction * adjustedLength;
+            includeVectorBounds(movingMin, movingMax, fix);
+        }
+    }
 
-    if (hitType == 0) {
+    if (skipHitInfo)
+        return;
+
+    const s32 resultHitType = classifyHitNormal(normal, *mGravityPtr, _1b0);
+    if (resultHitType == 0) {
         if (_70 < hitInfo._70) {
             *_68 = hitInfo;
             _70 = hitInfo._70;
         }
-    } else if (hitType == 1) {
+    } else if (resultHitType == 1) {
         if (_7c < hitInfo._70) {
             *_78 = hitInfo;
             _7c = hitInfo._70;
@@ -750,25 +878,53 @@ void PlayerCollider::calcResultVecSphere(sead::BitFlag32* flags, sead::Vector3f*
         *_88 = hitInfo;
         _8c = hitInfo._70;
     }
-    collectHitInfoArray(hitInfo, hitType);
+    collectHitInfoArray(hitInfo, resultHitType);
 }
 
-// NON_MATCHING: implementation is 644 bytes smaller; recover support-ground and edge-contact branch details.
+// NON_MATCHING: target and current are both 2552 bytes with the exact 31/31 semantic call sequence after recovering target branch structure, support-ground face rejection, getter lifetimes, repeated hit classification, and direct updateDirectionFlags factoring; next source-level hypothesis is reducing remaining frame/register-allocation differences.
 void PlayerCollider::calcResultVecDisk(sead::BitFlag32* flags, sead::Vector3f* staticMin,
-                                         sead::Vector3f* staticMax,
-                                         sead::Vector3f* movingMin,
-                                         sead::Vector3f* movingMax,
-                                         const CollidedShapeResult* result) {
+                                       sead::Vector3f* staticMax,
+                                       sead::Vector3f* movingMin,
+                                       sead::Vector3f* movingMax,
+                                       const CollidedShapeResult* result) {
     const al::DiskHitInfo& diskHit = result->getDiskHitInfo();
     const al::HitInfo& hitInfo = **diskHit;
-    const CollisionShapeInfoDisk* shapeInfo = result->getShapeInfoDisk();
     const sead::Vector3f& normal = hitInfo.triangle.getNormal(0);
-    const s32 hitType = classifyHitNormal(normal, *mGravityPtr, _1b0);
 
     sead::Vector3f fix(0.0f, 0.0f, 0.0f);
     sead::Vector3f fixNormal(0.0f, 0.0f, 0.0f);
-    if (hitType == 0) {
-        if (!mIsValidGroundSupport || shapeInfo->isIgnoreGround())
+    if (!isGroundNormal(normal, *mGravityPtr, _1b0)) {
+        const f32 normalDot = normal.dot(*mGravityPtr);
+        const bool isWall = !al::isNearZero(normal, 0.001f) &&
+                            sead::Mathf::abs(normalDot) <
+                                sead::Mathf::cos(sead::Mathf::deg2rad(_1b0));
+        if (isWall) {
+            if (isNeedWallBorderCheck(hitInfo) &&
+                rs::calcExistCollisionBorder(this, hitInfo.collisionHitPos, normal))
+                return;
+
+            if ((_108 & 0x10) == 0) {
+                if (result->getShapeInfoDisk()->isSupportGround() && (_108 & 0x40) != 0 &&
+                    al::isNearZeroOrGreater(
+                        mCollisionShapeKeeper->get54() +
+                            mGravityPtr->dot(hitInfo.collisionHitPos -
+                                             mCollidePosMtx.getTranslation()),
+                        0.001f))
+                    return;
+
+                diskHit.calcFixVectorNormal(&fix, &fixNormal);
+                if (!hitInfo.isCollisionAtFace()) {
+                    al::verticalizeVec(&fix, *mGravityPtr, fix);
+                    al::tryNormalizeOrZero(&fixNormal, fix);
+                }
+            } else {
+                diskHit.calcFixVectorNormal(&fix, &fixNormal);
+            }
+        } else {
+            diskHit.calcFixVectorNormal(&fix, &fixNormal);
+        }
+    } else {
+        if (!mIsValidGroundSupport || result->getShapeInfoDisk()->isIgnoreGround())
             return;
 
         if (!mCollisionShapeKeeper->hasShapeArrow()) {
@@ -776,49 +932,51 @@ void PlayerCollider::calcResultVecDisk(sead::BitFlag32* flags, sead::Vector3f* s
                 diskHit.calcFixVectorNormal(&fix, &fixNormal);
             else
                 diskHit.calcFixVector(&fix, &fixNormal);
-        } else if (shapeInfo->isSupportGround()) {
-            if ((_108 & 0x40) == 0 && (_108 & 8) == 0) {
+        } else {
+            if (!result->getShapeInfoDisk()->isSupportGround() || (_108 & 0x40) != 0)
+                return;
+
+            if ((_108 & 8) != 0) {
+                if (!hitInfo.isCollisionAtFace())
+                    return;
+            } else {
+                const sead::Vector3f& supportUp = result->getShapeInfoDisk()->getUpWorld();
+                const f32 supportRange =
+                    result->getShapeInfoDisk()->getSupportGroundRangeWorld();
                 sead::Vector3f supportDelta = hitInfo.collisionHitPos - hitInfo._80;
-                al::verticalizeVec(&supportDelta, shapeInfo->getUpWorld(), supportDelta);
-                if (supportDelta.length() >= shapeInfo->getSupportGroundRangeWorld())
+                al::verticalizeVec(&supportDelta, supportUp, supportDelta);
+                if (supportDelta.length() >= supportRange)
                     return;
             }
             diskHit.calcFixVectorNormal(&fix, &fixNormal);
-        } else {
-            diskHit.calcFixVectorNormal(&fix, &fixNormal);
         }
-    } else if (hitType == 1) {
-        if (isNeedWallBorderCheck(hitInfo) &&
-            rs::calcExistCollisionBorder(this, hitInfo.collisionHitPos, normal))
-            return;
-
-        if ((_108 & 0x10) != 0) {
-            diskHit.calcFixVectorNormal(&fix, &fixNormal);
-        } else {
-            if (shapeInfo->isSupportGround() && (_108 & 0x40) != 0 &&
-                al::isNearZeroOrGreater(mCollisionShapeKeeper->get54() +
-                                            mGravityPtr->dot(hitInfo.collisionHitPos -
-                                                             mCollidePosMtx.getTranslation()),
-                                        0.001f))
-                return;
-            diskHit.calcFixVectorNormal(&fix, &fixNormal);
-            if (!hitInfo.isCollisionAtFace()) {
-                al::verticalizeVec(&fix, *mGravityPtr, fix);
-                al::tryNormalizeOrZero(&fixNormal, fix);
-            }
-        }
-    } else {
-        diskHit.calcFixVectorNormal(&fix, &fixNormal);
     }
 
-    accumulateHitFix(flags, staticMin, staticMax, movingMin, movingMax, &fix, fixNormal, hitInfo);
+    if (!alCollisionUtil::isCollisionMoving(&hitInfo)) {
+        includeVectorBounds(staticMin, staticMax, fix);
+        updateDirectionFlags(flags, fix, fixNormal);
+    } else {
+        f32 length = 0.0f;
+        sead::Vector3f direction(0.0f, 0.0f, 0.0f);
+        if (al::separateScalarAndDirection(&length, &direction, fix) ||
+            direction.dot(hitInfo.collisionMovingReaction) >= 0.0f) {
+            includeVectorBounds(movingMin, movingMax, fix);
+            includeVectorBounds(movingMin, movingMax, hitInfo.collisionMovingReaction);
+        } else {
+            const f32 adjustedLengthValue = direction.dot(hitInfo.collisionMovingReaction) + length;
+            const f32 adjustedLength = adjustedLengthValue < 0.0f ? 0.0f : adjustedLengthValue;
+            fix = direction * adjustedLength;
+            includeVectorBounds(movingMin, movingMax, fix);
+        }
+    }
 
-    if (hitType == 0) {
+    const s32 resultHitType = classifyHitNormal(normal, *mGravityPtr, _1b0);
+    if (resultHitType == 0) {
         if (_70 < hitInfo._70) {
             *_68 = hitInfo;
             _70 = hitInfo._70;
         }
-    } else if (hitType == 1) {
+    } else if (resultHitType == 1) {
         if (_7c < hitInfo._70) {
             *_78 = hitInfo;
             _7c = hitInfo._70;
@@ -827,10 +985,10 @@ void PlayerCollider::calcResultVecDisk(sead::BitFlag32* flags, sead::Vector3f* s
         *_88 = hitInfo;
         _8c = hitInfo._70;
     }
-    collectHitInfoArray(hitInfo, hitType);
+    collectHitInfoArray(hitInfo, resultHitType);
 }
 
-// NON_MATCHING: implementation is 4 bytes smaller; recover the original bounds-checked pointer replacement form.
+// NON_MATCHING: target is 616 bytes while current is 612; next source-level hypothesis is recovering the original bounds-checked PtrArray selection/replacement expression.
 void PlayerCollider::collectHitInfoArray(const al::HitInfo& hitInfo, s32 arrayIndex) {
     sead::PtrArray<al::HitInfo>* hitInfoArray = nullptr;
     if (arrayIndex == 0)

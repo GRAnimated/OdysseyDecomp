@@ -16,9 +16,7 @@ PlayerCounterIceWater::PlayerCounterIceWater(al::LiveActor* player,
                                              const al::ActorInitInfo& initInfo,
                                              const PlayerConst* playerConst,
                                              const IUsePlayerCollision* collider, IJudge* judge)
-    : mPlayer(player), mConst(playerConst), mCollider(collider), mJudge(judge), mIceEffect(nullptr),
-      mIceWaterCount(0), mRecoveryCount(0), mIceWaterLevel(0), mIsInIceWater(false),
-      mIsShowCapMsg(false) {
+    : mPlayer(player), mConst(playerConst), mCollider(collider), mJudge(judge) {
     mIsShowCapMsg = !rs::isShowCapMsgPlayerInIceWaterFirst(player);
     mIceEffect = new al::LiveActor("氷水エフェクト");
     al::EffectObjFunction::initActorEffectObjNoArchive(mIceEffect, initInfo, "ScreenColdWater");

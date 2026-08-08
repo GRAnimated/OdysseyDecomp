@@ -20,9 +20,8 @@ public:
     PlayerStateDamageFire(al::LiveActor* player, const PlayerConst* pConst,
                           const IUsePlayerCollision* collision, const PlayerInput* input,
                           PlayerAnimator* animator, IJudge* judgeSpeedCheckFall);
-    ~PlayerStateDamageFire() override;
-
     void appear() override;
+
     void control() override;
     bool isEndFirstLand() const;
     bool isEnableJump() const;
@@ -33,6 +32,7 @@ public:
     void exeRun();
     void exeFall();
     void exeDead();
+    ~PlayerStateDamageFire() override;
 
 private:
     const PlayerConst* mConst;

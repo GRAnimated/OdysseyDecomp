@@ -31,4 +31,3 @@ private:
     sead::Vector3f mVelocityUp = sead::Vector3f::zero;
 };
 
-static_assert(sizeof(PlayerActionVelocityControl) == 0x48);

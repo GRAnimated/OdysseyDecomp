@@ -1,11 +1,15 @@
 #include "Player/PlayerCostumeInfo.h"
 
+#include <basis/seadNew.h>
+
 #include "Library/Base/StringUtil.h"
 #include "Library/Math/MathUtil.h"
-
-PlayerHeadCostumeInfo::PlayerHeadCostumeInfo(const char* costumeName) : costumeName(costumeName) {}
+#include "Library/Resource/ResourceFunction.h"
+#include "Library/Yaml/ByamlUtil.h"
 
 PlayerBodyCostumeInfo::PlayerBodyCostumeInfo(const char* costumeName) : costumeName(costumeName) {}
+
+PlayerHeadCostumeInfo::PlayerHeadCostumeInfo(const char* costumeName) : costumeName(costumeName) {}
 
 PlayerCostumeInfo::PlayerCostumeInfo() = default;
 
@@ -95,3 +99,52 @@ s32 PlayerCostumeInfo::calcWarmLevel(s32 baseLevel) const {
         return false;
     return al::clamp(mBodyInfo->warmLevel + baseLevel, -3, 3);
 }
+
+
+namespace PlayerCostumeFunction {
+
+PlayerBodyCostumeInfo* createBodyCostumeInfo(al::Resource* resource, const char* costumeName) {
+    auto* info = new PlayerBodyCostumeInfo(costumeName);
+    if (!al::isExistResourceYaml(resource, "InitCostumeInfoBody", nullptr))
+        return info;
+
+    al::ByamlIter iter{al::findResourceYaml(resource, "InitCostumeInfoBody", nullptr)};
+    al::tryGetByamlS32(&info->warmLevel, iter, "WarmLevel");
+    al::tryGetByamlBool(&info->isIgnoreTemperature, iter, "IsIgnoreTemperature");
+    al::tryGetByamlBool(&info->isUseHeadSuffix, iter, "IsUseHeadSuffix");
+    al::tryGetByamlBool(&info->isBigEar, iter, "IsBigEar");
+    al::tryGetByamlBool(&info->isHideHeadHair, iter, "IsHideHeadHair");
+    al::tryGetByamlBool(&info->isUseBodyHair, iter, "IsUseBodyHair");
+    al::tryGetByamlBool(&info->isExistHairNoCap, iter, "IsExistHairNoCap");
+    al::tryGetByamlBool(&info->isUseShortHead, iter, "IsUseShortHead");
+    al::tryGetByamlBool(&info->isNoPairHead, iter, "IsNoPairHead");
+    al::tryGetByamlBool(&info->isMario64, iter, "IsMario64");
+    al::tryGetByamlBool(&info->isHidePainNose, iter, "IsHidePainNose");
+    al::tryGetByamlBool(&info->isUseBeard, iter, "IsUseBeard");
+    al::tryGetByamlBool(&info->isUseEarringPeach, iter, "IsUseEarringPeach");
+    al::tryGetByamlBool(&info->isUseEarringLink, iter, "IsUseEarringLink");
+    return info;
+}
+
+PlayerHeadCostumeInfo* createHeadCostumeInfo(al::Resource* resource, const char* costumeName,
+                                              bool isInvisibleHead) {
+    auto* info = new PlayerHeadCostumeInfo(costumeName);
+    if (al::isExistResourceYaml(resource, "InitCostumeInfoHead", nullptr)) {
+        al::ByamlIter iter{al::findResourceYaml(resource, "InitCostumeInfoHead", nullptr)};
+        al::tryGetByamlBool(&info->isFullFace, iter, "IsFullFace");
+        al::tryGetByamlBool(&info->isShrinkNose, iter, "IsShrinkNose");
+        al::tryGetByamlBool(&info->isPreventHead, iter, "IsPreventHead");
+        al::tryGetByamlBool(&info->isEnableBigEar, iter, "IsEnableBigEar");
+        al::tryGetByamlBool(&info->isEnableHairNoCap, iter, "IsEnableHairNoCap");
+        al::tryGetByamlBool(&info->isMario64, iter, "IsMario64");
+        al::tryGetByamlBool(&info->isHaveShort, iter, "IsHaveShort");
+        al::tryGetByamlBool(&info->isHideBeard, iter, "IsHideBeard");
+        al::tryGetByamlBool(&info->isHideEarringPeach, iter, "IsHideEarringPeach");
+        al::tryGetByamlBool(&info->isHideEarringLink, iter, "IsHideEarringLink");
+        al::tryGetByamlBool(&info->isUseStrap, iter, "IsUseStrap");
+    }
+    info->isInvisibleHead = isInvisibleHead;
+    return info;
+}
+
+}  // namespace PlayerCostumeFunction

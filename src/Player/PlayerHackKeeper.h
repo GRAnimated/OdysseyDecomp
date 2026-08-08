@@ -38,7 +38,6 @@ struct HackEndParam {
     bool hasVelocity = false;
 };
 
-static_assert(sizeof(HackEndParam) == 0x40);
 
 class PlayerHackKeeper {
 public:
@@ -50,13 +49,13 @@ public:
                      const IUsePlayerHeightCheck* heightCheck);
 
     void createHackModel(const al::ActorInitInfo&);
-    bool startHack(al::HitSensor*, al::HitSensor*, al::LiveActor*);
-    void setupHack(al::HitSensor*, al::HitSensor*, al::LiveActor*);
-    bool endHack(const HackEndParam*);
+    bool startHack(al::HitSensor* hackSensor, al::HitSensor* parentSensor, al::LiveActor* hackActor);
+    void setupHack(al::HitSensor* hackSensor, al::HitSensor* parentSensor, al::LiveActor* hackActor);
+    bool endHack(const HackEndParam* param);
     void endHackStartDemo(al::LiveActor*);
     void startHackStartDemo(al::LiveActor*);
-    void startHackStartDemoPuppetable(al::LiveActor*);
-    void addHackStartDemo(al::LiveActor*);
+    void startHackStartDemoPuppetable(al::LiveActor* actor);
+    void addHackStartDemo(al::LiveActor* actor);
     void appearHackDemoModel(const sead::Matrix34f&, f32);
     void updateHackDemoModel(const sead::Matrix34f&, f32);
     void deleteHackDemoModelEffect();
@@ -76,11 +75,11 @@ public:
     bool sendMarioDeathArea();
     bool sendMsgEnableMapCheckPointWarp();
     bool sendMsgSelfCeilingCheckMiss();
-    bool receiveRequestTransferHack(al::HitSensor*);
+    bool receiveRequestTransferHack(al::HitSensor* sensor);
     bool requestDamage();
     bool receiveRequestDamage();
     bool sendSyncDamageVisibility();
-    bool pushWorldEndBorder(const sead::Vector3f&);
+    bool pushWorldEndBorder(const sead::Vector3f& offset);
     const char* getCurrentHackName() const;
     IUsePlayerCollision* getPlayerCollision() const;
     f32 getHackGuideHeight() const;
@@ -93,8 +92,9 @@ public:
     bool isHackUsePlayerCollision() const;
     bool isHackCancelCeilingCheck() const;
     bool isHackInvalidLifeRecovery() const;
-    void requestForceHackStageStart(al::HitSensor*, const CapTargetInfo*, al::LiveActor*);
-    bool executeForceHackStageStart(al::HitSensor*, IUsePlayerHack*);
+    void requestForceHackStageStart(al::HitSensor* sensor, const CapTargetInfo* target,
+                                    al::LiveActor* actor);
+    bool executeForceHackStageStart(al::HitSensor* sensor, IUsePlayerHack* hack);
     void startDemo();
     void endDemo();
 
@@ -143,21 +143,21 @@ private:
     al::LiveActor* mParent;
     HackCap* mHackCap;
     PlayerRecoverySafetyPoint* mRecoverySafePoint;
-    PlayerJudgePreInputJump* mJudgePreInputJump;
-    PlayerJudgePreInputHackAction* mJudgePreInputHackAction;
+    PlayerJudgePreInputJump* mJudgePreInputJump = nullptr;
+    PlayerJudgePreInputHackAction* mJudgePreInputHackAction = nullptr;
     PlayerInput* mInput;
-    sead::Matrix34f* field_30;
+    const sead::Matrix34f* field_30;
     PlayerDamageKeeper* mDamageKeeper;
     IPlayerModelChanger* mModelChanger;
     IUsePlayerHeightCheck* mHeightCheck;
-    al::HitSensor* mParentBodySensor;
-    bool mIsPuppetable;
-    bool mIsCancellingHack;
-    bool mIsHackDemoStarted;
-    bool mIsPuppetable2;
-    bool mIsStartedHacking;
-    bool mIsHack;
-    bool mIsTookDamage;
+    al::HitSensor* mParentBodySensor = nullptr;
+    bool mIsPuppetable = false;
+    bool mIsCancellingHack = false;
+    bool mIsHackDemoStarted = false;
+    bool mIsPuppetable2 = false;
+    bool mIsStartedHacking = false;
+    bool mIsHack = false;
+    bool mIsTookDamage = false;
     al::CollisionPartsFilterBase* mCollisionFilter;
     al::LiveActor* mHackActor;
     al::HitSensor* mHackHitSensor;

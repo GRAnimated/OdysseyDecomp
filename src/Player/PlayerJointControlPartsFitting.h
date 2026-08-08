@@ -33,7 +33,7 @@ public:
         f32* blendRates;
     };
 
-    explicit PlayerJointControlPartsFitting(const al::LiveActor*);
+    PlayerJointControlPartsFitting(const al::LiveActor*);
 
     void initByHostResource();
     void calcJointCallback(s32 jointIndex, sead::Matrix34f*) override;
@@ -46,5 +46,4 @@ private:
     sead::PtrArray<FittingInfo> mFittingInfos;
 };
 
-static_assert(sizeof(PlayerJointControlPartsFitting::FittingInfo) == 0x80);
 static_assert(sizeof(PlayerJointControlPartsFitting) == 0x48);

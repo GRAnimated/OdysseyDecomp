@@ -7,8 +7,9 @@
 
 #include "Library/Draw/RenderBufferAttacher.h"
 
-// NON_MATCHING: target orders attacher, buffer, and viewport stack objects differently; next
-// source-level hypothesis is the original declaration and lifetime shape.
+// NON_MATCHING: target/current are 0xb4 bytes but order the attacher, buffer, and viewport
+// stack objects differently; next source-level hypothesis is the original declaration/lifetime
+// shape with the render-buffer attachment object spanning the viewport setup.
 void PlayerHackStartTexKeeper::clearHackStartTextureOnlyFirstTime(agl::DrawContext* context) {
     if (mIsTextureCleared)
         return;

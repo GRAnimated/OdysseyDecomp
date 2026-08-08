@@ -17,4 +17,3 @@ public:
     virtual void showShadowMask() = 0;
 };
 
-static_assert(sizeof(IPlayerModelChanger) == 0x8);

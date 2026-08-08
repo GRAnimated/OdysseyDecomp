@@ -47,13 +47,13 @@ private:
     PlayerColliderHakoniwa* mCollider;
     const IPlayerModelChanger* mModelChanger;
     const PlayerHackKeeper* mHackKeeper;
-    s32 mModelForm;
-    s32 mActionForm;
-    s32 mAttackSensorForm;
-    bool mIsFormDirty;
+    s32 mModelForm = 0;
+    s32 mActionForm = 0;
+    s32 mAttackSensorForm = 0;
+    bool mIsFormDirty = false;
     u8 _2d[3];
-    sead::Vector3f mActionFront;
-    bool mIsBind;
+    sead::Vector3f mActionFront = {0.0f, 0.0f, 0.0f};
+    bool mIsBind = false;
     u8 _3d[3];
 };
 

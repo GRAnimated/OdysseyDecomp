@@ -18,20 +18,20 @@ struct SphereMoveHitInfo;
 
 class PlayerCollisionCheckSphereMove : public al::IUseCollision {
 public:
-    PlayerCollisionCheckSphereMove(al::CollisionDirector*, s32);
+    PlayerCollisionCheckSphereMove(al::CollisionDirector* collisionDirector, s32 maxNum);
 
-    al::CollisionDirector* getCollisionDirector() const override;
+    bool checkSphereMove(const sead::Vector3f& start, const sead::Vector3f& move, f32 radius);
 
-    bool checkSphereMove(const sead::Vector3f&, const sead::Vector3f&, f32);
-    void gatherCollisionParts(al::CollisionParts*);
+    void gatherCollisionParts(al::CollisionParts* collisionParts);
     u32 getNum() const;
-    f32 getTValue(u32) const;
-    const sead::Vector3f& getPos(u32) const;
-    const sead::Vector3f& getNormal(u32) const;
-    const al::CollisionParts* getCollisionParts(u32) const;
-    const char* getMapCodeName(u32) const;
-    const char* getWallCodeName(u32) const;
-    const char* getMaterialCodeName(u32) const;
+    f32 getTValue(u32 index) const;
+    const sead::Vector3f& getPos(u32 index) const;
+    const sead::Vector3f& getNormal(u32 index) const;
+    const al::CollisionParts* getCollisionParts(u32 index) const;
+    const char* getMapCodeName(u32 index) const;
+    const char* getWallCodeName(u32 index) const;
+    const char* getMaterialCodeName(u32 index) const;
+    al::CollisionDirector* getCollisionDirector() const override;
 
     void setCollisionPartsFilter(const al::CollisionPartsFilterBase* filter) {
         mCollisionPartsFilter = filter;
@@ -40,15 +40,15 @@ public:
 private:
     al::CollisionDirector* mCollisionDirector;
     u32 mMaxNum;
-    u32 mNum;
+    u32 mNum = 0;
     f32* mTValues;
     sead::Vector3f* mPositions;
     al::Triangle* mTriangles;
     alCollisionUtil::SphereMoveHitInfo* mHitInfos;
-    void* _38;
+    void* _38 = nullptr;
     u32* mIndices;
     sead::PtrArray<al::CollisionParts> mCollisionParts;
-    const al::CollisionPartsFilterBase* mCollisionPartsFilter;
+    const al::CollisionPartsFilterBase* mCollisionPartsFilter = nullptr;
 };
 
 static_assert(sizeof(PlayerCollisionCheckSphereMove) == 0x60);

@@ -17,7 +17,7 @@ public:
     void reset() override;
     void update() override;
 
-    bool judge() const override { return mInvalidateInputFallArea != nullptr; }
+    bool judge() const override { return mInvalidateInputFallArea; }
     const al::AreaObj* getArea() const { return mInvalidateInputFallArea; }
 
 private:

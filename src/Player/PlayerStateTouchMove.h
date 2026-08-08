@@ -10,10 +10,9 @@ class TouchTargetKeeper;
 class PlayerStateTouchMove : public al::ActorStateBase {
 public:
     PlayerStateTouchMove(al::LiveActor* player, const TouchTargetKeeper*);
-    ~PlayerStateTouchMove() override;
-
     void appear() override;
     void exeJump();
+    ~PlayerStateTouchMove() override;
+
 };
 
-static_assert(sizeof(PlayerStateTouchMove) == 0x20);

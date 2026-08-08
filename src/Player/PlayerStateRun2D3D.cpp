@@ -15,7 +15,7 @@ NERVES_MAKE_STRUCT(PlayerStateRun2D3D, Run3D, Run2D)
 }  // namespace
 
 PlayerStateRun2D3D::PlayerStateRun2D3D(al::LiveActor* player, const PlayerConst* pConst,
-                                       const IUseDimension*,
+                                       const IUseDimension* dimension,
                                        const IPlayerModelChanger* modelChanger,
                                        const PlayerInput* input,
                                        const IUsePlayerCollision* collision,
@@ -29,8 +29,6 @@ PlayerStateRun2D3D::PlayerStateRun2D3D(al::LiveActor* player, const PlayerConst*
     al::initNerveState(this, mRun3D, &NrvPlayerStateRun2D3D.Run3D, "走り3D");
     al::initNerveState(this, mRun2D, &NrvPlayerStateRun2D3D.Run2D, "走り2D");
 }
-
-PlayerStateRun2D3D::~PlayerStateRun2D3D() = default;
 
 void PlayerStateRun2D3D::appear() {
     al::NerveStateBase::appear();
@@ -62,3 +60,5 @@ void PlayerStateRun2D3D::exeRun2D() {
     if (al::updateNerveState(this))
         kill();
 }
+
+PlayerStateRun2D3D::~PlayerStateRun2D3D() = default;

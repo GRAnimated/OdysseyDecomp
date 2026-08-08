@@ -1,6 +1,9 @@
 #pragma once
 
+#include <math/seadMatrix.h>
 #include <math/seadVector.h>
+
+class PlayerColliderDisk;
 
 namespace al {
 class Triangle;
@@ -44,6 +47,26 @@ public:
 private:
     T* mParent;
     DelegateFilter mFunc;
+};
+
+class DiskInterpolator {
+public:
+    DiskInterpolator();
+
+    void startInterp(const sead::Vector3f&, const sead::Vector3f&, f32, f32, f32, f32,
+                     const sead::Matrix34f*, const sead::Matrix34f*, const sead::Vector3f&, f32);
+    void nextStep();
+    void calcInterpPos(sead::Vector3f*) const;
+    void getMoveVector(sead::Vector3f*);
+    void calcInterp(sead::Vector3f*, f32*, f32*, sead::Vector3f*, sead::Matrix34f*,
+                    sead::Vector3f*) const;
+
+private:
+    friend class ::PlayerColliderDisk;
+
+    u8 _0[0x48];
+    f32 _48;
+    f32 _4c;
 };
 
 }  // namespace al

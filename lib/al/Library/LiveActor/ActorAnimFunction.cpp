@@ -1,6 +1,10 @@
 #include "Library/LiveActor/ActorAnimFunction.h"
 
+#include <basis/seadNew.h>
 #include <basis/seadTypes.h>
+#include <nn/g3d/ModelObj.h>
+#include <nn/g3d/ResFile.h>
+#include <nn/g3d/ResModel.h>
 #include <nn/g3d/ResSkeleton.h>
 
 #include "Library/Anim/SklAnimRetargettingInfo.h"
@@ -8,28 +12,29 @@
 #include "Library/Execute/ExecuteTableHolderUpdate.h"
 #include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/LiveActor/LiveActor.h"
+#include "Library/Resource/Resource.h"
+#include "Library/Resource/ResourceFunction.h"
 #include "Project/Anim/AnimPlayerVisual.h"
 
 namespace al {
 void startSklAnim(LiveActor* actor, const char* animName) {
-    startSklAnimBlendInterpole(actor, nullptr, animName, nullptr, nullptr, nullptr, nullptr,
-                               nullptr);
+    getSkl(actor)->startSklAnim(nullptr, animName, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 
 void startSklAnimInterpole(LiveActor* actor, const char* animName0, const char* animName1) {
-    startSklAnimBlendInterpole(actor, animName1, animName0, nullptr, nullptr, nullptr, nullptr,
-                               nullptr);
+    getSkl(actor)->startSklAnim(animName1, animName0, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 
 bool tryStartSklAnimIfExist(LiveActor* actor, const char* animName) {
-    if (!isSklAnimExist(actor) || !getSkl(actor)->isSklAnimExist(animName))
+    AnimPlayerSkl* sklAnim = getSkl(actor);
+    if (!sklAnim || !sklAnim->isSklAnimExist(animName))
         return false;
     startSklAnim(actor, animName);
     return true;
 }
 
 bool isSklAnimExist(const LiveActor* actor, const char* animName) {
-    return isSklAnimExist(actor) && getSkl(actor)->isSklAnimExist(animName);
+    return getSkl(actor) && getSkl(actor)->isSklAnimExist(animName);
 }
 
 bool tryStartSklAnimIfNotPlaying(LiveActor* actor, const char* animName) {
@@ -40,15 +45,15 @@ bool tryStartSklAnimIfNotPlaying(LiveActor* actor, const char* animName) {
 }
 
 bool isSklAnimPlaying(const LiveActor* actor, const char* animName, s32 index) {
-    const char* playingName = getPlayingSklAnimName(actor, index);
+    const char* playingName = getSkl(actor)->getPlayingSklAnimName(index);
     return playingName && isEqualString(animName, playingName);
 }
 
 void startSklAnimBlend(LiveActor* actor, const char* animName0, const char* animName1,
                        const char* animName2, const char* animName3, const char* animName4,
                        const char* animName5) {
-    startSklAnimBlendInterpole(actor, nullptr, animName0, animName1, animName2, animName3,
-                               animName4, animName5);
+    getSkl(actor)->startSklAnim(nullptr, animName0, animName1, animName2, animName3, animName4,
+                                animName5);
 }
 
 void startSklAnimBlendInterpole(LiveActor* actor, const char* animName0, const char* animName1,
@@ -56,6 +61,87 @@ void startSklAnimBlendInterpole(LiveActor* actor, const char* animName0, const c
                                 const char* animName5, const char* animName6) {
     getSkl(actor)->startSklAnim(animName0, animName1, animName2, animName3, animName4, animName5,
                                 animName6);
+}
+
+void copySklAnim(LiveActor* actor, const LiveActor* sourceActor) {
+    s32 blendNum;
+    {
+        AnimPlayerSkl* sklAnim = getSkl(actor);
+        blendNum = getSkl(sourceActor)->getSklAnimBlendNum();
+        const s32 actorBlendNum = sklAnim->getSklAnimBlendNum();
+        if (blendNum >= actorBlendNum)
+            blendNum = actorBlendNum;
+    }
+
+    if (blendNum >= 1) {
+        for (s32 i = 0; i < blendNum; i++) {
+            if (getSkl(actor)->isSklAnimPlaying(i) && getSkl(sourceActor)->isSklAnimPlaying(i)) {
+                const f32 frame = getSkl(sourceActor)->getSklAnimFrame(i);
+                getSkl(actor)->setSklAnimFrame(i, frame);
+            }
+        }
+    }
+
+    {
+        AnimPlayerSkl* sklAnim = getSkl(actor);
+        blendNum = getSkl(sourceActor)->getSklAnimBlendNum();
+        const s32 actorBlendNum = sklAnim->getSklAnimBlendNum();
+        if (blendNum >= actorBlendNum)
+            blendNum = actorBlendNum;
+    }
+
+    if (blendNum >= 1) {
+        for (s32 i = 0; i < blendNum; i++) {
+            if (getSkl(actor)->isSklAnimPlaying(i)) {
+                const f32 frameRate = getSkl(sourceActor)->getSklAnimFrameRate(i);
+                getSkl(actor)->setSklAnimFrameRate(i, frameRate);
+            }
+        }
+    }
+
+    if (getSkl(actor)->getSklAnimBlendNum() > 1 &&
+        getSkl(sourceActor)->getSklAnimBlendNum() >= 2) {
+        AnimPlayerSkl* sourceSkl = getSkl(sourceActor);
+        if (sourceSkl->getSklAnimBlendNum() >= 1) {
+            s32 i = 0;
+            do {
+                if (getSkl(actor)->isSklAnimPlaying(i) &&
+                    getSkl(sourceActor)->isSklAnimPlaying(i)) {
+                    const f32 blendWeight = getSkl(sourceActor)->getSklAnimBlendWeight(i);
+                    getSkl(actor)->setSklAnimBlendWeight(i, blendWeight);
+                    getSkl(actor)->calcSklAnim();
+                }
+                i++;
+            } while (i < sourceSkl->getSklAnimBlendNum());
+        }
+    }
+
+    AnimPlayerSkl* actorSkl = getSkl(actor);
+    if (actorSkl->getRetargettingInfo()) {
+        AnimPlayerSkl* sourceSkl = getSkl(sourceActor);
+        if (sourceSkl->getRetargettingInfo()) {
+            if (sourceSkl->isRetargettingValid())
+                actorSkl->setRetargettingValid(true);
+            else
+                actorSkl->setRetargettingValid(false);
+        }
+    }
+}
+
+bool isExistSklAnimRetargetting(const LiveActor* actor) {
+    return getSkl(actor)->getRetargettingInfo();
+}
+
+bool isSklAnimRetargettingValid(const LiveActor* actor) {
+    return getSkl(actor)->isRetargettingValid();
+}
+
+void validateSklAnimRetargetting(const LiveActor* actor) {
+    getSkl(actor)->setRetargettingValid(true);
+}
+
+void invalidateSklAnimRetargetting(const LiveActor* actor) {
+    getSkl(actor)->setRetargettingValid(false);
 }
 
 void clearSklAnimInterpole(LiveActor* actor) {
@@ -226,13 +312,13 @@ void startMtpAnimAndSetFrameAndStop(LiveActor* actor, const char* animName, f32 
     setMtpAnimFrameRate(actor, 0.0);
 }
 
-void setMtpAnimFrameRate(LiveActor* actor, f32 frameRate) {
-    getMtp(actor)->setAnimFrameRate(frameRate);
-}
-
 void setMtpAnimFrame(LiveActor* actor, f32 frame) {
     getMtp(actor)->setAnimFrame(frame);
     updateModelDraw(actor);
+}
+
+void setMtpAnimFrameRate(LiveActor* actor, f32 frameRate) {
+    getMtp(actor)->setAnimFrameRate(frameRate);
 }
 
 bool tryStartMtpAnimIfExist(LiveActor* actor, const char* animName) {
@@ -315,19 +401,15 @@ void startMclAnim(LiveActor* actor, const char* animName) {
     getMcl(actor)->startAnim(animName);
 }
 
-bool isMclAnimExist(const LiveActor* actor) {
-    return getMcl(actor) != nullptr;
-}
-
-bool isMclAnimExist(const LiveActor* actor, const char* animName) {
-    return isMclAnimExist(actor) && getMcl(actor)->isAnimExist(animName);
-}
-
 bool tryStartMclAnimIfExist(LiveActor* actor, const char* animName) {
     if (!isMclAnimExist(actor) || !getMcl(actor)->isAnimExist(animName))
         return false;
     startMclAnim(actor, animName);
     return true;
+}
+
+bool isMclAnimExist(const LiveActor* actor, const char* animName) {
+    return isMclAnimExist(actor) && getMcl(actor)->isAnimExist(animName);
 }
 
 bool tryStartMclAnimIfNotPlaying(LiveActor* actor, const char* animName) {
@@ -343,6 +425,10 @@ bool isMclAnimPlaying(const LiveActor* actor, const char* animName) {
 
 void clearMclAnim(LiveActor* actor) {
     getMcl(actor)->clearAnim();
+}
+
+bool isMclAnimExist(const LiveActor* actor) {
+    return getMcl(actor) != nullptr;
 }
 
 bool isMclAnimEnd(const LiveActor* actor) {
@@ -820,6 +906,62 @@ void setAllAnimFrameRate(LiveActor* actor, f32 frameRate) {
         setVisAnimFrameRate(actor, frameRate);
 }
 
+SklAnimRetargettingInfo* initAndBindSklAnimRetargetting(LiveActor* actor,
+                                                           const char* resourceName,
+                                                           const sead::Vector3f& scale) {
+    StringTmp<128> resourcePath{"ObjectData/%s", resourceName};
+    SklAnimRetargettingInfo* info = createSklAnimRetargetting(actor, resourcePath.cstr(), scale);
+    bindSklAnimRetargetting(actor, info);
+    return info;
+}
+
+SklAnimRetargettingInfo* createSklAnimRetargetting(const LiveActor* actor,
+                                                     const char* resourceName,
+                                                     const sead::Vector3f& scale) {
+    const nn::g3d::ResSkeleton* sourceSkeleton =
+        actor->getModelKeeper()->getModelCtrl()->getModelObj()->GetResModel()->GetSkeleton();
+    Resource* resource = findOrCreateResource(resourceName, nullptr);
+    const nn::g3d::ResSkeleton* targetSkeleton = resource->getResFile()->mModels->GetSkeleton();
+    return new (0x10) SklAnimRetargettingInfo(sourceSkeleton, targetSkeleton, scale);
+}
+
+void bindSklAnimRetargetting(const LiveActor* actor, const SklAnimRetargettingInfo* info) {
+    getSkl(actor)->setRetargettingInfo(info);
+}
+
+SklAnimRetargettingInfo* createSklAnimRetargetting(const LiveActor* sourceActor,
+                                                     const LiveActor* targetActor,
+                                                     const sead::Vector3f& scale) {
+    return new (0x10) SklAnimRetargettingInfo(
+        sourceActor->getModelKeeper()->getModelCtrl()->getModelObj(),
+        targetActor->getModelKeeper()->getModelCtrl()->getModelObj(), scale);
+}
+
+void unbindSklAnimRetargetting(const LiveActor* actor) {
+    getSkl(actor)->setRetargettingInfo(nullptr);
+}
+
+void initPartialSklAnim(LiveActor* actor, s32 slotNum, s32 partNum, s32 jointNum) {
+    getSkl(actor)->initPartialAnim(slotNum, partNum, jointNum);
+}
+
+s32 getPartialSklAnimSlotNum(LiveActor* actor) {
+    return getSkl(actor)->getPartialAnimSlotNum();
+}
+
+void addPartialSklAnimPartsList(LiveActor* actor, const char* partsName, const char* jointName,
+                                s32 index) {
+    getSkl(actor)->addPartialAnimJoint(index, partsName, jointName);
+}
+
+void addPartialSklAnimPartsListRecursive(LiveActor* actor, const char* jointName, s32 index) {
+    getSkl(actor)->addPartialAnimJointRecursive(index, jointName);
+}
+
+s32 calcJoitsAmountFromJoint(LiveActor* actor, const char* jointName) {
+    return getSkl(actor)->getJoitsAmountFromJoint(jointName);
+}
+
 void startPartialSklAnim(LiveActor* actor, const char* animName, s32 partCount, s32 value,
                          const SklAnimRetargettingInfo* info) {
     getSkl(actor)->startPartialAnim(animName, partCount, value, info);
@@ -885,3 +1027,139 @@ void setBaseMtxAndCalcAnim(LiveActor* actor, const sead::Matrix34f& matrix,
     return actor->getModelKeeper()->calc(matrix, vector);
 }
 }  // namespace al
+
+
+namespace alAnimFunction {
+
+bool isAllAnimEnd(const al::LiveActor* actor, s32 animType) {
+    switch (animType) {
+    case -1:
+        if (al::getSkl(actor))
+            return al::getSkl(actor)->isSklAnimEnd(0);
+        if (al::getMtp(actor))
+            return al::getMtp(actor)->isAnimEnd();
+        if (al::getMcl(actor))
+            return al::getMcl(actor)->isAnimEnd();
+        if (al::getMts(actor))
+            return al::getMts(actor)->isAnimEnd();
+        if (al::getVis(actor))
+            return al::getVis(actor)->isAnimEnd();
+        return true;
+    case 0:
+        return al::getSkl(actor)->isSklAnimEnd(0);
+    case 1:
+        return al::getMcl(actor)->isAnimEnd();
+    case 2:
+        return al::getMtp(actor)->isAnimEnd();
+    case 3:
+        return al::getMts(actor)->isAnimEnd();
+    case 4:
+        return al::getVisForAction(actor)->isAnimEnd();
+    default:
+        return true;
+    }
+}
+
+f32 getAllAnimFrame(const al::LiveActor* actor, s32 animType) {
+    switch (animType) {
+    case -1:
+        if (al::getSkl(actor))
+            return al::getSkl(actor)->getSklAnimFrame(0);
+        if (al::getMcl(actor))
+            return al::getMcl(actor)->getAnimFrame();
+        if (al::getMtp(actor))
+            return al::getMtp(actor)->getAnimFrame();
+        if (al::getMts(actor))
+            return al::getMts(actor)->getAnimFrame();
+        if (al::getVis(actor))
+            return al::getVis(actor)->getAnimFrame();
+        return 0.0f;
+    case 0:
+        return al::getSkl(actor)->getSklAnimFrame(0);
+    case 1:
+        return al::getMcl(actor)->getAnimFrame();
+    case 2:
+        return al::getMtp(actor)->getAnimFrame();
+    case 3:
+        return al::getMts(actor)->getAnimFrame();
+    case 4:
+        return al::getVisForAction(actor)->getAnimFrame();
+    default:
+        return 0.0f;
+    }
+}
+
+f32 getAllAnimFrameMax(const al::LiveActor* actor, const char* animName, s32 animType) {
+    switch (animType) {
+    case -1:
+        if (al::getSkl(actor) && al::getSkl(actor)->isSklAnimExist(animName))
+            return al::getSkl(actor)->getSklAnimFrameMax(animName);
+        if (al::getMcl(actor) && al::getMcl(actor)->isAnimExist(animName))
+            return al::getMcl(actor)->getAnimFrameMax(animName);
+        if (al::getMtp(actor) && al::getMtp(actor)->isAnimExist(animName))
+            return al::getMtp(actor)->getAnimFrameMax(animName);
+        if (al::getMts(actor) && al::getMts(actor)->isAnimExist(animName))
+            return al::getMts(actor)->getAnimFrameMax(animName);
+        if (al::getVis(actor) && al::getVis(actor)->isAnimExist(animName))
+            return al::getVis(actor)->getAnimFrameMax(animName);
+        return 1.0f;
+    case 0:
+        return al::getSkl(actor)->getSklAnimFrameMax(animName);
+    case 1:
+        return al::getMcl(actor)->getAnimFrameMax(animName);
+    case 2:
+        return al::getMtp(actor)->getAnimFrameMax(animName);
+    case 3:
+        return al::getMts(actor)->getAnimFrameMax(animName);
+    case 4:
+        return al::getVis(actor)->getAnimFrameMax(animName);
+    default:
+        return 1.0f;
+    }
+}
+
+f32 getAllAnimFrameRate(const al::LiveActor* actor, s32 animType) {
+    switch (animType) {
+    case -1:
+        if (al::getSkl(actor))
+            return al::getSkl(actor)->getSklAnimFrameRate(0);
+        if (al::getMcl(actor))
+            return al::getMcl(actor)->getAnimFrameRate();
+        if (al::getMtp(actor))
+            return al::getMtp(actor)->getAnimFrameRate();
+        if (al::getMts(actor))
+            return al::getMts(actor)->getAnimFrameRate();
+        if (al::getVis(actor))
+            return al::getVis(actor)->getAnimFrameRate();
+        return 1.0f;
+    case 0:
+        return al::getSkl(actor)->getSklAnimFrameRate(0);
+    case 1:
+        return al::getMcl(actor)->getAnimFrameRate();
+    case 2:
+        return al::getMtp(actor)->getAnimFrameRate();
+    case 3:
+        return al::getMts(actor)->getAnimFrameRate();
+    case 4:
+        return al::getVisForAction(actor)->getAnimFrameRate();
+    default:
+        return 1.0f;
+    }
+}
+
+const char* getAllAnimName(const al::LiveActor* actor) {
+    if (al::getSkl(actor))
+        return al::getSkl(actor)->getPlayingSklAnimName(0);
+    if (al::getMcl(actor))
+        return al::getMcl(actor)->getPlayingAnimName();
+    if (al::getMtp(actor))
+        return al::getMtp(actor)->getPlayingAnimName();
+    if (al::getMts(actor))
+        return al::getMts(actor)->getPlayingAnimName();
+    // BUG: the game checks the regular Vis player but reads the action Vis player.
+    if (al::getVis(actor))
+        return al::getVisForAction(actor)->getPlayingAnimName();
+    return nullptr;
+}
+
+}  // namespace alAnimFunction

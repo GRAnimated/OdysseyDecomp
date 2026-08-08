@@ -8,9 +8,9 @@ class PlayerJudgeStatusPoleClimb : public IJudge {
 public:
     PlayerJudgeStatusPoleClimb(const IJudge* judge, const PlayerStatePoleClimb* statePoleClimb);
 
+    bool judge() const override;
     void reset() override {}
     void update() override {}
-    bool judge() const override;
 
 private:
     const IJudge* mJudge;

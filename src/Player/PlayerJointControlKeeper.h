@@ -4,6 +4,8 @@
 #include <math/seadMatrix.h>
 #include <math/seadVector.h>
 
+#include "Library/Joint/JointLookAtController.h"
+
 #include "Player/PlayerJointControlCapThrow.h"
 #include "Player/PlayerJointControlGrabDynamics.h"
 #include "Player/PlayerJointControlGrabPose.h"
@@ -21,7 +23,6 @@
 
 namespace al {
 class HitSensor;
-class JointLookAtController;
 class LiveActor;
 }  // namespace al
 class PlayerConst;
@@ -39,10 +40,10 @@ public:
     void updatePoleClimb();
     void updateGrab();
     void updatePartsDynamics();
-    void calcLookAtEyePos(sead::Vector3f*) const;
+    void calcLookAtEyePos(sead::Vector3f* out) const;
     void resetPartsDynamics();
-    void updateLookAtTarget(al::HitSensor*);
-    void calcGroundPoseUp(sead::Vector3f*) const;
+    void updateLookAtTarget(al::HitSensor* sensor);
+    void calcGroundPoseUp(sead::Vector3f* out) const;
     f32 getHeadTiltRate() const;
     void setPuppetMode(bool isPuppet) { mIsPuppetMode = isPuppet; }
     void noticeCarryStart() { _96 = true; }

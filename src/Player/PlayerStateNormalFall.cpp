@@ -21,13 +21,11 @@ PlayerStateNormalFall::PlayerStateNormalFall(al::LiveActor* player, const Player
                                              const PlayerInput* input,
                                              PlayerAnimator* animator)
     : al::ActorStateBase("落下", player), mConst(pConst), mCollision(collision),
-      mAnimator(animator), mAirMoveControl(nullptr) {
+      mAnimator(animator) {
     if (input)
         mAirMoveControl = new PlayerActionAirMoveControl(player, pConst, input, collision, false);
     initNerve(&NrvPlayerStateNormalFall.Fall, 0);
 }
-
-PlayerStateNormalFall::~PlayerStateNormalFall() = default;
 
 void PlayerStateNormalFall::appear() {
     al::NerveStateBase::appear();
@@ -61,3 +59,5 @@ void PlayerStateNormalFall::exeFall() {
         al::reboundVelocityFromCollision(actor, 0.0f, 0.0f, 1.0f);
     kill();
 }
+
+PlayerStateNormalFall::~PlayerStateNormalFall() = default;

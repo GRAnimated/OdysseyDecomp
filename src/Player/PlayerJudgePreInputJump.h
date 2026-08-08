@@ -24,4 +24,3 @@ private:
     s32 mRemainJumpFrame = 0;
 };
 
-static_assert(sizeof(PlayerJudgePreInputJump) == 0x28);

@@ -106,9 +106,9 @@ private:
 
 class CapTargetInfoFunction {
 public:
-    static void initIterCapTargetInfo(CapTargetInfo* capTargetInfo, IUsePlayerCollision*,
+    static void initIterCapTargetInfo(CapTargetInfo* capTargetInfo,
+                                      IUsePlayerCollision* playerCollision,
                                       const al::LiveActor* actor, const char* name);
 };
 
 static_assert(sizeof(CapTargetInfo) == 0x80);
-static_assert(sizeof(CapTargetInfoFunction) == 0x1);

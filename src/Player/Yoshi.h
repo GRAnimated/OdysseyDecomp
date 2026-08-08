@@ -32,20 +32,20 @@ public:
     void init(const al::ActorInitInfo& info) override;
     void initAfterPlacement() override;
     void movement() override;
-    void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
-    bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
-                    al::HitSensor* self) override;
-
     void control() override;
     void updateCollider() override;
 
     void updateCollisionShape();
     void sendCollisionMsg();
+
     void appearEgg();
     void startFruitShineGetDemo();
     void exeEgg();
     void exeNpc();
     void exeHack();
+    void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
+    bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
+                    al::HitSensor* self) override;
 
 private:
     PlayerConst* mPlayerConst = nullptr;

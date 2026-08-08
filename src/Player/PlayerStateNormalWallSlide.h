@@ -16,6 +16,7 @@ class PlayerStateNormalWallSlide : public al::ActorStateBase {
 public:
     PlayerStateNormalWallSlide(al::LiveActor*, const PlayerConst*, const PlayerInput*,
                                IUsePlayerCollision*, PlayerAnimator*);
+    ~PlayerStateNormalWallSlide() override = default;
 
     void appear() override;
     void exeKeep();

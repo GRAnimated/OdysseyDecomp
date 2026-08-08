@@ -13,14 +13,15 @@ class PlayerModelHolder;
 
 class PlayerEffect {
 public:
-    PlayerEffect(al::LiveActor*, const PlayerModelHolder*, const sead::Matrix34f*);
-    void emitEffectWaterInOut(const sead::Matrix34f&, bool);
-    void updateWaterSurfaceMtx(const al::WaterSurfaceFinder*);
+    PlayerEffect(al::LiveActor* player, const PlayerModelHolder* modelHolder,
+                 const sead::Matrix34f* spinCapMtx);
+    void emitEffectWaterInOut(const sead::Matrix34f& mtx, bool isLarge);
+    void updateWaterSurfaceMtx(const al::WaterSurfaceFinder* waterSurfaceFinder);
     void tryEmitInvincibleEffect();
     void suspendInvincibleEffect();
     void tryDeleteInvincibleEffect();
     void restartInvincibleEffect();
-    void updateInvincibleEffect(const IPlayerModelChanger*, bool);
+    void updateInvincibleEffect(const IPlayerModelChanger* modelChanger, bool isForceDelete);
 
     bool isInvincibleEffectActive() const { return mIsInvincibleEffectActive; }
 
@@ -42,7 +43,8 @@ public:
     void tryEmitStainPoisonEffect();
     void tryEmitStainFireEffect();
     void tryEmitStainIceEffect();
-    void tryEmitSandSinkEffect(const sead::Vector3f&, const sead::Vector3f&, bool);
+    void tryEmitSandSinkEffect(const sead::Vector3f& position, const sead::Vector3f& up,
+                               bool isWalk);
     void tryDeleteSandSinkEffect();
     void tryDeleteDamageFireRunEffect();
 

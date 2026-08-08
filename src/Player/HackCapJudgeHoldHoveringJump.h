@@ -13,12 +13,13 @@ class PlayerInput;
 
 class HackCapJudgeHoldHoveringJump : public IJudge {
 public:
-    HackCapJudgeHoldHoveringJump(const al::LiveActor*, const PlayerColliderHakoniwa*,
-                                 const HackCap*, const PlayerInput*, const PlayerConst*);
+    HackCapJudgeHoldHoveringJump(const al::LiveActor* player, const PlayerColliderHakoniwa* collider,
+                                 const HackCap* hackCap, const PlayerInput* input,
+                                 const PlayerConst* playerConst);
 
+    bool judge() const override;
     void reset() override;
     void update() override;
-    bool judge() const override;
 
 private:
     const al::LiveActor* mPlayer;

@@ -27,8 +27,6 @@ public:
     void update();
     bool updateCollideLockUp(const IUsePlayerCollision* collider,
                              const PlayerPushReceiver* pushReceiver);
-    void updateHandJointAngle();
-
     bool startCarry(al::HitSensor* heldSensor);
     bool startThrow(bool swing);
     void startCancelAndRelease();
@@ -39,6 +37,7 @@ public:
     void startDemoKeepCarry();
     void startDemoShineGet();
     void endDemoShineGet();
+    const char* getCarryStartAnimName() const;
     void startCameraSubjective();
     void endCameraSubjective();
     void sendPlayerWarp();
@@ -49,17 +48,16 @@ public:
     bool isCarryUp() const;
     bool isThrow() const;
     bool isThrowHandR() const;
-    bool isThrowHold() const;
-    bool isThrowRelease() const;
-    s32 getThrowReleaseFrame() const;
-
-    const char* getCarryStartAnimName() const;
     const char* getCarryThrowAnimName() const;
-    const char* getCarryAnimName() const;
+    bool isThrowHold() const;
+    s32 getThrowReleaseFrame() const;
+    bool isThrowRelease() const;
 
     void exeWait();
     void exeStart();
+    void updateHandJointAngle();
     void exeCarry();
+    const char* getCarryAnimName() const;
     void exeThrow();
     void exeRelease();
 

@@ -13,7 +13,7 @@ class PlayerCollider;
 
 class YoshiTongueCollider : public IUsePlayerCollision {
 public:
-    explicit YoshiTongueCollider(al::LiveActor* actor);
+    YoshiTongueCollider(al::LiveActor* actor);
 
     void collide(const sead::Vector3f& position, const sead::Vector3f& direction);
     void resetCollision(const sead::Vector3f& position);

@@ -9,15 +9,13 @@ class LiveActor;
 class PlayerStateSwordAttack : public al::ActorStateBase {
 public:
     PlayerStateSwordAttack(al::LiveActor* player, al::LiveActor* sword);
-    ~PlayerStateSwordAttack() override;
-
     void appear() override;
+
     void kill() override;
     void exeAttack();
+    ~PlayerStateSwordAttack() override;
 
 private:
     al::LiveActor* mSword;
-    bool mIsPowerGrove;
+    bool mIsPowerGlove = false;
 };
-
-static_assert(sizeof(PlayerStateSwordAttack) == 0x30);

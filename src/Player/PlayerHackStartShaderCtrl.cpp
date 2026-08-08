@@ -9,8 +9,14 @@
 #include "Library/Model/ModelCtrl.h"
 #include "Library/Model/ModelKeeper.h"
 
-// NON_MATCHING: fields and initialization behavior are recovered, but layout/call order differs; next
-// source-level hypothesis is the original parameter initialization helper shape.
+namespace alModelFunction {
+void calcBoundingBox(sead::BoundBox3f*, const al::ModelCtrl*);
+}
+
+namespace {
+const sead::Vector2f _18D9E40(8.0f, 128.0f);
+}
+
 PlayerHackStartShaderCtrl::PlayerHackStartShaderCtrl(al::LiveActor* host,
                                                      PlayerHackStartShaderParam* param)
     : mParent(host),
@@ -25,21 +31,19 @@ PlayerHackStartShaderCtrl::PlayerHackStartShaderCtrl(al::LiveActor* host,
         al::setMaterialProgrammable(mParent);
         if (mParam->_4 == -1.0f) {
             sead::BoundBox3f box;
-            al::calcModelBoundingBox(&box, mParent);
+            alModelFunction::calcBoundingBox(&box, mParent->getModelKeeper()->getModelCtrl());
             mParam->_4 = box.getSizeY();
         }
     }
 }
 
-// NON_MATCHING: host/model setup behavior is recovered, but call/register order differs; next
-// source-level hypothesis is the original shared setup helper shape.
 void PlayerHackStartShaderCtrl::setHost(al::LiveActor* host) {
     mParent = host;
     if (al::isExistModel(mParent)) {
         al::setMaterialProgrammable(mParent);
         if (mParam->_4 == -1.0f) {
             sead::BoundBox3f box;
-            al::calcModelBoundingBox(&box, mParent);
+            alModelFunction::calcBoundingBox(&box, mParent->getModelKeeper()->getModelCtrl());
             mParam->_4 = box.getSizeY();
         }
     }
@@ -58,43 +62,40 @@ void PlayerHackStartShaderCtrl::start() {
     al::makeQuatUpFront(&mQuat, up, front);
 }
 
-// NON_MATCHING: shader projection behavior is recovered, but matrix temporaries and call order differ;
-// next source-level hypothesis is the original projection helper signature and local layout.
+// NON_MATCHING: target/current size and all instructions match except the height flag uses W9 in the target versus W8 currently; next source-level hypothesis is a source lifetime that keeps the parameter pointer live across the flag load.
 void PlayerHackStartShaderCtrl::update() {
     if (!mIsActive)
         return;
 
     mTime++;
-    if (mTime < mParam->_8)
-        return;
+    if (mParam->_8 <= mTime) {
+        if (mParam->_8 == mTime)
+            alGraphicsFunction::requestChangeShaderVariation(mParent, "enable_compose_capture", "1",
+                                                             true);
 
-    if (mTime == mParam->_8)
-        alGraphicsFunction::requestChangeShaderVariation(mParent, "enable_compose_capture", "1",
-                                                         true);
+        const f32 rate = (f32)(mTime - mParam->_8) / (f32)mParam->_c;
+        al::ModelCtrl* modelCtrl = mParent->getModelKeeper()->getModelCtrl();
+        sead::Matrix44f projection;
+        sead::Vector3f trans = al::getTrans(mParent);
+        const f32 startHeight = mParam->_4;
+        if (mParam->_0)
+            trans.y += al::lerpValue(startHeight * 0.5f, startHeight * -0.5f, rate);
+        else
+            trans.y += al::lerpValue(startHeight, 0.0f, rate);
 
-    const f32 rate = (f32)(mTime - mParam->_8) / (f32)mParam->_c;
-    sead::Vector3f trans = al::getTrans(mParent);
-    f32 startHeight = mParam->_4;
-    f32 endHeight = 0.0f;
-    if (mParam->_0) {
-        startHeight *= 0.5f;
-        endHeight = startHeight * -1.0f;
-    }
-    trans.y += al::lerpValue(startHeight, endHeight, rate);
+        al::makeMtxProjFromQuatPoseFront(&projection, mQuat, _18D9E40, trans);
+        modelCtrl->setModelProgProjMtx0(projection);
 
-    sead::Matrix44f projection;
-    al::makeMtxProjFromQuatPoseFront(&projection, mQuat, sead::Vector2f(8.0f, 128.0f), trans);
-    mParent->getModelKeeper()->getModelCtrl()->setModelProgProjMtx0(projection);
+        mColor.a = 1.0f - rate;
+        const s32 materialCount = al::getMaterialCount(mParent);
+        for (s32 i = 0; i < materialCount; i++)
+            al::setModelMaterialParameterRgba(mParent, i, "hack_color", mColor);
 
-    mColor.a = 1.0f - rate;
-    const s32 materialCount = al::getMaterialCount(mParent);
-    for (s32 i = 0; i < materialCount; i++)
-        al::setModelMaterialParameterRgba(mParent, i, "hack_color", mColor);
-
-    if (mTime >= mParam->_8 + mParam->_c && mIsActive) {
-        mIsActive = false;
-        alGraphicsFunction::requestChangeShaderVariation(mParent, "enable_compose_capture", "0",
-                                                         true);
+        if (mTime >= mParam->_c + mParam->_8 && mIsActive) {
+            mIsActive = false;
+            alGraphicsFunction::requestChangeShaderVariation(mParent, "enable_compose_capture", "0",
+                                                             true);
+        }
     }
 }
 

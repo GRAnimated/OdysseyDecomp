@@ -21,20 +21,17 @@ NERVES_MAKE_STRUCT(HackerStateJump, Jump, JumpStart);
 
 HackerStateJump::HackerStateJump(al::LiveActor* actor, IUsePlayerHack** playerHack, bool is2D,
                                  bool isHack)
-    : HackerStateBase("待機", actor, playerHack), mJumpAnim("Jump"), mJumpStartAnim("JumpStart"),
-      mConst(nullptr), mAirMoveControl(nullptr), _48(0), mJumpSpeed(0.0f),
-      mJumpPowerMin(0.0f), mJumpPowerMax(0.0f), _58(0.0f), _5c(0.0f), _60(0.0f), _64(0.0f),
-      _68(0.0f), _6c(0.0f) {
+    : HackerStateBase("待機", actor, playerHack) {
     mConst = new HackerStateConst();
-    _48 = mConst->_58;
-    _6c = mConst->_50;
+    mExtendFrame = mConst->_58;
+    mGravityAccel = mConst->_50;
     mJumpPowerMin = mConst->_3c;
     mJumpPowerMax = mConst->_40;
-    _58 = mConst->_34;
-    _5c = mConst->_38;
-    _60 = mConst->_8;
-    _64 = mConst->_c;
-    _68 = mConst->_10;
+    mInertiaAdd = mConst->_34;
+    mSpeedMax = mConst->_38;
+    mAccelFront = mConst->_8;
+    mAccelBack = mConst->_c;
+    mAccelTurn = mConst->_10;
 
     HackerActionAirMoveControl* airMoveControl =
         new HackerActionAirMoveControl(actor, is2D, isHack);
@@ -58,12 +55,12 @@ void HackerStateJump::appear() {
     al::LiveActor* actor = mActor;
     al::scaleVelocityInertiaWallHit(actor, mConst->_5c, 1.0f, mConst->_48);
 
-    PlayerActionVelocityControl velocityControl(actor, nullptr);
-    mJumpSpeed = PlayerActionFunction::calcJumpSpeed(velocityControl.getVelocityFront().length(),
+    mJumpSpeed = PlayerActionFunction::calcJumpSpeed(
+        PlayerActionVelocityControl(actor, nullptr).getVelocityFront().length(),
                                                      mConst->_44, mConst->_48,
                                                      mJumpPowerMin, mJumpPowerMax);
-    mAirMoveControl->setup(_5c, _58, _48, mJumpSpeed, _6c, 0, mConst->_54, mConst->_0,
-                           mConst->_44, mConst->_4, _60, _64, _68);
+    mAirMoveControl->setup(mSpeedMax, mInertiaAdd, mExtendFrame, mJumpSpeed, mGravityAccel, 0, mConst->_54, mConst->_0,
+                           mConst->_44, mConst->_4, mAccelFront, mAccelBack, mAccelTurn);
 
     if (al::isExistAction(mActor, mJumpStartAnim)) {
         al::startAction(actor, mJumpStartAnim);
@@ -74,8 +71,11 @@ void HackerStateJump::appear() {
     }
 }
 
-void HackerStateJump::setupTurnControlParam(f32 a, f32 b, f32 c, f32 d, s32 e, s32 f, s32 g) {
-    mAirMoveControl->setupTurn(a, b, c, d, e, f, g);
+void HackerStateJump::setupTurnControlParam(f32 turnAngleStart, f32 turnAngleFast, f32 turnAngleLimit,
+                                                f32 turnAngleFastLimit, s32 turnAccelFrame,
+                                                s32 turnAccelFrameFast, s32 turnBrakeFrame) {
+    mAirMoveControl->setupTurn(turnAngleStart, turnAngleFast, turnAngleLimit, turnAngleFastLimit, turnAccelFrame,
+                               turnAccelFrameFast, turnBrakeFrame);
 }
 
 void HackerStateJump::setupForceJumpExtend(bool value) {
@@ -90,12 +90,12 @@ void HackerStateJump::updateJumpPower(f32 jumpPowerMin, f32 jumpPowerMax) {
     mJumpPowerMin = jumpPowerMin;
     mJumpPowerMax = jumpPowerMax;
 
-    PlayerActionVelocityControl velocityControl(mActor, nullptr);
-    mJumpSpeed = PlayerActionFunction::calcJumpSpeed(velocityControl.getVelocityFront().length(),
+    mJumpSpeed = PlayerActionFunction::calcJumpSpeed(
+        PlayerActionVelocityControl(mActor, nullptr).getVelocityFront().length(),
                                                      mConst->_44, mConst->_48,
                                                      mJumpPowerMin, mJumpPowerMax);
-    mAirMoveControl->setup(_5c, _58, _48, mJumpSpeed, _6c, 0, mConst->_54, mConst->_0,
-                           mConst->_44, mConst->_4, _60, _64, _68);
+    mAirMoveControl->setup(mSpeedMax, mInertiaAdd, mExtendFrame, mJumpSpeed, mGravityAccel, 0, mConst->_54, mConst->_0,
+                           mConst->_44, mConst->_4, mAccelFront, mAccelBack, mAccelTurn);
 }
 
 void HackerStateJump::exeJumpStart() {

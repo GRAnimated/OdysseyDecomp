@@ -20,10 +20,9 @@ public:
     PlayerStateEndHack(al::LiveActor* player, const PlayerConst* pConst,
                        const IUsePlayerCollision* collision, const PlayerInput* input,
                        PlayerTrigger* trigger, PlayerAnimator* animator);
-    ~PlayerStateEndHack() override;
-
     void appear() override;
     void exeJump();
+    ~PlayerStateEndHack() override;
 
     void setEndVelocity(const sead::Vector3f& velocity, s32 delayFrames) {
         mEndVelocity = velocity;
@@ -36,7 +35,7 @@ private:
     const PlayerInput* mInput;
     PlayerTrigger* mTrigger;
     PlayerAnimator* mAnimator;
-    PlayerActionAirMoveControl* mAirMoveControl;
+    PlayerActionAirMoveControl* mAirMoveControl = nullptr;
     sead::Vector3f mEndVelocity = {0.0f, 0.0f, 0.0f};
     s32 mDelayFrames = 0;
 };

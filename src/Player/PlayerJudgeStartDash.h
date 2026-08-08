@@ -6,7 +6,7 @@ class PlayerInput;
 
 class PlayerJudgeStartDash : public IJudge {
 public:
-    explicit PlayerJudgeStartDash(const PlayerInput* input);
+    PlayerJudgeStartDash(const PlayerInput* input);
 
     void reset() override;
     void update() override;
@@ -14,7 +14,7 @@ public:
 
 private:
     const PlayerInput* mInput;
-    bool mIsEnable;
+    bool mIsEnable = false;
 };
 
 static_assert(sizeof(PlayerJudgeStartDash) == 0x18);

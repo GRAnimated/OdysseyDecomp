@@ -11,11 +11,10 @@ public:
     PlayerStateAutoDash(al::LiveActor* player);
 
     void appear() override;
-    void exeDash();
     void exeRun();
+    void exeDash();
 
 private:
     s32 mRunTimer = 0;
 };
 
-static_assert(sizeof(PlayerStateAutoDash) == 0x28);

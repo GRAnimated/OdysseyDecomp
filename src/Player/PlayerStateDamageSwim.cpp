@@ -33,7 +33,6 @@ NERVE_IMPL(PlayerStateDamageSwim, EndOutOfWater);
 NERVES_MAKE_NOSTRUCT(PlayerStateDamageSwim, DamageSwim, Dead, DamageLandWater, DamageSurface,
                      EndGround, EndOutOfWater);
 }  // namespace
-
 PlayerStateDamageSwim::PlayerStateDamageSwim(
     al::LiveActor* player, const PlayerConst* pConst, const IUsePlayerCollision* collision,
     const PlayerInput* input, const PlayerTrigger* trigger, PlayerAnimator* animator,
@@ -41,13 +40,10 @@ PlayerStateDamageSwim::PlayerStateDamageSwim(
     IJudge* judgeOutInWater)
     : al::ActorStateBase("水中・水面ダメージ", player), mConst(pConst), mCollision(collision),
       mTrigger(trigger), mAnimator(animator), mWaterSurfaceFinder(waterSurfaceFinder),
-      mEffect(effect), mAirMoveControl(nullptr), mJudgeInWater(judgeInWater),
-      mJudgeOutInWater(judgeOutInWater), _68(false), _69(false), mIsNoDamageDown(false) {
+      mEffect(effect), mJudgeInWater(judgeInWater), mJudgeOutInWater(judgeOutInWater) {
     mAirMoveControl = new PlayerActionAirMoveControl(player, pConst, input, collision, true);
     initNerve(&DamageSwim, 0);
 }
-
-PlayerStateDamageSwim::~PlayerStateDamageSwim() = default;
 
 void PlayerStateDamageSwim::appear() {
     al::ActorStateBase::appear();
@@ -260,3 +256,6 @@ void PlayerStateDamageSwim::exeDead() {
 void PlayerStateDamageSwim::exeEndGround() {}
 
 void PlayerStateDamageSwim::exeEndOutOfWater() {}
+
+PlayerStateDamageSwim::~PlayerStateDamageSwim() = default;
+

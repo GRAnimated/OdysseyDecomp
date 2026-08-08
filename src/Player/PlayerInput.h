@@ -19,7 +19,7 @@ public:
     void updateWallAlong();
     void updateSnapMoveArea();
     void updateInput3D();
-    const sead::Vector2f& getMoveInputRaw(bool) const;
+    sead::Vector2f getMoveInputRaw(bool isSeparateCap) const;
     void calcMoveInputImpl(sead::Vector3f*, const sead::Vector3f&, bool, bool, bool) const;
     void updateInput2D();
     void resetAlongWall();
@@ -42,11 +42,9 @@ public:
     bool isTriggerHipDrop() const;
     bool isTriggerHeadSliding() const;
     bool isTriggerPaddle() const;
-    // TODO: proper parameter name
-    bool isTriggerRolling(bool a1) const;
+    bool isTriggerRolling(bool isForceRolling) const;
     bool isTriggerRollingRestartSwing() const;
-    // TODO: proper parameter name
-    bool isTriggerRollingCancelHipDrop(bool a1) const;
+    bool isTriggerRollingCancelHipDrop(bool isForceRolling) const;
     bool isTriggerHackAction() const;
     bool isTriggerHackJump() const;
     bool isTriggerHackSwing() const;
@@ -74,10 +72,9 @@ public:
     bool isTriggerCapSeparateHipDrop() const;
     bool isTriggerSwingPoleClimbFast() const;
     bool isHoldPoleClimbDown() const;
-    // TODO: proper parameter name
-    bool isTriggerAppendCapAttack(bool a1) const;
+    bool isTriggerAppendCapAttack(bool isSeparatePlay) const;
     bool isHoldSquat() const;
-    void calcInputDirectionSnap2D(sead::Vector3f*) const;
+    void calcInputDirectionSnap2D(sead::Vector3f* input) const;
     bool isHoldSpinCap() const;
     bool isHoldCapAction() const;
     bool isHoldPoleClimbFast() const;
@@ -85,8 +82,8 @@ public:
     bool isHoldHackAction() const;
     bool isHoldHackJump() const;
     bool isHoldEnterUpperDokan2D() const;
-    bool isHoldEnterSideDokan2D(const sead::Vector3f&) const;
-    void calcMoveDirection(sead::Vector3f*, const sead::Vector3f&) const;
+    bool isHoldEnterSideDokan2D(const sead::Vector3f& dir) const;
+    void calcMoveDirection(sead::Vector3f* input, const sead::Vector3f& gravity) const;
     bool isTriggerChange2D() const;
     bool isTriggerChange3D() const;
     bool isReleaseJump() const;
@@ -96,14 +93,14 @@ public:
     bool isSpinInput() const;
     bool isSpinClockwise() const;
     bool isSpinCounterClockwise() const;
-    void calcMoveInput(sead::Vector3f*, const sead::Vector3f&) const;
-    void calc2DSnapJumpMoveInput(sead::Vector3f*, const sead::Vector3f&) const;
+    void calcMoveInput(sead::Vector3f* input, const sead::Vector3f& gravity) const;
+    void calc2DSnapJumpMoveInput(sead::Vector3f* input, const sead::Vector3f& gravity) const;
     bool isPoleMoveInputReverseX() const;
     const sead::Matrix34f* getInputViewMtx() const;
-    void calcPoleMoveInput(sead::Vector2f*) const;
-    void calcCapThrowInput(sead::Vector3f*, const sead::Vector3f&) const;
-    void calcCapSeparateMoveInput(sead::Vector3f*, const sead::Vector3f&) const;
-    bool isSameStickMove(const sead::Vector2f&, f32) const;
+    void calcPoleMoveInput(sead::Vector2f* input) const;
+    void calcCapThrowInput(sead::Vector3f* input, const sead::Vector3f& gravity) const;
+    void calcCapSeparateMoveInput(sead::Vector3f* input, const sead::Vector3f& gravity) const;
+    bool isSameStickMove(const sead::Vector2f& dir, f32 angleDegree) const;
     f32 getRadiconInputSteeringValue() const;
     sead::Vector2f getStickCameraRaw() const;
     sead::Vector2f getCameraInputRaw() const;
@@ -124,11 +121,9 @@ public:
     const sead::Vector2f& getSwingThrowDir() const;
     bool isSwingDirLeft() const;
     bool isSwingDirRight() const;
-    bool isThrowTypeLeftRight(const sead::Vector2f&) const;
-    // TODO: proper parameter name
-    bool isThrowTypeSpiral(const sead::Vector2f& a1) const;
-    // TODO: proper parameter name
-    bool isThrowTypeRolling(const sead::Vector2f& a1) const;
+    bool isThrowTypeLeftRight(const sead::Vector2f& dir) const;
+    bool isThrowTypeSpiral(const sead::Vector2f& dir) const;
+    bool isThrowTypeRolling(const sead::Vector2f& dir) const;
     bool isEnableConsiderCapThrowDoubleSwing() const;
     f32 getPoseRotZDegreeLeft() const;
     f32 getPoseRotZDegreeRight() const;

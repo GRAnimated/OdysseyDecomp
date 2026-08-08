@@ -24,49 +24,50 @@ CollisionShapeKeeper::CollisionShapeKeeper(s32 maxShapes, s32 maxCollideResults,
 }
 
 void CollisionShapeKeeper::createShapeArrow(const char* name, const sead::Vector3f& start,
-                                            const sead::Vector3f& end, f32 unk1, s32 unk2) {
-    mCollisionShape.pushBack(new CollisionShapeInfoArrow(name, start, end, unk1, unk2));
+                                            const sead::Vector3f& arrow, f32 radius, s32 index) {
+    mCollisionShape.pushBack(new CollisionShapeInfoArrow(name, start, arrow, radius, index));
     mHasShapeArrow = true;
 }
 
 void CollisionShapeKeeper::createShapeSphere(const char* name, f32 radius,
-                                             const sead::Vector3f& position) {
-    mCollisionShape.pushBack(new CollisionShapeInfoSphere(name, radius, position));
+                                             const sead::Vector3f& center) {
+    mCollisionShape.pushBack(new CollisionShapeInfoSphere(name, radius, center));
 }
 
 void CollisionShapeKeeper::createShapeSphereSupportGround(const char* name, f32 radius,
-                                                          const sead::Vector3f& pos,
-                                                          const sead::Vector3f& up, f32 unk1) {
-    auto* info = new CollisionShapeInfoSphere(name, radius, pos);
-    info->setSupportGround(up, unk1);
+                                                          const sead::Vector3f& center,
+                                                          const sead::Vector3f& up, f32 range) {
+    auto* info = new CollisionShapeInfoSphere(name, radius, center);
+    info->setSupportGround(up, range);
     mCollisionShape.pushBack(info);
 }
 
 void CollisionShapeKeeper::createShapeSphereIgnoreGround(const char* name, f32 radius,
-                                                         const sead::Vector3f& pos) {
-    auto* info = new CollisionShapeInfoSphere(name, radius, pos);
+                                                         const sead::Vector3f& center) {
+    auto* info = new CollisionShapeInfoSphere(name, radius, center);
     info->setIgnoreGround();
     mCollisionShape.pushBack(info);
 }
 
-void CollisionShapeKeeper::createShapeDisk(const char* name, f32 a1, const sead::Vector3f& a2,
-                                           const sead::Vector3f& a3, f32 a4) {
-    mCollisionShape.pushBack(new CollisionShapeInfoDisk(name, a1, a2, a3, a4));
+void CollisionShapeKeeper::createShapeDisk(const char* name, f32 radius,
+                                           const sead::Vector3f& center,
+                                           const sead::Vector3f& axis, f32 halfHeight) {
+    mCollisionShape.pushBack(new CollisionShapeInfoDisk(name, radius, center, axis, halfHeight));
 }
 
-void CollisionShapeKeeper::createShapeDiskSupportGround(const char* name, f32 a1,
-                                                        const sead::Vector3f& a2,
-                                                        const sead::Vector3f& a3, f32 a4,
-                                                        const sead::Vector3f& a5, f32 a6) {
-    auto* info = new CollisionShapeInfoDisk(name, a1, a2, a3, a4);
-    info->setSupportGround(a5, a6);
+void CollisionShapeKeeper::createShapeDiskSupportGround(const char* name, f32 radius,
+                                                        const sead::Vector3f& center,
+                                                        const sead::Vector3f& axis, f32 halfHeight,
+                                                        const sead::Vector3f& up, f32 range) {
+    auto* info = new CollisionShapeInfoDisk(name, radius, center, axis, halfHeight);
+    info->setSupportGround(up, range);
     mCollisionShape.pushBack(info);
 }
 
-void CollisionShapeKeeper::createShapeDiskIgnoreGround(const char* name, f32 a1,
-                                                       const sead::Vector3f& a2,
-                                                       const sead::Vector3f& a3, f32 a4) {
-    auto* info = new CollisionShapeInfoDisk(name, a1, a2, a3, a4);
+void CollisionShapeKeeper::createShapeDiskIgnoreGround(const char* name, f32 radius,
+                                                       const sead::Vector3f& center,
+                                                       const sead::Vector3f& axis, f32 halfHeight) {
+    auto* info = new CollisionShapeInfoDisk(name, radius, center, axis, halfHeight);
     info->setIgnoreGround();
     mCollisionShape.pushBack(info);
 }
@@ -115,14 +116,14 @@ void CollisionShapeKeeper::clearResult() {
     mNumCollideSupportResult = 0;
 }
 
-void CollisionShapeKeeper::calcWorldShapeInfo(const sead::Matrix34f& a2, f32 a3) {
+void CollisionShapeKeeper::calcWorldShapeInfo(const sead::Matrix34f& matrix, f32 scale) {
     for (auto& shape : mCollisionShape)
-        shape.calcWorldShapeInfo(a2, a3);
+        shape.calcWorldShapeInfo(matrix, scale);
 }
 
-void CollisionShapeKeeper::calcRelativeShapeInfo(const sead::Matrix34f& a2) {
+void CollisionShapeKeeper::calcRelativeShapeInfo(const sead::Matrix34f& matrix) {
     for (auto& shape : mCollisionShape)
-        shape.calcRelativeShapeInfo(a2);
+        shape.calcRelativeShapeInfo(matrix);
 }
 
 void CollisionShapeKeeper::registerCollideResult(const CollidedShapeResult& result) {
@@ -144,15 +145,15 @@ bool CollisionShapeKeeper::isCollidedSupportResultFull() const {
 }
 
 bool CollisionShapeKeeper::isShapeArrow(s32 index) const {
-    return CollisionShapeFunction::isShapeArrow(getShapeInfoBase(index));
+    return CollisionShapeFunction::isShapeArrow(mCollisionShape[index]);
 }
 
 bool CollisionShapeKeeper::isShapeSphere(s32 index) const {
-    return CollisionShapeFunction::isShapeSphere(getShapeInfoBase(index));
+    return CollisionShapeFunction::isShapeSphere(mCollisionShape[index]);
 }
 
 bool CollisionShapeKeeper::isShapeDisk(s32 index) const {
-    return CollisionShapeFunction::isShapeDisk(getShapeInfoBase(index));
+    return CollisionShapeFunction::isShapeDisk(mCollisionShape[index]);
 }
 
 const CollisionShapeInfoBase* CollisionShapeKeeper::getShapeInfoBase(s32 index) const {

@@ -22,16 +22,13 @@ namespace {
 NERVE_IMPL(PlayerStateFallHakoniwa, Fall)
 NERVES_MAKE_STRUCT(PlayerStateFallHakoniwa, Fall)
 }  // namespace
-
 // NON_MATCHING: generated constructor is four bytes smaller than the target; next compare zero-initializer store grouping.
 PlayerStateFallHakoniwa::PlayerStateFallHakoniwa(
     al::LiveActor* player, const PlayerConst* pConst, const IUsePlayerCollision* collision,
     const PlayerInput* input, const PlayerTrigger* trigger, const PlayerAreaChecker* areaChecker,
     const IUseDimension* dimension, PlayerAnimator* animator)
     : al::ActorStateBase("落下", player), mConst(pConst), mCollision(collision), mTrigger(trigger),
-      mDimension(dimension), mAnimator(animator), mJudgeInvalidateInputFall(nullptr),
-      mAirMoveControl(nullptr), _58(0), _5c(0), _60{}, mIsInvalidInputFall(false),
-      mIsRunFall(false), _6e{}, mFallTargetArea(nullptr), mFallSpeed(0.0f), _7c{} {
+      mDimension(dimension), mAnimator(animator) {
     mJudgeInvalidateInputFall =
         new PlayerJudgeInvalidateInputFall(player, areaChecker, collision);
     mAirMoveControl = new PlayerActionAirMoveControl(player, pConst, input, collision, false);
@@ -39,8 +36,6 @@ PlayerStateFallHakoniwa::PlayerStateFallHakoniwa(
                                                    pConst->getJumpPowerMaxBorder2D());
     initNerve(&NrvPlayerStateFallHakoniwa.Fall, 0);
 }
-
-PlayerStateFallHakoniwa::~PlayerStateFallHakoniwa() = default;
 
 // NON_MATCHING: corpus behavior is implemented; next compare trigger initialization and clamp lowering.
 void PlayerStateFallHakoniwa::appear() {
@@ -144,3 +139,6 @@ void PlayerStateFallHakoniwa::exeFall() {
     }
     mAirMoveControl->update();
 }
+
+PlayerStateFallHakoniwa::~PlayerStateFallHakoniwa() = default;
+

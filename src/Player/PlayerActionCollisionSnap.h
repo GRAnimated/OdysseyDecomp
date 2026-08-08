@@ -1,7 +1,7 @@
 #pragma once
 
 #include <basis/seadTypes.h>
-#include <cstring>
+#include <prim/seadMemUtil.h>
 #include <math/seadMatrix.h>
 #include <math/seadVector.h>
 
@@ -46,14 +46,19 @@ public:
     bool isSnapParts(const al::CollisionParts* parts) const;
     al::HitSensor* tryGetConnectedSensor() const;
     const sead::Vector3f& getSnapFront() const { return mState.snapFront; }
+    const sead::Vector3f& getCurrentSnapPos() const { return mState._48; }
     s32 getMoveFrame() const { return mMoveFrame; }
+    bool isMoveEnd() const { return mMoveFrame == mMoveStep; }
+    void setVerticalizeSnapFront(bool value) { _108 = value; }
     void calcFollowDir(sead::Vector3f* outDir, const sead::Vector3f& dir) const;
 
 private:
+    friend class PlayerStatePoleClimb;
+
     struct SnapState {
-        explicit SnapState(sead::Matrix34f* snapMtx) {
-            std::memset(this, 0, sizeof(*this));
-            std::memcpy(snapMtx, &sead::Matrix34f::ident, sizeof(*snapMtx));
+        SnapState(sead::Matrix34f* snapMtx) {
+            sead::MemUtil::fillZero(this, sizeof(*this));
+            sead::MemUtil::copy(snapMtx, &sead::Matrix34f::ident, sizeof(*snapMtx));
         }
 
         al::MtxConnector* mtxConnector;
@@ -65,9 +70,6 @@ private:
         sead::Vector3f forceMovePower;
         const al::CollisionParts* snapParts;
     };
-
-    static_assert(sizeof(SnapState) == 0x58);
-
     al::LiveActor* mActor;
     IUsePlayerCollision* mCollision;
     SnapState mState;

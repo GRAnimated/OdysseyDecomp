@@ -52,7 +52,7 @@ public:
             HackCapJudgePreInputSeparateJump*);
 
     void init(const al::ActorInitInfo& info) override;
-    void hide(bool);
+    void hide(bool force);
     void movement() override;
     void updateShadowMaskOffset();
     void control() override;
@@ -60,12 +60,12 @@ public:
     void updateTargetLayout();
     void updateCollider() override;
     void updateFrameOutLayout();
-    void attackSpin(al::HitSensor*, al::HitSensor*, f32);
-    void prepareLockOn(al::HitSensor*);
-    bool sendMsgStartHack(al::HitSensor*);
-    bool receiveRequestTransferHack(al::HitSensor*, al::HitSensor*);
-    void startThrowSeparatePlayHack(al::HitSensor*, const sead::Vector3f&, const sead::Vector3f&,
-                                    f32);
+    bool attackSpin(al::HitSensor*, al::HitSensor*, f32);
+    void prepareLockOn(al::HitSensor* sensor);
+    bool sendMsgStartHack(al::HitSensor* sensor);
+    bool receiveRequestTransferHack(al::HitSensor* sensor, al::HitSensor* playerSensor);
+    void startThrowSeparatePlayHack(al::HitSensor* sensor, const sead::Vector3f& startPos,
+                                    const sead::Vector3f& velocity, f32 speed);
     void startHack();
     void emitHackStartEffect();
     void noticeHackMarioEnter();
@@ -73,33 +73,33 @@ public:
     void recordHack();
     void addHackStartDemo();
     void addLockOnKeepDemo();
-    void syncHackDamageVisibility(bool);
+    void syncHackDamageVisibility(bool visible);
     void endHack();
-    void startSpinAttack(const char*);
+    void startSpinAttack(const char* actionName);
     void startThrow(bool, const sead::Vector3f&, const sead::Vector3f&, f32, const sead::Vector2f&,
                     const sead::Vector2f&, const sead::Vector3f&, bool, const sead::Vector3f&,
                     SwingHandType, bool, f32, s32);
-    void startThrowSeparatePlay(const sead::Vector3f&, const sead::Vector3f&, f32, bool);
-    void startThrowSeparatePlayJump(const sead::Vector3f&, const sead::Vector3f&, f32);
-    void startCatch(const char*, bool, const sead::Vector3f&);
+    void startThrowSeparatePlay(const sead::Vector3f& startPos, const sead::Vector3f& velocity, f32 speed, bool isThrowType);
+    void startThrowSeparatePlayJump(const sead::Vector3f& startPos, const sead::Vector3f& velocity, f32 speed);
+    void startCatch(const char* actionName, bool isHitReaction, const sead::Vector3f& hitPos);
     bool isNoPutOnHide() const;
     void forcePutOn();
-    void forceHack(al::HitSensor*, const CapTargetInfo*);
+    void forceHack(al::HitSensor* sensor, const CapTargetInfo* targetInfo);
     void resetLockOnParam();
     void setupStartLockOn();
     bool cancelCapState();
     bool isEnableThrow() const;
     bool isEnableSpinAttack() const;
     bool isSpinAttack() const;
-    bool requestReturn(bool*);
-    bool tryReturn(bool, bool*);
+    bool requestReturn(bool* isSuccess);
+    bool tryReturn(bool force, bool* isSuccess);
     void updateCapPose();
     void followTarget();
     void syncPuppetSilhouette();
     void recordCapJump(PlayerWallActionHistory*);
     f32 getFlyingSpeedMax() const;
     f32 getThrowSpeed() const;
-    bool requestLockOnHitReaction(const CapTargetInfo*, const char*);
+    bool requestLockOnHitReaction(const CapTargetInfo* targetInfo, const char* reaction);
     void startPuppet();
     void endPuppet();
     void hidePuppetCap();
@@ -110,22 +110,22 @@ public:
     void startHackShineGetDemo();
     void endHackThrowAndReturnHack();
     void endHackShineGetDemo();
-    void calcHackFollowTrans(sead::Vector3f*, bool) const;
-    void makeFollowMtx(sead::Matrix34f*) const;
-    void updateCapEyeShowHide(bool, s32);
+    void calcHackFollowTrans(sead::Vector3f* trans, bool useLocalOffset) const;
+    void makeFollowMtx(sead::Matrix34f* mtx) const;
+    void updateCapEyeShowHide(bool isShow, s32 appearDelay);
     void activateInvincibleEffect();
-    void syncInvincibleEffect(bool);
-    void updateSeparateMode(const PlayerSeparateCapFlag*);
+    void syncInvincibleEffect(bool isActive);
+    void updateSeparateMode(const PlayerSeparateCapFlag* separateCapFlag);
     bool isEnableRescuePlayer() const;
     bool isRescuePlayer() const;
-    bool isEnableHackThrow(bool*) const;
+    bool isEnableHackThrow(bool* isCapEyeValid) const;
     bool isSeparateHipDropLand() const;
     bool isSeparateHide() const;
     bool isSeparateThrowFlying() const;
     void startRescuePlayer();
     void prepareCooperateThrow();
     void requestForceFollowSeparateHide();
-    f32 calcSeparateHideSpeedH(const sead::Vector3f&) const;
+    f32 calcSeparateHideSpeedH(const sead::Vector3f& dir) const;
     void updateModelAlphaForSnapShot();
     s32 getPadRumblePort() const;
     bool isEnableThrowSeparate() const;
@@ -194,7 +194,7 @@ public:
     void clearThrowType();
     void exeRebound();
     void exeReturn();
-    void calcReturnTargetPos(sead::Vector3f*) const;
+    void calcReturnTargetPos(sead::Vector3f* targetPos) const;
     void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
     bool stayRollingOrReflect();
     bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
@@ -202,9 +202,9 @@ public:
     void endMove();
     bool isEnableCapTouchJumpInput() const;
     void prepareTransferLockOn(al::HitSensor*);
-    void collideThrowStartArrow(al::HitSensor*, const sead::Vector3f&, const sead::Vector3f&,
-                                const sead::Vector3f&);
-    bool isRecentCollideActor(al::HitSensor*) const;
+    void collideThrowStartArrow(al::HitSensor* sensor, const sead::Vector3f& hitPos,
+                                const sead::Vector3f& normal, const sead::Vector3f& resetPos);
+    bool isRecentCollideActor(al::HitSensor* sensor) const;
     bool trySendAttackCollideAndReaction(bool*);
     bool stayWallHit();
     void endHackThrow();

@@ -23,7 +23,7 @@ private:
     const PlayerInput* mInput;
     const PlayerConst* mConst;
     const al::WaterSurfaceFinder* mWaterSurfaceFinder;
-    s32 mRemainFrame;
+    s32 mRemainFrame = 0;
     u8 _24[4];
 };
 

@@ -13,19 +13,19 @@ class IUsePlayerHack;
 
 class HackerJudgeStartRun : public HackerJudge {
 public:
-    HackerJudgeStartRun(const al::LiveActor*, IUsePlayerHack**);
+    HackerJudgeStartRun(const al::LiveActor* parent, IUsePlayerHack** hacker);
+    bool judge() const override;
     void reset() override;
     void update() override;
-    bool judge() const override;
 
     void setPlayerCollision(IUsePlayerCollision* playerCollision) {
         mPlayerCollision = playerCollision;
     }
 
 private:
-    al::LiveActor* mParent;
-    s32 _18;
-    IUsePlayerCollision* mPlayerCollision;
+    const al::LiveActor* mParent;
+    const s32* _18;
+    const IUsePlayerCollision* mPlayerCollision;
     f32 _28;
 };
 

@@ -17,13 +17,10 @@ PlayerStateCapCatchPop::PlayerStateCapCatchPop(al::LiveActor* player, const Play
                                                const IUsePlayerCollision* collision,
                                                const PlayerInput* input,
                                                PlayerAnimator* animator, HackCap* hackCap)
-    : al::ActorStateBase("", player), mConst(pConst), mCollision(collision), mAnimator(animator),
-      mAirMoveControl(nullptr), mHackCap(hackCap) {
+    : al::ActorStateBase("", player), mConst(pConst), mCollision(collision), mAnimator(animator), mHackCap(hackCap) {
     mAirMoveControl = new PlayerActionAirMoveControl(player, pConst, input, collision, false);
     initNerve(&NrvPlayerStateCapCatchPop.Pop, 0);
 }
-
-PlayerStateCapCatchPop::~PlayerStateCapCatchPop() = default;
 
 void PlayerStateCapCatchPop::appear() {
     al::NerveStateBase::appear();
@@ -45,3 +42,5 @@ void PlayerStateCapCatchPop::exePop() {
     if (mAnimator->isAnimEnd() && !al::isLessStep(this, 30))
         kill();
 }
+
+PlayerStateCapCatchPop::~PlayerStateCapCatchPop() = default;

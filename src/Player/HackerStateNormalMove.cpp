@@ -65,6 +65,10 @@ void HackerStateNormalMove::setLandNerve() {
         al::setNerve(this, &NrvHackerStateNormalMove.Wait);
 }
 
+void HackerStateNormalMove::setupFallTime(s32 fallTime) {
+    mHackerJudgeNormalFall->setFallTime(fallTime);
+}
+
 void HackerStateNormalMove::changeWaitAnim(const char* anim) {
     mWaitAnim = anim;
 }
@@ -75,10 +79,6 @@ void HackerStateNormalMove::changeRunAnim(const char* anim) {
 
 void HackerStateNormalMove::changeFallAnim(const char* anim) {
     mFallAnim = anim;
-}
-
-void HackerStateNormalMove::setupFallTime(s32 fallTime) {
-    mHackerJudgeNormalFall->set_10(fallTime);
 }
 
 void HackerStateNormalMove::usePlayerTurnControl(bool isEnabled) {

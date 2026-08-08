@@ -1,5 +1,7 @@
 #include "Player/PlayerPuppet.h"
 
+#include <prim/seadMemUtil.h>
+
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
 #include "Library/LiveActor/ActorPoseUtil.h"
@@ -14,8 +16,7 @@
 #include "Util/PlayerCollisionUtil.h"
 #include "Util/WorldEndBorderKeeper.h"
 
-// NON_MATCHING: exact 164-byte body; zero-initializer stores for recovery vectors are scheduled
-// after flag stores instead of before them. Next hypothesis is matching the original in-class defaults.
+// NON_MATCHING: target/current are both 164 bytes, but recovery-vector zero stores are scheduled after the flag stores; next source-level hypothesis is recovering the original in-class default/member-initializer arrangement.
 PlayerPuppet::PlayerPuppet(al::LiveActor* actor, HackCap* hackCap, PlayerAnimator* playerAnimator,
                            IUsePlayerCollision* playerCollision,
                            ActorDimensionKeeper* actorDimensionKeeper,
@@ -79,18 +80,38 @@ void PlayerPuppet::resetPosition(const sead::Vector3f& trans) {
     mWorldEndBorderKeeper->reset();
 }
 
+const sead::Vector3f& PlayerPuppet::getTrans() const {
+    return al::getTrans(mActor);
+}
+
+const sead::Vector3f& PlayerPuppet::getVelocity() const {
+    return al::getVelocity(mActor);
+}
+
+const sead::Vector3f& PlayerPuppet::getGravity() const {
+    return al::getGravity(mActor);
+}
+
+void PlayerPuppet::calcFront(sead::Vector3f* front) const {
+    al::calcFrontDir(front, mActor);
+}
+
+void PlayerPuppet::calcUp(sead::Vector3f* up) const {
+    al::calcUpDir(up, mActor);
+}
+
 void PlayerPuppet::startAction(const sead::SafeString& action) const {
     if (mPlayerAnimator->isSubAnimPlaying())
         mPlayerAnimator->endSubAnim();
     mPlayerAnimator->startAnim(action);
 }
 
-bool PlayerPuppet::isActionPlaying(const char* action) const {
-    return mPlayerAnimator->isAnim(sead::SafeString(action));
-}
-
 bool PlayerPuppet::isActionEnd() const {
     return mPlayerAnimator->isAnimEnd();
+}
+
+bool PlayerPuppet::isActionPlaying(const char* action) const {
+    return mPlayerAnimator->isAnim(sead::SafeString(action));
 }
 
 void PlayerPuppet::setAnimRate(f32 rate) const {
@@ -105,6 +126,46 @@ void PlayerPuppet::startPlayerHitReaction(const char* name) {
     al::startHitReaction(mActor, name);
 }
 
+void PlayerPuppet::hide() {
+    if (mPlayerDamageKeeper->isDamageInvalid())
+        mPlayerDamageKeeper->reset(nullptr);
+    mIPlayerModelChanger->hideModel();
+}
+
+void PlayerPuppet::show() {
+    if (mPlayerDamageKeeper->isDamageInvalid())
+        mPlayerDamageKeeper->reset(nullptr);
+    mIPlayerModelChanger->showModel();
+}
+
+bool PlayerPuppet::isHidden() const {
+    return mIPlayerModelChanger->isHiddenModel();
+}
+
+void PlayerPuppet::hideSilhouette() {
+    if (mPlayerDamageKeeper->isDamageInvalid())
+        mPlayerDamageKeeper->reset(nullptr);
+    mIPlayerModelChanger->hideSilhouette();
+}
+
+void PlayerPuppet::showSilhouette() {
+    if (mPlayerDamageKeeper->isDamageInvalid())
+        mPlayerDamageKeeper->reset(nullptr);
+    mIPlayerModelChanger->showSilhouette();
+}
+
+void PlayerPuppet::hideShadow() {
+    mIPlayerModelChanger->hideShadowMask();
+}
+
+void PlayerPuppet::showShadow() {
+    mIPlayerModelChanger->showShadowMask();
+}
+
+void PlayerPuppet::validateCollisionCheck() {
+    mIsValidCollisionCheck = true;
+}
+
 void PlayerPuppet::invalidateCollisionCheck() {
     mIsValidCollisionCheck = false;
 }
@@ -115,6 +176,17 @@ bool PlayerPuppet::isValidCollisionCheck() {
 
 bool PlayerPuppet::isCollidedGround() {
     return rs::isCollidedGround(mIUsePlayerCollision);
+}
+
+const sead::Vector3f& PlayerPuppet::getCollidedGroundNormal() {
+    return rs::getCollidedGroundNormal(mIUsePlayerCollision);
+}
+
+bool PlayerPuppet::requestDamage() {
+    if (mPlayerDamageKeeper->isDamageInvalid())
+        return false;
+    mIsRequestDamage = true;
+    return true;
 }
 
 void PlayerPuppet::setBindEndJump(const sead::Vector3f& velocity, s32 frames) {
@@ -143,105 +215,6 @@ void PlayerPuppet::endKeepOn2D() {
     mActorDimensionKeeper->forceEndChange2DKeep();
 }
 
-bool PlayerPuppet::requestDamage() {
-    if (mPlayerDamageKeeper->isDamageInvalid())
-        return false;
-    mIsRequestDamage = true;
-    return true;
-}
-
-void PlayerPuppet::clearRequestDamage() {
-    mIsRequestDamage = false;
-}
-
-bool PlayerPuppet::isRequestDamage() const {
-    return mIsRequestDamage;
-}
-
-bool PlayerPuppet::isBindEndOnGround() const {
-    return mIsBindEndOnGround;
-}
-
-bool PlayerPuppet::isBindEndJump() const {
-    return mIsBindEndJump;
-}
-
-void PlayerPuppet::invalidateSensor() {
-    mIsSensorValid = false;
-}
-
-void PlayerPuppet::validateCollisionCheck() {
-    mIsValidCollisionCheck = true;
-}
-
-void PlayerPuppet::setBindEndOnGround() {
-    mIsBindEndOnGround = true;
-}
-
-void PlayerPuppet::validateSensor() {
-    mIsSensorValid = true;
-}
-
-void PlayerPuppet::hide() {
-    if (mPlayerDamageKeeper->isDamageInvalid())
-        mPlayerDamageKeeper->reset(nullptr);
-    mIPlayerModelChanger->hideModel();
-}
-
-void PlayerPuppet::show() {
-    if (mPlayerDamageKeeper->isDamageInvalid())
-        mPlayerDamageKeeper->reset(nullptr);
-    mIPlayerModelChanger->showModel();
-}
-
-void PlayerPuppet::hideSilhouette() {
-    if (mPlayerDamageKeeper->isDamageInvalid())
-        mPlayerDamageKeeper->reset(nullptr);
-    mIPlayerModelChanger->hideSilhouette();
-}
-
-void PlayerPuppet::showSilhouette() {
-    if (mPlayerDamageKeeper->isDamageInvalid())
-        mPlayerDamageKeeper->reset(nullptr);
-    mIPlayerModelChanger->showSilhouette();
-}
-
-bool PlayerPuppet::isHidden() const {
-    return mIPlayerModelChanger->isHiddenModel();
-}
-
-void PlayerPuppet::hideShadow() {
-    mIPlayerModelChanger->hideShadowMask();
-}
-
-void PlayerPuppet::showShadow() {
-    mIPlayerModelChanger->showShadowMask();
-}
-
-const sead::Vector3f& PlayerPuppet::getTrans() const {
-    return al::getTrans(mActor);
-}
-
-const sead::Vector3f& PlayerPuppet::getVelocity() const {
-    return al::getVelocity(mActor);
-}
-
-const sead::Vector3f& PlayerPuppet::getGravity() const {
-    return al::getGravity(mActor);
-}
-
-void PlayerPuppet::calcFront(sead::Vector3f* front) const {
-    al::calcFrontDir(front, mActor);
-}
-
-void PlayerPuppet::calcUp(sead::Vector3f* up) const {
-    al::calcUpDir(up, mActor);
-}
-
-const sead::Vector3f& PlayerPuppet::getCollidedGroundNormal() {
-    return rs::getCollidedGroundNormal(mIUsePlayerCollision);
-}
-
 void PlayerPuppet::requestUpdateRecoveryInfo(bool isKidsMode, bool isRecovery,
                                                    const sead::Vector3f& position,
                                                    const sead::Vector3f& up,
@@ -263,9 +236,9 @@ bool PlayerPuppet::tryUpdateRecoveryInfo(bool* isKidsMode, bool* isRecovery,
     *isKidsMode = _81;
     *isRecovery = _82;
     position->z = _84.z;
-    *reinterpret_cast<u64*>(position) = *reinterpret_cast<const u64*>(&_84);
+    sead::MemUtil::copy(position, &_84, sizeof(f32) * 2);
     up->z = _90.z;
-    *reinterpret_cast<u64*>(up) = *reinterpret_cast<const u64*>(&_90);
+    sead::MemUtil::copy(up, &_90, sizeof(f32) * 2);
     *areaObj = mAreaObj;
     _80 = false;
     return true;
@@ -277,4 +250,32 @@ bool PlayerPuppet::isBinding() const {
 
 bool PlayerPuppet::isNoCollide() const {
     return _70 && _78 && !mIsValidCollisionCheck;
+}
+
+void PlayerPuppet::clearRequestDamage() {
+    mIsRequestDamage = false;
+}
+
+bool PlayerPuppet::isRequestDamage() const {
+    return mIsRequestDamage;
+}
+
+void PlayerPuppet::setBindEndOnGround() {
+    mIsBindEndOnGround = true;
+}
+
+bool PlayerPuppet::isBindEndOnGround() const {
+    return mIsBindEndOnGround;
+}
+
+bool PlayerPuppet::isBindEndJump() const {
+    return mIsBindEndJump;
+}
+
+void PlayerPuppet::validateSensor() {
+    mIsSensorValid = true;
+}
+
+void PlayerPuppet::invalidateSensor() {
+    mIsSensorValid = false;
 }

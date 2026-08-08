@@ -9,7 +9,7 @@
 PlayerJudgeStartSwimJump::PlayerJudgeStartSwimJump(
     const PlayerInput* input, const PlayerConst* pConst,
     const al::WaterSurfaceFinder* waterSurfaceFinder)
-    : mInput(input), mConst(pConst), mWaterSurfaceFinder(waterSurfaceFinder), mRemainFrame(0) {}
+    : mInput(input), mConst(pConst), mWaterSurfaceFinder(waterSurfaceFinder) {}
 
 void PlayerJudgeStartSwimJump::reset() {
     mRemainFrame = 0;

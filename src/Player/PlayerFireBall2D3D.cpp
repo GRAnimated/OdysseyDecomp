@@ -24,11 +24,10 @@ NERVE_IMPL(PlayerFireBall2D3D, Dead)
 NERVES_MAKE_STRUCT(PlayerFireBall2D3D, Move, Dead)
 }  // namespace
 
-// NON_MATCHING: the 0x138-byte layout and constructor initialization are recovered; remaining differences are base/member initialization register allocation.
 PlayerFireBall2D3D::PlayerFireBall2D3D(const al::LiveActor* player)
     : al::LiveActor("プレイヤーファイアボール2D3D"), mPlayer(player), mIsBound(false),
-      mIsIn2D(false), mIsShoot2D(false), _113(0), mAreaUp(0.0f, 0.0f, 1.0f),
-      mAreaLockDir(sead::Vector3f::zero), _12c{}, mCollider2D3D(nullptr) {}
+      mIsIn2D(false), mIsShoot2D(false), mAreaUp(sead::Vector3f::ez),
+      mAreaLockDir(sead::Vector3f::zero), mCollider2D3D(nullptr) {}
 
 void PlayerFireBall2D3D::init(const al::ActorInitInfo& info) {
     al::initActorWithArchiveName(this, info, "PlayerFireBall2D3D", nullptr);
@@ -40,7 +39,7 @@ void PlayerFireBall2D3D::init(const al::ActorInitInfo& info) {
 }
 
 
-// NON_MATCHING: complete 2D/3D launch setup is recovered from the corpus; remaining differences are vector temporary and call ordering.
+// NON_MATCHING: exact 680-byte size, but vector temporary/call scheduling differs. Next hypothesis is preserving the corpus pose/arrow temporaries in their original expression order.
 void PlayerFireBall2D3D::shoot(bool is2D) {
     mIsShoot2D = is2D;
     if (is2D)
@@ -57,13 +56,15 @@ void PlayerFireBall2D3D::shoot(bool is2D) {
     if (al::isParallelDirection(front, poseUp, 0.01f))
         al::calcUpDir(&poseUp, mPlayer);
 
-    sead::Vector3f arrow = front * 80.0f;
-    sead::Vector3f arrowStart = position - arrow;
     sead::Vector3f hitPos;
     sead::Vector3f hitNormal;
-    if (alCollisionUtil::getHitPosAndNormalOnArrow(this, &hitPos, &hitNormal, arrowStart, arrow,
-                                                    nullptr, nullptr))
-        position = hitPos + hitNormal * al::getSensorRadius(this);
+    sead::Vector3f arrow = front * 80.0f;
+    {
+        sead::Vector3f arrowStart = position - arrow;
+        if (alCollisionUtil::getHitPosAndNormalOnArrow(this, &hitPos, &hitNormal, arrowStart, arrow,
+                                                        nullptr, nullptr))
+            position = hitPos + hitNormal * al::getSensorRadius(this);
+    }
 
     sead::Matrix34f poseMtx;
     al::makeMtxUpFrontPos(&poseMtx, poseUp, front, position);
@@ -81,7 +82,7 @@ void PlayerFireBall2D3D::shoot(bool is2D) {
     al::setNerve(this, &NrvPlayerFireBall2D3D.Move);
 }
 
-// NON_MATCHING: complete movement, collision, lifetime, and transition behavior is recovered from the corpus; remaining differences are expression/register shape.
+// NON_MATCHING: current 1204 bytes versus target 1216; behavior is recovered. Next hypothesis is restoring intermediate gravity/velocity vectors to extend their register lifetimes.
 void PlayerFireBall2D3D::exeMove() {
     al::AreaObj* area = rs::tryFind2DAreaObj(this, &mAreaUp, &mAreaLockDir);
     if (area) {
@@ -159,7 +160,7 @@ void PlayerFireBall2D3D::exeMove() {
         kill();
 }
 
-// NON_MATCHING: behavior and function size match; one commutative floating-point multiply has reversed operands, so the next hypothesis is the original scaled-vector expression form.
+// NON_MATCHING: exact 232-byte size and dot doubling now use the target self-add shape; remaining scheduling differs. Next hypothesis is the scaled-vector subtraction expression form.
 void PlayerFireBall2D3D::boundWall(const sead::Vector3f& normal,
                                     const sead::Vector3f& position) {
     sead::Vector3f wallNormal = normal;
@@ -167,7 +168,8 @@ void PlayerFireBall2D3D::boundWall(const sead::Vector3f& normal,
     if (!al::tryNormalizeOrZero(&wallNormal))
         return;
 
-    f32 reflectPower = wallNormal.dot(al::getVelocity(this)) * 2.0f;
+    f32 reflectPower = wallNormal.dot(al::getVelocity(this));
+    reflectPower += reflectPower;
     if (reflectPower >= 0.0f)
         return;
 

@@ -12,8 +12,8 @@ public:
     virtual void calcJointCallback(s32, sead::Matrix34f*) = 0;
     virtual void appendJointId(s32) = 0;
     virtual const char* getCtrlTypeName() const = 0;
-    virtual bool tryValidateConstraints(u32) = 0;
-    virtual bool tryInvalidateConstraints(u32) = 0;
+    virtual bool tryValidateConstraints() = 0;
+    virtual bool tryInvalidateConstraints() = 0;
 };
 
 namespace al {
@@ -23,8 +23,8 @@ public:
     JointControllerBase(s32);
 
     void appendJointId(s32) override;
-    bool tryValidateConstraints(u32) override;
-    bool tryInvalidateConstraints(u32) override;
+    bool tryValidateConstraints() override;
+    bool tryInvalidateConstraints() override;
 
     bool findNextId(s32*, s32) const;
     bool isExistId(s32) const;

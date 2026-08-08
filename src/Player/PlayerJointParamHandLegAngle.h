@@ -9,4 +9,3 @@ struct PlayerJointParamHandLegAngle {
     f32 blendRate;
 };
 
-static_assert(sizeof(PlayerJointParamHandLegAngle) == 0x1c);

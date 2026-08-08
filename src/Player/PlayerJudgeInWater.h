@@ -23,9 +23,9 @@ public:
                        const PlayerCounterForceRun* counterForceRun, bool checkIceWater,
                        bool checkGroundOffset, bool ignoreSurface);
 
+    bool judge() const override;
     void reset() override;
     void update() override;
-    bool judge() const override;
 
 private:
     const al::LiveActor* mPlayer;

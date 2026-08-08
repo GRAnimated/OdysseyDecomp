@@ -18,15 +18,15 @@ public:
     PlayerStateRise(al::LiveActor* player, const PlayerConst* pConst,
                     const IUsePlayerCollision* collision, const PlayerInput* input,
                     PlayerAnimator* animator);
-    ~PlayerStateRise() override;
-
     void appear() override;
+
     void exeRise();
+    ~PlayerStateRise() override;
 
 private:
     const IUsePlayerCollision* mCollision;
     PlayerAnimator* mAnimator;
-    PlayerActionAirMoveControl* mAirMoveControl;
+    PlayerActionAirMoveControl* mAirMoveControl = nullptr;
 };
 
 static_assert(sizeof(PlayerStateRise) == 0x38);

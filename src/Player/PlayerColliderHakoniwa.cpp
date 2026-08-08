@@ -1,8 +1,7 @@
 #include "Player/PlayerColliderHakoniwa.h"
 
-#include <cmath>
-#include <cstring>
 #include <math/seadQuat.h>
+#include <prim/seadMemUtil.h>
 
 #include "Library/Area/AreaObjUtil.h"
 #include "Library/LiveActor/ActorPoseUtil.h"
@@ -18,45 +17,13 @@
 
 namespace {
 void createCollisionShapeArrows(CollisionShapeKeeper* collisionShapeKeeper,
-                                const sead::Vector3f& pos) {
-    const char* shapeNames[] = {"LegFront", "LegLeft", "LegRight"};
-    sead::Vector3f up = sead::Vector3f::ey;
-    sead::Vector3f upper = -40.0f * up;
-    sead::Vector3f lower = 20.0f * up;
-    sead::Vector3f radial = 30.0f * sead::Vector3f::ez;
-
-    for (s32 i = 0; i < 3; i++) {
-        sead::Quatf quat;
-        sead::QuatCalcCommon<f32>::setAxisAngle(quat, sead::Vector3f::ey, i * 120.0f);
-        sead::Vector3f start;
-        start.setRotated(quat, radial);
-        start += pos;
-        start -= upper;
-        collisionShapeKeeper->createShapeArrow(shapeNames[i], start, upper - lower, 20.0f, i);
-    }
-}
-
-void createCollisionShapeArrows2D(CollisionShapeKeeper* collisionShapeKeeper) {
-    sead::Vector3f upper = -40.0f * sead::Vector3f::ey;
-    sead::Vector3f lower = 20.0f * sead::Vector3f::ey;
-    sead::Vector3f end = upper - lower;
-    sead::Vector3f center = sead::Vector3f::zero - upper;
-    sead::Vector3f side = 40.0f * sead::Vector3f::ez;
-    collisionShapeKeeper->createShapeArrow("LegLeft", center + side, end, 20.0f, 0);
-    collisionShapeKeeper->createShapeArrow("LegCenter", center, end, 20.0f, 1);
-    collisionShapeKeeper->createShapeArrow("LegRight", center - side, end, 20.0f, 2);
-}
+                                const sead::Vector3f& pos);
+void createCollisionShapeArrows2D(CollisionShapeKeeper* collisionShapeKeeper);
 }  // namespace
-
 PlayerColliderHakoniwa::PlayerColliderHakoniwa(al::LiveActor* player,
                                                const PlayerConst* playerConst)
-    : mPlayer(player), mConst(playerConst), mCollider(nullptr), mCeilingCheck(nullptr),
-      mIsAboveGround(false), mGroundHeight(0.0f), mShadowDropHeight(0.0f),
-      mGroundNormal(0.0f, 0.0f, 0.0f), mFallStartPos(0.0f, 0.0f, 0.0f), mFallDistance(0.0f),
-      mNoGroundFrames(0), mGroundSensor(nullptr), mCollisionNormal(nullptr),
-      mCollisionMini(nullptr), mCollisionSwim(nullptr), mCollisionGrabCeil(nullptr),
-      mCollisionWallGrab(nullptr), mCollisionPoleClimb(nullptr), mCollision2DNormal(nullptr),
-      mCollision2DMini(nullptr), mCollisionFilter2D(rs::createCollisionPartsFilter2DOnly()) {}
+    : mPlayer(player), mConst(playerConst),
+      mCollisionFilter2D(rs::createCollisionPartsFilter2DOnly()) {}
 
 // NON_MATCHING: exact 1912-byte body; named wall-grab vector lifetimes align the target through
 // 0x4361F0, with one remaining head-offset multiply scheduling delta at 0x4361F4.
@@ -139,6 +106,39 @@ void PlayerColliderHakoniwa::init() {
     mCeilingCheck = new PlayerCeilingCheck(mPlayer->getCollisionDirector());
 }
 
+namespace {
+void createCollisionShapeArrows(CollisionShapeKeeper* collisionShapeKeeper,
+                                const sead::Vector3f& pos) {
+    const char* shapeNames[] = {"LegFront", "LegLeft", "LegRight"};
+    sead::Vector3f up = sead::Vector3f::ey;
+    sead::Vector3f upper = -40.0f * up;
+    sead::Vector3f lower = 20.0f * up;
+    sead::Vector3f radial = 30.0f * sead::Vector3f::ez;
+
+    for (s32 i = 0; i < 3; i++) {
+        sead::Quatf quat;
+        sead::QuatCalcCommon<f32>::setAxisAngle(quat, sead::Vector3f::ey, i * 120.0f);
+        sead::Vector3f start;
+        start.setRotated(quat, radial);
+        start += pos;
+        start -= upper;
+        collisionShapeKeeper->createShapeArrow(shapeNames[i], start, upper - lower, 20.0f, i);
+    }
+}
+
+void createCollisionShapeArrows2D(CollisionShapeKeeper* collisionShapeKeeper) {
+    sead::Vector3f upper = -40.0f * sead::Vector3f::ey;
+    sead::Vector3f lower = 20.0f * sead::Vector3f::ey;
+    sead::Vector3f end = upper - lower;
+    sead::Vector3f center = sead::Vector3f::zero - upper;
+    sead::Vector3f side = 40.0f * sead::Vector3f::ez;
+    collisionShapeKeeper->createShapeArrow("LegLeft", center + side, end, 20.0f, 0);
+    collisionShapeKeeper->createShapeArrow("LegCenter", center, end, 20.0f, 1);
+    collisionShapeKeeper->createShapeArrow("LegRight", center - side, end, 20.0f, 2);
+}
+}  // namespace
+
+
 sead::Vector3f PlayerColliderHakoniwa::updateCollider(const sead::Vector3f& velocity) {
     mCollider->setInFastMoveCollisionArea(
         al::isInAreaObj(static_cast<const al::IUseAreaObj*>(mPlayer), "FastMoveCollisionArea",
@@ -186,16 +186,14 @@ void PlayerColliderHakoniwa::updateFallDistanceCheck(const sead::Vector3f& trans
         mFallStartPos.set(0.0f, 0.0f, 0.0f);
         mFallDistance = 0.0f;
     } else {
-        f32 velocityGravity = velocity.dot(gravity);
-        if (velocityGravity < threshold) {
+        if (velocity.dot(gravity) < threshold) {
             mFallStartPos.set(0.0f, 0.0f, 0.0f);
             mFallDistance = 0.0f;
         } else {
             if (al::isNearZero(mFallStartPos, 0.001f))
-                std::memcpy(&mFallStartPos, &trans, sizeof(mFallStartPos));
+                sead::MemUtil::copy(&mFallStartPos, &trans, sizeof(mFallStartPos));
 
-            sead::Vector3f fallVec = trans - mFallStartPos;
-            f32 fallDistance = fallVec.dot(gravity);
+            f32 fallDistance = (trans - mFallStartPos).dot(gravity);
             mFallDistance = fallDistance < 0.0f ? 0.0f : fallDistance;
         }
     }
@@ -368,10 +366,6 @@ void PlayerColliderHakoniwa::invalidateGroundSupport() {
     mCollider->setValidGroundSupport(false);
 }
 
-PlayerCollider* PlayerColliderHakoniwa::getPlayerCollider() const {
-    return mCollider;
-}
-
 bool PlayerColliderHakoniwa::isEnableStandUp() const {
     return mCeilingCheck->isEnableStandUp();
 }
@@ -392,6 +386,10 @@ f32 PlayerColliderHakoniwa::getCeilCheckHeight() const {
     return mCeilingCheck->getCeilCheckHeight();
 }
 
+PlayerCollider* PlayerColliderHakoniwa::getPlayerCollider() const {
+    return mCollider;
+}
+
 bool PlayerColliderHakoniwa::isAboveGround() const {
     return mIsAboveGround;
 }
@@ -407,3 +405,4 @@ f32 PlayerColliderHakoniwa::getShadowDropHeight() const {
 f32 PlayerColliderHakoniwa::getFallDistance() const {
     return mFallDistance;
 }
+

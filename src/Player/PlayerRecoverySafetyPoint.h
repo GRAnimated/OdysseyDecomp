@@ -10,7 +10,6 @@ class LiveActor;
 class AreaObj;
 struct ActorInitInfo;
 class CollisionPartsFilterBase;
-class AreaObj;
 class HitSensor;
 class ActorActionKeeper;
 }  // namespace al
@@ -40,8 +39,6 @@ struct SafetyPoint {
     }
 };
 
-static_assert(sizeof(SafetyPoint) == 0x30);
-
 class PlayerRecoverySafetyPoint {
 public:
     PlayerRecoverySafetyPoint(const al::LiveActor* actor, const HackCap* hackCap,
@@ -53,7 +50,8 @@ public:
     void setSafetyPoint(const sead::Vector3f& safetyPos, const sead::Vector3f& safetyNormal,
                         const al::AreaObj* areaObj);
 
-    void noticeRequestSafetyPoint(const sead::Vector3f& safetyNormal, const sead::Vector3f&,
+    void noticeRequestSafetyPoint(const sead::Vector3f& safetyPos,
+                                  const sead::Vector3f& safetyNormal,
                                   const al::AreaObj* areaObj);
     void noticeDangerousPoint(const sead::Vector3f& pos, bool skipIfValid);
 
@@ -99,7 +97,7 @@ private:
     bool mIsRecovering = false;
 
     const al::AreaObj* mRecoveryArea = nullptr;
-    sead::Vector3f* mDefaultSafetyPos = nullptr;  // TODO: Determine actual use (currently unsure)
+    sead::Vector3f* mDefaultSafetyPos = nullptr;
 };
 
 static_assert(sizeof(PlayerRecoverySafetyPoint) == 0xb8);

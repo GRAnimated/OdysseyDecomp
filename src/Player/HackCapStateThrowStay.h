@@ -20,14 +20,14 @@ class PlayerSeparateCapFlag;
 
 class HackCapStateThrowStay : public al::ActorStateBase {
 public:
-    HackCapStateThrowStay(al::LiveActor*, const PlayerColliderHackCap*, const al::LiveActor*,
-                          const PlayerSeparateCapFlag*, const PlayerInput*,
-                          const IUsePlayerCollision*, const PlayerEyeSensorHitHolder*,
-                          const HackCapTrigger*, HackCapJointControlKeeper*,
-                          HackCapJudgePreInputSeparateJump*, const bool*);
-    ~HackCapStateThrowStay() override;
-
+    HackCapStateThrowStay(
+        al::LiveActor* actor, const PlayerColliderHackCap* collider, const al::LiveActor* player,
+        const PlayerSeparateCapFlag* separateCapFlag, const PlayerInput* input,
+        const IUsePlayerCollision* collision, const PlayerEyeSensorHitHolder* eyeSensorHitHolder,
+        const HackCapTrigger* trigger, HackCapJointControlKeeper* jointControlKeeper,
+        HackCapJudgePreInputSeparateJump* judgePreInputSeparateJump, const bool* isDirectPlayer);
     void appear() override;
+
     void kill() override;
     bool update() override;
     bool isHomingPlayerJump() const;
@@ -35,8 +35,8 @@ public:
     bool isEnableKeepStayTouchJump() const;
     bool isEnableTouchJumpTransWarp() const;
     bool isEnableSendHipDropMsg() const;
-    bool sendHipDropCollideMsg(al::HitSensor*);
-    bool sendHipDropObjMsg(HackCapTrigger*, al::HitSensor*, al::HitSensor*);
+    bool sendHipDropCollideMsg(al::HitSensor* sender);
+    bool sendHipDropObjMsg(HackCapTrigger* trigger, al::HitSensor* receiver, al::HitSensor* sender);
     void exeStay();
     void exeSeparateMove();
     void updateStayMove();
@@ -49,6 +49,7 @@ public:
     void exeSeparateApproachStart();
     void exeSeparateApproach();
     void exeSeparateApproachEnd();
+    ~HackCapStateThrowStay() override;
 
 private:
     const PlayerColliderHackCap* mCollider;

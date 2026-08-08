@@ -21,7 +21,7 @@ public:
     void exeSandGeyser();
     void tryStartPadRumble();
     bool receiveMsgSandGeyser(const al::SensorMsg* message, const al::HitSensor* sensor);
-    bool isRequested() const { return mRequestSensor != nullptr; }
+    bool isRequested() const { return mRequestSensor; }
     void clearRequest() { mRequestSensor = nullptr; }
 
 private:

@@ -15,11 +15,9 @@ public:
     PlayerJudgeDrawForward(const al::LiveActor* playerActor,
                            const PlayerJudgeDeadWipeStart* playerJudgeDeadWipeStart);
 
-    void reset() override {}
-
-    void update() override {}
-
     bool judge() const override;
+    void reset() override {}
+    void update() override {}
 
 private:
     const al::LiveActor* mPlayerActor;

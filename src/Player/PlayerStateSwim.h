@@ -36,9 +36,8 @@ public:
                     PlayerSpinCapAttack* spinCapAttack,
                     const al::WaterSurfaceFinder* waterSurfaceFinder, PlayerEffect* effect,
                     PlayerJointParamSwim* swimJoint);
-    ~PlayerStateSwim() override;
-
     void appear() override;
+
     void tryReactionWaterIn();
     void kill() override;
     void control() override;
@@ -91,6 +90,7 @@ public:
     void exeEndSwimJumpPop();
     void exeEndSwimJumpHipDrop();
     bool tryChangeHipDropLand(s32* state, s32* step);
+    ~PlayerStateSwim() override;
 
 private:
     const PlayerConst* mConst;

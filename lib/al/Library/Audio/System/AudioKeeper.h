@@ -23,12 +23,11 @@ class BgmKeeper;
 
 class AudioKeeper : public HioNode {
 public:
-    AudioKeeper(const AudioDirector*);
-    virtual ~AudioKeeper();
-
-    void initSeKeeper(const AudioDirector*, const char*, const sead::Vector3f*,
-                      const sead::Matrix34f*, const ModelKeeper*, CameraDirector*);
-    void initBgmKeeper(const AudioDirector*, const char*);
+    AudioKeeper(const AudioDirector* audioDirector);
+    void initSeKeeper(const AudioDirector* audioDirector, const char* name,
+                      const sead::Vector3f* position, const sead::Matrix34f* emitterMtx,
+                      const ModelKeeper* modelKeeper, CameraDirector* cameraDirector);
+    void initBgmKeeper(const AudioDirector* audioDirector, const char* name);
 
     void validate();
     void invalidate();
@@ -36,6 +35,7 @@ public:
     void endClipped();
     void appear();
     void kill();
+    virtual ~AudioKeeper();
 
     AudioEventController* getAudioEventController() const { return mAudioEventController; }
 
@@ -52,12 +52,12 @@ public:
     AudioMic* getAudioMic() const { return mAudioMic; }
 
 private:
-    AudioEventController* mAudioEventController;
-    AudioEffectController* mAudioEffectController;
-    AudioRequestKeeperSyncedBgm* mAudioRequestKeeperSyncedBgm;
-    SeKeeper* mSeKeeper;
-    BgmKeeper* mBgmKeeper;
-    AudioMic* mAudioMic;
+    AudioEventController* mAudioEventController = nullptr;
+    AudioEffectController* mAudioEffectController = nullptr;
+    AudioRequestKeeperSyncedBgm* mAudioRequestKeeperSyncedBgm = nullptr;
+    SeKeeper* mSeKeeper = nullptr;
+    BgmKeeper* mBgmKeeper = nullptr;
+    AudioMic* mAudioMic = nullptr;
 };
 
 static_assert(sizeof(AudioKeeper) == 0x38);
@@ -71,25 +71,25 @@ public:
     void reset();
     void update();
 
-    bool tryFindAreaObjPlayerOne(AreaObj**) const;
+    bool tryFindAreaObjPlayerOne(AreaObj** area) const;
 
     bool isInArea() const;
     bool isInvaridByOneTime() const;
 
     void setPlayerHolder(const PlayerHolder* playerHolder);
 
-    s32 getIntArgInCurArea(const char*) const;
-    f32 getFloatArgInCurArea(const char*) const;
-    bool getBoolArgInCurArea(const char*) const;
+    s32 getIntArgInCurArea(const char* key) const;
+    f32 getFloatArgInCurArea(const char* key) const;
+    bool getBoolArgInCurArea(const char* key) const;
 
-    const char* getStringArgInCurArea(const char*) const;
-    const char* getStringArgInCurAreaWithAreaCheck(const char*) const;
+    const char* getStringArgInCurArea(const char* key) const;
+    const char* getStringArgInCurAreaWithAreaCheck(const char* key) const;
 
-    s32 getIntArgInPastArea(const char*) const;
-    const char* getStringArgInPastArea(const char*) const;
+    s32 getIntArgInPastArea(const char* key) const;
+    const char* getStringArgInPastArea(const char* key) const;
 
-    bool tryGetIntArgInCurArea(s32*, const char*) const;
-    bool tryGetStringArgInCurArea(const char**, const char*) const;
+    bool tryGetIntArgInCurArea(s32* out, const char* key) const;
+    bool tryGetStringArgInCurArea(const char** out, const char* key) const;
 
     AreaObjDirector* getAreaObjDirector() const override { return mAreaObjDirector; }
 
@@ -103,7 +103,8 @@ private:
     const AreaObj* mCurArea = nullptr;
     const AreaObj* mPrevArea = nullptr;
 
-    const AreaObj* mUnknownArea = nullptr;
+    bool _20 = false;
+    u8 _21[7];
 
     AreaObjDirector* mAreaObjDirector = nullptr;
     const PlayerHolder* mPlayerHolder = nullptr;
@@ -111,7 +112,7 @@ private:
     bool mIsEnteredArea = false;
     bool mIsExitedArea = false;
     bool mIsAreaChanged = false;
-    bool mIsCurAreaActive = false;
+    u8 mIsCurAreaActive = 0;
 };
 
 static_assert(sizeof(AudioGeneralPurposeAreaChecker) == 0x40);
@@ -119,6 +120,7 @@ static_assert(sizeof(AudioGeneralPurposeAreaChecker) == 0x40);
 }  // namespace al
 
 namespace alAudioKeeperFunction {
-al::AudioKeeper* createAudioKeeper(const al::AudioDirector*);
-al::AudioKeeper* createAudioKeeper(const al::AudioDirector*, const char*, const char*);
+al::AudioKeeper* createAudioKeeper(const al::AudioDirector* audioDirector);
+al::AudioKeeper* createAudioKeeper(const al::AudioDirector* audioDirector, const char* seName,
+                                   const char* bgmName);
 }  // namespace alAudioKeeperFunction

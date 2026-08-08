@@ -26,10 +26,6 @@ PlayerJudgeRecoveryLifeFast::PlayerJudgeRecoveryLifeFast(
     (void)mJudgeInWater;
 }
 
-void PlayerJudgeRecoveryLifeFast::reset() {}
-
-void PlayerJudgeRecoveryLifeFast::update() {}
-
 bool PlayerJudgeRecoveryLifeFast::judge() const {
     if (mDamageKeeper->isDamageInvalid())
         return false;
@@ -62,3 +58,7 @@ bool PlayerJudgeRecoveryLifeFast::judge() const {
 bool PlayerJudgeRecoveryLifeFast::isEnableRecoveryLifeState() const {
     return mStateWait->isEnableRecoveryLife() || mStateSwim->isEnableRecoveryLife();
 }
+
+void PlayerJudgeRecoveryLifeFast::reset() {}
+
+void PlayerJudgeRecoveryLifeFast::update() {}

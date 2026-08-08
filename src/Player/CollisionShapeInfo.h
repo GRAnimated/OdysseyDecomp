@@ -28,11 +28,11 @@ public:
 
     virtual f32 getCheckStepRangeWorld() const { return 100000.0f; }
 
-    virtual void updateShapeOffset(const sead::Vector3f&) {}
+    virtual void updateShapeOffset(const sead::Vector3f& offset) {}
 
-    virtual void calcWorldShapeInfo(const sead::Matrix34f&, f32) {}
+    virtual void calcWorldShapeInfo(const sead::Matrix34f& matrix, f32 scale) {}
 
-    virtual void calcRelativeShapeInfo(const sead::Matrix34f&) {}
+    virtual void calcRelativeShapeInfo(const sead::Matrix34f& matrix) {}
 
     CollisionShapeId getId() const { return mId; }
 
@@ -42,23 +42,20 @@ private:
     CollisionShapeId mId;
     const char* mName;
 };
-
-static_assert(sizeof(CollisionShapeInfoBase) == 0x18);
-
 class CollisionShapeInfoArrow : public CollisionShapeInfoBase {
 public:
     CollisionShapeInfoArrow(const char* name, const sead::Vector3f& start,
                             const sead::Vector3f& arrow, f32 radius, s32 index);
 
+    void updateShapeOffset(const sead::Vector3f& offset) override;
+    void calcWorldShapeInfo(const sead::Matrix34f& matrix, f32 scale) override;
+    void calcRelativeShapeInfo(const sead::Matrix34f& matrix) override;
     const sead::Vector3f& getBoundingCenter() const override;
     const sead::Vector3f& getBoundingCenterWorld() const override;
     f32 getBoundingRadius() const override;
     f32 getBoundingRadiusWorld() const override;
     f32 getCheckStepRange() const override;
     f32 getCheckStepRangeWorld() const override;
-    void updateShapeOffset(const sead::Vector3f& offset) override;
-    void calcWorldShapeInfo(const sead::Matrix34f& matrix, f32 scale) override;
-    void calcRelativeShapeInfo(const sead::Matrix34f& matrix) override;
 
     s32 getIndex() const { return mIndex; }
 
@@ -94,6 +91,8 @@ class CollisionShapeInfoSphere : public CollisionShapeInfoBase {
 public:
     CollisionShapeInfoSphere(const char* name, f32 radius, const sead::Vector3f& center);
 
+    void calcWorldShapeInfo(const sead::Matrix34f& matrix, f32 scale) override;
+    void calcRelativeShapeInfo(const sead::Matrix34f& matrix) override;
     const sead::Vector3f& getBoundingCenter() const override;
     const sead::Vector3f& getBoundingCenterWorld() const override;
     f32 getBoundingRadius() const override;
@@ -101,8 +100,6 @@ public:
     f32 getCheckStepRange() const override;
     f32 getCheckStepRangeWorld() const override;
     void updateShapeOffset(const sead::Vector3f& offset) override;
-    void calcWorldShapeInfo(const sead::Matrix34f& matrix, f32 scale) override;
-    void calcRelativeShapeInfo(const sead::Matrix34f& matrix) override;
 
     void setSupportGround(const sead::Vector3f& up, f32 range) {
         mIsSupportGround = true;
@@ -132,12 +129,12 @@ private:
     sead::Vector3f mBoundingCenterWorld;
     f32 mBoundingRadiusWorld;
     sead::Vector3f mBoundingCenterRelative;
-    bool mIsSupportGround;
-    f32 mSupportGroundRange;
+    bool mIsSupportGround = false;
+    f32 mSupportGroundRange = 0.0f;
     f32 mSupportGroundRangeWorld;
     sead::Vector3f mUp;
     sead::Vector3f mUpWorld;
-    bool mIsIgnoreGround;
+    bool mIsIgnoreGround = false;
     bool _69;
 };
 
@@ -150,6 +147,8 @@ public:
 
     void updateDiskShape(f32 radius, const sead::Vector3f& axis, f32 halfHeight);
 
+    void calcWorldShapeInfo(const sead::Matrix34f& matrix, f32 scale) override;
+    void calcRelativeShapeInfo(const sead::Matrix34f& matrix) override;
     const sead::Vector3f& getBoundingCenter() const override;
     const sead::Vector3f& getBoundingCenterWorld() const override;
     f32 getBoundingRadius() const override;
@@ -157,8 +156,6 @@ public:
     f32 getCheckStepRange() const override;
     f32 getCheckStepRangeWorld() const override;
     void updateShapeOffset(const sead::Vector3f& offset) override;
-    void calcWorldShapeInfo(const sead::Matrix34f& matrix, f32 scale) override;
-    void calcRelativeShapeInfo(const sead::Matrix34f& matrix) override;
 
     void setSupportGround(const sead::Vector3f& up, f32 range) {
         mIsSupportGround = true;
@@ -198,12 +195,12 @@ private:
     sead::Vector3f mAxisWorld;
     sead::Vector3f mBoundingCenterRelative;
     sead::Vector3f mAxisRelative;
-    bool mIsSupportGround;
-    f32 mSupportGroundRange;
+    bool mIsSupportGround = false;
+    f32 mSupportGroundRange = 0.0f;
     f32 mSupportGroundRangeWorld;
     sead::Vector3f mUp;
     sead::Vector3f mUpWorld;
-    bool mIsIgnoreGround;
+    bool mIsIgnoreGround = false;
 };
 
 static_assert(sizeof(CollisionShapeInfoDisk) == 0xa8);

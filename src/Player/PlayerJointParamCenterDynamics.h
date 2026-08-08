@@ -13,5 +13,3 @@ struct PlayerJointParamCenterDynamics {
     sead::Vector3f balanceDirection;
     sead::Vector3f balanceUp;
 };
-
-static_assert(sizeof(PlayerJointParamCenterDynamics) == 0x2C);

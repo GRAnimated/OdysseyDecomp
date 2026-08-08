@@ -70,7 +70,10 @@ public:
     f32 getPartialAnimFrameRate(s32) const;
     void setPartialAnimFrameRate(s32, f32);
 
-    void setRetargettingInfo(SklAnimRetargettingInfo* info) { mRetargettingInfo = info; }
+    const SklAnimRetargettingInfo* getRetargettingInfo() const { return mRetargettingInfo; }
+    void setRetargettingInfo(const SklAnimRetargettingInfo* info) { mRetargettingInfo = info; }
+    bool isRetargettingValid() const { return _88; }
+    void setRetargettingValid(bool isValid) { _88 = isValid; }
 
 private:
     void* _18;
@@ -86,7 +89,7 @@ private:
     nn::g3d::SkeletalAnimObj* mPartialAnimObjStack;
     void* _70;
     u32 _78;
-    SklAnimRetargettingInfo* mRetargettingInfo;
+    const SklAnimRetargettingInfo* mRetargettingInfo;
     bool _88;
     bool _89;
 };

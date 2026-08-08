@@ -1,5 +1,6 @@
 #pragma once
 
+#include <container/seadPtrArray.h>
 #include <math/seadBoundBox.h>
 #include <math/seadMatrix.h>
 #include <math/seadVector.h>
@@ -15,14 +16,18 @@ public:
     YoshiTongueJointControlStretch(const al::LiveActor* actor);
 
     void calcJointCallback(s32 jointIndex, sead::Matrix34f* jointMtx) override;
-    const char* getCtrlTypeName() const override;
-
     void update(const sead::Vector3f& rootPos, const sead::Vector3f& direction,
                 const sead::Vector3f& tipPos);
+
     void calcBoundingBox(sead::BoundBox3f* boundingBox) const;
+    const char* getCtrlTypeName() const override;
 
 private:
-    u8 _28[0x48]{};
+    struct JointInfo;
+
+    const al::LiveActor* mActor;
+    sead::PtrArray<JointInfo> mJointInfos;
+    sead::Matrix34f mMtx;
 };
 
 static_assert(sizeof(YoshiTongueJointControlStretch) == 0x70);

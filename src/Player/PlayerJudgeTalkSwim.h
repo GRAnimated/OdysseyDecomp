@@ -12,9 +12,9 @@ public:
                         const PlayerCarryKeeper* carryKeeper,
                         const PlayerStateSwim* stateSwim);
 
+    bool judge() const override;
     void reset() override;
     void update() override;
-    bool judge() const override;
 
 private:
     const PlayerHackKeeper* mHackKeeper;

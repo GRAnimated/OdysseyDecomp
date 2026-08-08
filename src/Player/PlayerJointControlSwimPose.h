@@ -13,9 +13,9 @@ class LiveActor;
 
 class PlayerJointControlSwimPose : public al::JointControllerBase {
 public:
-    explicit PlayerJointControlSwimPose(const al::LiveActor*);
+    PlayerJointControlSwimPose(const al::LiveActor* player);
 
-    void calcJointCallback(s32 jointIndex, sead::Matrix34f*) override;
+    void calcJointCallback(s32 jointIndex, sead::Matrix34f* jointMtx) override;
     const char* getCtrlTypeName() const override;
 
     void setParam(const PlayerJointParamSwim& param) { mParam = param; }

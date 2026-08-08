@@ -29,9 +29,8 @@ public:
                        const IUsePlayerCollision* collision, PlayerTrigger* trigger,
                        PlayerSpinCapAttack* spinCapAttack, PlayerAnimator* animator,
                        PlayerJointParamCapThrow* capThrowJoint);
-    ~PlayerStateSpinCap() override;
-
     void appear() override;
+
     void kill() override;
     bool update() override;
     void control() override;
@@ -45,15 +44,16 @@ public:
     bool isEnableCancelCarry() const;
     bool isEnableReThrowCap() const;
     bool isWaterSurfaceRun() const;
+    void exeSpinGround();
     bool isOnGround() const { return mIsOnGround; }
     bool isEnableIK() const { return mIsEnableIK; }
-    void exeSpinGround();
     void updateSpinGroundNerve();
     void exeSpinGroundSeparate();
     void exeSpinAir();
     void updateSpinAirNerve();
     void exeSpinAirSeparate();
     void exeFall();
+    ~PlayerStateSpinCap() override;
 
 private:
     const PlayerConst* mConst;

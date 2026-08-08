@@ -221,6 +221,34 @@ void PlayerActionCollisionSnap::restartMoveCurrentMtx(s32 frame) {
     mMoveStartMtx = mSnapMtx;
 }
 
+void PlayerActionCollisionSnap::forceMoveEndNearestLeaveDir(const sead::Vector3f& leaveDir) {
+    if (mMoveFrame == 0) {
+        followCollision();
+        return;
+    }
+
+    sead::Matrix34f startConnected = sead::Matrix34f::ident;
+    al::calcConnectMtx(&startConnected, mState.mtxConnector, mMoveStartMtx);
+    sead::Vector3f startFront = startConnected.getBase(2);
+    al::normalize(&startFront);
+    const f32 startDot = sead::Mathf::abs(startFront.dot(leaveDir));
+
+    sead::Vector3f endFront;
+    sead::Matrix34f endConnected = sead::Matrix34f::ident;
+    al::calcConnectMtx(&endConnected, mState.mtxConnector, mMoveEndMtx);
+    endFront = endConnected.getBase(2);
+    al::normalize(&endFront);
+    const f32 endDot = sead::Mathf::abs(endFront.dot(leaveDir));
+
+    if (al::isNearZeroOrGreater(endDot - startDot, 0.001f))
+        skipMove();
+    else
+        cancelMove();
+
+    al::resetPosition(mActor);
+    rs::resetCollision(mCollision);
+}
+
 void PlayerActionCollisionSnap::followCollision() {
     mState._3c = al::getTrans(mActor);
     if (mState.snapParts)
@@ -260,34 +288,6 @@ void PlayerActionCollisionSnap::cancelMove() {
     followCollision();
     const sead::Vector3f& trans = al::getTrans(mActor);
     std::memcpy(&mState._48, &trans, sizeof(mState._48));
-}
-
-void PlayerActionCollisionSnap::forceMoveEndNearestLeaveDir(const sead::Vector3f& leaveDir) {
-    if (mMoveFrame == 0) {
-        followCollision();
-        return;
-    }
-
-    sead::Matrix34f startConnected = sead::Matrix34f::ident;
-    al::calcConnectMtx(&startConnected, mState.mtxConnector, mMoveStartMtx);
-    sead::Vector3f startFront = startConnected.getBase(2);
-    al::normalize(&startFront);
-    const f32 startDot = sead::Mathf::abs(startFront.dot(leaveDir));
-
-    sead::Vector3f endFront;
-    sead::Matrix34f endConnected = sead::Matrix34f::ident;
-    al::calcConnectMtx(&endConnected, mState.mtxConnector, mMoveEndMtx);
-    endFront = endConnected.getBase(2);
-    al::normalize(&endFront);
-    const f32 endDot = sead::Mathf::abs(endFront.dot(leaveDir));
-
-    if (al::isNearZeroOrGreater(endDot - startDot, 0.001f))
-        skipMove();
-    else
-        cancelMove();
-
-    al::resetPosition(mActor);
-    rs::resetCollision(mCollision);
 }
 
 void PlayerActionCollisionSnap::updateInertia() {

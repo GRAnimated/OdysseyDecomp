@@ -17,13 +17,12 @@ enum class DeathType : u32 { Damage, Abyss, AbyssWithCapMsg, Press, SandSink, No
 class PlayerJudgeDeadWipeStart : public IJudge {
 public:
     PlayerJudgeDeadWipeStart(const al::LiveActor* playerActor, const PlayerConst* playerConst);
-    void reset() override;
-    void update() override;
-    bool judge() const override;
-
     bool isDeadTypeDrawForward() const;
     bool isDeadEnableCoinAppear() const;
     void getWipeInfo(const char** name, s32* wait) const;
+    void reset() override;
+    void update() override;
+    bool judge() const override;
 
     void setDeathType(DeathType deathType) { mDeathType = deathType; }
 

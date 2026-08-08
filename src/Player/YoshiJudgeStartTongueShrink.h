@@ -20,13 +20,19 @@ public:
                                 const IUsePlayerCollision* collision, const YoshiTongue* tongue,
                                 const PlayerConst* playerConst);
 
-    void reset() override;
     void update() override;
-    bool judge() const override;
-
+    bool updateJudge();
     bool isConnectGround() const;
     bool isConnectWall() const;
-    bool updateJudge();
+    void reset() override;
+    bool judge() const override;
+
+    const al::CollisionParts* getCollisionParts() const { return mCollisionParts; }
+    const sead::Vector3f& getConnectPos() const { return mConnectPos; }
+    const sead::Vector3f& getConnectDir() const { return mConnectDir; }
+    const sead::Vector3f& getConnectNormal() const { return mConnectNormal; }
+    const sead::Vector3f& getTongueTipPos() const { return mTongueTipPos; }
+    bool isWallClimb() const { return mIsWallClimb; }
 
 private:
     const al::LiveActor* mActor;

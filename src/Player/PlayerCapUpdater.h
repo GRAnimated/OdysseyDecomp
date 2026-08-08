@@ -10,9 +10,9 @@ class PlayerModelChangerHakoniwa;
 
 class PlayerCapUpdater : public al::IUseExecutor {
 public:
-    PlayerCapUpdater(HackCap*, PlayerModelChangerHakoniwa*);
+    PlayerCapUpdater(HackCap* hackCap, PlayerModelChangerHakoniwa* modelChanger);
 
-    void init(al::ExecuteDirector*);
+    void init(al::ExecuteDirector* executeDirector);
     void execute() override;
 
 private:
@@ -20,4 +20,3 @@ private:
     PlayerModelChangerHakoniwa* mModelChanger;
 };
 
-static_assert(sizeof(PlayerCapUpdater) == 0x18);

@@ -8,9 +8,9 @@ class PlayerJudgeSafetyPointRecovery : public IJudge {
 public:
     PlayerJudgeSafetyPointRecovery(IJudge* judge, const PlayerStateAbyss* stateAbyss);
 
+    bool judge() const override;
     void reset() override {}
     void update() override {}
-    bool judge() const override;
 
 private:
     IJudge* mJudge;

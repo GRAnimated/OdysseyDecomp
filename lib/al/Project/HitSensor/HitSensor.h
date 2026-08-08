@@ -5,7 +5,7 @@
 
 namespace al {
 class HitSensor;
-class HitSensorDirectror;
+class HitSensorDirector;
 class HitSensorKeeper;
 class LiveActor;
 class SensorHitGroup;
@@ -42,10 +42,6 @@ enum class HitSensorType : u32 {
 
 class HitSensor {
 public:
-    HitSensor(LiveActor* parentActor, const char* name, u32 hitSensorType, f32 radius,
-              u16 maxSensorCount, const sead::Vector3f* followPos,
-              const sead::Matrix34f* followMatrix, const sead::Vector3f& offset);
-
     bool trySensorSort();
     void setFollowPosPtr(const sead::Vector3f* followPos);
     void setFollowMtxPtr(const sead::Matrix34f* followMtx);
@@ -53,6 +49,9 @@ public:
     void invalidate();
     void validateBySystem();
     void invalidateBySystem();
+    HitSensor(LiveActor* parentActor, const char* name, u32 hitSensorType, f32 radius,
+              u16 maxSensorCount, const sead::Vector3f* followPos,
+              const sead::Matrix34f* followMatrix, const sead::Vector3f& offset);
     void update();
     void addHitSensor(HitSensor* sensor);
 

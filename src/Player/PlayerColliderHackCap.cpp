@@ -7,7 +7,7 @@
 #include "Player/PlayerCollider.h"
 
 PlayerColliderHackCap::PlayerColliderHackCap(al::LiveActor* player)
-    : mPlayer(player), mCollider(nullptr), mShapeKeeper(nullptr) {}
+    : mPlayer(player) {}
 
 void PlayerColliderHackCap::init() {
     mShapeKeeper = new CollisionShapeKeeper(1, 64, 32);

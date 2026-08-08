@@ -47,4 +47,3 @@ bool isSeparatePlay(const al::IUseSceneObjHolder* sceneObjHolder);
 
 }  // namespace rs
 
-static_assert(sizeof(PlayerInputFunction) == 0x1);

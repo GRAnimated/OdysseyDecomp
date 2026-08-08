@@ -10,8 +10,8 @@ class HackCapJointControlKeeper {
 public:
     HackCapJointControlKeeper();
 
-    void initCapJointControl(al::LiveActor*);
-    void initDisplayCapJointControl(al::LiveActor*);
+    void initCapJointControl(al::LiveActor* actor);
+    void initDisplayCapJointControl(al::LiveActor* actor);
     void updateRotateThrowZ(f32 target, f32 spring);
     void updateRotateStayZ(f32 rate);
     void updateRotateY(f32 rate);
@@ -32,10 +32,10 @@ public:
     }
 
 private:
-    f32 mRotateY;
-    f32 mRotateYVelocity;
-    f32 mRotateZ;
-    f32 mRotateZVelocity;
+    f32 mRotateY = 0.0f;
+    f32 mRotateYVelocity = 0.0f;
+    f32 mRotateZ = 0.0f;
+    f32 mRotateZVelocity = 0.0f;
 };
 
 static_assert(sizeof(HackCapJointControlKeeper) == 0x10);

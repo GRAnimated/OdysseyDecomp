@@ -19,8 +19,6 @@ PlayerStateCeilingKeep::PlayerStateCeilingKeep(al::LiveActor* player)
     initNerve(&Keep, 0);
 }
 
-PlayerStateCeilingKeep::~PlayerStateCeilingKeep() = default;
-
 void PlayerStateCeilingKeep::appear() {
     al::NerveStateBase::appear();
     mCeilingNormal = al::getCollidedCeilingNormal(mActor);
@@ -66,3 +64,5 @@ void PlayerStateCeilingKeep::exeLeave() {
         kill();
     }
 }
+
+PlayerStateCeilingKeep::~PlayerStateCeilingKeep() = default;

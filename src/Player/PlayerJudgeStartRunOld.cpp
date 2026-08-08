@@ -8,7 +8,7 @@
 PlayerJudgeStartRunOld::PlayerJudgeStartRunOld(const al::LiveActor* player,
                                                const IUsePlayerCollision* collision,
                                                const PlayerInput* input)
-    : mPlayer(player), mIsStartRun(false), mCollision(collision), mInput(input) {}
+    : mPlayer(player), mCollision(collision), mInput(input) {}
 
 void PlayerJudgeStartRunOld::reset() {
     mIsStartRun = false;

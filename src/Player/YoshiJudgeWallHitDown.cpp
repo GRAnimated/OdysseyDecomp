@@ -14,10 +14,6 @@ YoshiJudgeWallHitDown::YoshiJudgeWallHitDown(IUsePlayerHack** hacker,
                                              const PlayerConst* playerConst)
     : HackerJudge(hacker), mActor(actor), mCollision(collision), mPlayerConst(playerConst) {}
 
-void YoshiJudgeWallHitDown::reset() {}
-
-void YoshiJudgeWallHitDown::update() {}
-
 bool YoshiJudgeWallHitDown::judge() const {
     if (!rs::isCollidedWall(mCollision))
         return false;
@@ -37,3 +33,8 @@ bool YoshiJudgeWallHitDown::judge() const {
     return al::calcAngleDegree(wallNormal, -alongSkyFront) <=
            mPlayerConst->getCollisionHitDownAngleH();
 }
+
+void YoshiJudgeWallHitDown::reset() {}
+
+void YoshiJudgeWallHitDown::update() {}
+

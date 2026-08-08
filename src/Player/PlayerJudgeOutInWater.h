@@ -19,7 +19,7 @@ private:
     const al::LiveActor* mPlayer;
     const IJudge* mJudgeInWater;
     const IJudge* mJudgeInWaterSurface;
-    bool mIsInWater;
+    bool mIsInWater = true;
 };
 
 static_assert(sizeof(PlayerJudgeOutInWater) == 0x28);

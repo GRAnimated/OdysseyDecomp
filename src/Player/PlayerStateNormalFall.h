@@ -16,16 +16,15 @@ public:
     PlayerStateNormalFall(al::LiveActor* player, const PlayerConst* pConst,
                           const IUsePlayerCollision* collision, const PlayerInput* input,
                           PlayerAnimator* animator);
-    ~PlayerStateNormalFall() override;
-
     void appear() override;
+
     void exeFall();
+    ~PlayerStateNormalFall() override;
 
 private:
     const PlayerConst* mConst;
     const IUsePlayerCollision* mCollision;
     PlayerAnimator* mAnimator;
-    PlayerActionAirMoveControl* mAirMoveControl;
+    PlayerActionAirMoveControl* mAirMoveControl = nullptr;
 };
 
-static_assert(sizeof(PlayerStateNormalFall) == 0x40);

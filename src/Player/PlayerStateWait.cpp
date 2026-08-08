@@ -39,90 +39,13 @@
 #include "Util/PlayerUtil.h"
 
 namespace {
-__attribute__((noinline)) void updateAreaAnimInfo(al::LiveActor* actor, const PlayerModelChangerHakoniwa* modelChanger,
-                        PlayerAnimator* animator, bool* isIgnoreArea,
-                        al::AreaObj** areaAnimArea, const char** areaAnimName,
-                        s32* areaAnimStartFrame, sead::Vector3f* areaAnimSnapFront,
-                        bool* isInvalidateInput, bool* isUseAreaValid,
-                        bool* isAreaWaitSitDown, bool* isIgnoreLifeOne) {
-    al::AreaObj* area = al::tryFindAreaObj(actor, "PlayerAnimArea", al::getTrans(actor));
-    if (!*isIgnoreArea || *areaAnimArea != area || !*areaAnimArea) {
-        *isIgnoreArea = false;
-        *isInvalidateInput = false;
-        *areaAnimArea = nullptr;
-        *areaAnimName = nullptr;
-        *areaAnimStartFrame = 0;
-        *isUseAreaValid = false;
-        *isAreaWaitSitDown = false;
-        *isIgnoreLifeOne = false;
-        *areaAnimSnapFront = sead::Vector3f::zero;
-
-        if (area) {
-            *areaAnimArea = area;
-            al::tryGetAreaObjStringArg(areaAnimName, area, "PlayerAnimName");
-            al::tryGetAreaObjArg(isUseAreaValid, area, "IsUseAreaValid");
-            al::tryGetAreaObjArg(areaAnimStartFrame, area, "AnimStartFrame");
-            const char* snapFrontName = "None";
-            al::tryGetAreaObjStringArg(&snapFrontName, area, "PlayerAnimNameSnapFront");
-            if (!al::isEqualString(snapFrontName, "None")) {
-                *areaAnimName = snapFrontName;
-                al::getAreaObjDirFront(areaAnimSnapFront, area);
-            }
-            if (*areaAnimName)
-                *isAreaWaitSitDown = al::isEqualString(*areaAnimName, "AreaWaitSitDown");
-            al::tryGetAreaObjArg(isInvalidateInput, area, "IsInvalidateInput");
-            al::tryGetAreaObjArg(isIgnoreLifeOne, area, "IsIgnoreLifeOne");
-            if (al::isValidStageSwitch(area, "SwitchPlayerAnimEndOn"))
-                *isInvalidateInput &= !al::isOnStageSwitch(area, "SwitchPlayerAnimEndOn");
-        } else {
-            s32 temperature = 0;
-            al::AreaObj* temperatureArea =
-                al::tryFindAreaObj(actor, "TemperatureArea", al::getTrans(actor));
-            if (temperatureArea) {
-                al::tryGetAreaObjArg(&temperature, temperatureArea, "Temperature");
-                if (temperature == -4)
-                    temperature = al::findIsInShade(actor, al::getTrans(actor)) ? -2 : 0;
-            }
-
-            switch (modelChanger->calcCostumeWarmLevel(temperature)) {
-            case -3:
-                *areaAnimName = "WaitVeryCold";
-                *areaAnimStartFrame = 0;
-                break;
-            case -2:
-                *areaAnimName = "WaitCold";
-                *areaAnimStartFrame = 0;
-                break;
-            case -1:
-            case 0:
-            case 1:
-                *areaAnimName = nullptr;
-                *areaAnimStartFrame = 0;
-                break;
-            case 2:
-            case 3: {
-                *areaAnimName = "WaitHot";
-                f32 frame = animator->getMario3DWaitFrameMax();
-                *areaAnimStartFrame = static_cast<s32>(frame + (frame >= 0.0f ? 0.5f : -0.5f));
-                break;
-            }
-            }
-        }
-    }
-}
-
-__attribute__((noinline)) void calcGroundMovePowerLocal(sead::Vector3f* output, const al::LiveActor* actor,
-                              const IUsePlayerCollision* collision) {
-    sead::Vector3f movePower = sead::Vector3f::zero;
-    if (rs::isCollidedGround(collision))
-        rs::calcMovePowerGround(&movePower, collision, al::getTrans(actor));
-
-    sead::Quatf inverseQuat = sead::Quatf::unit;
-    al::calcQuat(&inverseQuat, actor);
-    inverseQuat.inverse();
-    output->setRotated(inverseQuat, movePower);
-    al::verticalizeVec(output, al::getGravity(actor), *output);
-}
+void updateAreaAnimInfo(al::LiveActor* actor, const PlayerModelChangerHakoniwa* modelChanger,
+                        PlayerAnimator* animator, bool* isIgnoreArea, al::AreaObj** areaAnimArea,
+                        const char** areaAnimName, s32* areaAnimStartFrame,
+                        sead::Vector3f* areaAnimSnapFront, bool* isInvalidateInput,
+                        bool* isUseAreaValid, bool* isAreaWaitSitDown, bool* isIgnoreLifeOne);
+void calcGroundMovePowerLocal(sead::Vector3f* output, const al::LiveActor* actor,
+                              const IUsePlayerCollision* collision);
 
 NERVE_IMPL(PlayerStateWait, Wait);
 NERVE_IMPL(PlayerStateWait, LandStiffen);
@@ -139,15 +62,11 @@ NERVE_IMPL(PlayerStateWait, AreaAnimTurn);
 NERVE_IMPL(PlayerStateWait, RequestAnimWait);
 
 NERVES_MAKE_STRUCT(PlayerStateWait, Wait, LandStiffen, Land, WaitConnect2D, WaitSnoozeStart,
-                   WaitSnooze, WaitSleepStart, WaitSleep, AreaAnimWait, WaitRelaxStart, WaitRelax,
-                   AreaAnimTurn, RequestAnimWait);
+                   WaitSnooze, WaitSleepStart, WaitSleep, AreaAnimWait, WaitRelaxStart, AreaAnimTurn);
 
 PlayerStateWaitNrvWaitRelax WaitRelaxInstance;
 PlayerStateWaitNrvRequestAnimWait RequestAnimWaitInstance;
 }  // namespace
-
-
-
 // NON_MATCHING: target groups contiguous zero-initialization stores differently; next test is recovering the original default-member initialization boundaries.
 PlayerStateWait::PlayerStateWait(
     al::LiveActor* player, const PlayerConst* pConst, const IUsePlayerCollision* collision,
@@ -161,16 +80,10 @@ PlayerStateWait::PlayerStateWait(
       mModelChanger(modelChanger), mJointControlKeeper(jointControlKeeper),
       mWaterSurfaceFinder(waterSurfaceFinder), mHeightCheck(heightCheck), mJudgeInWater(judgeInWater),
       mAnimator(animator), mTrigger(trigger), mCapManHeroEyesControl(capManHeroEyesControl),
-      mCenterDynamics(centerDynamics), mGroundPose(groundPose), _80(false), mAreaAnimArea(nullptr),
-      mAreaAnimName(nullptr), mAreaAnimSnapFront(), mAreaAnimStartFrame(0),
-      _a8(0), mIsUseAreaValid(false), mIsAreaWaitSitDown(false), mIsIgnoreLifeOne(false), _af(0),
-      _b0(0), mIsInvalidateInput(0), mRequestAnimName(nullptr), _c0(), _cc(0),
-      mMtxConnector(al::createCollisionPartsConnector(player, sead::Quatf::unit)),
-      mConnectTrans(), _e4(false) {
+      mCenterDynamics(centerDynamics), mGroundPose(groundPose),
+      mMtxConnector(al::createCollisionPartsConnector(player, sead::Quatf::unit)) {
     initNerve(&NrvPlayerStateWait.Wait, 0);
 }
-
-PlayerStateWait::~PlayerStateWait() = default;
 
 // NON_MATCHING: source behavior follows the corpus; stack-local vector layout and helper-call register allocation remain to be refined.
 void PlayerStateWait::appear() {
@@ -247,6 +160,107 @@ void PlayerStateWait::appear() {
     calcGroundMovePowerLocal(&_c0, mActor, mCollision);
 }
 
+namespace {
+// NON_MATCHING: target is 0x2E0 bytes versus current 0x2F0; register allocation diverges in the temperature/costume tail. Next hypothesis: simplify area/temp locals and preserve target output-pointer lifetimes.
+void updateAreaAnimInfo(al::LiveActor* actor, const PlayerModelChangerHakoniwa* modelChanger,
+                        PlayerAnimator* animator, bool* isIgnoreArea,
+                        al::AreaObj** areaAnimArea, const char** areaAnimName,
+                        s32* areaAnimStartFrame, sead::Vector3f* areaAnimSnapFront,
+                        bool* isInvalidateInput, bool* isUseAreaValid,
+                        bool* isAreaWaitSitDown, bool* isIgnoreLifeOne) {
+    al::AreaObj* area = al::tryFindAreaObj(actor, "PlayerAnimArea", al::getTrans(actor));
+    if (!*isIgnoreArea || *areaAnimArea != area || !*areaAnimArea) {
+        *isIgnoreArea = false;
+        *isInvalidateInput = false;
+        *areaAnimArea = nullptr;
+        *areaAnimName = nullptr;
+        *areaAnimStartFrame = 0;
+        *isUseAreaValid = false;
+        *isAreaWaitSitDown = false;
+        *isIgnoreLifeOne = false;
+        *areaAnimSnapFront = sead::Vector3f::zero;
+
+        if (area) {
+            *areaAnimArea = area;
+            al::tryGetAreaObjStringArg(areaAnimName, area, "PlayerAnimName");
+            al::tryGetAreaObjArg(isUseAreaValid, area, "IsUseAreaValid");
+            al::tryGetAreaObjArg(areaAnimStartFrame, area, "AnimStartFrame");
+            const char* snapFrontName = "None";
+            al::tryGetAreaObjStringArg(&snapFrontName, area, "PlayerAnimNameSnapFront");
+            if (!al::isEqualString(snapFrontName, "None")) {
+                *areaAnimName = snapFrontName;
+                al::getAreaObjDirFront(areaAnimSnapFront, area);
+            }
+            if (*areaAnimName)
+                *isAreaWaitSitDown = al::isEqualString(*areaAnimName, "AreaWaitSitDown");
+            al::tryGetAreaObjArg(isInvalidateInput, area, "IsInvalidateInput");
+            al::tryGetAreaObjArg(isIgnoreLifeOne, area, "IsIgnoreLifeOne");
+            if (al::isValidStageSwitch(area, "SwitchPlayerAnimEndOn"))
+                *isInvalidateInput &= !al::isOnStageSwitch(area, "SwitchPlayerAnimEndOn");
+        } else {
+            s32 temperature = 0;
+            al::AreaObj* temperatureArea =
+                al::tryFindAreaObj(actor, "TemperatureArea", al::getTrans(actor));
+            if (temperatureArea) {
+                al::tryGetAreaObjArg(&temperature, temperatureArea, "Temperature");
+                if (temperature == -4)
+                    temperature = al::findIsInShade(actor, al::getTrans(actor)) ? -2 : 0;
+            }
+
+            switch (modelChanger->calcCostumeWarmLevel(temperature)) {
+            case -3:
+                *areaAnimName = "WaitVeryCold";
+                *areaAnimStartFrame = 0;
+                break;
+            case -2:
+                *areaAnimName = "WaitCold";
+                *areaAnimStartFrame = 0;
+                break;
+            case -1:
+            case 0:
+            case 1:
+                *areaAnimName = nullptr;
+                *areaAnimStartFrame = 0;
+                break;
+            case 2:
+            case 3: {
+                *areaAnimName = "WaitHot";
+                f32 frame = animator->getMario3DWaitFrameMax();
+                *areaAnimStartFrame = static_cast<s32>(frame + (frame >= 0.0f ? 0.5f : -0.5f));
+                break;
+            }
+            }
+        }
+    }
+}
+
+
+// NON_MATCHING: target is 0x1A0 bytes versus current 0x1CC; vector/quaternion expression lowering differs before verticalizeVec. Next hypothesis: recover the original in-place quat/vector helper sequence.
+void calcGroundMovePowerLocal(sead::Vector3f* output, const al::LiveActor* actor,
+                              const IUsePlayerCollision* collision) {
+    sead::Vector3f movePower = sead::Vector3f::zero;
+    if (rs::isCollidedGround(collision))
+        rs::calcMovePowerGround(&movePower, collision, al::getTrans(actor));
+
+    sead::Quatf inverseQuat = sead::Quatf::unit;
+    al::calcQuat(&inverseQuat, actor);
+    inverseQuat.inverse();
+    output->setRotated(inverseQuat, movePower);
+    al::verticalizeVec(output, al::getGravity(actor), *output);
+}
+}  // namespace
+
+
+void PlayerStateWait::kill() {
+    mCenterDynamics->isUseTilt = true;
+    mGroundPose->isEnable = false;
+    if (mAreaAnimArea)
+        al::tryOffStageSwitch(mAreaAnimArea, "SwitchPlayerAnimKeepOn");
+    rs::invalidateGlideBirdOnPlayerNose(mActor);
+    al::endBgmSituation(mActor, "MarioSleep", false);
+    al::NerveStateBase::kill();
+}
+
 // NON_MATCHING: high-level behavior is recovered; quaternion/vector expression ordering remains to be tuned against the target's inlined math.
 void PlayerStateWait::control() {
     const al::LiveActor* actor = mActor;
@@ -277,16 +291,6 @@ void PlayerStateWait::control() {
     }
 }
 
-void PlayerStateWait::kill() {
-    mCenterDynamics->isUseTilt = true;
-    mGroundPose->isEnable = false;
-    if (mAreaAnimArea)
-        al::tryOffStageSwitch(mAreaAnimArea, "SwitchPlayerAnimKeepOn");
-    rs::invalidateGlideBirdOnPlayerNose(mActor);
-    al::endBgmSituation(mActor, "MarioSleep", false);
-    al::NerveStateBase::kill();
-}
-
 bool PlayerStateWait::isWait() const {
     if (isDead())
         return false;
@@ -311,7 +315,7 @@ bool PlayerStateWait::isEnableLookAt() const {
 
 bool PlayerStateWait::isEnableCancelAction() const {
     const bool isUseAreaValid = mIsInvalidateInput;
-    if (al::isNerve(this, &NrvPlayerStateWait.WaitRelax)) {
+    if (al::isNerve(this, &NrvPlayerStateWait.AreaAnimTurn)) {
         if (isUseAreaValid)
             return false;
     } else {
@@ -332,7 +336,7 @@ bool PlayerStateWait::isEnableCancelAction() const {
 
 bool PlayerStateWait::isEnableCancelHipDropJump() const {
     const bool isUseAreaValid = mIsInvalidateInput;
-    if (al::isNerve(this, &NrvPlayerStateWait.WaitRelax)) {
+    if (al::isNerve(this, &NrvPlayerStateWait.AreaAnimTurn)) {
         if (isUseAreaValid)
             return false;
     } else {
@@ -353,7 +357,7 @@ bool PlayerStateWait::isEnableRecoveryLife() const {
     if (isDead())
         return false;
     const bool isUseAreaValid = mIsInvalidateInput;
-    if (al::isNerve(this, &NrvPlayerStateWait.WaitRelax)) {
+    if (al::isNerve(this, &NrvPlayerStateWait.AreaAnimTurn)) {
         if (isUseAreaValid)
             return false;
     } else {
@@ -386,7 +390,7 @@ bool PlayerStateWait::isPlaySwitchOnAreaAnim() const {
     if (isDead())
         return false;
     const bool isUseAreaValid = mIsInvalidateInput;
-    if (al::isNerve(this, &NrvPlayerStateWait.WaitRelax))
+    if (al::isNerve(this, &NrvPlayerStateWait.AreaAnimTurn))
         return isUseAreaValid;
     return isUseAreaValid & al::isNerve(this, &NrvPlayerStateWait.AreaAnimWait);
 }
@@ -398,14 +402,6 @@ bool PlayerStateWait::isLandStain() const {
 bool PlayerStateWait::isSleep() const {
     return !isDead() && al::isNerve(this, &NrvPlayerStateWait.WaitSleep) && !mAnimator->isSubAnimPlaying();
 }
-
-bool PlayerStateWait::requestAnimName(const char* animationName) {
-    if (mRequestAnimName)
-        return false;
-    mRequestAnimName = animationName;
-    return true;
-}
-
 
 bool PlayerStateWait::attackHipDropKnockDown(al::HitSensor* self, al::HitSensor* other) {
     if (isDead() || !al::isNerve(this, &NrvPlayerStateWait.LandStiffen) || _b0 < 0 || !al::isFirstStep(this))
@@ -423,6 +419,12 @@ bool PlayerStateWait::tryClearIgnoreSwitchOnAreaAnim() {
     return false;
 }
 
+bool PlayerStateWait::requestAnimName(const char* animationName) {
+    if (mRequestAnimName)
+        return false;
+    mRequestAnimName = animationName;
+    return true;
+}
 
 void PlayerStateWait::noticeCarryStart() {
     if (!isDead() && !mAnimator->isAnim("Wait")) {
@@ -430,8 +432,6 @@ void PlayerStateWait::noticeCarryStart() {
         al::setNerve(this, &NrvPlayerStateWait.Wait);
     }
 }
-
-
 
 void PlayerStateWait::initSceneStartAnim() {
     al::LiveActor* actor = mActor;
@@ -453,23 +453,6 @@ void PlayerStateWait::initSceneStartAnim() {
     else if (warmLevel == -2)
         mAnimator->startAnim("WaitCold");
     mAnimator->clearInterpolation();
-}
-
-bool PlayerStateWait::tryGetSpecialStatusAnimName(const char** animationName) {
-    if (mModelChanger->is2DModel())
-        return false;
-    const al::LiveActor* actor = mActor;
-    if (PlayerFunction::isPlayerHitPointOne(actor) &&
-        (!mAreaAnimArea || !mIsIgnoreLifeOne)) {
-        *animationName = "DamageWait";
-        return true;
-    }
-    if (GameDataFunction::isRemovedCapByJango(actor) ||
-        rs::isSceneStatusBossBattleForPlayerAnim(actor)) {
-        *animationName = "BattleWait";
-        return true;
-    }
-    return false;
 }
 
 bool PlayerStateWait::tryConnectWait() {
@@ -627,37 +610,6 @@ bool PlayerStateWait::tryChangeRequestAnim() {
     return true;
 }
 
-void PlayerStateWait::exeWaitConnect2D() {
-    al::LiveActor* actor = mActor;
-    if (al::isFirstStep(this))
-        mAnimator->startAnim("Wait");
-
-    sead::Vector3f groundNormal(0.0f, 0.0f, 0.0f);
-    rs::calcGroundNormalOrGravityDir(&groundNormal, actor, mCollision);
-    rs::waitGround(actor, mCollision, mConst->getGravityMove(), mConst->getFallSpeedMax(),
-                   mConst->getSlerpQuatRateWait(), mConst->getWaitPoseDegreeMax());
-
-    if (!al::isMtxConnectorConnecting(mMtxConnector) && rs::isCollidedGround(mCollision)) {
-        sead::Vector3f up(0.0f, 0.0f, 0.0f);
-        al::calcUpDir(&up, actor);
-        if (up.dot(rs::getCollidedGroundNormal(mCollision)) >=
-            sead::Mathf::cos(sead::Mathf::deg2rad(1.0f))) {
-            sead::Vector3f movePower(0.0f, 0.0f, 0.0f);
-            const IUsePlayerCollision* collision = mCollision;
-            rs::calcMovePowerGround(&movePower, collision,
-                                    rs::getCollidedGroundPos(collision));
-            const sead::Vector3f& groundPos = rs::getCollidedGroundPos(mCollision);
-            mConnectTrans = groundPos + movePower;
-            al::attachMtxConnectorToCollisionParts(
-                mMtxConnector, rs::getCollidedGroundCollisionParts(mCollision));
-        }
-    }
-
-    if (!mModelChanger->is2DModel())
-        al::setNerve(this, &NrvPlayerStateWait.Wait);
-}
-
-// NON_MATCHING: behavior and all codegen match except the AreaAnimTurn nerve address uses the wrong anonymous-container anchor/member offset.
 bool PlayerStateWait::tryChangeAreaAnim() {
     if (_80)
         return false;
@@ -709,6 +661,53 @@ bool PlayerStateWait::tryChangeAreaAnim() {
     animator->startAnim(animation);
     al::setNerve(this, &NrvPlayerStateWait.AreaAnimWait);
     return true;
+}
+
+bool PlayerStateWait::tryGetSpecialStatusAnimName(const char** animationName) {
+    if (mModelChanger->is2DModel())
+        return false;
+    const al::LiveActor* actor = mActor;
+    if (PlayerFunction::isPlayerHitPointOne(actor) &&
+        (!mAreaAnimArea || !mIsIgnoreLifeOne)) {
+        *animationName = "DamageWait";
+        return true;
+    }
+    if (GameDataFunction::isRemovedCapByJango(actor) ||
+        rs::isSceneStatusBossBattleForPlayerAnim(actor)) {
+        *animationName = "BattleWait";
+        return true;
+    }
+    return false;
+}
+
+void PlayerStateWait::exeWaitConnect2D() {
+    al::LiveActor* actor = mActor;
+    if (al::isFirstStep(this))
+        mAnimator->startAnim("Wait");
+
+    sead::Vector3f groundNormal(0.0f, 0.0f, 0.0f);
+    rs::calcGroundNormalOrGravityDir(&groundNormal, actor, mCollision);
+    rs::waitGround(actor, mCollision, mConst->getGravityMove(), mConst->getFallSpeedMax(),
+                   mConst->getSlerpQuatRateWait(), mConst->getWaitPoseDegreeMax());
+
+    if (!al::isMtxConnectorConnecting(mMtxConnector) && rs::isCollidedGround(mCollision)) {
+        sead::Vector3f up(0.0f, 0.0f, 0.0f);
+        al::calcUpDir(&up, actor);
+        if (up.dot(rs::getCollidedGroundNormal(mCollision)) >=
+            sead::Mathf::cos(sead::Mathf::deg2rad(1.0f))) {
+            sead::Vector3f movePower(0.0f, 0.0f, 0.0f);
+            const IUsePlayerCollision* collision = mCollision;
+            rs::calcMovePowerGround(&movePower, collision,
+                                    rs::getCollidedGroundPos(collision));
+            const sead::Vector3f& groundPos = rs::getCollidedGroundPos(mCollision);
+            mConnectTrans = groundPos + movePower;
+            al::attachMtxConnectorToCollisionParts(
+                mMtxConnector, rs::getCollidedGroundCollisionParts(mCollision));
+        }
+    }
+
+    if (!mModelChanger->is2DModel())
+        al::setNerve(this, &NrvPlayerStateWait.Wait);
 }
 
 void PlayerStateWait::exeWaitRelaxStart() {
@@ -868,3 +867,6 @@ void PlayerStateWait::exeRequestAnimWait() {
     if (mAnimator->isCurrentAnimOneTime() && mAnimator->isAnimEnd())
         al::setNerve(this, &NrvPlayerStateWait.Wait);
 }
+
+PlayerStateWait::~PlayerStateWait() = default;
+

@@ -13,11 +13,9 @@ public:
     PlayerJudgeCameraInWater(const al::LiveActor* player, const IJudge* inWaterJudge,
                              const al::WaterSurfaceFinder* waterSurfaceFinder);
 
-    bool judge() const override;
-
     void reset() override {}
-
     void update() override {}
+    bool judge() const override;
 
 private:
     const al::LiveActor* mPlayer;

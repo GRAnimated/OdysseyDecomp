@@ -15,9 +15,9 @@ public:
                                   const IUsePlayerCollision* collision,
                                   const PlayerConst* pConst,
                                   const PlayerTrigger* trigger);
+    bool judge() const override;
     void reset() override;
     void update() override;
-    bool judge() const override;
 
 private:
     const al::LiveActor* mPlayer;

@@ -17,26 +17,28 @@ class HitSensor;
 
 class PlayerSpinCapAttack {
 public:
-    PlayerSpinCapAttack(HackCap*, const PlayerConst*, const PlayerTrigger*, const PlayerInput*,
-                        const PlayerCounterAfterCapCatch*, const PlayerJudgePreInputCapThrow*);
+    PlayerSpinCapAttack(HackCap* hackCap, const PlayerConst* playerConst,
+                        const PlayerTrigger* trigger, const PlayerInput* input,
+                        const PlayerCounterAfterCapCatch* counterAfterCapCatch,
+                        const PlayerJudgePreInputCapThrow* judgePreInputCapThrow);
 
     void clearAttackInfo();
     void setupAttackInfo();
-    void startCapSpinAttack(PlayerAnimator*, const PlayerInput*);
-    void startCapSpinAttackAir(PlayerAnimator*, const PlayerInput*);
-    void startCapSpinAttackSwim(PlayerAnimator*, const PlayerInput*);
-    void startCapThrow(const sead::Vector3f&, const sead::Vector3f&, f32, bool,
-                       const sead::Vector3f&);
-    void attackSpinMsg(al::HitSensor*, al::HitSensor*);
-    bool tryCancelCapState(PlayerAnimator*);
-    bool tryStartCapSpinGroundMiss(PlayerAnimator*);
-    bool tryStartCapSpinAirMiss(PlayerAnimator*);
-    void startSpinSeparate(PlayerAnimator*);
-    void startSpinSeparateSwim(PlayerAnimator*);
-    void startSpinSeparateSwimSurface(PlayerAnimator*);
+    void startCapSpinAttack(PlayerAnimator* animator, const PlayerInput*);
+    void startCapSpinAttackAir(PlayerAnimator* animator, const PlayerInput*);
+    void startCapSpinAttackSwim(PlayerAnimator* animator, const PlayerInput*);
+    void startSpinSeparate(PlayerAnimator* animator);
+    void startSpinSeparateSwim(PlayerAnimator* animator);
+    void startSpinSeparateSwimSurface(PlayerAnimator* animator);
+    void startCapThrow(const sead::Vector3f& startPos, const sead::Vector3f& throwDir, f32 power,
+                       bool isAppend, const sead::Vector3f& targetPos);
+    void attackSpinMsg(al::HitSensor* self, al::HitSensor* other);
+    bool tryCancelCapState(PlayerAnimator* animator);
+    bool tryStartCapSpinGroundMiss(PlayerAnimator* animator);
+    bool tryStartCapSpinAirMiss(PlayerAnimator* animator);
     bool isCapSpinAttack() const;
-    bool isValidAttackSensor(const PlayerAnimator*) const;
-    bool isEnablePlaySpinCapMiss(const PlayerAnimator*) const;
+    bool isValidAttackSensor(const PlayerAnimator* animator) const;
+    bool isEnablePlaySpinCapMiss(const PlayerAnimator* animator) const;
     bool isSeparateSingleSpin() const;
     bool isThrowSwingRightDir() const;
     s32 getThrowFrameGround() const;

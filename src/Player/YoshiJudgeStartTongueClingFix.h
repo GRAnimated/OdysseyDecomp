@@ -12,8 +12,8 @@ public:
                                   const IUsePlayerCollision* collision,
                                   const PlayerWallActionHistory* wallActionHistory);
 
-    void reset() override;
     void update() override;
+    void reset() override;
     bool judge() const override;
 
     void setCheckWall() { mIsCheckWall = true; }

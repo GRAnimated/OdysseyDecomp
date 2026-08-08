@@ -47,8 +47,6 @@ HackCapStateHide::HackCapStateHide(al::LiveActor* actor, PlayerColliderHackCap* 
     initNerve(&NrvHackCapStateHide.Hide, 0);
 }
 
-HackCapStateHide::~HackCapStateHide() = default;
-
 void HackCapStateHide::appear() {
     al::NerveStateBase::appear();
     _58.set(0.0f, 0.0f, 0.0f);
@@ -89,9 +87,7 @@ void HackCapStateHide::cancelSeparateMode() {
 }
 
 void HackCapStateHide::calcSeparateThrowOffset(sead::Vector3f* offset) const {
-    const sead::Vector3f& capTrans = al::getTrans(mActor);
-    const sead::Vector3f& playerTrans = al::getTrans(mPlayer);
-    offset->setSub(capTrans, playerTrans);
+    offset->setSub(al::getTrans(mActor), al::getTrans(mPlayer));
 }
 
 void HackCapStateHide::exeHide() {
@@ -131,9 +127,8 @@ void HackCapStateHide::tryForceFollowSeparate() {
             al::calcQuat(&quat, mPlayer);
             sead::Vector3f localOffset;
             localOffset.setRotated(quat, mSeparateCapFlag->getSeparateCapLocalOffset());
-            const sead::Vector3f position =
-                al::getTrans(mPlayer) + ceilingSpace * groundUp + localOffset;
-            al::resetPosition(actor, position);
+            al::resetPosition(actor,
+                              al::getTrans(mPlayer) + ceilingSpace * groundUp + localOffset);
             rs::resetCollisionExpandCheck(mCollider);
         }
     }
@@ -160,3 +155,5 @@ void HackCapStateHide::exeSeparateWait() {
                                             0.0f, 170.0f,
                                             mSeparateCapFlag->getSeparateCapLocalOffset());
 }
+
+HackCapStateHide::~HackCapStateHide() = default;

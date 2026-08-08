@@ -27,10 +27,10 @@ public:
                                 const PlayerStateSwim* stateSwim,
                                 const IJudge* judgeInWater);
 
-    void reset() override;
-    void update() override;
     bool judge() const override;
     bool isEnableRecoveryLifeState() const;
+    void reset() override;
+    void update() override;
 
 private:
     const al::LiveActor* mPlayer;

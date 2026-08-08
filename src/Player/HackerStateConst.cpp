@@ -1,7 +1,3 @@
 #include "Player/HackerStateConst.h"
 
-HackerStateConst::HackerStateConst()
-    : _0(35.0f), _4(0.15f), _8(0.5f), _c(1.0f), _10(0.3f), _14(1.0f), _18(135.0f),
-      _1c(0.0f), _20(6.0f), _24(20), _28(1), _2c(10), _30(24.0f), _34(11.0f),
-      _38(30.0f), _3c(17.0f), _40(19.5f), _44(3.0f), _48(14.0f), _4c(3.0f),
-      _50(1.5f), _54(0.7f), _58(10), _5c(0.25f) {}
+HackerStateConst::HackerStateConst() = default;

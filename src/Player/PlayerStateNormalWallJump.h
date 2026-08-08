@@ -25,6 +25,8 @@ public:
     const sead::Vector3f& getFront() const { return mFront; }
 
 private:
+    friend class PlayerStatePoleClimb;
+
     const PlayerConst* mConst;
     const IUsePlayerCollision* mCollider;
     const PlayerInput* mInput;

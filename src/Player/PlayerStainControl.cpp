@@ -18,8 +18,7 @@ void PlayerStainControl::recordDamageFire() {
 }
 
 void PlayerStainControl::recordDamageFireDead() {
-    mRequestStainType = StainTypeFire;
-    mRequestRate = 1.0f;
+    recordExplosion();
 }
 
 void PlayerStainControl::recordBlackSmoke() {
@@ -37,32 +36,6 @@ void PlayerStainControl::recordIceWater() {
     mRequestRate = 0.001f;
 }
 
-void PlayerStainControl::noticeStartHack() {
-    mIsHack = true;
-    if (mCurrentStainType == StainTypeNone)
-        return;
-    tryDeleteStainEffect(static_cast<StainType>(mCurrentStainType), 0.0f);
-}
-
-void PlayerStainControl::tryDeleteStainEffect(StainType stainType, f32 rate) {
-    switch (stainType) {
-    case StainTypePoison:
-        if (!(rate > 0.25f))
-            mEffect->tryDeleteStainPoisonEffect();
-        break;
-    case StainTypeFire:
-        if (!(rate > 0.25f))
-            mEffect->tryDeleteStainFireEffect();
-        break;
-    case StainTypeIce:
-        if (!(rate > 0.25f))
-            mEffect->tryDeleteStainIceEffect();
-        break;
-    default:
-        break;
-    }
-}
-
 void PlayerStainControl::recordBlizzard() {
     if (mIsBlizzard)
         return;
@@ -75,29 +48,21 @@ void PlayerStainControl::recordBlizzard() {
 }
 
 void PlayerStainControl::recordSandMove(const char* materialCode) {
-    if (al::isInRange(mCurrentStainType, StainTypePoison, StainTypeIce))
-        return;
-    if (al::isInRange(mRequestStainType, StainTypePoison, StainTypeIce))
+    if (al::isInRange(mCurrentStainType, StainTypePoison, StainTypeIce) ||
+        al::isInRange(mRequestStainType, StainTypePoison, StainTypeIce))
         return;
 
-    if (al::isEqualString(materialCode, "SandDesert"))
-        mRequestStainType = StainTypeSandDesert;
-    else if (al::isEqualString(materialCode, "SandSea"))
-        mRequestStainType = StainTypeSand;
-    else if (al::isEqualString(materialCode, "SandMoon"))
-        mRequestStainType = StainTypeSandMoon;
-    else if (al::isEqualString(materialCode, "SandLake") || al::isEqualString(materialCode, "Sand"))
-        mRequestStainType = StainTypeSand;
-    else
+    const StainType stainType(static_cast<s32>(getSandType(materialCode)));
+    if (stainType == StainTypeNone)
         return;
+    mRequestStainType = stainType;
 
     mRequestRate = 0.005f;
 }
 
 bool PlayerStainControl::isEnableLowPriorityStain() const {
-    if (al::isInRange(mCurrentStainType, StainTypePoison, StainTypeIce))
-        return false;
-    return !al::isInRange(mRequestStainType, StainTypePoison, StainTypeIce);
+    return !al::isInRange(mCurrentStainType, StainTypePoison, StainTypeIce) &&
+           !al::isInRange(mRequestStainType, StainTypePoison, StainTypeIce);
 }
 
 u64 PlayerStainControl::getSandType(const char* materialCode) const {
@@ -136,21 +101,14 @@ void PlayerStainControl::recordSnowBySensor() {
 void PlayerStainControl::recordSandHeavyLand(const char* materialCode) {
     clearCurrentStain(true);
 
-    if (al::isInRange(mCurrentStainType, StainTypePoison, StainTypeIce))
-        return;
-    if (al::isInRange(mRequestStainType, StainTypePoison, StainTypeIce))
+    if (al::isInRange(mCurrentStainType, StainTypePoison, StainTypeIce) ||
+        al::isInRange(mRequestStainType, StainTypePoison, StainTypeIce))
         return;
 
-    if (al::isEqualString(materialCode, "SandDesert"))
-        mRequestStainType = StainTypeSandDesert;
-    else if (al::isEqualString(materialCode, "SandSea"))
-        mRequestStainType = StainTypeSand;
-    else if (al::isEqualString(materialCode, "SandMoon"))
-        mRequestStainType = StainTypeSandMoon;
-    else if (al::isEqualString(materialCode, "SandLake") || al::isEqualString(materialCode, "Sand"))
-        mRequestStainType = StainTypeSand;
-    else
+    const StainType stainType(static_cast<s32>(getSandType(materialCode)));
+    if (stainType == StainTypeNone)
         return;
+    mRequestStainType = stainType;
 
     mRequestRate = 1.0f;
 }
@@ -175,19 +133,6 @@ void PlayerStainControl::clearCurrentStain(bool emitReaction) {
     _70 = 0;
 }
 
-void PlayerStainControl::noticeEndHack() {
-    mIsHack = false;
-    clearCurrentStain(false);
-    mRequestStainType = StainTypeNone;
-    mIsBlizzard = false;
-}
-
-void PlayerStainControl::clearStain() {
-    clearCurrentStain(false);
-    mRequestStainType = StainTypeNone;
-    mIsBlizzard = false;
-}
-
 void PlayerStainControl::recordSandMoonBySensor() {
     mRequestStainType = StainTypeSandMoon;
     mRequestRate = 1.0f;
@@ -203,28 +148,57 @@ void PlayerStainControl::recordInWet() {
         mIsInWet = true;
 }
 
-void PlayerStainControl::clearStainRequest() {
-    mRequestStainType = StainTypeNone;
-    mIsBlizzard = false;
+void PlayerStainControl::noticeStartHack() {
+    mIsHack = true;
+    if (mCurrentStainType == StainTypeNone)
+        return;
+    tryDeleteStainEffect(static_cast<StainType>(mCurrentStainType), 0.0f);
 }
 
-void PlayerStainControl::tryEmitClearStainEffect(StainType stainType, f32 rate) {
+void PlayerStainControl::tryDeleteStainEffect(StainType stainType, f32 rate) {
     switch (stainType) {
     case StainTypePoison:
-        if (!(rate <= 0.25f))
-            al::startHitReaction(mPlayer, "汚れ落とし(毒)");
+        if (!(rate > 0.25f))
+            mEffect->tryDeleteStainPoisonEffect();
         break;
     case StainTypeFire:
-        if (!(rate <= 0.25f))
-            al::startHitReaction(mPlayer, "汚れ落とし(スス)");
+        if (!(rate > 0.25f))
+            mEffect->tryDeleteStainFireEffect();
         break;
     case StainTypeIce:
-        if (!(rate <= 0.25f))
-            al::startHitReaction(mPlayer, "汚れ落とし(凍結)");
+        if (!(rate > 0.25f))
+            mEffect->tryDeleteStainIceEffect();
         break;
     default:
         break;
     }
+}
+
+void PlayerStainControl::noticeEndHack() {
+    mIsHack = false;
+    clearCurrentStain(false);
+    mRequestStainType = StainTypeNone;
+    mIsBlizzard = false;
+}
+
+void PlayerStainControl::clearStain() {
+    clearCurrentStain(false);
+    mRequestStainType = StainTypeNone;
+    mIsBlizzard = false;
+}
+
+void PlayerStainControl::noticeMainShineGet() {
+    if (static_cast<u32>(mCurrentStainType) - StainTypePoison <= 1) {
+        clearCurrentStain(false);
+        mRequestStainType = StainTypeNone;
+        mIsBlizzard = false;
+    }
+    update();
+}
+
+void PlayerStainControl::clearStainRequest() {
+    mRequestStainType = StainTypeNone;
+    mIsBlizzard = false;
 }
 
 void PlayerStainControl::tryEmitStainEffect(StainType stainType) {
@@ -258,3 +232,23 @@ bool PlayerStainControl::isEnableValidateStain() const {
 bool PlayerStainControl::isEnableInvalidateStain() const {
     return mIsStainInvalid && mCurrentStainType == StainTypeNone;
 }
+
+void PlayerStainControl::tryEmitClearStainEffect(StainType stainType, f32 rate) {
+    switch (stainType) {
+    case StainTypePoison:
+        if (!(rate <= 0.25f))
+            al::startHitReaction(mPlayer, "汚れ落とし(毒)");
+        break;
+    case StainTypeFire:
+        if (!(rate <= 0.25f))
+            al::startHitReaction(mPlayer, "汚れ落とし(スス)");
+        break;
+    case StainTypeIce:
+        if (!(rate <= 0.25f))
+            al::startHitReaction(mPlayer, "汚れ落とし(凍結)");
+        break;
+    default:
+        break;
+    }
+}
+

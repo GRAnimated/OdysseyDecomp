@@ -62,4 +62,6 @@ private:
     sead::Vector2f mOffset;
 };
 
+bool isProjectionReverse();
+
 }  // namespace al

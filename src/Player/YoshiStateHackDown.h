@@ -11,11 +11,17 @@ class PlayerConst;
 
 class YoshiStateHackDown : public HackerStateBase {
 public:
-    bool isLand() const;
-    bool isEnableCancel() const;
+    YoshiStateHackDown(al::LiveActor* actor, IUsePlayerHack** playerHack, const PlayerConst* playerConst,
+                       const IUsePlayerCollision* collision, PlayerAnimator* animator);
+    void appear() override;
 
+    bool isLand() const;
+
+    bool isEnableCancel() const;
     void exeDown();
+
     void exeLand();
+    ~YoshiStateHackDown() override;
 
 private:
     const PlayerConst* mPlayerConst;

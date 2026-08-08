@@ -12,7 +12,6 @@ class PlayerCapManHeroEyesControl : public al::NerveExecutor {
 public:
     PlayerCapManHeroEyesControl(const char* name, al::LiveActor* puppetEye,
                                 al::LiveActor* puppetEye2D);
-    ~PlayerCapManHeroEyesControl() override;
 
     void start();
     void fastStart();
@@ -32,8 +31,11 @@ public:
     void exeDisappear();
     void exeDead();
     void exeDemo();
+    ~PlayerCapManHeroEyesControl() override;
 
 private:
+    friend class PlayerActorHakoniwa;
+
     al::LiveActor* mPuppetEye;
     al::LiveActor* mPuppetEye2D;
 };

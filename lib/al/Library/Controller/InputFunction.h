@@ -9,9 +9,16 @@ class ControllerBase;
 namespace al {
 class IUseCamera;
 
-bool isPadTypeJoySingle(s32 port = -1);
-s32 getPadAccelerationDeviceNum(s32 port = -1);
-
+s32 getJoyPadSingleRightPort();
+s32 getJoyPadSingleLeftPort();
+s32 getJoyPadDoublePort();
+s32 getTouchPanelPort();
+s32 getMainControllerPort();
+s32 getPlayerControllerPort(s32 playerNo);
+s32 getMainJoyPadDoublePort();
+s32 getMainJoyPadSingleRightPort();
+s32 getMainJoyPadSingleLeftPort();
+bool isSameNpadId(u32, s32);
 bool isPadTrigger(s32 port, s32 button);
 bool isPadTriggerA(s32 port = -1);
 bool isPadTriggerB(s32 port = -1);
@@ -51,11 +58,9 @@ bool isPadTriggerLeftStick(s32 port = -1);
 bool isPadTriggerRightStick(s32 port = -1);
 bool isPadTriggerPressLeftStick(s32 port = -1);
 bool isPadTriggerPressRightStick(s32 port = -1);
-bool isPadTriggerUiCursorUp(s32 port = -1);  // TODO implement below
-bool isPadTriggerUiCursorDown(s32 port = -1);
-bool isPadTriggerUiCursorLeft(s32 port = -1);
-bool isPadTriggerUiCursorRight(s32 port = -1);
-
+bool isPadHoldPressLeftStick(s32 port = -1);
+bool isPadHoldPressRightStick(s32 port = -1);
+void setPadRepeat(s32 mask, s32 delayFrame, s32 pulseFrame, s32 port);
 bool isPadRepeatA(s32 port = -1);
 bool isPadRepeatB(s32 port = -1);
 bool isPadRepeatX(s32 port = -1);
@@ -84,13 +89,6 @@ bool isPadRepeatUpRightStick(s32 port = -1);
 bool isPadRepeatDownRightStick(s32 port = -1);
 bool isPadRepeatLeftRightStick(s32 port = -1);
 bool isPadRepeatRightRightStick(s32 port = -1);
-bool isPadRepeatUiCursorUp(s32 port = -1);  // TODO implement below
-bool isPadRepeatUiCursorDown(s32 port = -1);
-bool isPadRepeatUiCursorLeft(s32 port = -1);
-bool isPadRepeatUiCursorRight(s32 port = -1);
-
-bool isPadHoldPressLeftStick(s32 port = -1);
-bool isPadHoldPressRightStick(s32 port = -1);
 bool isPadHold(s32 port, s32 button);
 bool isPadHoldA(s32 port = -1);
 bool isPadHoldB(s32 port = -1);
@@ -128,12 +126,6 @@ bool isPadHoldLeftRightStick(s32 port = -1);
 bool isPadHoldRightRightStick(s32 port = -1);
 bool isPadHoldLeftStick(s32 port = -1);
 bool isPadHoldRightStick(s32 port = -1);
-bool isPadHoldUiCursorUp(s32 port = -1);
-bool isPadHoldUiCursorDown(s32 port = -1);
-bool isPadHoldUiCursorLeft(s32 port = -1);
-bool isPadHoldUiCursorRight(s32 port = -1);
-
-bool isPadRelease(s32 port, s32 button);
 bool isPadReleaseA(s32 port = -1);
 bool isPadReleaseB(s32 port = -1);
 bool isPadReleaseX(s32 port = -1);
@@ -162,42 +154,35 @@ bool isPadReleaseUpRightStick(s32 port = -1);
 bool isPadReleaseDownRightStick(s32 port = -1);
 bool isPadReleaseLeftRightStick(s32 port = -1);
 bool isPadReleaseRightRightStick(s32 port = -1);
-bool isPadReleaseUiCursorUp(s32 port = -1);  // TODO implement below
-bool isPadReleaseUiCursorDown(s32 port = -1);
-bool isPadReleaseUiCursorLeft(s32 port = -1);
-bool isPadReleaseUiCursorRight(s32 port = -1);
-
-bool isEitherPadHoldA();
-bool isEitherPadHoldB();
-
 const sead::Vector2f& getLeftStick(s32 port = -1);
 const sead::Vector2f& getRightStick(s32 port = -1);
-
 void getPadCrossDir(sead::Vector2f* dir, s32 port);
 void getPadCrossDirSideways(sead::Vector2f* dir, s32 port);
-
 void calcTouchScreenPos(sead::Vector2f* pos);
 void calcTouchLayoutPos(sead::Vector2f* pos);
-
 bool isTouchPosInRect(const sead::Vector2f& rect_pos, const sead::Vector2f& size);
 bool isTouchPosInCircle(const sead::Vector2f& center, f32 radius);
 bool isTouchPosInCircleByWorldPos(const sead::Vector3f&, const IUseCamera*, f32, f32);
 bool isPadTouchRect(f32 left, f32 top, f32 width, f32 height);
-
-// TODO: rename parameters
-void setPadRepeat(s32 a1, s32 a2, s32 a3, s32 port);
-
-s32 getPlayerControllerPort(s32 playerNo);
-s32 getTouchPanelPort();
-s32 getMainControllerPort();
-s32 getMainJoyPadDoublePort();
-s32 getMainJoyPadSingleRightPort();
-s32 getMainJoyPadSingleLeftPort();
-
-s32 getJoyPadSingleRightPort();
-s32 getJoyPadSingleLeftPort();
-s32 getJoyPadDoublePort();
-
-bool isSameNpadId(u32, s32);  // TODO implement
+bool isPadTriggerUiCursorUp(s32 port = -1);
+bool isPadTriggerUiCursorDown(s32 port = -1);
+bool isPadTriggerUiCursorLeft(s32 port = -1);
+bool isPadTriggerUiCursorRight(s32 port = -1);
+bool isPadRepeatUiCursorUp(s32 port = -1);
+bool isPadRepeatUiCursorDown(s32 port = -1);
+bool isPadRepeatUiCursorLeft(s32 port = -1);
+bool isPadRepeatUiCursorRight(s32 port = -1);
+bool isPadHoldUiCursorUp(s32 port = -1);
+bool isPadHoldUiCursorDown(s32 port = -1);
+bool isPadHoldUiCursorLeft(s32 port = -1);
+bool isPadHoldUiCursorRight(s32 port = -1);
+bool isPadReleaseUiCursorUp(s32 port = -1);
+bool isPadReleaseUiCursorDown(s32 port = -1);
+bool isPadReleaseUiCursorLeft(s32 port = -1);
+bool isPadReleaseUiCursorRight(s32 port = -1);
+s32 getPadAccelerationDeviceNum(s32 port = -1);
+bool isPadTypeJoySingle(s32 port = -1);
+bool isEitherPadHoldA();
+bool isEitherPadHoldB();
 
 }  // namespace al

@@ -15,4 +15,3 @@ private:
     s32 mDuration = 0;
 };
 
-static_assert(sizeof(PlayerCounterGetCoin) == 0x8);

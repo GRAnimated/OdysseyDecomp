@@ -28,10 +28,7 @@ PlayerStatePress::PlayerStatePress(al::LiveActor* player, const IUsePlayerCollis
     initNerve(&NrvPlayerStatePress.Press, 0);
 }
 
-PlayerStatePress::~PlayerStatePress() = default;
-
-// NON_MATCHING: behavior follows the corpus, but the large pose/collision setup has not yet been
-// checked for exact local ordering; next compare the first divergent block after the initial setup.
+// NON_MATCHING: current 1652 bytes versus target 1648; behavior follows the corpus. Next hypothesis is local pose/collision temporary ordering at the first divergent block.
 void PlayerStatePress::appear() {
     al::ActorStateBase::appear();
 
@@ -135,3 +132,5 @@ void PlayerStatePress::exePress() {
     if (!al::isLessEqualStep(this, 60))
         kill();
 }
+
+PlayerStatePress::~PlayerStatePress() = default;

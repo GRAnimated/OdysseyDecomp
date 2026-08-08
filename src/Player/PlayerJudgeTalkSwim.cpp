@@ -10,10 +10,6 @@ PlayerJudgeTalkSwim::PlayerJudgeTalkSwim(const PlayerHackKeeper* hackKeeper,
                                          const PlayerStateSwim* stateSwim)
     : mHackKeeper(hackKeeper), mCarryKeeper(carryKeeper), mStateSwim(stateSwim) {}
 
-void PlayerJudgeTalkSwim::reset() {}
-
-void PlayerJudgeTalkSwim::update() {}
-
 bool PlayerJudgeTalkSwim::judge() const {
     if (mHackKeeper->getHackSensor())
         return rs::isPlayerInWater(mHackKeeper->getHack());
@@ -21,3 +17,7 @@ bool PlayerJudgeTalkSwim::judge() const {
         return false;
     return mStateSwim->isEnableTalkSwim();
 }
+
+void PlayerJudgeTalkSwim::reset() {}
+
+void PlayerJudgeTalkSwim::update() {}

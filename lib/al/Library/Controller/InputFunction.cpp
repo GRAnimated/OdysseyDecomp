@@ -642,8 +642,8 @@ bool isPadTouchRect(f32 left, f32 top, f32 width, f32 height) {
     return isTouchPosInRect(sead::Vector2f(left, top), sead::Vector2f(width, height));
 }
 
-void setPadRepeat(s32 a1, s32 a2, s32 a3, s32 port) {
-    getController(port)->setPadRepeat(a1, a2, a3);
+void setPadRepeat(s32 mask, s32 delayFrame, s32 pulseFrame, s32 port) {
+    getController(port)->setPadRepeat(mask, delayFrame, pulseFrame);
 }
 
 s32 getPlayerControllerPort(s32 playerNo) {

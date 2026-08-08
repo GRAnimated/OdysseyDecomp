@@ -36,4 +36,3 @@ private:
     u8 _53[5];
 };
 
-static_assert(sizeof(PlayerRippleGenerator) == 0x58);

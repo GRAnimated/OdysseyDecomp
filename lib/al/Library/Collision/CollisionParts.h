@@ -20,8 +20,10 @@ enum class ForceCollisionFlag : u8 {
     ScaleOne,
 };
 
-class CollisionParts {
+class CollisionParts : public sead::TListNode<CollisionParts*> {
 public:
+    friend void updateCollisionParts(CollisionParts* collisionParts);
+
     CollisionParts(void* kcl, const void* byml);
 
     void calcInvMtxScale();
@@ -34,18 +36,18 @@ public:
     void validateBySystem();
     void invalidateBySystem();
     void onJoinList();
-    void makeEqualScale(sead::Matrix34f*);
+    f32 makeEqualScale(sead::Matrix34f*);
     void resetAllMtxPrivate(const sead::Matrix34f&);
     void resetAllMtx();
     void updateBoundingSphereRange();
     void forceResetAllMtxAndSetUpdateMtxOneTime(const sead::Matrix34f&);
     void forceResetAllMtxAndSetUpdateMtxOneTime();
-    void syncMtx(const sead::Matrix34f&);
+    void syncMtx(const sead::Matrix34f& mtx);
     void syncMtx();
     void updateMtx();
     void updateScale();
     void updateBoundingSphereRangePrivate(f32);
-    s32 checkBoundingSphereRange(const sead::Vector3f&, f32);
+    bool checkBoundingSphereRange(const sead::Vector3f&, f32);
     s32 checkStrikePoint(HitInfo*, const sead::Vector3f&, const TriangleFilterBase*) const;
     s32 checkStrikeSphere(SphereHitResultBuffer*, const sead::Vector3f&, f32, bool,
                           const sead::Vector3f&, const TriangleFilterBase*) const;
@@ -66,7 +68,7 @@ public:
     void calcForceMovePower(sead::Vector3f*, const sead::Vector3f&) const;
     void calcForceRotatePower(sead::Quatf*) const;
 
-    const sead::Matrix34f* getSyncCollisonMtx() const { return mSyncCollisionMtx; }
+    const sead::Matrix34f* getSyncCollisionMtx() const { return mSyncCollisionMtx; }
 
     void setSyncCollisionMtx(const sead::Matrix34f* mtx) { mSyncCollisionMtx = mtx; }
 
@@ -109,9 +111,6 @@ public:
     void setForceCollisionScaleOne() { mForceCollisionFlag = ForceCollisionFlag::ScaleOne; }
 
 private:
-    void* unk[2];
-    CollisionParts* _10;  // self-reference
-    sead::TList<CollisionParts*>* mPartsList;
     const sead::Matrix34f* mSyncCollisionMtx;
     sead::Matrix34f mSyncMtx;
     sead::Matrix34f mBaseMtx;
@@ -126,7 +125,7 @@ private:
     HitSensor* mConnectedSensor;
     const char* mSpecialPurpose;
     const char* mOptionalPurpose;
-    sead::Vector3f _150;  // same as mMtxScaleVec?
+    sead::Vector3f _150;
     s32 _15c;
     f32 mBoundingSphereRange;
     f32 mBaseMtxScale;
@@ -138,5 +137,10 @@ private:
     bool mIsMoving;
     ForceCollisionFlag mForceCollisionFlag;
 };
+
+void updateCollisionParts(CollisionParts* collisionParts);
+void updateCollisionPartsList(sead::TList<CollisionParts*>* collisionPartsList);
+void pushBackCollisionParts(sead::TList<CollisionParts*>* collisionPartsList,
+                            CollisionParts* collisionParts);
 
 }  // namespace al

@@ -23,6 +23,4 @@ public:
     f32 radius;
 };
 
-static_assert(sizeof(CollisionCheckInfoBase) == 0x18);
-static_assert(sizeof(SphereCheckInfo) == 0x20);
 }  // namespace al

@@ -28,27 +28,34 @@ bool PlayerAnimControlRun::isAnimDashFast() const {
     return animator->isAnim(anim) && mAnimator->getBlendWeight(3) > 0.5f;
 }
 
-// NON_MATCHING: first faithful source attempt from corpus; exact instruction ordering pending.
+// NON_MATCHING: target is 0x6B0 bytes and current is 0x680; restoring the corpus nested
+// run-start fallback recovers 39/39 direct calls, per-call SafeString conversions recover the three
+// repeated wrapper stores, and Mathi::clampMax recovers the target capped-counter ADD/CMP/CSINC.
+// The first structural divergence remains member lifetime: target keeps mPrevSpeed and
+// mRunStartBlendRate addresses where current carries loaded values. Explicit pointer/reference
+// probes collapse a converge site or are neutral; next hypothesis is a natural member lifetime
+// that preserves both physical converge calls.
 void PlayerAnimControlRun::update(f32 speed, const sead::Vector3f& velocity) {
     const f32 runStartFrameMax =
         mAnimator->getRunStartAnimFrameMax() * mPlayerConst->getRunStartPlayFrameScale();
     const s32 runStartFrameMaxInt = runStartFrameMax;
     const f32 velocityLength = velocity.length();
 
-    if (velocityLength >= 0.95f && mIsRunStart && mPlayerConst->getDashJudgeSpeed() > speed &&
-        mRunStartBlendRate < runStartFrameMaxInt) {
-        mPrevSpeed = al::converge(mPrevSpeed, mPlayerConst->getRunStartBlendFrame(), 1);
+    if (velocityLength >= 0.95f && mIsRunStart && mPlayerConst->getDashJudgeSpeed() > speed) {
+        if (mRunStartBlendRate < runStartFrameMaxInt)
+            mPrevSpeed = al::converge(mPrevSpeed, mPlayerConst->getRunStartBlendFrame(), 1);
+        else
+            mPrevSpeed = al::converge(mPrevSpeed, 0, 1);
     } else {
         mPrevSpeed = al::converge(mPrevSpeed, 0, 1);
     }
 
     mRunStartBlendRate =
-        mRunStartBlendRate + 1 <= runStartFrameMaxInt ? mRunStartBlendRate + 1 : runStartFrameMaxInt;
+        sead::Mathi::clampMax(mRunStartBlendRate + 1, runStartFrameMaxInt);
 
-    const sead::SafeString moveAnim(mMoveAnimName);
-    if (!mAnimator->isAnim(moveAnim))
-        mAnimator->startAnim(moveAnim);
-    if (!mAnimator->isAnim(moveAnim))
+    if (!mAnimator->isAnim(mMoveAnimName))
+        mAnimator->startAnim(mMoveAnimName);
+    if (!mAnimator->isAnim(mMoveAnimName))
         return;
 
     const f32 runStartAnimRate = mPlayerConst->getAnimFrameRateRunStart();

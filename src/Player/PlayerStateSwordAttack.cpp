@@ -16,13 +16,12 @@ NERVES_MAKE_STRUCT(PlayerStateSwordAttack, Attack)
 }  // namespace
 
 PlayerStateSwordAttack::PlayerStateSwordAttack(al::LiveActor* player, al::LiveActor* sword)
-    : al::ActorStateBase("", player), mSword(sword), mIsPowerGrove(false) {
+    : al::ActorStateBase("", player), mSword(sword) {
+    // BUG: the target resource name is misspelled "PowerGrove"; this flag tracks PlayerPowerGlove.
     if (sword)
-        mIsPowerGrove = al::isEqualString(al::getModelName(sword), "PowerGrove");
+        mIsPowerGlove = al::isEqualString(al::getModelName(sword), "PowerGrove");
     initNerve(&NrvPlayerStateSwordAttack.Attack, 0);
 }
-
-PlayerStateSwordAttack::~PlayerStateSwordAttack() = default;
 
 void PlayerStateSwordAttack::appear() {
     al::NerveStateBase::appear();
@@ -35,12 +34,11 @@ void PlayerStateSwordAttack::kill() {
         al::invalidateHitSensors(mSword);
 }
 
-// NON_MATCHING: exact size matches but target keeps the ground flag live across both branches;
-// move the shared action-end test after the movement branch to mirror the corpus CFG.
+// NON_MATCHING: target/current are both 356 bytes, but target keeps the ground flag live across both branches; next source-level hypothesis is moving the shared action-end test after the movement branch to mirror the corpus CFG.
 void PlayerStateSwordAttack::exeAttack() {
     if (al::isFirstStep(this)) {
         const char* actionName;
-        if (mIsPowerGrove)
+        if (mIsPowerGlove)
             actionName = "Punch";
         else
             actionName = "Fire";
@@ -66,3 +64,5 @@ void PlayerStateSwordAttack::exeAttack() {
     if ((isOnGround & isActionEnd) != 0)
         kill();
 }
+
+PlayerStateSwordAttack::~PlayerStateSwordAttack() = default;

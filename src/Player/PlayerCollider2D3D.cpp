@@ -1,8 +1,5 @@
 #include "Player/PlayerCollider2D3D.h"
 
-#include <cmath>
-#include <cstring>
-
 #include "Library/Collision/Collider.h"
 #include "Library/Collision/CollisionPartsKeeperUtil.h"
 #include "Library/Collision/CollisionPartsTriangle.h"
@@ -26,7 +23,7 @@ PlayerCollider2D3D::PlayerCollider2D3D(al::LiveActor* player, const PlayerConst*
     mSphereMove = new PlayerCollisionCheckSphereMove(player->getCollisionDirector(), 16);
 }
 
-void PlayerCollider2D3D::setFlag2D(bool) {}
+void PlayerCollider2D3D::setFlag2D(bool is2D) {}
 
 sead::Vector3f PlayerCollider2D3D::updateCollider(const sead::Vector3f& velocity) {
     if (mIs2D)
@@ -58,14 +55,11 @@ void PlayerCollider2D3D::updateHeightCheck(const sead::Vector3f& trans,
         mGroundHeight = 0.0f;
 }
 
-// NON_MATCHING: ceiling behavior is recovered, but vector temporary construction and register ordering differ across the pre-collision setup; next hypothesis is the original chained Vector3 expression form.
 void PlayerCollider2D3D::updateCeilingCheck(const sead::Vector3f& trans,
                                              const sead::Vector3f& up) {
     f32 radius = mConst->getCollisionRadiusSquat();
     f32 checkHeight = mConst->getTall() - 2.0f * radius;
-    sead::Vector3f origin = up * radius + trans;
-    sead::Vector3f movement = up * checkHeight;
-    mSphereMove->checkSphereMove(origin, movement, radius);
+    mSphereMove->checkSphereMove(radius * up + trans, checkHeight * up, radius);
 
     f32 minT = 1.0f;
     for (u32 i = 0; i < mSphereMove->getNum(); i++) {
@@ -92,7 +86,7 @@ void PlayerCollider2D3D::updateFallDistanceCheck(const sead::Vector3f& trans,
             mFallDistance = 0.0f;
         } else {
             if (al::isNearZero(mFallStartPos, 0.001f))
-                std::memcpy(&mFallStartPos, &trans, sizeof(mFallStartPos));
+                mFallStartPos.set(trans);
 
             sead::Vector3f fallVec = trans - mFallStartPos;
             f32 fallDistance = fallVec.dot(gravity);

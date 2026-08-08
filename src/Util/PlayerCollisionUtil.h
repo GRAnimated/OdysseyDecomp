@@ -102,7 +102,7 @@ const char* getMaterialCodeCeiling(const IUsePlayerCollision*);
 
 bool isRippleGenearateMaterialLawn(const al::Triangle&);
 const char* getRippleGenerateMaterialFlower();
-bool isCollidedDamageCodeAnyWallHit(const IUsePlayerCollision*);
+s32 isCollidedDamageCodeAnyWallHit(const IUsePlayerCollision*);
 bool isEnableRecordSafetyPoint(sead::Vector3f**, const al::HitInfo&, al::HitSensor*,
                                const sead::Vector3f&);
 bool isCollisionCodeSafetyPoint(const al::HitInfo&);

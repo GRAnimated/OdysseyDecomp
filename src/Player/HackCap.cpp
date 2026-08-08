@@ -83,93 +83,179 @@ NERVES_MAKE_STRUCT(HackCap, Catch, ThrowStay, Hide, Return, LockOn, Rebound, Hac
 const f32 sThrowRangeAppend[] = {500.0f, 300.0f, 500.0f, 200.0f, 180.0f};
 const f32 sSeparateThrowRange[] = {700.0f, 550.0f};
 
-bool isFlyingNerve(const HackCap* cap) {
-    return al::isNerve(cap, &NrvHackCap.Throw) || al::isNerve(cap, &NrvHackCap.Rethrow) ||
-           al::isNerve(cap, &NrvHackCap.ThrowBrake) || al::isNerve(cap, &NrvHackCap.ThrowRolling) ||
-           al::isNerve(cap, &NrvHackCap.ThrowRollingBrake) ||
-           al::isNerve(cap, &NrvHackCap.ThrowAppend) || al::isNerve(cap, &NrvHackCap.ThrowStay) ||
-           al::isNerve(cap, &NrvHackCap.ThrowSpiral) ||
-           al::isNerve(cap, &NrvHackCap.ThrowTornado) || al::isNerve(cap, &NrvHackCap.Blow);
-}
-
-__attribute__((noinline)) void updateEquipmentHatVisibility(
+bool isFlyingNerve(const HackCap* cap);
+void updateEquipmentHatVisibility(
     bool isHide, al::LiveActor* equipmentHat, al::LiveActor* equipmentHatDepthShadow,
-    const CapTargetInfo* targetInfo, bool keepAlive) {
-    if (isHide) {
-        if (al::isDead(equipmentHat))
-            return;
+    const CapTargetInfo* targetInfo, bool keepAlive);
+void updateHackCapPose(al::LiveActor* cap, const al::LiveActor* player,
+                       const PlayerJointControlKeeper* jointControlKeeper);
+void reflectThrowDirection(sead::Vector3f* direction, sead::Vector3f* up, al::LiveActor* actor,
+                           const sead::Vector3f& normal);
+bool tryTurnSeparateThrowDirection(al::LiveActor* actor, sead::Vector3f* direction,
+                                   sead::Vector3f* up, const PlayerInput* input,
+                                   const PlayerSeparateCapFlag* separateCapFlag, bool disabled);
 
-        al::validateShadow(equipmentHat);
-        if (al::isAlive(equipmentHatDepthShadow))
-            equipmentHatDepthShadow->kill();
-        al::hideModelIfShow(equipmentHat);
-        if (!keepAlive)
-            equipmentHat->kill();
-        return;
-    }
-
-    if (al::isAlive(equipmentHat) && !al::isHideModel(equipmentHat))
-        return;
-
-    if (al::isDead(equipmentHat))
-        equipmentHat->appear();
-    al::showModelIfHide(equipmentHat);
-    al::invalidateShadow(equipmentHat);
-    if (targetInfo->isUseDepthShadow()) {
-        if (al::isDead(equipmentHatDepthShadow))
-            equipmentHatDepthShadow->appear();
-    } else if (al::isAlive(equipmentHatDepthShadow)) {
-        equipmentHatDepthShadow->kill();
-    }
-}
 }  // namespace
 
-void HackCap::recordCapJump(PlayerWallActionHistory*) {}
+void HackCap::hide(bool force) {
+    if (al::isNerve(this, &NrvHackCap.Hide)) {
+        if (!force)
+            return;
+        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+        if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
+            return;
+        if (!mStateHide->isSeparateMode())
+            return;
+        mStateHide->cancelSeparateMode();
+    }
 
-void HackCap::showPuppetCapSilhouette() {
-    mIsHidePuppetCapSilhouette = false;
+    if (mIsSeparateFlying)
+        endHackThrowAndReturnHack();
+    if (_1d0)
+        tryReturn(force, nullptr);
+    al::offCollide(this);
+    al::invalidateShadow(this);
+    al::invalidateHitSensors(this);
+    mCapTargetInfo1 = nullptr;
+    _1d0 = nullptr;
+    _2a8 = false;
+    al::setVelocityZero(this);
+    al::hideModelIfShow(this);
+    mEquipmentHat->kill();
+    mLockOnCapEyes->kill();
+    al::updateMaterialCodeWater(this, false);
+    al::setNerve(this, &NrvHackCap.Hide);
 }
 
-void HackCap::endHackThrowAndReturnHack() {
-    mIsSeparateFlying = false;
-    mPlayerBodySensor = nullptr;
-    mHackCapJointControlKeeper->reset();
+void HackCap::movement() {
+    mCapEyeSensorHitHolder->clear();
+    if (rs::isCollidedGround(mPlayerColliderHackCap)) {
+        al::setMaterialCode(this, rs::getMaterialCodeGround(mPlayerColliderHackCap));
+        al::updateMaterialCodePuddle(this);
+    }
 
-    al::startAction(this, "Capture");
-    al::LiveActor* equipmentHatDepthShadow = mEquipmentHatDepthShadow;
-    al::LiveActor* lockOnCapEyes = mLockOnCapEyes;
-    al::startAction(mEquipmentHat, "Capture");
-    al::startAction(equipmentHatDepthShadow, "Capture");
-    if (al::isAlive(lockOnCapEyes) && !al::tryStartAction(lockOnCapEyes, "Capture"))
-        al::tryStartActionIfNotPlaying(lockOnCapEyes, "Wait");
+    al::LiveActor::movement();
+    mHackCapTrigger->clearAfterMovemetTrigger();
+    if (al::isNerve(this, &NrvHackCap.Hide))
+        mCapExternalVelocity->reset();
+    else
+        mCapExternalVelocity->update();
+    updateShadowMaskOffset();
+    mSelfPlayerWetControl->update();
+}
 
-    al::setActionFrame(this, al::getActionFrameMax(this, "Capture"));
-    al::setVelocityZero(this);
-    followTarget();
-    HackCapFunction::resetPositionAndCollision(this, mPlayerColliderHackCap);
-    updateEquipmentHatVisibility(mIsHide, mEquipmentHat, mEquipmentHatDepthShadow,
-                                 mCapTargetInfo1, false);
+bool HackCap::isFlying() const {
+    return isFlyingNerve(this) || al::isNerve(this, &NrvHackCap.Return) ||
+           al::isNerve(this, &NrvHackCap.Rebound);
+}
 
-    al::LiveActor* lockOnCapEyesAfterReturn = mLockOnCapEyes;
-    if (al::isAlive(lockOnCapEyesAfterReturn))
-        lockOnCapEyesAfterReturn->kill();
-    al::hideModelIfShow(this);
-    al::invalidateHitSensors(this);
+void HackCap::updateCollider() {
+    sead::Vector3f pushedVelocity(0.0f, 0.0f, 0.0f);
+    PlayerPushReceiver* pushReceiver = mCapPushReceiver;
+    sead::Vector3f velocity = al::getVelocity(this) + mCapExternalVelocity->getTotalVelocity();
+    pushReceiver->calcPushedVelocity(&pushedVelocity, velocity);
+    rs::updateCollider(this, mPlayerColliderHackCap, pushedVelocity);
+    mCapPushReceiver->clear();
+    updateFrameOutLayout();
+
+    if (!_5e8 && mStateThrowStay->isEnableSendHipDropMsg())
+        mStateThrowStay->sendHipDropCollideMsg(mAttackSensor);
+
+    if (isFlyingNerve(this) || al::isNerve(this, &NrvHackCap.Return) ||
+        al::isNerve(this, &NrvHackCap.Rebound)) {
+        HackCapAboveGroundChecker* checker = mHackCapAboveGroundChecker;
+        velocity = -al::getGravity(this);
+        checker->update(velocity);
+    }
+}
+
+void HackCap::prepareLockOn(al::HitSensor* sensor) {
+    if (mIsSeparateFlying) {
+        al::setNerve(this, &NrvHackCap.LockOn);
+        rs::sendMsgTransferHack(mPlayerBodySensor, const_cast<al::HitSensor*>(_1d0));
+        mIsSeparateFlying = false;
+        mPlayerBodySensor = nullptr;
+    }
+
+    resetLockOnParam();
+    if (!rs::sendMsgInitCapTarget(
+            sensor, mAttackSensor,
+            &mCapTargetInfo1)) {
+        CapTargetInfoFunction::initIterCapTargetInfo(mCapTargetInfo2, nullptr,
+                                                     al::getSensorHost(sensor), nullptr);
+        mCapTargetInfo1 = mCapTargetInfo2;
+    }
+
+    _1d0 = sensor;
+    if (al::isNerve(this, &NrvHackCap.SpinAttack) ||
+        al::isNerve(this, &NrvHackCap.ThrowStart) || al::isNerve(this, &NrvHackCap.Hide))
+        al::startAction(this, "FlyingWaitR");
+
+    _2a8 = mCapTargetInfo1->get_7f();
+    al::startHitReaction(this, "");
+    setupStartLockOn();
+    al::setNerve(this, &NrvHackCap.LockOn);
+}
+
+bool HackCap::sendMsgStartHack(al::HitSensor* sensor) {
+    if (!mCapTargetInfo1)
+        return false;
+
+    const u8 isEnable = _2a6;
+    if (!al::isNerve(this, &NrvHackCap.LockOn))
+        return false;
+
+    const u32 isEnableStep = al::isLessEqualStep(this, 5) ^ 1;
+    if (!isEnable || !isEnableStep)
+        return false;
+
+    return rs::sendMsgStartHack(const_cast<al::HitSensor*>(_1d0), sensor);
+}
+
+bool HackCap::receiveRequestTransferHack(al::HitSensor* sensor, al::HitSensor* playerSensor) {
+    if (mIsSeparateFlying || !al::isNerve(this, &NrvHackCap.Hack) || rs::isActiveDemo(this) ||
+        !rs::sendMsgCapStartLockOn(sensor, mAttackSensor))
+        return false;
+
+    if (al::isNerve(this, &NrvHackCap.Hack)) {
+        mPlayerBodySensor = playerSensor;
+        mIsSeparateFlying = true;
+        mEquipmentHat->kill();
+        mLockOnCapEyes->kill();
+        startThrowSeparatePlay(sead::Vector3f::ez, sead::Vector3f::ey, 0.0f, false);
+    }
+    prepareLockOn(sensor);
+    return true;
+}
+
+void HackCap::startThrowSeparatePlayHack(al::HitSensor* sensor, const sead::Vector3f& startPos,
+                                         const sead::Vector3f& velocity, f32 speed) {
+    if (al::isNerve(this, &NrvHackCap.Hack)) {
+        mPlayerBodySensor = sensor;
+        mIsSeparateFlying = true;
+        mEquipmentHat->kill();
+        mLockOnCapEyes->kill();
+        startThrowSeparatePlay(startPos, velocity, speed, false);
+    }
+}
+
+void HackCap::startHack() {
+    mIsHide = false;
+    mIsHackDamageVisible = false;
+    _5ba = false;
+    _5bb = true;
+    _5bc = 0;
+    al::invalidateHitSensor(this, "Trample");
     al::setNerve(this, &NrvHackCap.Hack);
 }
 
-void HackCap::endHackShineGetDemo() {}
-
-bool HackCap::isEnableRescuePlayer() const {
-    return false;
-}
-
-void HackCap::makeFollowMtx(sead::Matrix34f* mtx) const {
-    mCapTargetInfo1->makeLockOnMtx(mtx);
-}
-
-void HackCap::exeHide() {
-    al::updateNerveState(this);
+void HackCap::emitHackStartEffect() {
+    al::startHitReaction(mEquipmentHat, "キャプチャー開始デモ演出エフェクト");
+    const f32 rate = al::calcRate01(mCapTargetInfo1->getLockOnScale(), 1.3f, 1.5f);
+    const f32 scaleValue = al::lerpValue(1.0f, 1.5f, rate);
+    al::LiveActor* equipmentHat = mEquipmentHat;
+    const sead::Vector3f scale(scaleValue, scaleValue, scaleValue);
+    al::setEffectAllScale(equipmentHat, "MarioHackExpressionShot", scale);
 }
 
 void HackCap::noticeHackMarioEnter() {
@@ -212,6 +298,10 @@ void HackCap::addLockOnKeepDemo() {
     rs::addDemoActor(mEquipmentHat, true);
 }
 
+void HackCap::syncHackDamageVisibility(bool visible) {
+    mIsHackDamageVisible = visible;
+}
+
 void HackCap::endHack() {
     if (mCapTargetInfo1->isSetHackNameToCamera())
         PlayerCameraFunction::resetCameraHackName(this);
@@ -220,11 +310,6 @@ void HackCap::endHack() {
     _2a2 = true;
     _2a3 = true;
 }
-
-void HackCap::syncHackDamageVisibility(bool visible) {
-    mIsHackDamageVisible = visible;
-}
-
 
 void HackCap::startSpinAttack(const char* actionName) {
     al::showModelIfHide(this);
@@ -259,7 +344,6 @@ void HackCap::startSpinAttack(const char* actionName) {
     al::setNerve(this, &NrvHackCap.SpinAttack);
 }
 
-
 void HackCap::startThrowSeparatePlay(const sead::Vector3f& startPos,
                                      const sead::Vector3f& velocity, f32 speed,
                                      bool isThrowType) {
@@ -267,11 +351,8 @@ void HackCap::startThrowSeparatePlay(const sead::Vector3f& startPos,
     throwOffset.set(0.0f, 0.0f, 0.0f);
     if (al::isNerve(this, &NrvHackCap.Hide))
         mStateHide->calcSeparateThrowOffset(&throwOffset);
-    else {
-        const sead::Vector3f& bodyPos = rs::getPlayerBodyPos(this);
-        const sead::Vector3f& playerPos = rs::getPlayerPos(this);
-        throwOffset.setSub(bodyPos, playerPos);
-    }
+    else
+        throwOffset.setSub(rs::getPlayerBodyPos(this), rs::getPlayerPos(this));
 
     al::showModelIfHide(this);
     al::startAction(mThrowingHatEyes, "Appear");
@@ -303,12 +384,137 @@ void HackCap::startThrowSeparatePlayJump(const sead::Vector3f& startPos,
     startThrowSeparatePlay(startPos, velocity, speed, false);
 }
 
+void HackCap::startCatch(const char* actionName, bool isHitReaction, const sead::Vector3f& hitPos) {
+    mHackCapJointControlKeeper->reset();
+    al::copyPose(this, mPlayerActor);
+    al::startAction(this, actionName);
+    if (isHitReaction)
+        al::startHitReactionHitEffect(this, "帽子キャッチ", hitPos);
+    if (al::isNerve(this, &NrvHackCap.Hide) && !_2a2)
+        _2a2 = true;
+    mEquipmentHat->kill();
+    mLockOnCapEyes->kill();
+    al::setNerve(this, &NrvHackCap.Catch);
+}
+
+bool HackCap::isNoPutOnHide() const {
+    return al::isNerve(this, &NrvHackCap.Hide) && !_2a2;
+}
+
 void HackCap::forcePutOn() {
     hide(true);
     al::tryKillEmitterAndParticleAll(this);
     _2a2 = true;
     _2a3 = true;
     mBalloonFrame->kill();
+}
+
+// NON_MATCHING: exact 0x1a4 size; target stores `_1d0`, materializes "NoAction" in X21,
+// then stores `mCapTargetInfo1`; current scheduling stores both members before the string;
+// next source-level hypothesis is a string-pointer lifetime consumed before the second member store.
+void HackCap::forceHack(al::HitSensor* sensor, const CapTargetInfo* targetInfo) {
+    mBalloonFrame->kill();
+    resetLockOnParam();
+    setupStartLockOn();
+
+    _1d0 = sensor;
+    const char* actionName = "NoAction";
+    mCapTargetInfo1 = targetInfo;
+    al::startAction(this, actionName);
+    al::LiveActor* equipmentHatDepthShadow = mEquipmentHatDepthShadow;
+    al::LiveActor* lockOnCapEyes = mLockOnCapEyes;
+    al::startAction(mEquipmentHat, actionName);
+    al::startAction(equipmentHatDepthShadow, actionName);
+    if (al::isAlive(lockOnCapEyes) && !al::tryStartAction(lockOnCapEyes, actionName))
+        al::tryStartActionIfNotPlaying(lockOnCapEyes, "Wait");
+
+    const f32 frameMax = al::getActionFrameMax(this, actionName);
+    al::setActionFrame(this, frameMax);
+    al::setActionFrame(mEquipmentHat, frameMax);
+    al::setActionFrame(equipmentHatDepthShadow, frameMax);
+    al::setNerve(this, &NrvHackCap.LockOn);
+
+    mIsHide = false;
+    mIsHackDamageVisible = false;
+    _5ba = false;
+    _5bb = true;
+    _5bc = 0;
+    al::invalidateHitSensor(this, "Trample");
+    al::setNerve(this, &NrvHackCap.Hack);
+}
+
+void HackCap::resetLockOnParam() {
+    mCapExternalVelocity->reset();
+    mCapTargetInfo1 = nullptr;
+    _580 = 0;
+    mLockOnCounter = 0;
+    _2a6 = false;
+    al::makeMtxRT(&_588, this);
+}
+
+void HackCap::setupStartLockOn() {
+    al::setVelocityZero(this);
+    al::offCollide(this);
+    al::invalidateHitSensors(this);
+    al::validateHitSensor(this, "Trample");
+    _29e = false;
+    _274 = 0;
+    _264 = 0.0f;
+    _268.set(0.0f, 0.0f);
+    _270 = 0.0f;
+    if (_298)
+        al::tryStartActionIfNotPlaying(mThrowingHatEyes, "SpinL");
+    else
+        al::tryStartActionIfNotPlaying(mThrowingHatEyes, "SpinR");
+}
+
+bool HackCap::cancelCapState() {
+    bool canCancel = al::isNerve(this, &NrvHackCap.SpinAttack) ||
+                     al::isNerve(this, &NrvHackCap.Hide) || al::isNerve(this, &NrvHackCap.Catch);
+    if (!canCancel && !_299) {
+        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+        canCancel = (flags & 0xFF0000) == 0 && (flags & 0xFF) != 0 &&
+                    al::isNerve(this, &NrvHackCap.ThrowStay) && !mIsSeparateFlying &&
+                    al::calcDistance(this, mPlayerActor) <= 200.0f;
+    }
+    if (!canCancel && !al::isNerve(this, &NrvHackCap.SpinAttack))
+        return false;
+
+    if (al::isNerve(this, &NrvHackCap.Hide))
+        return false;
+
+    if (al::isNerve(this, &NrvHackCap.ThrowStay) && !_299) {
+        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+        if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
+            return false;
+    }
+
+    hide(false);
+    return true;
+}
+
+bool HackCap::isEnableThrow() const {
+    return al::isNerve(this, &NrvHackCap.SpinAttack);
+}
+
+bool HackCap::isEnableSpinAttack() const {
+    if (al::isNerve(this, &NrvHackCap.Hide))
+        return true;
+    if (al::isNerve(this, &NrvHackCap.Catch))
+        return true;
+    if (_299)
+        return false;
+
+    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+    if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0) {
+        if (al::isNerve(this, &NrvHackCap.ThrowStay) && !mIsSeparateFlying)
+            return al::calcDistance(this, mPlayerActor) <= 200.0f;
+    }
+    return false;
+}
+
+bool HackCap::isSpinAttack() const {
+    return al::isNerve(this, &NrvHackCap.SpinAttack);
 }
 
 bool HackCap::requestReturn(bool* isSuccess) {
@@ -377,293 +583,6 @@ bool HackCap::tryReturn(bool force, bool* isSuccess) {
 
     al::setNerve(this, &NrvHackCap.Return);
     return true;
-}
-
-void HackCap::startPuppet() {
-    mIsPuppet = true;
-    _5f9 = false;
-    mIsHidePuppetCapSilhouette = false;
-}
-
-void HackCap::endPuppet() {
-    mIsPuppet = false;
-    _5f9 = false;
-    mIsHidePuppetCapSilhouette = false;
-    syncPuppetSilhouette();
-}
-
-void HackCap::hidePuppetCap() {
-    _5f9 = true;
-    if (al::isAlive(mEquipmentHat))
-        al::hideModelIfShow(mEquipmentHat);
-    else
-        al::hideModelIfShow(this);
-}
-
-void HackCap::showPuppetCap() {
-    _5f9 = true;
-    if (al::isAlive(mEquipmentHat))
-        al::showModelIfHide(mEquipmentHat);
-    else
-        al::showModelIfHide(this);
-}
-
-void HackCap::hidePuppetCapSilhouette() {
-    mIsHidePuppetCapSilhouette = true;
-}
-
-void HackCap::startPuppetCheckpointWarp() {
-    _5f9 = true;
-    al::hideModelIfShow(this);
-    al::hideModelIfShow(mEquipmentHat);
-    al::hideModelIfShow(mEquipmentHatDepthShadow);
-    al::tryKillEmitterAndParticleAll(this);
-}
-
-void HackCap::startHackShineGetDemo() {
-    if (mIsSeparateFlying)
-        endHackThrowAndReturnHack();
-}
-
-s32 HackCap::getPadRumblePort() const {
-    return mPadRumbleKeeper->getPort();
-}
-
-f32 HackCap::getThrowHeight() const {
-    return mHackCapThrowParam->getHackThrowHeight();
-}
-
-bool HackCap::isHackInvalidSeparatePlay() const {
-    return mCapTargetInfo1 && mCapTargetInfo1->get_7e();
-}
-
-void HackCap::endHackThrow() {
-    mIsSeparateFlying = false;
-    mPlayerBodySensor = nullptr;
-}
-
-bool HackCap::requestLockOnHitReaction(const CapTargetInfo* targetInfo, const char* reaction) {
-    if (!mCapTargetInfo1 || mCapTargetInfo1 != targetInfo)
-        return false;
-
-    al::startHitReaction(mEquipmentHat, reaction);
-    return true;
-}
-
-// NON_MATCHING: exact 0x1a4 size; target stores `_1d0`, materializes "NoAction" in X21,
-// then stores `mCapTargetInfo1`; current scheduling stores both members before the string.
-void HackCap::forceHack(al::HitSensor* sensor, const CapTargetInfo* targetInfo) {
-    mBalloonFrame->kill();
-    resetLockOnParam();
-    setupStartLockOn();
-
-    _1d0 = sensor;
-    const char* actionName = "NoAction";
-    mCapTargetInfo1 = targetInfo;
-    al::startAction(this, actionName);
-    al::LiveActor* equipmentHatDepthShadow = mEquipmentHatDepthShadow;
-    al::LiveActor* lockOnCapEyes = mLockOnCapEyes;
-    al::startAction(mEquipmentHat, actionName);
-    al::startAction(equipmentHatDepthShadow, actionName);
-    if (al::isAlive(lockOnCapEyes) && !al::tryStartAction(lockOnCapEyes, actionName))
-        al::tryStartActionIfNotPlaying(lockOnCapEyes, "Wait");
-
-    const f32 frameMax = al::getActionFrameMax(this, actionName);
-    al::setActionFrame(this, frameMax);
-    al::setActionFrame(mEquipmentHat, frameMax);
-    al::setActionFrame(equipmentHatDepthShadow, frameMax);
-    al::setNerve(this, &NrvHackCap.LockOn);
-
-    mIsHide = false;
-    mIsHackDamageVisible = false;
-    _5ba = false;
-    _5bb = true;
-    _5bc = 0;
-    al::invalidateHitSensor(this, "Trample");
-    al::setNerve(this, &NrvHackCap.Hack);
-}
-
-void HackCap::resetLockOnParam() {
-    mCapExternalVelocity->reset();
-    mCapTargetInfo1 = nullptr;
-    _580 = 0;
-    mLockOnCounter = 0;
-    _2a6 = false;
-    al::makeMtxRT(&_588, this);
-}
-
-void HackCap::setupStartLockOn() {
-    al::setVelocityZero(this);
-    al::offCollide(this);
-    al::invalidateHitSensors(this);
-    al::validateHitSensor(this, "Trample");
-    _29e = false;
-    _274 = 0;
-    _264 = 0.0f;
-    _268.set(0.0f, 0.0f);
-    _270 = 0.0f;
-    if (_298)
-        al::tryStartActionIfNotPlaying(mThrowingHatEyes, "SpinL");
-    else
-        al::tryStartActionIfNotPlaying(mThrowingHatEyes, "SpinR");
-}
-
-void HackCap::prepareLockOn(al::HitSensor* sensor) {
-    if (mIsSeparateFlying) {
-        al::setNerve(this, &NrvHackCap.LockOn);
-        rs::sendMsgTransferHack(mPlayerBodySensor, const_cast<al::HitSensor*>(_1d0));
-        mIsSeparateFlying = false;
-        mPlayerBodySensor = nullptr;
-    }
-
-    resetLockOnParam();
-    if (!rs::sendMsgInitCapTarget(
-            sensor, mAttackSensor,
-            &mCapTargetInfo1)) {
-        CapTargetInfoFunction::initIterCapTargetInfo(mCapTargetInfo2, nullptr,
-                                                     al::getSensorHost(sensor), nullptr);
-        mCapTargetInfo1 = mCapTargetInfo2;
-    }
-
-    _1d0 = sensor;
-    if (al::isNerve(this, &NrvHackCap.SpinAttack) ||
-        al::isNerve(this, &NrvHackCap.ThrowStart) || al::isNerve(this, &NrvHackCap.Hide))
-        al::startAction(this, "FlyingWaitR");
-
-    _2a8 = mCapTargetInfo1->get_7f();
-    al::startHitReaction(this, "");
-    setupStartLockOn();
-    al::setNerve(this, &NrvHackCap.LockOn);
-}
-
-f32 HackCap::getThrowSpeed() const {
-    if (_29f)
-        return 60.0f;
-
-    if (al::isNearZero(_268.x) && !al::isNearZero(_268.y))
-        return mHackCapThrowParam->getRollSpeed();
-
-    if (_29a)
-        return mHackCapThrowParam->getWaterMaxSpeed();
-
-    if (_29e || _4d0)
-        return mHackCapThrowParam->getContinuousThrowSpeed();
-
-    return mHackCapThrowParam->getMaxVel();
-}
-
-// NON_MATCHING: target uses signed `CMP #4`/`B.GE`; current compiler canonicalizes the
-// equivalent `mLockOnCounter >= 4` to `CMP #3`/`B.GT`.
-void HackCap::updateThrowJoint() {
-    bool useNormalRotation = true;
-    if (al::isNerve(this, &NrvHackCap.LockOn) && !isLockOnInterpolate())
-        useNormalRotation = false;
-
-    f32 rotateY;
-    if (useNormalRotation) {
-        static const f32 rotateYValues[] = {35.0f, 45.0f};
-        rotateY = _29e ? 45.0f : rotateYValues[_4d0];
-        if (_29a)
-            rotateY = 20.0f;
-    } else {
-        rotateY = _29a ? 5.0f : 10.0f;
-    }
-
-    if (_298)
-        rotateY = -rotateY;
-    mHackCapJointControlKeeper->updateRotateY(rotateY);
-
-    if (al::isNerve(this, &NrvHackCap.ThrowStay))
-        mHackCapJointControlKeeper->updateRotateStayZ(0.25f);
-    else
-        mHackCapJointControlKeeper->updateRotateThrowZ(0.002f, 0.0f);
-}
-
-void HackCap::exeTrample() {
-    if (al::isFirstStep(this)) {
-        sead::Vector3f front(0.0f, 0.0f, 0.0f);
-        al::calcJointFrontDir(&front, this, "AllRoot");
-        al::faceToDirection(this, front);
-        al::startAction(this, "Trample");
-        al::startAction(mThrowingHatEyes, "Wait");
-        al::setVelocityZero(this);
-        mHackCapJointControlKeeper->resetRotateZ();
-        al::startHitReaction(this, "通常Trample");
-
-        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-        if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
-            al::startHitReaction(this, "おすそ分けTrample");
-    }
-
-    if (!al::isLessStep(this, 15)) {
-        if (al::isNerve(this, &NrvHackCap.TrampleReturn) || _299 ||
-            (mPlayerSeparateCapFlag->getRawFlags() & 0xFF0000) != 0 ||
-            (mPlayerSeparateCapFlag->getRawFlags() & 0xFF) == 0 || !_510)
-            al::setNerve(this, &NrvHackCap.Return);
-        else
-            al::setNerve(this, &NrvHackCap.ThrowStay);
-    }
-}
-
-void HackCap::exeTrampleLockOn() {
-    if (al::isFirstStep(this)) {
-        sead::Vector3f front(0.0f, 0.0f, 0.0f);
-        al::calcJointFrontDir(&front, this, "AllRoot");
-        al::faceToDirection(this, front);
-
-        const char* actionName = "TrampleLockOn";
-        al::LiveActor* equipmentHatDepthShadow = mEquipmentHatDepthShadow;
-        al::LiveActor* lockOnCapEyes = mLockOnCapEyes;
-        al::startAction(mEquipmentHat, actionName);
-        al::startAction(equipmentHatDepthShadow, actionName);
-        if (al::isAlive(lockOnCapEyes) && !al::tryStartAction(lockOnCapEyes, actionName))
-            al::tryStartActionIfNotPlaying(lockOnCapEyes, "Wait");
-    }
-
-    if (!al::isLessStep(this, 15)) {
-        if (!mCapTargetInfo1->isLockOn()) {
-            const char* actionName = mCapTargetInfo1->getLockOnAnimName();
-            al::LiveActor* equipmentHatDepthShadow = mEquipmentHatDepthShadow;
-            al::LiveActor* lockOnCapEyes = mLockOnCapEyes;
-            al::startAction(mEquipmentHat, actionName);
-            al::startAction(equipmentHatDepthShadow, actionName);
-            if (al::isAlive(lockOnCapEyes) && !al::tryStartAction(lockOnCapEyes, actionName))
-                al::tryStartActionIfNotPlaying(lockOnCapEyes, "Wait");
-        }
-        al::setNerve(this, &NrvHackCap.LockOn);
-    }
-}
-
-// NON_MATCHING: current 0x108 body hoists the first-step eye load after the combined flag
-// test; target is 0x114 and duplicates the load across the low/high flag branches.
-void HackCap::exeHack() {
-    if (al::isFirstStep(this)) {
-        updateEquipmentHatVisibility(mIsHide, mEquipmentHat, mEquipmentHatDepthShadow,
-                                     mCapTargetInfo1, false);
-        if (mIsHide || _5ba || mCapTargetInfo1->isInvalidCapEye()) {
-            al::LiveActor* lockOnCapEyes = mLockOnCapEyes;
-            if (al::isAlive(lockOnCapEyes))
-                lockOnCapEyes->kill();
-        } else {
-            al::LiveActor* lockOnCapEyes = mLockOnCapEyes;
-            if (al::isDead(lockOnCapEyes))
-                lockOnCapEyes->appear();
-        }
-        al::hideModelIfShow(this);
-        _5bc = 0;
-    }
-
-    if (al::isAlive(mLockOnCapEyes)) {
-        if (al::isActionPlaying(mLockOnCapEyes, "Disappear")) {
-            if (al::isActionEnd(mLockOnCapEyes)) {
-                _5ba = true;
-                al::startAction(mLockOnCapEyes, "Wait");
-            }
-        } else if (al::isActionPlaying(mLockOnCapEyes, "Appear") &&
-                   al::isActionEnd(mLockOnCapEyes)) {
-            al::startAction(mLockOnCapEyes, "Wait");
-        }
-    }
 }
 
 // NON_MATCHING: behavior is recovered, but target retains a different eye-actor register
@@ -769,421 +688,6 @@ void HackCap::followTarget() {
     al::updatePoseQuat(this, quat);
 }
 
-void HackCap::calcHackFollowTrans(sead::Vector3f* trans, bool useLocalOffset) const {
-    sead::Matrix34f followMtx = sead::Matrix34f::ident;
-    mCapTargetInfo1->makeLockOnMtx(&followMtx);
-
-    if (useLocalOffset && mCapTargetInfo1->isEscapeLocalOffset())
-        al::calcTransLocalOffsetByMtx(trans, followMtx, mCapTargetInfo1->getEscapeLocalOffset());
-    else
-        followMtx.getTranslation(*trans);
-}
-
-void HackCap::updateCapEyeShowHide(bool isShow, s32 appearDelay) {
-    if (_5ba) {
-        _5bc = isShow ? al::converge(_5bc, appearDelay, 1) : 0;
-        _5ba = _5bc < appearDelay;
-        if (_5bc >= appearDelay)
-            al::startAction(mLockOnCapEyes, "Appear");
-    } else if (!isShow && !al::isActionPlaying(mLockOnCapEyes, "Disappear")) {
-        al::startAction(mLockOnCapEyes, "Disappear");
-        _5bc = 0;
-    }
-}
-
-bool HackCap::isSeparateHipDropLand() const {
-    return rs::isJustLand(mPlayerColliderHackCap) && mStateThrowStay->isEnableSendHipDropMsg();
-}
-
-void HackCap::prepareCooperateThrow() {
-    hide(true);
-    al::hideModelIfShow(this);
-    al::offCollide(this);
-    al::tryStartActionIfNotPlaying(this, "WaitSeparate");
-}
-
-bool HackCap::isHoldInputKeepLockOn() const {
-    return _299 ? mInput->isHoldAction() : mInput->isHoldCapAction();
-}
-
-bool HackCap::isForceCapTouchJump() const {
-    if (_299)
-        return false;
-
-    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-    return (flags & 0xFF0000) == 0 && (flags & 0xFF) != 0 && mStateThrowStay->isHomingPlayerJump();
-}
-
-bool HackCap::isHoldSpinCapStay() const {
-    if (_299)
-        return mInput->isHoldAction();
-
-    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-    if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0)
-        return mInput->isHoldSpinCap();
-
-    return _510;
-}
-
-bool HackCap::isThrowTypeSpiral() const {
-    return !al::isNearZero(_268.x);
-}
-
-bool HackCap::isThrowTypeRolling() const {
-    return al::isNearZero(_268.x) && !al::isNearZero(_268.y);
-}
-
-void HackCap::setupThrowStart() {
-    _290 = 0;
-    _294 = 0;
-    al::validateHitSensors(this);
-    al::invalidateHitSensor(this, "SpiralTail1");
-    al::invalidateHitSensor(this, "SpiralTail2");
-    al::invalidateHitSensor(this, "SpiralTail3");
-    al::invalidateHitSensor(this, "SpiralTail4");
-    al::invalidateHitSensor(this, "SpiralTail5");
-    al::validateShadow(this);
-    al::onCollide(this);
-
-    const char* actionLeft = _29e ? "FlyingWaitCapCatchL" : "FlyingWaitL";
-    const char* actionRight = _29e ? "FlyingWaitCapCatchR" : "FlyingWaitR";
-    al::startAction(this, _264 > 0.0f ? actionLeft : actionRight);
-}
-
-s32 HackCap::getThrowBrakeTime() const {
-    if (_29f)
-        return 2;
-
-    if (al::isNearZero(_268.x) && !al::isNearZero(_268.y))
-        return mHackCapThrowParam->getRollBrakeTime(_268.y > 0.0f);
-
-    const bool isNormal = !_29a;
-    return mHackCapThrowParam->getBreakTimeNormal(isNormal);
-}
-
-void HackCap::startThrowCapEyeThrowAction() {
-    if (_298)
-        al::tryStartActionIfNotPlaying(mThrowingHatEyes, "SpinL");
-    else
-        al::tryStartActionIfNotPlaying(mThrowingHatEyes, "SpinR");
-}
-
-void HackCap::endThrowSpiral() {
-    al::invalidateHitSensor(this, "SpiralTail1");
-    al::invalidateHitSensor(this, "SpiralTail2");
-    al::invalidateHitSensor(this, "SpiralTail3");
-    al::invalidateHitSensor(this, "SpiralTail4");
-    al::invalidateHitSensor(this, "SpiralTail5");
-}
-
-bool HackCap::tryChangeSeparateThrow() {
-    if (!_299)
-        return false;
-
-    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-    if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0)
-        return false;
-    if (mInput->isNoInputSeparateCap())
-        return false;
-
-    _299 = false;
-    mRecentCollideActors.clear();
-    _510 = true;
-    rs::resetJudge(mCapJudgePreInputSeparateThrow);
-    return true;
-}
-
-f32 HackCap::getThrowBackSpeed() const {
-    return _29a ? mHackCapThrowParam->getWaterMaxRetSpeed() : mHackCapThrowParam->getMaxRetSpeed();
-}
-
-s32 HackCap::getThrowStayTime() const {
-    return _29f ? 3 : mHackCapThrowParam->getEndpointStopTime();
-}
-
-s32 HackCap::getThrowStayTimeMax() const {
-    if (_299)
-        return mHackCapThrowParam->getMaxEndpointStopTime();
-
-    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-    if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0)
-        return mHackCapThrowParam->getMaxEndpointStopTime();
-
-    return 120;
-}
-
-f32 HackCap::getThrowSpeedAppend() const {
-    if (_29f)
-        return 60.0f;
-    if (!_29a && (_29e || _4d0))
-        return mHackCapThrowParam->getContinuousThrowSpeed();
-    return mHackCapThrowParam->getMaxVel();
-}
-
-f32 HackCap::getThrowRangeAppend() const {
-    return sThrowRangeAppend[static_cast<u8>(_2a5)];
-}
-
-void HackCap::endHackThrowAndReturnHackOrHide() {
-    if (mIsSeparateFlying)
-        endHackThrowAndReturnHack();
-    else
-        hide(false);
-}
-
-void HackCap::clearThrowType() {
-    _29e = false;
-    _274 = 0;
-    _264 = 0.0f;
-    _268.set(0.0f, 0.0f);
-    _270 = 0.0f;
-    if (_298)
-        al::tryStartActionIfNotPlaying(mThrowingHatEyes, "SpinL");
-    else
-        al::tryStartActionIfNotPlaying(mThrowingHatEyes, "SpinR");
-}
-
-void HackCap::calcReturnTargetPos(sead::Vector3f* targetPos) const {
-    if (mIsSeparateFlying) {
-        sead::Matrix34f followMtx = sead::Matrix34f::ident;
-        mCapTargetInfo1->makeLockOnMtx(&followMtx);
-        followMtx.getTranslation(*targetPos);
-    } else {
-        targetPos->set(rs::getPlayerHeadPos(this));
-    }
-}
-
-void HackCap::endMove() {
-    al::offCollide(this);
-    al::invalidateShadow(this);
-    al::invalidateHitSensors(this);
-    mCapTargetInfo1 = nullptr;
-    _1d0 = nullptr;
-    _2a8 = false;
-    al::setVelocityZero(this);
-}
-
-bool HackCap::isEnableCapTouchJumpInput() const {
-    if (_299) {
-        if (!mInput->isHoldAction())
-            return false;
-    } else {
-        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-        if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0) {
-            if (!mInput->isHoldSpinCap())
-                return false;
-        } else if (!_510) {
-            return false;
-        }
-    }
-
-    if (_299)
-        return true;
-
-    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-    if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0) {
-        if (!mInput->isTriggerCapSeparateJump())
-            return mStateThrowStay->isHomingPlayerJump();
-    }
-    return true;
-}
-
-bool HackCap::isEnableThrow() const {
-    return al::isNerve(this, &NrvHackCap.SpinAttack);
-}
-
-bool HackCap::isSpinAttack() const {
-    return al::isNerve(this, &NrvHackCap.SpinAttack);
-}
-
-bool HackCap::isRescuePlayer() const {
-    return al::isNerve(this, &NrvHackCap.Rescue);
-}
-
-bool HackCap::isHide() const {
-    return al::isNerve(this, &NrvHackCap.Hide);
-}
-
-bool HackCap::isPutOn() const {
-    return al::isNerve(this, &NrvHackCap.Hide) && _2a2;
-}
-
-bool HackCap::isNoPutOnHide() const {
-    return al::isNerve(this, &NrvHackCap.Hide) && !_2a2;
-}
-
-bool HackCap::isSeparateHide() const {
-    return al::isNerve(this, &NrvHackCap.Hide) && mStateHide->isSeparateMode();
-}
-
-bool HackCap::isRequestableReturn() const {
-    if (!mCapTargetInfo1)
-        return false;
-
-    const bool isCatch = _2a6;
-    if (!al::isNerve(this, &NrvHackCap.LockOn))
-        return false;
-
-    const u32 isAfterStart = al::isLessEqualStep(this, 5) ^ 1;
-    return static_cast<bool>(static_cast<u32>(isCatch) * isAfterStart);
-}
-
-bool HackCap::isLockOnEnableHackTarget() const {
-    return al::isNerve(this, &NrvHackCap.LockOn) && mCapTargetInfo1 &&
-           !mCapTargetInfo1->isLockOnOnly();
-}
-
-bool HackCap::isWaitHackLockOn() const {
-    if (!mCapTargetInfo1)
-        return false;
-
-    const bool isCatch = _2a6;
-    if (!al::isNerve(this, &NrvHackCap.LockOn))
-        return false;
-
-    const u32 isAfterStart = al::isLessEqualStep(this, 5) ^ 1;
-    if (!isCatch || !isAfterStart)
-        return false;
-    return !mCapTargetInfo1->isLockOnOnly();
-}
-
-bool HackCap::isCatched() const {
-    return (al::isNerve(this, &NrvHackCap.Catch) || al::isNerve(this, &NrvHackCap.Hide)) && _2a3;
-}
-
-bool HackCap::isLockOnInterpolate() const {
-    return (al::isNerve(this, &NrvHackCap.LockOn) || al::isNerve(this, &NrvHackCap.Hack) ||
-            al::isNerve(this, &NrvHackCap.TrampleLockOn)) &&
-           mLockOnCounter < 4;
-}
-
-bool HackCap::isFlying() const {
-    return isFlyingNerve(this) || al::isNerve(this, &NrvHackCap.Return) ||
-           al::isNerve(this, &NrvHackCap.Rebound);
-}
-
-bool HackCap::isEnableHackThrow(bool* isCapEyeValid) const {
-    if (!al::isNerve(this, &NrvHackCap.Hack))
-        return false;
-    *isCapEyeValid = !mCapTargetInfo1->get_7e();
-    return !mCapTargetInfo1->isInvalidHackThrow();
-}
-
-void HackCap::requestForceFollowSeparateHide() {
-    if (al::isNerve(this, &NrvHackCap.Hide))
-        mStateHide->requestForceFollowSeparate();
-}
-
-bool HackCap::isEnableThrowSeparate() const {
-    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-    if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0)
-        return false;
-    if (al::isNerve(this, &NrvHackCap.Hide))
-        return true;
-    return al::isNerve(this, &NrvHackCap.Catch);
-}
-
-void HackCap::exeRescue() {
-    if (!rs::isPlayerSafetyPointRecovery(this))
-        al::setNerve(this, &NrvHackCap.Hide);
-}
-
-void HackCap::startHack() {
-    mIsHide = false;
-    mIsHackDamageVisible = false;
-    _5ba = false;
-    _5bb = true;
-    _5bc = 0;
-    al::invalidateHitSensor(this, "Trample");
-    al::setNerve(this, &NrvHackCap.Hack);
-}
-
-bool HackCap::isSeparateThrowFlying() const {
-    if ((isFlyingNerve(this) || al::isNerve(this, &NrvHackCap.Return) ||
-         al::isNerve(this, &NrvHackCap.Rebound)) &&
-        !_299) {
-        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-        return (flags & 0xFF0000) == 0 && (flags & 0xFF) != 0;
-    }
-    return false;
-}
-
-bool HackCap::isEnablePreInput() const {
-    if (_2a8)
-        return false;
-    if (_299)
-        return true;
-
-    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-    if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0) {
-        if (isFlyingNerve(this) || al::isNerve(this, &NrvHackCap.Return) ||
-            al::isNerve(this, &NrvHackCap.Rebound)) {
-            if (!al::isNerve(this, &NrvHackCap.Return))
-                return false;
-        }
-    }
-    return true;
-}
-
-// NON_MATCHING: exact behavior and size; target schedules `CMP upper` before masking the
-// low byte, while current scheduling emits the low-byte `AND` first.
-f32 HackCap::calcSeparateHideSpeedH(const sead::Vector3f& dir) const {
-    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-    if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0)
-        return 0.0f;
-    if (!al::isNerve(this, &NrvHackCap.Hide))
-        return 0.0f;
-    return al::calcSpeedExceptDir(this, dir);
-}
-
-bool HackCap::isEnableSpinAttack() const {
-    if (al::isNerve(this, &NrvHackCap.Hide))
-        return true;
-    if (al::isNerve(this, &NrvHackCap.Catch))
-        return true;
-    if (_299)
-        return false;
-
-    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-    if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0) {
-        if (al::isNerve(this, &NrvHackCap.ThrowStay) && !mIsSeparateFlying)
-            return al::calcDistance(this, mPlayerActor) <= 200.0f;
-    }
-    return false;
-}
-
-void HackCap::prepareTransferLockOn(al::HitSensor*) {
-    if (mIsSeparateFlying) {
-        al::setNerve(this, &NrvHackCap.LockOn);
-        rs::sendMsgTransferHack(mPlayerBodySensor, const_cast<al::HitSensor*>(_1d0));
-        mIsSeparateFlying = false;
-        mPlayerBodySensor = nullptr;
-    }
-}
-
-void HackCap::startThrowSeparatePlayHack(al::HitSensor* sensor, const sead::Vector3f& startPos,
-                                         const sead::Vector3f& velocity, f32 speed) {
-    if (al::isNerve(this, &NrvHackCap.Hack)) {
-        mPlayerBodySensor = sensor;
-        mIsSeparateFlying = true;
-        mEquipmentHat->kill();
-        mLockOnCapEyes->kill();
-        startThrowSeparatePlay(startPos, velocity, speed, false);
-    }
-}
-
-void HackCap::updateModelAlphaForSnapShot() {
-    if (al::isNerve(this, &NrvHackCap.Hide)) {
-        rs::syncPlayerModelAlpha(this);
-        rs::syncPlayerModelAlpha(mEquipmentHat);
-    } else {
-        mActorDitherAnimator->update();
-        const f32 alpha = mActorDitherAnimator->getDitherAlpha();
-        al::setModelAlphaMask(this, alpha);
-        al::setModelAlphaMask(mEquipmentHat, alpha);
-    }
-}
-
 void HackCap::syncPuppetSilhouette() {
     const bool isHideSilhouette = mIsHidePuppetCapSilhouette;
     const bool isSelfAlive = al::isAlive(this);
@@ -1201,57 +705,7 @@ void HackCap::syncPuppetSilhouette() {
     }
 }
 
-void HackCap::updateCollider() {
-    sead::Vector3f pushedVelocity(0.0f, 0.0f, 0.0f);
-    PlayerPushReceiver* pushReceiver = mCapPushReceiver;
-    sead::Vector3f velocity = al::getVelocity(this) + mCapExternalVelocity->getTotalVelocity();
-    pushReceiver->calcPushedVelocity(&pushedVelocity, velocity);
-    rs::updateCollider(this, mPlayerColliderHackCap, pushedVelocity);
-    mCapPushReceiver->clear();
-    updateFrameOutLayout();
-
-    if (!_5e8 && mStateThrowStay->isEnableSendHipDropMsg())
-        mStateThrowStay->sendHipDropCollideMsg(mAttackSensor);
-
-    if (isFlyingNerve(this) || al::isNerve(this, &NrvHackCap.Return) ||
-        al::isNerve(this, &NrvHackCap.Rebound)) {
-        HackCapAboveGroundChecker* checker = mHackCapAboveGroundChecker;
-        velocity = -al::getGravity(this);
-        checker->update(velocity);
-    }
-}
-
-void HackCap::movement() {
-    mCapEyeSensorHitHolder->clear();
-    if (rs::isCollidedGround(mPlayerColliderHackCap)) {
-        al::setMaterialCode(this, rs::getMaterialCodeGround(mPlayerColliderHackCap));
-        al::updateMaterialCodePuddle(this);
-    }
-
-    al::LiveActor::movement();
-    mHackCapTrigger->clearAfterMovemetTrigger();
-    if (al::isNerve(this, &NrvHackCap.Hide))
-        mCapExternalVelocity->reset();
-    else
-        mCapExternalVelocity->update();
-    updateShadowMaskOffset();
-    mSelfPlayerWetControl->update();
-}
-
-bool HackCap::sendMsgStartHack(al::HitSensor* sensor) {
-    if (!mCapTargetInfo1)
-        return false;
-
-    const u8 isEnable = _2a6;
-    if (!al::isNerve(this, &NrvHackCap.LockOn))
-        return false;
-
-    const u32 isEnableStep = al::isLessEqualStep(this, 5) ^ 1;
-    if (!isEnable || !isEnableStep)
-        return false;
-
-    return rs::sendMsgStartHack(const_cast<al::HitSensor*>(_1d0), sensor);
-}
+void HackCap::recordCapJump(PlayerWallActionHistory*) {}
 
 f32 HackCap::getFlyingSpeedMax() const {
     if (isFlyingNerve(this) || al::isNerve(this, &NrvHackCap.Return) ||
@@ -1269,251 +723,135 @@ f32 HackCap::getFlyingSpeedMax() const {
     return mHackCapThrowParam->getMaxVel();
 }
 
-bool HackCap::stayRollingOrReflect() {
-    if (_299) {
-        if (mInput->isHoldAction()) {
-            _294 = 20;
-            return stayWallHit();
-        }
-    } else {
-        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-        if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0) {
-            if (mInput->isHoldSpinCap()) {
-                _294 = 20;
-                return stayWallHit();
-            }
-        } else {
-            if (mStateThrowStay->isEnableSendHipDropMsg() || isHoldSpinCapStay())
-                return true;
-        }
-    }
+f32 HackCap::getThrowSpeed() const {
+    if (_29f)
+        return 60.0f;
 
-    al::setNerve(this, &NrvHackCap.Rebound);
-    return true;
+    if (al::isNearZero(_268.x) && !al::isNearZero(_268.y))
+        return mHackCapThrowParam->getRollSpeed();
+
+    if (_29a)
+        return mHackCapThrowParam->getWaterMaxSpeed();
+
+    if (_29e || _4d0)
+        return mHackCapThrowParam->getContinuousThrowSpeed();
+
+    return mHackCapThrowParam->getMaxVel();
 }
 
-bool HackCap::receiveRequestTransferHack(al::HitSensor* sensor, al::HitSensor* playerSensor) {
-    if (mIsSeparateFlying || !al::isNerve(this, &NrvHackCap.Hack) || rs::isActiveDemo(this) ||
-        !rs::sendMsgCapStartLockOn(sensor, mAttackSensor))
+bool HackCap::requestLockOnHitReaction(const CapTargetInfo* targetInfo, const char* reaction) {
+    if (!mCapTargetInfo1 || mCapTargetInfo1 != targetInfo)
         return false;
 
-    if (al::isNerve(this, &NrvHackCap.Hack)) {
-        mPlayerBodySensor = playerSensor;
-        mIsSeparateFlying = true;
-        mEquipmentHat->kill();
-        mLockOnCapEyes->kill();
-        startThrowSeparatePlay(sead::Vector3f::ez, sead::Vector3f::ey, 0.0f, false);
-    }
-    prepareLockOn(sensor);
+    al::startHitReaction(mEquipmentHat, reaction);
     return true;
 }
 
-void HackCap::updateSeparateMode(const PlayerSeparateCapFlag* separateCapFlag) {
-    const u32 flags = separateCapFlag->getRawFlags();
-    if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
-        mPadRumbleKeeper->setPort(al::getPlayerControllerPort(1));
+void HackCap::startPuppet() {
+    mIsPuppet = true;
+    _5f9 = false;
+    mIsHidePuppetCapSilhouette = false;
+}
+
+void HackCap::endPuppet() {
+    mIsPuppet = false;
+    _5f9 = false;
+    mIsHidePuppetCapSilhouette = false;
+    syncPuppetSilhouette();
+}
+
+void HackCap::hidePuppetCap() {
+    _5f9 = true;
+    if (al::isAlive(mEquipmentHat))
+        al::hideModelIfShow(mEquipmentHat);
     else
-        mPadRumbleKeeper->setPort(al::getPlayerControllerPort(0));
-
-    if (!separateCapFlag->isSeparateCapLocal() || separateCapFlag->isPuppetable()) {
-        if (al::isNerve(this, &NrvHackCap.Hide) && mStateHide->isSeparateMode())
-            _2a2 = false;
-    }
+        al::hideModelIfShow(this);
 }
 
-bool HackCap::isEnableHackThrowAutoCatch() const {
-    if (!mIsSeparateFlying)
-        return false;
-
-    sead::Matrix34f lockOnMtx = sead::Matrix34f::ident;
-    mCapTargetInfo1->makeLockOnMtx(&lockOnMtx);
-    sead::Vector3f lockOnPos;
-    lockOnMtx.getTranslation(lockOnPos);
-    return (lockOnPos - al::getTrans(this)).length() < 100.0f;
+void HackCap::showPuppetCap() {
+    _5f9 = true;
+    if (al::isAlive(mEquipmentHat))
+        al::showModelIfHide(mEquipmentHat);
+    else
+        al::showModelIfHide(this);
 }
 
-void HackCap::startCatch(const char* actionName, bool isHitReaction, const sead::Vector3f& hitPos) {
-    mHackCapJointControlKeeper->reset();
-    al::copyPose(this, mPlayerActor);
-    al::startAction(this, actionName);
-    if (isHitReaction)
-        al::startHitReactionHitEffect(this, "帽子キャッチ", hitPos);
-    if (al::isNerve(this, &NrvHackCap.Hide) && !_2a2)
-        _2a2 = true;
-    mEquipmentHat->kill();
-    mLockOnCapEyes->kill();
-    al::setNerve(this, &NrvHackCap.Catch);
+void HackCap::hidePuppetCapSilhouette() {
+    mIsHidePuppetCapSilhouette = true;
 }
 
-void HackCap::startRescuePlayer() {
-    if (al::isNerve(this, &NrvHackCap.Return))
-        al::startHitReaction(this, "プレイヤー救出消滅");
-    hide(true);
+void HackCap::showPuppetCapSilhouette() {
+    mIsHidePuppetCapSilhouette = false;
+}
+
+void HackCap::startPuppetCheckpointWarp() {
+    _5f9 = true;
     al::hideModelIfShow(this);
-    al::offCollide(this);
-    al::tryStartActionIfNotPlaying(this, "WaitSeparate");
-    al::setNerve(this, &NrvHackCap.Rescue);
+    al::hideModelIfShow(mEquipmentHat);
+    al::hideModelIfShow(mEquipmentHatDepthShadow);
+    al::tryKillEmitterAndParticleAll(this);
 }
 
-void HackCap::hide(bool force) {
-    if (al::isNerve(this, &NrvHackCap.Hide)) {
-        if (!force)
-            return;
-        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-        if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
-            return;
-        if (!mStateHide->isSeparateMode())
-            return;
-        mStateHide->cancelSeparateMode();
-    }
-
+void HackCap::startHackShineGetDemo() {
     if (mIsSeparateFlying)
         endHackThrowAndReturnHack();
-    if (_1d0)
-        tryReturn(force, nullptr);
-    al::offCollide(this);
-    al::invalidateShadow(this);
-    al::invalidateHitSensors(this);
-    mCapTargetInfo1 = nullptr;
-    _1d0 = nullptr;
-    _2a8 = false;
+}
+
+void HackCap::endHackThrowAndReturnHack() {
+    mIsSeparateFlying = false;
+    mPlayerBodySensor = nullptr;
+    mHackCapJointControlKeeper->reset();
+
+    al::startAction(this, "Capture");
+    al::LiveActor* equipmentHatDepthShadow = mEquipmentHatDepthShadow;
+    al::LiveActor* lockOnCapEyes = mLockOnCapEyes;
+    al::startAction(mEquipmentHat, "Capture");
+    al::startAction(equipmentHatDepthShadow, "Capture");
+    if (al::isAlive(lockOnCapEyes) && !al::tryStartAction(lockOnCapEyes, "Capture"))
+        al::tryStartActionIfNotPlaying(lockOnCapEyes, "Wait");
+
+    al::setActionFrame(this, al::getActionFrameMax(this, "Capture"));
     al::setVelocityZero(this);
+    followTarget();
+    HackCapFunction::resetPositionAndCollision(this, mPlayerColliderHackCap);
+    updateEquipmentHatVisibility(mIsHide, mEquipmentHat, mEquipmentHatDepthShadow,
+                                 mCapTargetInfo1, false);
+
+    al::LiveActor* lockOnCapEyesAfterReturn = mLockOnCapEyes;
+    if (al::isAlive(lockOnCapEyesAfterReturn))
+        lockOnCapEyesAfterReturn->kill();
     al::hideModelIfShow(this);
-    mEquipmentHat->kill();
-    mLockOnCapEyes->kill();
-    al::updateMaterialCodeWater(this, false);
-    al::setNerve(this, &NrvHackCap.Hide);
+    al::invalidateHitSensors(this);
+    al::setNerve(this, &NrvHackCap.Hack);
 }
 
-bool HackCap::cancelCapState() {
-    bool canCancel = al::isNerve(this, &NrvHackCap.SpinAttack) ||
-                     al::isNerve(this, &NrvHackCap.Hide) || al::isNerve(this, &NrvHackCap.Catch);
-    if (!canCancel && !_299) {
-        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-        canCancel = (flags & 0xFF0000) == 0 && (flags & 0xFF) != 0 &&
-                    al::isNerve(this, &NrvHackCap.ThrowStay) && !mIsSeparateFlying &&
-                    al::calcDistance(this, mPlayerActor) <= 200.0f;
+void HackCap::endHackShineGetDemo() {}
+
+void HackCap::calcHackFollowTrans(sead::Vector3f* trans, bool useLocalOffset) const {
+    sead::Matrix34f followMtx = sead::Matrix34f::ident;
+    mCapTargetInfo1->makeLockOnMtx(&followMtx);
+
+    if (useLocalOffset && mCapTargetInfo1->isEscapeLocalOffset())
+        al::calcTransLocalOffsetByMtx(trans, followMtx, mCapTargetInfo1->getEscapeLocalOffset());
+    else
+        followMtx.getTranslation(*trans);
+}
+
+void HackCap::makeFollowMtx(sead::Matrix34f* mtx) const {
+    mCapTargetInfo1->makeLockOnMtx(mtx);
+}
+
+void HackCap::updateCapEyeShowHide(bool isShow, s32 appearDelay) {
+    if (_5ba) {
+        _5bc = isShow ? al::converge(_5bc, appearDelay, 1) : 0;
+        _5ba = _5bc < appearDelay;
+        if (_5bc >= appearDelay)
+            al::startAction(mLockOnCapEyes, "Appear");
+    } else if (!isShow && !al::isActionPlaying(mLockOnCapEyes, "Disappear")) {
+        al::startAction(mLockOnCapEyes, "Disappear");
+        _5bc = 0;
     }
-    if (!canCancel && !al::isNerve(this, &NrvHackCap.SpinAttack))
-        return false;
-
-    if (al::isNerve(this, &NrvHackCap.Hide))
-        return false;
-
-    if (al::isNerve(this, &NrvHackCap.ThrowStay) && !_299) {
-        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-        if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
-            return false;
-    }
-
-    hide(false);
-    return true;
 }
-
-namespace {
-void updateHackCapPose(al::LiveActor*, const al::LiveActor*, const PlayerJointControlKeeper*);
-}
-
-void HackCap::exeSpinAttack() {
-    updateHackCapPose(this, mPlayerActor, mPlayerJointControlKeeper);
-}
-
-namespace {
-void updateHackCapPose(al::LiveActor* cap, const al::LiveActor* player,
-                       const PlayerJointControlKeeper* jointControlKeeper) {
-    sead::Vector3f front = sead::Vector3f::zero;
-    al::calcFrontDir(&front, player);
-    sead::Vector3f up = sead::Vector3f::zero;
-    jointControlKeeper->calcGroundPoseUp(&up);
-    if (al::isParallelDirection(up, front, 0.01f)) {
-        al::copyPose(cap, player);
-        return;
-    }
-
-    sead::Matrix34f poseMtx = sead::Matrix34f::ident;
-    al::makeMtxUpFrontPos(&poseMtx, up, front, al::getTrans(player));
-    al::updatePoseMtx(cap, &poseMtx);
-}
-}  // namespace
-
-void HackCap::exeCatch() {
-    updateHackCapPose(this, mPlayerActor, mPlayerJointControlKeeper);
-    if (al::isFirstStep(this)) {
-        _2a0 = false;
-        al::showModelIfHide(this);
-        mEquipmentHat->kill();
-        mLockOnCapEyes->kill();
-    }
-    if (al::isGreaterStep(this, static_cast<s32>(al::getActionFrame(this))))
-        hide(false);
-}
-
-inline bool HackCap::isRecentCollideActor(al::HitSensor* sensor) const {
-    if (!mRecentCollideActors)
-        return false;
-    al::LiveActor* actor = al::getSensorHost(sensor);
-    for (s32 i = 0; i < mRecentCollideActors.size(); i++) {
-        if (mRecentCollideActors(i) == actor)
-            return true;
-    }
-    return false;
-}
-
-void HackCap::collideThrowStartArrow(al::HitSensor* sensor, const sead::Vector3f& hitPos,
-                                     const sead::Vector3f& normal,
-                                     const sead::Vector3f& resetPos) {
-    if (!isRecentCollideActor(sensor) && rs::sendMsgCapStartLockOn(sensor, mAttackSensor)) {
-        prepareLockOn(sensor);
-        return;
-    }
-
-    if (al::isWallPolygon(normal, al::getGravity(mPlayerActor)))
-        rs::sendMsgCapTouchWall(sensor, mAttackSensor, hitPos, normal);
-    rs::sendMsgCapReflectCollide(sensor, mAttackSensor);
-    rs::sendMsgCapAttackCollide(sensor, mAttackSensor);
-    _2a7 = true;
-    al::resetPosition(this, resetPos);
-    rs::resetCollision(mPlayerColliderHackCap);
-    al::setNerve(this, &NrvHackCap.Return);
-}
-
-bool HackCap::tryCollideWallLockOn() {
-    al::HitSensor* wallSensor = rs::tryGetCollidedWallSensor(mPlayerColliderHackCap);
-    if (!wallSensor)
-        return false;
-
-    if (mRecentCollideActors) {
-        al::LiveActor* wallActor = al::getSensorHost(wallSensor);
-        for (s32 i = 0; i < mRecentCollideActors.size(); i++) {
-            if (mRecentCollideActors(i) == wallActor)
-                return false;
-        }
-    }
-
-    if (!rs::sendMsgCapStartLockOn(wallSensor, mAttackSensor))
-        return false;
-    prepareLockOn(wallSensor);
-    return true;
-}
-
-f32 HackCap::getThrowRange() const {
-    if (!_299) {
-        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
-        if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
-            return sSeparateThrowRange[_29a];
-    }
-
-    if (_29f)
-        return 1200.0f;
-    if (_4d0)
-        return mHackCapThrowParam->getTornadoDist();
-
-    if (al::isNearZero(_268.x, 0.001f) && !al::isNearZero(_268.y, 0.001f))
-        return mHackCapThrowParam->getRollDist(_268.y > 0.0f);
-    const bool isNormal = !_29a;
-    return mHackCapThrowParam->getMaxDistNormal(isNormal);
-}
-
 
 void HackCap::activateInvincibleEffect() {
     if (al::isDead(mEquipmentHat))
@@ -1558,11 +896,894 @@ void HackCap::syncInvincibleEffect(bool isActive) {
         al::tryDeleteEffect(effectKeeper, "Invincible");
 }
 
-void HackCap::emitHackStartEffect() {
-    al::startHitReaction(mEquipmentHat, "キャプチャー開始デモ演出エフェクト");
-    const f32 rate = al::calcRate01(mCapTargetInfo1->getLockOnScale(), 1.3f, 1.5f);
-    const f32 scaleValue = al::lerpValue(1.0f, 1.5f, rate);
-    al::LiveActor* equipmentHat = mEquipmentHat;
-    const sead::Vector3f scale(scaleValue, scaleValue, scaleValue);
-    al::setEffectAllScale(equipmentHat, "MarioHackExpressionShot", scale);
+void HackCap::updateSeparateMode(const PlayerSeparateCapFlag* separateCapFlag) {
+    const u32 flags = separateCapFlag->getRawFlags();
+    if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
+        mPadRumbleKeeper->setPort(al::getPlayerControllerPort(1));
+    else
+        mPadRumbleKeeper->setPort(al::getPlayerControllerPort(0));
+
+    if (!separateCapFlag->isSeparateCapLocal() || separateCapFlag->isPuppetable()) {
+        if (al::isNerve(this, &NrvHackCap.Hide) && mStateHide->isSeparateMode())
+            _2a2 = false;
+    }
 }
+
+bool HackCap::isEnableRescuePlayer() const {
+    return false;
+}
+
+bool HackCap::isRescuePlayer() const {
+    return al::isNerve(this, &NrvHackCap.Rescue);
+}
+
+bool HackCap::isEnableHackThrow(bool* isCapEyeValid) const {
+    if (!al::isNerve(this, &NrvHackCap.Hack))
+        return false;
+    *isCapEyeValid = !mCapTargetInfo1->get_7e();
+    return !mCapTargetInfo1->isInvalidHackThrow();
+}
+
+bool HackCap::isSeparateHipDropLand() const {
+    return rs::isJustLand(mPlayerColliderHackCap) && mStateThrowStay->isEnableSendHipDropMsg();
+}
+
+bool HackCap::isSeparateHide() const {
+    return al::isNerve(this, &NrvHackCap.Hide) && mStateHide->isSeparateMode();
+}
+
+bool HackCap::isSeparateThrowFlying() const {
+    if ((isFlyingNerve(this) || al::isNerve(this, &NrvHackCap.Return) ||
+         al::isNerve(this, &NrvHackCap.Rebound)) &&
+        !_299) {
+        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+        return (flags & 0xFF0000) == 0 && (flags & 0xFF) != 0;
+    }
+    return false;
+}
+
+void HackCap::startRescuePlayer() {
+    if (al::isNerve(this, &NrvHackCap.Return))
+        al::startHitReaction(this, "プレイヤー救出消滅");
+    hide(true);
+    al::hideModelIfShow(this);
+    al::offCollide(this);
+    al::tryStartActionIfNotPlaying(this, "WaitSeparate");
+    al::setNerve(this, &NrvHackCap.Rescue);
+}
+
+void HackCap::prepareCooperateThrow() {
+    hide(true);
+    al::hideModelIfShow(this);
+    al::offCollide(this);
+    al::tryStartActionIfNotPlaying(this, "WaitSeparate");
+}
+
+void HackCap::requestForceFollowSeparateHide() {
+    if (al::isNerve(this, &NrvHackCap.Hide))
+        mStateHide->requestForceFollowSeparate();
+}
+
+// NON_MATCHING: exact behavior and size; target schedules `CMP upper` before masking the
+// low byte, while current scheduling emits the low-byte `AND` first; next source-level
+// hypothesis is staged upper-mask control flow that consumes its predicate before the low mask.
+f32 HackCap::calcSeparateHideSpeedH(const sead::Vector3f& dir) const {
+    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+    if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0)
+        return 0.0f;
+    if (!al::isNerve(this, &NrvHackCap.Hide))
+        return 0.0f;
+    return al::calcSpeedExceptDir(this, dir);
+}
+
+void HackCap::updateModelAlphaForSnapShot() {
+    if (al::isNerve(this, &NrvHackCap.Hide)) {
+        rs::syncPlayerModelAlpha(this);
+        rs::syncPlayerModelAlpha(mEquipmentHat);
+    } else {
+        mActorDitherAnimator->update();
+        const f32 alpha = mActorDitherAnimator->getDitherAlpha();
+        al::setModelAlphaMask(this, alpha);
+        al::setModelAlphaMask(mEquipmentHat, alpha);
+    }
+}
+
+s32 HackCap::getPadRumblePort() const {
+    return mPadRumbleKeeper->getPort();
+}
+
+bool HackCap::isEnableThrowSeparate() const {
+    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+    if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0)
+        return false;
+    if (al::isNerve(this, &NrvHackCap.Hide))
+        return true;
+    return al::isNerve(this, &NrvHackCap.Catch);
+}
+
+bool HackCap::isHoldInputKeepLockOn() const {
+    return _299 ? mInput->isHoldAction() : mInput->isHoldCapAction();
+}
+
+bool HackCap::isRequestableReturn() const {
+    if (!mCapTargetInfo1)
+        return false;
+
+    const bool isCatch = _2a6;
+    if (!al::isNerve(this, &NrvHackCap.LockOn))
+        return false;
+
+    const u32 isAfterStart = al::isLessEqualStep(this, 5) ^ 1;
+    return static_cast<bool>(static_cast<u32>(isCatch) * isAfterStart);
+}
+
+bool HackCap::isLockOnEnableHackTarget() const {
+    return al::isNerve(this, &NrvHackCap.LockOn) && mCapTargetInfo1 &&
+           !mCapTargetInfo1->isLockOnOnly();
+}
+
+bool HackCap::isWaitHackLockOn() const {
+    if (!mCapTargetInfo1)
+        return false;
+
+    const bool isCatch = _2a6;
+    if (!al::isNerve(this, &NrvHackCap.LockOn))
+        return false;
+
+    const u32 isAfterStart = al::isLessEqualStep(this, 5) ^ 1;
+    if (!isCatch || !isAfterStart)
+        return false;
+    return !mCapTargetInfo1->isLockOnOnly();
+}
+
+bool HackCap::isCatched() const {
+    return (al::isNerve(this, &NrvHackCap.Catch) || al::isNerve(this, &NrvHackCap.Hide)) && _2a3;
+}
+
+bool HackCap::isHide() const {
+    return al::isNerve(this, &NrvHackCap.Hide);
+}
+
+bool HackCap::isPutOn() const {
+    return al::isNerve(this, &NrvHackCap.Hide) && _2a2;
+}
+
+bool HackCap::isLockOnInterpolate() const {
+    return (al::isNerve(this, &NrvHackCap.LockOn) || al::isNerve(this, &NrvHackCap.Hack) ||
+            al::isNerve(this, &NrvHackCap.TrampleLockOn)) &&
+           mLockOnCounter < 4;
+}
+
+bool HackCap::isEnablePreInput() const {
+    if (_2a8)
+        return false;
+    if (_299)
+        return true;
+
+    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+    if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0) {
+        if (isFlyingNerve(this) || al::isNerve(this, &NrvHackCap.Return) ||
+            al::isNerve(this, &NrvHackCap.Rebound)) {
+            if (!al::isNerve(this, &NrvHackCap.Return))
+                return false;
+        }
+    }
+    return true;
+}
+
+bool HackCap::isForceCapTouchJump() const {
+    if (_299)
+        return false;
+
+    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+    return (flags & 0xFF0000) == 0 && (flags & 0xFF) != 0 && mStateThrowStay->isHomingPlayerJump();
+}
+
+bool HackCap::isHackInvalidSeparatePlay() const {
+    return mCapTargetInfo1 && mCapTargetInfo1->get_7e();
+}
+
+// NON_MATCHING: target uses signed `CMP #4`/`B.GE`; current compiler canonicalizes the
+// equivalent `mLockOnCounter >= 4` to `CMP #3`/`B.GT`; next source-level hypothesis is a
+// subtraction/range form that preserves the literal-4 signed comparison.
+void HackCap::updateThrowJoint() {
+    bool useNormalRotation = true;
+    if (al::isNerve(this, &NrvHackCap.LockOn) && !isLockOnInterpolate())
+        useNormalRotation = false;
+
+    f32 rotateY;
+    if (useNormalRotation) {
+        static const f32 rotateYValues[] = {35.0f, 45.0f};
+        rotateY = _29e ? 45.0f : rotateYValues[_4d0];
+        if (_29a)
+            rotateY = 20.0f;
+    } else {
+        rotateY = _29a ? 5.0f : 10.0f;
+    }
+
+    if (_298)
+        rotateY = -rotateY;
+    mHackCapJointControlKeeper->updateRotateY(rotateY);
+
+    if (al::isNerve(this, &NrvHackCap.ThrowStay))
+        mHackCapJointControlKeeper->updateRotateStayZ(0.25f);
+    else
+        mHackCapJointControlKeeper->updateRotateThrowZ(0.002f, 0.0f);
+}
+
+// NON_MATCHING: current 0x108 body hoists the first-step eye load after the combined flag
+// test; target is 0x114 and duplicates the load across the low/high flag branches; next
+// source-level hypothesis is nested hide/flag branches with branch-local `mLockOnCapEyes` loads.
+void HackCap::exeHack() {
+    if (al::isFirstStep(this)) {
+        updateEquipmentHatVisibility(mIsHide, mEquipmentHat, mEquipmentHatDepthShadow,
+                                     mCapTargetInfo1, false);
+        if (mIsHide || _5ba || mCapTargetInfo1->isInvalidCapEye()) {
+            al::LiveActor* lockOnCapEyes = mLockOnCapEyes;
+            if (al::isAlive(lockOnCapEyes))
+                lockOnCapEyes->kill();
+        } else {
+            al::LiveActor* lockOnCapEyes = mLockOnCapEyes;
+            if (al::isDead(lockOnCapEyes))
+                lockOnCapEyes->appear();
+        }
+        al::hideModelIfShow(this);
+        _5bc = 0;
+    }
+
+    if (al::isAlive(mLockOnCapEyes)) {
+        if (al::isActionPlaying(mLockOnCapEyes, "Disappear")) {
+            if (al::isActionEnd(mLockOnCapEyes)) {
+                _5ba = true;
+                al::startAction(mLockOnCapEyes, "Wait");
+            }
+        } else if (al::isActionPlaying(mLockOnCapEyes, "Appear") &&
+                   al::isActionEnd(mLockOnCapEyes)) {
+            al::startAction(mLockOnCapEyes, "Wait");
+        }
+    }
+}
+
+void HackCap::exeSpinAttack() {
+    updateHackCapPose(this, mPlayerActor, mPlayerJointControlKeeper);
+}
+
+namespace {
+void updateHackCapPose(al::LiveActor* cap, const al::LiveActor* player,
+                       const PlayerJointControlKeeper* jointControlKeeper) {
+    sead::Vector3f front = {0.0f, 0.0f, 0.0f};
+    al::calcFrontDir(&front, player);
+    sead::Vector3f up = {0.0f, 0.0f, 0.0f};
+    jointControlKeeper->calcGroundPoseUp(&up);
+    if (al::isParallelDirection(up, front, 0.01f)) {
+        al::copyPose(cap, player);
+        return;
+    }
+
+    sead::Matrix34f poseMtx = sead::Matrix34f::ident;
+    al::makeMtxUpFrontPos(&poseMtx, up, front, al::getTrans(player));
+    al::updatePoseMtx(cap, &poseMtx);
+}
+}  // namespace
+
+
+void HackCap::exeCatch() {
+    updateHackCapPose(this, mPlayerActor, mPlayerJointControlKeeper);
+    if (al::isFirstStep(this)) {
+        _2a0 = false;
+        al::showModelIfHide(this);
+        mEquipmentHat->kill();
+        mLockOnCapEyes->kill();
+    }
+    if (al::isGreaterStep(this, static_cast<s32>(al::getActionFrame(this))))
+        hide(false);
+}
+
+void HackCap::exeTrample() {
+    if (al::isFirstStep(this)) {
+        sead::Vector3f front(0.0f, 0.0f, 0.0f);
+        al::calcJointFrontDir(&front, this, "AllRoot");
+        al::faceToDirection(this, front);
+        al::startAction(this, "Trample");
+        al::startAction(mThrowingHatEyes, "Wait");
+        al::setVelocityZero(this);
+        mHackCapJointControlKeeper->resetRotateZ();
+        al::startHitReaction(this, "通常Trample");
+
+        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+        if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
+            al::startHitReaction(this, "おすそ分けTrample");
+    }
+
+    if (!al::isLessStep(this, 15)) {
+        if (al::isNerve(this, &NrvHackCap.TrampleReturn) || _299 ||
+            (mPlayerSeparateCapFlag->getRawFlags() & 0xFF0000) != 0 ||
+            (mPlayerSeparateCapFlag->getRawFlags() & 0xFF) == 0 || !_510)
+            al::setNerve(this, &NrvHackCap.Return);
+        else
+            al::setNerve(this, &NrvHackCap.ThrowStay);
+    }
+}
+
+bool HackCap::isHoldSpinCapStay() const {
+    if (_299)
+        return mInput->isHoldAction();
+
+    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+    if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0)
+        return mInput->isHoldSpinCap();
+
+    return _510;
+}
+
+void HackCap::exeTrampleLockOn() {
+    if (al::isFirstStep(this)) {
+        sead::Vector3f front(0.0f, 0.0f, 0.0f);
+        al::calcJointFrontDir(&front, this, "AllRoot");
+        al::faceToDirection(this, front);
+
+        const char* actionName = "TrampleLockOn";
+        al::LiveActor* equipmentHatDepthShadow = mEquipmentHatDepthShadow;
+        al::LiveActor* lockOnCapEyes = mLockOnCapEyes;
+        al::startAction(mEquipmentHat, actionName);
+        al::startAction(equipmentHatDepthShadow, actionName);
+        if (al::isAlive(lockOnCapEyes) && !al::tryStartAction(lockOnCapEyes, actionName))
+            al::tryStartActionIfNotPlaying(lockOnCapEyes, "Wait");
+    }
+
+    if (!al::isLessStep(this, 15)) {
+        if (!mCapTargetInfo1->isLockOn()) {
+            const char* actionName = mCapTargetInfo1->getLockOnAnimName();
+            al::LiveActor* equipmentHatDepthShadow = mEquipmentHatDepthShadow;
+            al::LiveActor* lockOnCapEyes = mLockOnCapEyes;
+            al::startAction(mEquipmentHat, actionName);
+            al::startAction(equipmentHatDepthShadow, actionName);
+            if (al::isAlive(lockOnCapEyes) && !al::tryStartAction(lockOnCapEyes, actionName))
+                al::tryStartActionIfNotPlaying(lockOnCapEyes, "Wait");
+        }
+        al::setNerve(this, &NrvHackCap.LockOn);
+    }
+}
+
+void HackCap::exeRescue() {
+    if (!rs::isPlayerSafetyPointRecovery(this))
+        al::setNerve(this, &NrvHackCap.Hide);
+}
+
+void HackCap::exeHide() {
+    al::updateNerveState(this);
+}
+
+bool HackCap::isThrowTypeSpiral() const {
+    return !al::isNearZero(_268.x);
+}
+
+bool HackCap::isThrowTypeRolling() const {
+    return al::isNearZero(_268.x) && !al::isNearZero(_268.y);
+}
+
+// NON_MATCHING: target/current are 0xc4 bytes; target materializes the `FlyingWaitR` page
+// before either `_29e` select while current lowering delays it until after the first select;
+// a separate right-wait local optimized identically, so next test a source form that keeps
+// both non-cap action pointers live before selecting the cap variants.
+void HackCap::setupThrowStart() {
+    _290 = 0;
+    _294 = 0;
+    al::validateHitSensors(this);
+    al::invalidateHitSensor(this, "SpiralTail1");
+    al::invalidateHitSensor(this, "SpiralTail2");
+    al::invalidateHitSensor(this, "SpiralTail3");
+    al::invalidateHitSensor(this, "SpiralTail4");
+    al::invalidateHitSensor(this, "SpiralTail5");
+    al::validateShadow(this);
+    al::onCollide(this);
+
+    const char* actionLeft = _29e ? "FlyingWaitCapCatchL" : "FlyingWaitL";
+    const char* actionRight = _29e ? "FlyingWaitCapCatchR" : "FlyingWaitR";
+    al::startAction(this, _264 > 0.0f ? actionLeft : actionRight);
+}
+
+f32 HackCap::getThrowHeight() const {
+    return mHackCapThrowParam->getHackThrowHeight();
+}
+
+f32 HackCap::getThrowRange() const {
+    if (!_299) {
+        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+        if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
+            return sSeparateThrowRange[_29a];
+    }
+
+    if (_29f)
+        return 1200.0f;
+    if (_4d0)
+        return mHackCapThrowParam->getTornadoDist();
+
+    if (al::isNearZero(_268.x, 0.001f) && !al::isNearZero(_268.y, 0.001f))
+        return mHackCapThrowParam->getRollDist(_268.y > 0.0f);
+    const bool isNormal = !_29a;
+    return mHackCapThrowParam->getMaxDistNormal(isNormal);
+}
+
+s32 HackCap::getThrowBrakeTime() const {
+    if (_29f)
+        return 2;
+
+    if (al::isNearZero(_268.x) && !al::isNearZero(_268.y))
+        return mHackCapThrowParam->getRollBrakeTime(_268.y > 0.0f);
+
+    const bool isNormal = !_29a;
+    return mHackCapThrowParam->getBreakTimeNormal(isNormal);
+}
+
+void HackCap::startThrowCapEyeThrowAction() {
+    if (_298)
+        al::tryStartActionIfNotPlaying(mThrowingHatEyes, "SpinL");
+    else
+        al::tryStartActionIfNotPlaying(mThrowingHatEyes, "SpinR");
+}
+
+// NON_MATCHING: target is 0x100 bytes and current is 0x108; collision/reaction behavior is recovered.
+// Next source-level hypothesis is a branch/local lifetime that avoids the extra normal-vector materialization.
+bool HackCap::tryCollideReflectReaction() {
+    sead::Vector3f normal = sead::Vector3f::zero;
+
+    al::HitSensor* sensor = rs::tryGetCollidedGroundSensor(mPlayerColliderHackCap);
+    if (sensor && rs::sendMsgCapReflectCollide(sensor, mAttackSensor)) {
+        normal.set(rs::getCollidedGroundNormal(mPlayerColliderHackCap));
+    } else {
+        sensor = rs::tryGetCollidedWallSensor(mPlayerColliderHackCap);
+        if (sensor && rs::sendMsgCapReflectCollide(sensor, mAttackSensor)) {
+            normal.set(rs::getCollidedWallNormal(mPlayerColliderHackCap));
+        } else {
+            sensor = rs::tryGetCollidedCeilingSensor(mPlayerColliderHackCap);
+            if (!sensor || !rs::sendMsgCapReflectCollide(sensor, mAttackSensor))
+                return false;
+            normal.set(rs::getCollidedCeilingNormal(mPlayerColliderHackCap));
+        }
+    }
+
+    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+    if (!_299 && (flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
+        reflectThrowDirection(&_240, &_24c, this, normal);
+
+    al::setNerve(this, &NrvHackCap.Rebound);
+    return true;
+}
+
+namespace {
+// NON_MATCHING: current is 0x1c8 vs target 0x1e4. The recovered source now has the target 8/8
+// direct-call sequence, including tryNormalizeOrZero failure handling and al::normalize. Clang still
+// promotes the internal helper's PlayerSeparateCapFlag pointer to raw flags and omits the explicit
+// true-return materialization because only two of five target callers are recovered. Next source-level
+// hypothesis is recovering the baseline-NotDecompiled exeThrow/exeThrowBrake/exeThrowTornado callers
+// so same-TU argument/return lowering is naturally constrained by the full target call set.
+bool tryTurnSeparateThrowDirection(al::LiveActor* actor, sead::Vector3f* direction,
+                                   sead::Vector3f* up, const PlayerInput* input,
+                                   const PlayerSeparateCapFlag* separateCapFlag, bool disabled) {
+    const u32 flags = separateCapFlag->getRawFlags();
+    if (disabled || (flags & 0xFF0000) != 0 || (flags & 0xFF) == 0)
+        return false;
+
+    sead::Vector3f moveInput;
+    moveInput.set(0.0f, 0.0f, 0.0f);
+    input->calcCapSeparateMoveInput(&moveInput, *up);
+
+    sead::Vector3f normalizedInput;
+    if (!al::tryNormalizeOrZero(&normalizedInput, moveInput))
+        return false;
+    const f32 turnSign = direction->cross(normalizedInput).dot(*up);
+
+    sead::Vector3f verticalMoveInput;
+    verticalMoveInput.set(0.0f, 0.0f, 0.0f);
+    al::verticalizeVec(&verticalMoveInput, *direction, moveInput);
+    const f32 rotateDegree = verticalMoveInput.length() * 40.0f;
+    const f32 speed = direction->dot(al::getVelocity(actor));
+
+    sead::Vector3f axis = *up;
+    if (turnSign < 0.0f)
+        axis = -axis;
+    al::rotateVectorDegree(direction, *direction, axis, rotateDegree);
+    al::normalize(direction);
+    al::setVelocity(actor, *direction * speed);
+    return true;
+}
+}  // namespace
+
+// NON_MATCHING: target/current are 0x120 bytes; first checker difference is near the final
+// reaction/reflect branch. Next source-level hypothesis is the target bool/normal temporary lifetime.
+bool HackCap::tryCollideWallReactionSpiral() {
+    if (tryCollideWallLockOn())
+        return true;
+
+    bool isReaction = false;
+    if (trySendAttackCollideAndReaction(&isReaction))
+        return isReaction;
+
+    if (!rs::isCollidedWall(mPlayerColliderHackCap))
+        return false;
+
+    sead::Vector3f wallNormal = rs::getCollidedWallNormal(mPlayerColliderHackCap);
+    const sead::Vector3f wallPos = rs::getCollidedWallPos(mPlayerColliderHackCap);
+    al::verticalizeVec(&wallNormal, al::getGravity(this), wallNormal);
+    if (!al::tryNormalizeOrZero(&wallNormal))
+        return false;
+
+    al::HitSensor* wallSensor = rs::tryGetCollidedWallSensor(mPlayerColliderHackCap);
+    if (!rs::sendMsgCapTouchWall(wallSensor, mAttackSensor, wallPos, wallNormal))
+        return false;
+
+    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+    if (!_299 && (flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
+        reflectThrowDirection(&_240, &_24c, this, wallNormal);
+
+    al::setNerve(this, &NrvHackCap.Rebound);
+    return true;
+}
+
+void HackCap::endThrowSpiral() {
+    al::invalidateHitSensor(this, "SpiralTail1");
+    al::invalidateHitSensor(this, "SpiralTail2");
+    al::invalidateHitSensor(this, "SpiralTail3");
+    al::invalidateHitSensor(this, "SpiralTail4");
+    al::invalidateHitSensor(this, "SpiralTail5");
+}
+
+// NON_MATCHING: behavior is recovered; current is 0xe4 vs target 0xe0, a one-instruction size gap.
+// Next source-level hypothesis is the target's nested collision-success control flow rather than
+// the early-return form, preserving the shared helper call without forced inlining attributes.
+void HackCap::exeThrowRolling() {
+    ++_278;
+    if (al::isFirstStep(this))
+        al::tryStartActionIfNotPlaying(this, "FlyingWaitRolling");
+
+    updateThrowJoint();
+    changeThrowParamInWater(al::getNerveStep(this), false);
+    if (tryCollideReflectReaction() || tryCollideWallReactionRollingGround())
+        return;
+
+    rollingGround();
+    tryTurnSeparateThrowDirection(this, &_240, &_24c, mInput, mPlayerSeparateCapFlag, _299);
+    al::scaleVelocityExceptDirection(this, _240, 0.94f);
+    if (!al::isLessStep(this, _27c))
+        al::setNerve(this, &NrvHackCap.ThrowRollingBrake);
+}
+
+// NON_MATCHING: behavior is recovered; current is 0x1b8 vs target 0x1b4, a one-instruction size gap.
+// Next source-level hypothesis is the target's fall-through nerve-selection form at the final
+// velocity test, which may eliminate the extra branch while keeping the shared helper out of line.
+void HackCap::exeThrowRollingBrake() {
+    updateThrowJoint();
+    if (changeThrowParamInWater(al::getNerveStep(this), true)) {
+        al::setNerve(this, &NrvHackCap.ThrowRolling);
+        return;
+    }
+    if (tryCollideReflectReaction() || tryCollideWallReactionRollingGround())
+        return;
+
+    rollingGround();
+    al::addVelocity(this, _240 * _280);
+    al::scaleVelocityExceptDirection(this, _240, 0.94f);
+    tryTurnSeparateThrowDirection(this, &_240, &_24c, mInput, mPlayerSeparateCapFlag, _299);
+    if (tryAppendAttack()) {
+        al::setNerve(this, &NrvHackCap.ThrowAppend);
+        return;
+    }
+
+    const sead::Vector3f& velocity = al::getVelocity(this);
+    if (al::isNearZero(velocity, 0.001f) || _240.dot(velocity) < 0.0f) {
+        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+        if (_299 || (flags & 0xFF0000) != 0 || (flags & 0xFF) == 0 || _510) {
+            al::setNerve(this, &NrvHackCap.ThrowStay);
+        } else {
+            al::setVelocityZero(this);
+            al::startHitReaction(this, "");
+            al::setNerve(this, &NrvHackCap.Return);
+        }
+    }
+}
+
+
+bool HackCap::tryChangeSeparateThrow() {
+    if (!_299)
+        return false;
+
+    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+    if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0)
+        return false;
+    if (mInput->isNoInputSeparateCap())
+        return false;
+
+    _299 = false;
+    mRecentCollideActors.clear();
+    _510 = true;
+    rs::resetJudge(mCapJudgePreInputSeparateThrow);
+    return true;
+}
+
+f32 HackCap::getThrowBackSpeed() const {
+    return _29a ? mHackCapThrowParam->getWaterMaxRetSpeed() : mHackCapThrowParam->getMaxRetSpeed();
+}
+
+// NON_MATCHING: target/current are 0x120 bytes; first checker difference is near the final
+// reaction/reflect branch. Next source-level hypothesis is the target bool/normal temporary lifetime.
+bool HackCap::tryCollideWallReactionStay() {
+    if (tryCollideWallLockOn())
+        return true;
+
+    bool isReaction = false;
+    if (trySendAttackCollideAndReaction(&isReaction))
+        return isReaction;
+
+    if (!rs::isCollidedWall(mPlayerColliderHackCap))
+        return false;
+
+    sead::Vector3f wallNormal = rs::getCollidedWallNormal(mPlayerColliderHackCap);
+    const sead::Vector3f wallPos = rs::getCollidedWallPos(mPlayerColliderHackCap);
+    al::verticalizeVec(&wallNormal, al::getGravity(this), wallNormal);
+    if (!al::tryNormalizeOrZero(&wallNormal))
+        return false;
+
+    al::HitSensor* wallSensor = rs::tryGetCollidedWallSensor(mPlayerColliderHackCap);
+    if (!rs::sendMsgCapTouchWall(wallSensor, mAttackSensor, wallPos, wallNormal))
+        return false;
+
+    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+    if (!_299 && (flags & 0xFF0000) == 0 && (flags & 0xFF) != 0)
+        reflectThrowDirection(&_240, &_24c, this, wallNormal);
+
+    al::setNerve(this, &NrvHackCap.Rebound);
+    return true;
+}
+
+bool HackCap::isEnableHackThrowAutoCatch() const {
+    if (!mIsSeparateFlying)
+        return false;
+
+    sead::Matrix34f lockOnMtx = sead::Matrix34f::ident;
+    mCapTargetInfo1->makeLockOnMtx(&lockOnMtx);
+    sead::Vector3f lockOnPos;
+    lockOnMtx.getTranslation(lockOnPos);
+    return (lockOnPos - al::getTrans(this)).length() < 100.0f;
+}
+
+s32 HackCap::getThrowStayTime() const {
+    return _29f ? 3 : mHackCapThrowParam->getEndpointStopTime();
+}
+
+s32 HackCap::getThrowStayTimeMax() const {
+    if (_299)
+        return mHackCapThrowParam->getMaxEndpointStopTime();
+
+    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+    if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0)
+        return mHackCapThrowParam->getMaxEndpointStopTime();
+
+    return 120;
+}
+
+f32 HackCap::getThrowSpeedAppend() const {
+    if (_29f)
+        return 60.0f;
+    if (!_29a && (_29e || _4d0))
+        return mHackCapThrowParam->getContinuousThrowSpeed();
+    return mHackCapThrowParam->getMaxVel();
+}
+
+f32 HackCap::getThrowRangeAppend() const {
+    return sThrowRangeAppend[static_cast<u8>(_2a5)];
+}
+
+bool HackCap::tryCollideWallLockOn() {
+    al::HitSensor* wallSensor = rs::tryGetCollidedWallSensor(mPlayerColliderHackCap);
+    if (!wallSensor)
+        return false;
+
+    if (mRecentCollideActors) {
+        al::LiveActor* wallActor = al::getSensorHost(wallSensor);
+        for (s32 i = 0; i < mRecentCollideActors.size(); i++) {
+            if (mRecentCollideActors(i) == wallActor)
+                return false;
+        }
+    }
+
+    if (!rs::sendMsgCapStartLockOn(wallSensor, mAttackSensor))
+        return false;
+    prepareLockOn(wallSensor);
+    return true;
+}
+
+void HackCap::endHackThrowAndReturnHackOrHide() {
+    if (mIsSeparateFlying)
+        endHackThrowAndReturnHack();
+    else
+        hide(false);
+}
+
+void HackCap::clearThrowType() {
+    _29e = false;
+    _274 = 0;
+    _264 = 0.0f;
+    _268.set(0.0f, 0.0f);
+    _270 = 0.0f;
+    if (_298)
+        al::tryStartActionIfNotPlaying(mThrowingHatEyes, "SpinL");
+    else
+        al::tryStartActionIfNotPlaying(mThrowingHatEyes, "SpinR");
+}
+
+void HackCap::calcReturnTargetPos(sead::Vector3f* targetPos) const {
+    if (mIsSeparateFlying) {
+        sead::Matrix34f followMtx = sead::Matrix34f::ident;
+        mCapTargetInfo1->makeLockOnMtx(&followMtx);
+        followMtx.getTranslation(*targetPos);
+    } else {
+        targetPos->set(rs::getPlayerHeadPos(this));
+    }
+}
+
+bool HackCap::stayRollingOrReflect() {
+    if (_299) {
+        if (mInput->isHoldAction()) {
+            _294 = 20;
+            return stayWallHit();
+        }
+    } else {
+        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+        if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0) {
+            if (mInput->isHoldSpinCap()) {
+                _294 = 20;
+                return stayWallHit();
+            }
+        } else {
+            if (mStateThrowStay->isEnableSendHipDropMsg() || isHoldSpinCapStay())
+                return true;
+        }
+    }
+
+    al::setNerve(this, &NrvHackCap.Rebound);
+    return true;
+}
+
+void HackCap::endMove() {
+    al::offCollide(this);
+    al::invalidateShadow(this);
+    al::invalidateHitSensors(this);
+    mCapTargetInfo1 = nullptr;
+    _1d0 = nullptr;
+    _2a8 = false;
+    al::setVelocityZero(this);
+}
+
+bool HackCap::isEnableCapTouchJumpInput() const {
+    if (_299) {
+        if (!mInput->isHoldAction())
+            return false;
+    } else {
+        const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+        if ((flags & 0xFF0000) != 0 || (flags & 0xFF) == 0) {
+            if (!mInput->isHoldSpinCap())
+                return false;
+        } else if (!_510) {
+            return false;
+        }
+    }
+
+    if (_299)
+        return true;
+
+    const u32 flags = mPlayerSeparateCapFlag->getRawFlags();
+    if ((flags & 0xFF0000) == 0 && (flags & 0xFF) != 0) {
+        if (!mInput->isTriggerCapSeparateJump())
+            return mStateThrowStay->isHomingPlayerJump();
+    }
+    return true;
+}
+
+void HackCap::prepareTransferLockOn(al::HitSensor*) {
+    if (mIsSeparateFlying) {
+        al::setNerve(this, &NrvHackCap.LockOn);
+        rs::sendMsgTransferHack(mPlayerBodySensor, const_cast<al::HitSensor*>(_1d0));
+        mIsSeparateFlying = false;
+        mPlayerBodySensor = nullptr;
+    }
+}
+
+void HackCap::collideThrowStartArrow(al::HitSensor* sensor, const sead::Vector3f& hitPos,
+                                     const sead::Vector3f& normal,
+                                     const sead::Vector3f& resetPos) {
+    if (!isRecentCollideActor(sensor) && rs::sendMsgCapStartLockOn(sensor, mAttackSensor)) {
+        prepareLockOn(sensor);
+        return;
+    }
+
+    if (al::isWallPolygon(normal, al::getGravity(mPlayerActor)))
+        rs::sendMsgCapTouchWall(sensor, mAttackSensor, hitPos, normal);
+    rs::sendMsgCapReflectCollide(sensor, mAttackSensor);
+    rs::sendMsgCapAttackCollide(sensor, mAttackSensor);
+    _2a7 = true;
+    al::resetPosition(this, resetPos);
+    rs::resetCollision(mPlayerColliderHackCap);
+    al::setNerve(this, &NrvHackCap.Return);
+}
+
+namespace {
+// NON_MATCHING: target is 0x1bc bytes and current is 0x1b0; reflection behavior is recovered.
+// Next source-level hypothesis is the target quaternion/vector temporary lifetime around rotate/normalize.
+void reflectThrowDirection(sead::Vector3f* direction, sead::Vector3f* up, al::LiveActor* actor,
+                           const sead::Vector3f& normal) {
+    const sead::Vector3f previousDirection = *direction;
+    al::calcReflectionVector(direction, normal, 1.0f, 0.0f);
+    al::tryNormalizeOrZero(direction);
+    al::setVelocityZero(actor);
+
+    if (al::isNearDirection(*direction, previousDirection)) {
+        direction->set(previousDirection);
+    } else if (al::isReverseDirection(*direction, previousDirection)) {
+        direction->set(-previousDirection);
+    } else {
+        sead::Quatf rotation;
+        al::makeQuatRotationRate(&rotation, previousDirection, *direction, 1.0f);
+        up->rotate(rotation);
+        al::normalize(up);
+    }
+}
+}  // namespace
+
+void HackCap::endHackThrow() {
+    mIsSeparateFlying = false;
+    mPlayerBodySensor = nullptr;
+}
+
+inline bool HackCap::isRecentCollideActor(al::HitSensor* sensor) const {
+    if (!mRecentCollideActors)
+        return false;
+    al::LiveActor* actor = al::getSensorHost(sensor);
+    for (s32 i = 0; i < mRecentCollideActors.size(); i++) {
+        if (mRecentCollideActors(i) == actor)
+            return true;
+    }
+    return false;
+}
+
+namespace {
+void updateEquipmentHatVisibility(
+    bool isHide, al::LiveActor* equipmentHat, al::LiveActor* equipmentHatDepthShadow,
+    const CapTargetInfo* targetInfo, bool keepAlive) {
+    if (isHide) {
+        if (al::isDead(equipmentHat))
+            return;
+
+        al::validateShadow(equipmentHat);
+        if (al::isAlive(equipmentHatDepthShadow))
+            equipmentHatDepthShadow->kill();
+        al::hideModelIfShow(equipmentHat);
+        if (!keepAlive)
+            equipmentHat->kill();
+        return;
+    }
+
+    if (al::isAlive(equipmentHat) && !al::isHideModel(equipmentHat))
+        return;
+
+    if (al::isDead(equipmentHat))
+        equipmentHat->appear();
+    al::showModelIfHide(equipmentHat);
+    al::invalidateShadow(equipmentHat);
+    if (targetInfo->isUseDepthShadow()) {
+        if (al::isDead(equipmentHatDepthShadow))
+            equipmentHatDepthShadow->appear();
+    } else if (al::isAlive(equipmentHatDepthShadow)) {
+        equipmentHatDepthShadow->kill();
+    }
+}
+
+bool isFlyingNerve(const HackCap* cap) {
+    return al::isNerve(cap, &NrvHackCap.Throw) || al::isNerve(cap, &NrvHackCap.Rethrow) ||
+           al::isNerve(cap, &NrvHackCap.ThrowBrake) || al::isNerve(cap, &NrvHackCap.ThrowRolling) ||
+           al::isNerve(cap, &NrvHackCap.ThrowRollingBrake) ||
+           al::isNerve(cap, &NrvHackCap.ThrowAppend) || al::isNerve(cap, &NrvHackCap.ThrowStay) ||
+           al::isNerve(cap, &NrvHackCap.ThrowSpiral) ||
+           al::isNerve(cap, &NrvHackCap.ThrowTornado) || al::isNerve(cap, &NrvHackCap.Blow);
+}
+}  // namespace

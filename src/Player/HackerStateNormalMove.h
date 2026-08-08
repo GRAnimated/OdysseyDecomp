@@ -17,23 +17,24 @@ class PlayerActionTurnControl;
 
 class HackerStateNormalMove : public al::ActorStateBase {
 public:
-    HackerStateNormalMove(al::LiveActor*, IUsePlayerHack**, const char*, const char*, const char*);
+    HackerStateNormalMove(al::LiveActor* actor, IUsePlayerHack** hacker, const char* waitAnim,
+                          const char* runAnim, const char* fallAnim);
 
     void appear() override;
     void setLandNerve();
-    void setupFallTime(s32);
-    void changeWaitAnim(const char*);
-    void changeRunAnim(const char*);
-    void changeFallAnim(const char*);
-    void usePlayerTurnControl(bool);
-    void usePlayerCollision(IUsePlayerCollision*);
+    void setupFallTime(s32 fallTime);
+    void changeWaitAnim(const char* anim);
+    void changeRunAnim(const char* anim);
+    void changeFallAnim(const char* anim);
+    void usePlayerTurnControl(bool isEnabled);
+    void usePlayerCollision(IUsePlayerCollision* playerCollision);
     bool isWaiting() const;
     bool isFalling() const;
     void exeWait();
     void updateGroundWait();
     bool tryPivot();
     void exeMove();
-    void calcGravityDirLocal(sead::Vector3f*) const;
+    void calcGravityDirLocal(sead::Vector3f* gravityDir) const;
     void updateGroundMove();
     void exeBrake();
     void exePivot();

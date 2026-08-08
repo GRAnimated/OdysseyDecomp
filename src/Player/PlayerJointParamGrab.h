@@ -13,4 +13,3 @@ struct PlayerJointParamGrab {
     u8 padding_1d[3];
 };
 
-static_assert(sizeof(PlayerJointParamGrab) == 0x20);

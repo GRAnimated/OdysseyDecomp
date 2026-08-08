@@ -33,7 +33,10 @@ void PlayerActionTurnControl::reset() {
     _c = {0.0f, 0.0f, 0.0f};
 }
 
-// NON_MATCHING: complete 0xb30 implementation versus target 0xb10; remaining differences are source-level control-flow and vector/quaternion scheduling after the history/turn-axis decisions; next hypothesis is matching the corpus branch-local lifetime split around the two rotation paths.
+// NON_MATCHING: target is 0xb10 and current is 0xb30 with target-equal 34/34 semantic calls.
+// Corpus comparison recovered the target FCSEL-GT absolute/threshold forms plus B.LE/B.PL turn-axis
+// predicates; remaining differences are stack/register and vector/quaternion block scheduling. Next
+// hypothesis is matching branch-local quaternion/stored-axis lifetimes around the two rotation paths.
 void PlayerActionTurnControl::update(const sead::Vector3f& input, const sead::Vector3f& up) {
     sead::Vector3f front = {0.0f, 0.0f, 0.0f};
     al::calcFrontDir(&front, mPlayer);
@@ -66,8 +69,7 @@ void PlayerActionTurnControl::update(const sead::Vector3f& input, const sead::Ve
         f32 angle = 0.0f;
         if (hasPrevious) {
             angle = al::calcAngleDegree(previousDir, inputDir);
-            if (angle <= 0.0f)
-                angle = -angle;
+            angle = angle > 0.0f ? angle : -angle;
         }
         _38.forcePushBack(angle);
         _30 = 0.0f;
@@ -108,9 +110,9 @@ void PlayerActionTurnControl::update(const sead::Vector3f& input, const sead::Ve
         bool preserveAxisSign = false;
         if (hasPrevious && !al::isNearZero(_18, 0.001f)) {
             const f32 turnAngleDegree = sead::Mathf::rad2deg(turnAngle);
-            if (turnAxis.dot(_18) <= 0.0f) {
-                const f32 threshold = mTurnAngleStart <= _8 ? _8 : mTurnAngleStart;
-                if (turnAngleDegree >= threshold) {
+            if (!(turnAxis.dot(_18) > 0.0f)) {
+                const f32 threshold = mTurnAngleStart > _8 ? mTurnAngleStart : _8;
+                if (!(turnAngleDegree < threshold)) {
                     _8 = 0.0f;
                 } else {
                     _8 = al::converge(_8, 0.0f, turnAngleDegree);

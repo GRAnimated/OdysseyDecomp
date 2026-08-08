@@ -19,16 +19,16 @@ public:
     PlayerStateCapCatchPop(al::LiveActor* player, const PlayerConst* pConst,
                            const IUsePlayerCollision* collision, const PlayerInput* input,
                            PlayerAnimator* animator, HackCap* hackCap);
-    ~PlayerStateCapCatchPop() override;
-
     void appear() override;
+
     void exePop();
+    ~PlayerStateCapCatchPop() override;
 
 private:
     const PlayerConst* mConst;
     const IUsePlayerCollision* mCollision;
     PlayerAnimator* mAnimator;
-    PlayerActionAirMoveControl* mAirMoveControl;
+    PlayerActionAirMoveControl* mAirMoveControl = nullptr;
     HackCap* mHackCap;
 };
 

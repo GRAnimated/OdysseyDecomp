@@ -24,41 +24,11 @@ void calcDiskHitPos(sead::Vector3f* hitPos, const al::KCollisionServer* server,
 }  // namespace alKCollisionFunc
 
 namespace {
-// NON_MATCHING: exact size, but first mismatch at 0x71003F78C4 swaps the X22/X23 shape/parts allocation; next source-level hypothesis is parameter lifetime/order in the generic branch.
 void searchPrism(al::KCollisionServer* server, const CollisionShapeInfoBase* shapeInfo,
                  const al::CollisionParts* collisionParts, const sead::Vector3f& offset,
                  sead::IDelegate2<const al::KCPrismData*, const al::KCPrismHeader*>& callback,
                  const al::KCPrismHeader** prismHeader,
-                 sead::PtrArray<const al::KCPrismData>* prismArray) {
-    *prismHeader = nullptr;
-    prismArray->clear();
-    const f32 scale = collisionParts->getMtxScale();
-
-    if (CollisionShapeFunction::isShapeArrow(shapeInfo)) {
-        const CollisionShapeInfoArrow* arrow = CollisionShapeFunction::getShapeInfoArrow(shapeInfo);
-        sead::Vector3f start = arrow->getStartRelative() + offset;
-        server->searchPrismArrow(start, arrow->getArrowRelative(), callback);
-        return;
-    }
-
-    if (CollisionShapeFunction::isShapeDisk(shapeInfo)) {
-        const CollisionShapeInfoDisk* disk = CollisionShapeFunction::getShapeInfoDisk(shapeInfo);
-        (void)shapeInfo->getBoundingCenterWorld();
-        sead::Vector3f center = disk->getCenterRelative() + offset;
-        server->searchPrismDisk(center, disk->getAxisRelative(),
-                                scale * disk->getHalfHeightWorld(),
-                                scale * disk->getRadiusWorld(), callback);
-        return;
-    }
-
-    if (CollisionShapeFunction::isShapeSphere(shapeInfo))
-        shapeInfo = CollisionShapeFunction::getShapeInfoSphere(shapeInfo);
-
-    sead::Vector3f center =
-        collisionParts->getBaseInvMtx() * shapeInfo->getBoundingCenterWorld() + offset;
-    server->searchPrism(&center, scale * shapeInfo->getBoundingRadiusWorld(), callback);
-}
-
+                 sead::PtrArray<const al::KCPrismData>* prismArray);
 bool isBackFace(const al::CollisionParts* parts, const al::HitInfo& hitInfo,
                 const sead::Vector3f& move) {
     if (parts->get_15c() != 0 && !parts->isMoving())
@@ -338,3 +308,40 @@ void CollisionMultiShape::callbackFromServer(const al::KCPrismData* prismData,
         mShapeKeeper->registerCollideResult(result);
     }
 }
+
+namespace {
+// NON_MATCHING: exact size, but first mismatch at 0x71003F78C4 swaps the X22/X23 shape/parts allocation; next source-level hypothesis is parameter lifetime/order in the generic branch.
+void searchPrism(al::KCollisionServer* server, const CollisionShapeInfoBase* shapeInfo,
+                 const al::CollisionParts* collisionParts, const sead::Vector3f& offset,
+                 sead::IDelegate2<const al::KCPrismData*, const al::KCPrismHeader*>& callback,
+                 const al::KCPrismHeader** prismHeader,
+                 sead::PtrArray<const al::KCPrismData>* prismArray) {
+    *prismHeader = nullptr;
+    prismArray->clear();
+    const f32 scale = collisionParts->getMtxScale();
+
+    if (CollisionShapeFunction::isShapeArrow(shapeInfo)) {
+        const CollisionShapeInfoArrow* arrow = CollisionShapeFunction::getShapeInfoArrow(shapeInfo);
+        sead::Vector3f start = arrow->getStartRelative() + offset;
+        server->searchPrismArrow(start, arrow->getArrowRelative(), callback);
+        return;
+    }
+
+    if (CollisionShapeFunction::isShapeDisk(shapeInfo)) {
+        const CollisionShapeInfoDisk* disk = CollisionShapeFunction::getShapeInfoDisk(shapeInfo);
+        (void)shapeInfo->getBoundingCenterWorld();
+        sead::Vector3f center = disk->getCenterRelative() + offset;
+        server->searchPrismDisk(center, disk->getAxisRelative(),
+                                scale * disk->getHalfHeightWorld(),
+                                scale * disk->getRadiusWorld(), callback);
+        return;
+    }
+
+    if (CollisionShapeFunction::isShapeSphere(shapeInfo))
+        shapeInfo = CollisionShapeFunction::getShapeInfoSphere(shapeInfo);
+
+    sead::Vector3f center =
+        collisionParts->getBaseInvMtx() * shapeInfo->getBoundingCenterWorld() + offset;
+    server->searchPrism(&center, scale * shapeInfo->getBoundingRadiusWorld(), callback);
+}
+}  // namespace

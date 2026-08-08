@@ -33,10 +33,9 @@ public:
                          const PlayerAreaChecker* areaChecker, PlayerAnimator* animator,
                          PlayerTrigger* trigger, PlayerJudgePreInputJump* judgePreInputJump,
                          PlayerJointParamGrab* grabJoint);
-    ~PlayerStateWallCatch() override;
 
     void appear() override;
-    void initIgnoreFallInput();
+    bool initIgnoreFallInput();
     void kill() override;
     bool isWallCatchForm() const;
     bool update() override;
@@ -54,10 +53,10 @@ public:
     const sead::Vector3f& getCeilingCheckPos() const;
     void exeStart();
     bool followCollision(bool* isWallLost, bool allowMove);
-    void enableClimb();
+    bool enableClimb();
     bool tryStartClimbFallMove();
     void exeWait();
-    void updateWallCatchKeep(bool isKeep);
+    bool updateWallCatchKeep(bool isKeep);
     void exeMoveLeft();
     void initMoveFrameLeftRight();
     void exeMoveRight();
@@ -70,6 +69,7 @@ public:
     void moveCatchPos(const al::CollisionParts* collisionParts,
                       const sead::Vector3f& position, const sead::Vector3f& front,
                       const sead::Vector3f& up);
+    ~PlayerStateWallCatch() override;
 
 private:
     const PlayerConst* mConst;
@@ -86,7 +86,8 @@ private:
     PlayerJointParamGrab* mGrabJoint;
     sead::Vector3f _80;
     s32 _8c;
-    sead::Quatf _90;
+    sead::Vector2f mWallCatchInputDir;
+    sead::Vector2f mWallCatchStick;
     sead::Vector3f _a0;
     bool _ac;
     bool _ad;

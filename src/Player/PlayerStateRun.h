@@ -15,6 +15,16 @@ class PlayerStateRun : public al::ActorStateBase {
 public:
     PlayerStateRun(al::LiveActor* player, const PlayerConst* pConst, const PlayerInput* input,
                    const IUsePlayerCollision* collision, PlayerAnimator* animator, IJudge* judge);
+    ~PlayerStateRun() override = default;
+
+    void appear() override;
+
+    bool tryTurnJump(IJudge*);
+    void exePivot();
+    void exeRun();
+    bool tryChangeRunAnim(const char*);
+    void exeBrake();
+    void exeTurn();
 
 private:
     u8 _20[0x38];

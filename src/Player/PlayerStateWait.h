@@ -36,8 +36,6 @@ public:
                     PlayerCapManHeroEyesControl* capManHeroEyesControl,
                     PlayerJointParamCenterDynamics* centerDynamics,
                     PlayerJointParamGroundPose* groundPose);
-    ~PlayerStateWait() override;
-
     void appear() override;
     void kill() override;
     void control() override;
@@ -75,6 +73,7 @@ public:
     void exeAreaAnimTurn();
     void exeAreaAnimWait();
     void exeRequestAnimWait();
+~PlayerStateWait() override;
 
 private:
     const PlayerConst* mConst;
@@ -89,26 +88,26 @@ private:
     PlayerCapManHeroEyesControl* mCapManHeroEyesControl;
     PlayerJointParamCenterDynamics* mCenterDynamics;
     PlayerJointParamGroundPose* mGroundPose;
-    bool _80;
+    bool _80 = false;
     u8 _81[7];
-    al::AreaObj* mAreaAnimArea;
-    const char* mAreaAnimName;
-    sead::Vector3f mAreaAnimSnapFront;
-    s32 mAreaAnimStartFrame;
-    s32 _a8;
-    bool mIsUseAreaValid;
-    bool mIsAreaWaitSitDown;
-    bool mIsIgnoreLifeOne;
-    u8 _af;
-    s32 _b0;
-    u8 mIsInvalidateInput;
+    al::AreaObj* mAreaAnimArea = nullptr;
+    const char* mAreaAnimName = nullptr;
+    sead::Vector3f mAreaAnimSnapFront{};
+    s32 mAreaAnimStartFrame = 0;
+    s32 _a8 = 0;
+    bool mIsUseAreaValid = false;
+    bool mIsAreaWaitSitDown = false;
+    bool mIsIgnoreLifeOne = false;
+    u8 _af = 0;
+    s32 _b0 = 0;
+    u8 mIsInvalidateInput = 0;
     u8 _b5[3];
-    const char* mRequestAnimName;
-    sead::Vector3f _c0;
-    s32 _cc;
+    const char* mRequestAnimName = nullptr;
+    sead::Vector3f _c0{};
+    s32 _cc = 0;
     al::MtxConnector* mMtxConnector;
-    sead::Vector3f mConnectTrans;
-    bool _e4;
+    sead::Vector3f mConnectTrans{};
+    bool _e4 = false;
     u8 _e5[3];
 };
 

@@ -33,11 +33,12 @@ public:
     void exeTurn();
     void exeReaction();
     void exeHackEnd();
-    bool reactionCollidedCollisionCode();
     bool tryGetLookAtPlayerPos(sead::Vector3f* position) const;
+    bool reactionCollidedCollisionCode();
     bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other, al::HitSensor* self);
     bool receiveMsgReturnEggAndInitPosition(const al::SensorMsg* message, al::HitSensor* other,
                                             al::HitSensor* self);
+    ~YoshiStateNpc() override;
 
 private:
     const PlayerConst* mPlayerConst;
@@ -46,15 +47,13 @@ private:
     const al::WaterSurfaceFinder* mWaterSurfaceFinder;
     al::EventFlowExecutor* mEventFlowExecutor;
     PlayerAnimator* mAnimator;
-    void* _50 = nullptr;
-    void* _58 = nullptr;
-    void* _60 = nullptr;
-    void* _68 = nullptr;
-    void* _70 = nullptr;
-    void* _78 = nullptr;
+    sead::Vector3f mTurnUp = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f mTurnStartFront = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f mTurnTargetFront = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f mLookAtPlayerOffset = {0.0f, 0.0f, 0.0f};
     bool mIsHackEnd = false;
     bool mIsUseReturnTimer = false;
-    u8 _82[2]{};
+    u8 _82[2];
     s32 mReturnTimer = 0;
 };
 

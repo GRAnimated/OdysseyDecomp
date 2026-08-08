@@ -9,12 +9,13 @@ class LiveActor;
 
 class PlayerActionTurnControl {
 public:
-    PlayerActionTurnControl(al::LiveActor*);
-    void setup(f32, f32, f32, f32, s32, s32, s32);
+    PlayerActionTurnControl(al::LiveActor* player);
+    void setup(f32 turnAngleStart, f32 turnAngleFast, f32 turnAngleLimit, f32 turnAngleFastLimit,
+               s32 turnAccelFrame, s32 turnAccelFrameFast, s32 turnBrakeFrame);
     void reset();
-    void update(const sead::Vector3f&, const sead::Vector3f&);
-    void calcTilt(sead::Vector3f*, const sead::Vector3f&, f32);
-    f32 calcTurnPowerRate(const sead::Vector3f&) const;
+    void update(const sead::Vector3f& input, const sead::Vector3f& up);
+    void calcTilt(sead::Vector3f* out, const sead::Vector3f& front, f32 degree);
+    f32 calcTurnPowerRate(const sead::Vector3f& front) const;
 
     const sead::Vector3f& get_50() const { return _50; }
 

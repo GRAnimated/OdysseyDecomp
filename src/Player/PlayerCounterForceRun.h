@@ -16,6 +16,7 @@ public:
     void reset() { mCounter = 0; }
 
     f32 getSpeed() const { return mSpeed; }
+    void setSpeed(f32 speed) { mSpeed = speed; }
 
 private:
     s32 mCounter = 0;

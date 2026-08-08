@@ -17,7 +17,6 @@ namespace {
 NERVE_IMPL(PlayerStateNormalWait, Wait)
 NERVES_MAKE_STRUCT(PlayerStateNormalWait, Wait)
 }  // namespace
-
 PlayerStateNormalWait::PlayerStateNormalWait(al::LiveActor* player, const PlayerConst* pConst,
                                              const char* actionName,
                                              const IUsePlayerCollision* collision,
@@ -26,8 +25,6 @@ PlayerStateNormalWait::PlayerStateNormalWait(al::LiveActor* player, const Player
       mCollision(collision), mAnimator(animator) {
     initNerve(&NrvPlayerStateNormalWait.Wait, 0);
 }
-
-PlayerStateNormalWait::~PlayerStateNormalWait() = default;
 
 void PlayerStateNormalWait::appear() {
     al::NerveStateBase::appear();
@@ -71,3 +68,6 @@ void PlayerStateNormalWait::exeWait() {
     rs::slerpUpFront(actor, groundNormal, front, mConst->getSlerpQuatRate(),
                      mConst->getWaitPoseDegreeMax());
 }
+
+PlayerStateNormalWait::~PlayerStateNormalWait() = default;
+

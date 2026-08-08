@@ -1,6 +1,5 @@
 #include "Player/PlayerInputFunction.h"
 
-#include <cmath>
 #include <math/seadVector.h>
 
 #include "Library/Controller/InputFunction.h"
@@ -10,15 +9,15 @@ bool PlayerInputFunction::isSeparatePlaySingleJoy(const al::LiveActor* actor, s3
     return rs::isSeparatePlay(actor) && al::isPadTypeJoySingle(port);
 }
 
-bool PlayerInputFunction::isTriggerJump(const al::LiveActor*, s32 port) {
+bool PlayerInputFunction::isTriggerJump(const al::LiveActor* actor, s32 port) {
     return al::isPadTriggerA(port) || al::isPadTriggerB(port);
 }
 
-bool PlayerInputFunction::isHoldJump(const al::LiveActor*, s32 port) {
+bool PlayerInputFunction::isHoldJump(const al::LiveActor* actor, s32 port) {
     return al::isPadHoldA(port) || al::isPadHoldB(port);
 }
 
-bool PlayerInputFunction::isReleaseJump(const al::LiveActor*, s32 port) {
+bool PlayerInputFunction::isReleaseJump(const al::LiveActor* actor, s32 port) {
     return al::isPadReleaseA(port) || al::isPadReleaseB(port);
 }
 
@@ -64,11 +63,11 @@ bool PlayerInputFunction::isHoldBalloonSet(const al::LiveActor* actor, s32 port)
     return al::isPadHoldZL(port) && al::isPadHoldZR(port);
 }
 
-bool PlayerInputFunction::isTriggerTalk(const al::LiveActor*, s32 port) {
+bool PlayerInputFunction::isTriggerTalk(const al::LiveActor* actor, s32 port) {
     return al::isPadTriggerA(port);
 }
 
-bool PlayerInputFunction::isTriggerStartWorldWarp(const al::LiveActor*, s32 port) {
+bool PlayerInputFunction::isTriggerStartWorldWarp(const al::LiveActor* actor, s32 port) {
     return al::isPadTriggerA(port);
 }
 
@@ -118,12 +117,11 @@ f32 PlayerInputFunction::getRadiconInputSteeringValue(const al::LiveActor* actor
     return 0.0f;
 }
 
-// NON_MATCHING: target selects the separate-play mask directly into W0 before the epilogue; current code selects into W19 and adds a shared MOV W0, W19; next hypothesis is the original result lifetime/type.
 u32 PlayerInputFunction::getNoInputJudgeKeyMask(const al::LiveActor* actor, s32 port) {
     u32 keyMask = 0xF1FFF;
-    if (!rs::isSeparatePlay(actor))
-        return keyMask;
-    return al::isPadTypeJoySingle(port) ? 0xF7FF7 : keyMask;
+    if (rs::isSeparatePlay(actor) && al::isPadTypeJoySingle(port))
+        keyMask = 0xF7FF7;
+    return keyMask;
 }
 
 bool PlayerInputFunction::isInputLeftStickNoCameraMove(const al::LiveActor* actor, s32 port,

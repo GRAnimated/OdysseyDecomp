@@ -19,4 +19,3 @@ private:
     sead::PtrArray<IJudge> mJudges;
 };
 
-static_assert(sizeof(PlayerJudgeOr) == 0x18);

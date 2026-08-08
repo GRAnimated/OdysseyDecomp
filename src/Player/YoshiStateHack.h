@@ -46,7 +46,6 @@ public:
     bool tryCalcTonguePullForce(f32* force, sead::Vector3f* direction) const;
     void calcGroundPoseRate(f32* frontRate, f32* sideRate) const;
     void startFruitShineGetDemo();
-    bool reactionCollidedCollisionCode();
     void exeLockOn();
     void exeDemo();
     void exeDemoHackStart();
@@ -57,6 +56,8 @@ public:
                                  al::HitSensor* self);
     bool receiveMsgEndState(bool* isReturnEgg, const al::SensorMsg* message,
                             al::HitSensor* other, al::HitSensor* self);
+    void prepareEndHack();
+    bool reactionCollidedCollisionCode();
 
 private:
     al::LiveActor* mModelActor;

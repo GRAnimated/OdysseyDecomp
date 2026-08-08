@@ -13,11 +13,11 @@ PlayerStateTouchMove::PlayerStateTouchMove(al::LiveActor* player, const TouchTar
     initNerve(&NrvPlayerStateTouchMove.Jump, 0);
 }
 
-PlayerStateTouchMove::~PlayerStateTouchMove() = default;
-
 void PlayerStateTouchMove::appear() {
     al::NerveStateBase::appear();
     al::setNerve(this, &NrvPlayerStateTouchMove.Jump);
 }
 
 void PlayerStateTouchMove::exeJump() {}
+
+PlayerStateTouchMove::~PlayerStateTouchMove() = default;

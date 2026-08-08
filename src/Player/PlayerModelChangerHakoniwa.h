@@ -16,28 +16,29 @@ class IUseDimension;
 
 class PlayerModelChangerHakoniwa : public IPlayerModelChanger, public al::HioNode {
 public:
-    PlayerModelChangerHakoniwa(const al::LiveActor*, PlayerModelHolder*, PlayerPainPartsKeeper*,
-                               PlayerCostumeInfo*, const IUseDimension*);
+    PlayerModelChangerHakoniwa(const al::LiveActor* actor, PlayerModelHolder* modelHolder,
+                               PlayerPainPartsKeeper* painPartsKeeper, PlayerCostumeInfo* costumeInfo,
+                               const IUseDimension* dimension);
     void initStartModel();
     const char* getModelName();
-    void changeModel(al::LiveActor*);
-    void update(bool, bool);
-    void syncHost(bool);
-    void syncShowHide(al::LiveActor*);
+    void changeModel(al::LiveActor* modelActor);
+    void update(bool updateDimension, bool seOnly);
+    void syncHost(bool syncVisibility);
+    void syncShowHide(al::LiveActor* modelActor);
     void startDamageStopDemo();
     void updateDamageStopDemo();
-    void syncHostDamageStopDemo(bool);
-    s32 calcCostumeWarmLevel(s32) const;
-    void syncModelBoneVisibility();
+    void syncHostDamageStopDemo(bool syncVisibility);
+    s32 calcCostumeWarmLevel(s32 level) const;
+    void resetPosition() override;
     bool isDamageStopDemo() const { return mIsBlinkingFromDamage; }
 
-    void resetPosition() override;
     void hideModel() override;
     void hideSilhouette() override;
     void hideShadowMask() override;
     void showModel() override;
     void showSilhouette() override;
     void showShadowMask() override;
+    void syncModelBoneVisibility();
     bool isFireFlower() const override;
     bool isMini() const override;
     bool isChange() const override;

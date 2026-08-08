@@ -23,6 +23,10 @@
 #include "Util/SensorMsgFunction.h"
 
 namespace {
+bool tryEndSeparateJump(al::LiveActor* actor, const IUsePlayerCollision* collision,
+                        const sead::Vector3f& stayPos, const sead::Vector3f& jumpStartPos,
+                        const sead::Vector3f& velocityH, f32 moveLimit, f32 gravityAccel);
+
 NERVE_IMPL(HackCapStateThrowStay, Stay)
 NERVE_IMPL_(HackCapStateThrowStay, SeparateDirectPlayer, SeparateHomingAttack)
 NERVE_IMPL(HackCapStateThrowStay, SeparateHipDropLoop)
@@ -60,8 +64,6 @@ HackCapStateThrowStay::HackCapStateThrowStay(
       _10c(false) {
     initNerve(&NrvHackCapStateThrowStay.Stay, 0);
 }
-
-HackCapStateThrowStay::~HackCapStateThrowStay() = default;
 
 void HackCapStateThrowStay::appear() {
     al::LiveActor* actor = mActor;
@@ -187,8 +189,7 @@ bool HackCapStateThrowStay::isEnableSendHipDropMsg() const {
 bool HackCapStateThrowStay::sendHipDropCollideMsg(al::HitSensor* sender) {
     if (!rs::isCollidedGround(mCollider))
         return false;
-    al::HitSensor* receiver = rs::tryGetCollidedGroundSensor(mCollider);
-    if (!rs::sendMsgCapHipDrop(receiver, sender))
+    if (!rs::sendMsgCapHipDrop(rs::tryGetCollidedGroundSensor(mCollider), sender))
         return false;
     _10c = mInput->isHoldCapSeparateHipDrop();
     return true;
@@ -204,42 +205,93 @@ bool HackCapStateThrowStay::sendHipDropObjMsg(HackCapTrigger* trigger, al::HitSe
 
 void HackCapStateThrowStay::exeStay() {}
 
-namespace {
-// NON_MATCHING: exact 600-byte size, but target uses a 0xD0 frame with D15-D8 saves and
-// S0/S1 spills versus current 0xB0/D11-D8; next keep scalar args addressable and split vector
-// components to extend floating-point lifetimes.
-bool tryEndSeparateJump(al::LiveActor* actor, const IUsePlayerCollision* collision,
-                        const sead::Vector3f& stayPos, const sead::Vector3f& jumpStartPos,
-                        const sead::Vector3f& velocityH, f32 moveLimit, f32 gravityAccel) {
-    const sead::Vector3f& gravity = al::getGravity(actor);
-    const sead::Vector3f& trans = al::getTrans(actor);
-    if (rs::isOnGround(actor, collision))
-        return true;
 
-    const f32 distanceV = (jumpStartPos - trans).dot(gravity);
-    if (al::isNearZeroOrLess(distanceV, 0.001f) && al::calcSpeedV(actor) < 0.0f)
-        return true;
+// NON_MATCHING: 1484 bytes versus the 1408-byte target; next split the approach/brake decision tree and shorten search-vector lifetimes.
+void HackCapStateThrowStay::exeSeparateMove() {
+    if (al::isFirstStep(this))
+        _98 = 0.0f;
 
-    al::addVelocityToGravityLimit(actor, gravityAccel, 40.0f);
-    sead::Vector3f actorVelocityH = sead::Vector3f::zero;
-    sead::Vector3f actorVelocityV = sead::Vector3f::zero;
-    al::separateVelocityHV(&actorVelocityH, &actorVelocityV, actor);
+    sead::Vector3f playerUp = sead::Vector3f::zero;
+    rs::calcGroundNormalOrUpDir(&playerUp, mPlayer, mCollision);
+    const f32 baseHeight = _a0.x;
+    f32 groundHeight = baseHeight * (-al::getGravity(mPlayer)).dot(playerUp);
+    groundHeight = sead::Mathf::clamp(groundHeight, 0.0f, baseHeight);
 
-    sead::Vector3f stayDirH = sead::Vector3f::zero;
-    al::verticalizeVec(&stayDirH, gravity, stayPos - trans);
-    f32 approachSpeed = stayDirH.length() - 2000.0f;
-    if (approachSpeed < 0.0f)
-        approachSpeed = 0.0f;
-    else if (approachSpeed > moveLimit)
-        approachSpeed = moveLimit;
-    al::limitLength(&stayDirH, stayDirH, approachSpeed);
+    sead::Vector3f vertical = sead::Vector3f::zero;
+    al::parallelizeVec(&vertical, al::getGravity(mActor), al::getTrans(mActor) - _74);
+    const f32 verticalLength = vertical.length();
+    const bool playerAir = !rs::isPlayerCollidedGround(mPlayer);
+    const f32 verticalDistance = vertical.dot(al::getGravity(mPlayer)) - groundHeight;
+    const bool shouldApproach =
+        _9c ? !al::isNearZeroOrLess(verticalDistance, 0.001f) :
+              playerAir && verticalDistance > (_71 ? 200.0f : 500.0f);
+    _9c = shouldApproach;
 
-    if (distanceV > 0.0f && al::isNearZero(gravity, 0.001f))
-        actorVelocityV.set(0.0f, 0.0f, 0.0f);
-    al::setVelocity(actor, stayDirH + velocityH + actorVelocityV);
-    return false;
+    f32 brakeTarget = 0.0f;
+    const bool approachOrFast = shouldApproach || _71;
+    if ((!playerAir || approachOrFast) &&
+        (verticalDistance >= 0.0f || !rs::isCollidedGround(mCollider))) {
+        if (verticalDistance <= 0.0f ||
+            (approachOrFast && !rs::isCollidedCeiling(mCollider))) {
+            brakeTarget = sead::Mathf::min(sead::Mathf::abs(verticalDistance) * 0.03f, 40.0f);
+        }
+    }
+    _98 = sead::Mathf::min(_98 + 3.0f, brakeTarget);
+    al::limitLength(&vertical, vertical,
+                    sead::Mathf::max(verticalLength - _98, groundHeight));
+    _80 = _74 + vertical;
+    al::verticalizeVec(&_8c, al::getGravity(mActor), al::getTrans(mActor) - _74);
+    updateStayMove();
+
+    if (rs::judgeAndResetReturnTrue(mJudgePreInputSeparateJump)) {
+        const sead::Vector3f up = -al::getGravity(mPlayer);
+        sead::Vector3f searchDir = sead::Vector3f::zero;
+        mInput->calcCapSeparateMoveInput(&searchDir, up);
+        bool useWideSearch = false;
+        if (!al::tryNormalizeOrZero(&searchDir)) {
+            al::verticalizeVec(&searchDir, up, al::getTrans(mActor) - _74);
+            if (!al::tryNormalizeOrZero(&searchDir)) {
+                _e0 = nullptr;
+            } else {
+                useWideSearch = true;
+            }
+        }
+
+        if (!al::isNearZero(searchDir, 0.001f)) {
+            sead::Vector3f targetDir = sead::Vector3f::zero;
+            _e0 = mEyeSensorHitHolder->findNearestSensorLimit(
+                &targetDir, al::getTrans(mActor), searchDir, up, 250.0f, 45.0f, 80.0f,
+                useWideSearch ? 300.0f : 500.0f);
+            if (!_e0 && useWideSearch) {
+                _e0 = mEyeSensorHitHolder->findNearestSensorLimit(
+                    &targetDir, al::getTrans(mActor), searchDir, up, 250.0f, 180.0f, 180.0f,
+                    300.0f);
+            }
+        }
+
+        if (_e0) {
+            al::setNerve(this, &NrvHackCapStateThrowStay.SeparateHomingAttack);
+            return;
+        }
+
+        bool jumpAway = _8c.length() >= 300.0f;
+        if (!jumpAway) {
+            sead::Vector3f input = sead::Vector3f::zero;
+            mInput->calcCapSeparateMoveInput(&input, up);
+            sead::Vector3f stayDir = _8c;
+            if (al::tryNormalizeOrZero(&input) && al::tryNormalizeOrZero(&stayDir) &&
+                input.dot(stayDir) > -0.70711f) {
+                jumpAway = true;
+            }
+        }
+        if (jumpAway)
+            al::setNerve(this, &NrvHackCapStateThrowStay.SeparateJump);
+        else
+            al::setNerve(this, &NrvHackCapStateThrowStay.SeparateHomingPlayer);
+    } else if (mInput->isTriggerCapSeparateHipDrop()) {
+        al::setNerve(this, &NrvHackCapStateThrowStay.SeparateHipDropStart);
+    }
 }
-}  // namespace
 
 void HackCapStateThrowStay::updateStayMove() {
     al::LiveActor* actor = mActor;
@@ -365,6 +417,122 @@ void HackCapStateThrowStay::exeSeparateJump() {
     }
 }
 
+namespace {
+// NON_MATCHING: target is 600 bytes; current idiomatic vector form retains the second getTrans and target gravity-test order but does not yet reproduce the target scalar live ranges. Next recover those lifetimes with vector-level source structure rather than scalarized components.
+bool tryEndSeparateJump(al::LiveActor* actor, const IUsePlayerCollision* collision,
+                        const sead::Vector3f& stayPos, const sead::Vector3f& jumpStartPos,
+                        const sead::Vector3f& velocityH, f32 moveLimit, f32 gravityAccel) {
+    const sead::Vector3f& gravity = al::getGravity(actor);
+    const sead::Vector3f& trans = al::getTrans(actor);
+
+    if (rs::isOnGround(actor, collision))
+        return true;
+
+    const f32 distanceV = (jumpStartPos.x - trans.x) * gravity.x +
+                          (jumpStartPos.y - trans.y) * gravity.y +
+                          (jumpStartPos.z - trans.z) * gravity.z;
+    if (al::isNearZeroOrLess(distanceV, 0.001f) && al::calcSpeedV(actor) < 0.0f)
+        return true;
+
+    al::addVelocityToGravityLimit(actor, gravityAccel, 40.0f);
+    sead::Vector3f actorVelocityH = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f actorVelocityV = {0.0f, 0.0f, 0.0f};
+    al::separateVelocityHV(&actorVelocityH, &actorVelocityV, actor);
+
+    sead::Vector3f stayDirH = {0.0f, 0.0f, 0.0f};
+    al::verticalizeVec(&stayDirH, gravity, stayPos - al::getTrans(actor));
+    f32 approachSpeed = stayDirH.length() - 2000.0f;
+    if (approachSpeed < 0.0f)
+        approachSpeed = 0.0f;
+    else if (approachSpeed > moveLimit)
+        approachSpeed = moveLimit;
+    al::limitLength(&stayDirH, stayDirH, approachSpeed);
+
+    if (al::isNearZero(gravity, 0.001f) && distanceV > 0.0f)
+        actorVelocityV.set(0.0f, 0.0f, 0.0f);
+    al::setVelocity(actor, stayDirH + velocityH + actorVelocityV);
+    return false;
+}
+}  // namespace
+
+// NON_MATCHING: 1540 bytes versus the 1536-byte target with the target 40/40 direct-call sequence; next recover corpus branch ordering/lifetimes around sensor validation and homing termination.
+void HackCapStateThrowStay::exeSeparateHomingAttack() {
+    const sead::Vector3f& gravity = al::getGravity(mActor);
+    if (al::isFirstStep(this)) {
+        _e8 = al::getTrans(mActor);
+        al::startHitReaction(mActor, "おすそ分けジャンプ");
+        _f4 = 1;
+    }
+
+    if (al::isLessEqualStep(this, _f4)) {
+        const sead::Vector3f& target =
+            al::isNerve(this, &NrvHackCapStateThrowStay.SeparateHomingAttack) ?
+                al::getSensorPos(_e0) :
+                rs::getPlayerBodyPos(mPlayer);
+        sead::Vector3f horizontal = sead::Vector3f::zero;
+        sead::Vector3f vertical = sead::Vector3f::zero;
+        al::separateVectorHV(&horizontal, &vertical, gravity, target - _e8);
+        al::limitLength(&horizontal, horizontal, 500.0f);
+        const f32 horizontalLength = horizontal.length();
+        const f32 verticalLimit = (sead::Mathf::max(500.0f - horizontalLength, 0.0f) + 500.0f) * 0.3f;
+        al::limitLength(&vertical, vertical, verticalLimit);
+        f32 verticalLength = vertical.length();
+        const f32 horizontalArch = sead::Mathf::max(horizontalLength * 0.3f, 200.0f);
+        f32 arch = horizontalArch + verticalLength * 0.5f;
+        if (arch > verticalLimit) {
+            if (vertical.dot(gravity) <= 0.0f) {
+                al::limitLength(&vertical, vertical,
+                                sead::Mathf::max(verticalLength - (arch - verticalLimit), 0.0f));
+                verticalLength = vertical.length();
+                arch = horizontalArch + verticalLength * 0.5f;
+            } else {
+                arch = verticalLimit;
+            }
+        }
+        _f8 = arch;
+        if (al::isFirstStep(this)) {
+            const f32 distance = sead::Mathf::max(horizontal.length(), arch / 0.3f);
+            _f4 = sead::Mathf::ceil(distance / (_71 ? 20.0f : 30.0f));
+        }
+
+        const f32 rate = al::calcNerveRate(this, _f4);
+        const f32 arcOffset = _f8 * sead::Mathf::sin(sead::Mathf::deg2rad(rate * 180.0f));
+        const sead::Vector3f desired = _e8 + rate * horizontal + rate * vertical - arcOffset * gravity;
+        sead::Vector3f move = desired - al::getTrans(mActor);
+        al::limitLength(&move, move, 60.0f);
+        if (rs::isCollidedWall(mCollider)) {
+            const sead::Vector3f& normal = rs::getCollidedWallNormal(mCollider);
+            al::limitVectorOppositeDir(&move, normal, move, move.length());
+        }
+        if (rs::isCollidedCeiling(mCollider)) {
+            const sead::Vector3f& normal = rs::getCollidedCeilingNormal(mCollider);
+            al::limitVectorOppositeDir(&move, normal, move, move.length());
+        }
+        al::setVelocity(mActor, move);
+        al::verticalizeVec(&_fc, gravity, move);
+    } else {
+        if (al::isNerve(this, &NrvHackCapStateThrowStay.SeparateDirectPlayer)) {
+            kill();
+            return;
+        }
+
+        const f32 accelH = _71 ? 1.0f : 1.5f;
+        const f32 speedH = _71 ? 10.0f : 15.0f;
+        sead::Vector3f input = sead::Vector3f::zero;
+        mInput->calcCapSeparateMoveInput(&input, -al::getGravity(mActor));
+        al::addVectorLimit(&_fc, accelH * input, speedH);
+        al::limitLength(&_fc, _fc, speedH);
+        if (tryEndSeparateJump(mActor, mCollision, _74, _e8, _fc, _a0.z, 2.0f)) {
+            al::setNerve(this, &NrvHackCapStateThrowStay.SeparateMove);
+            return;
+        }
+    }
+
+    if (!al::isNerve(this, &NrvHackCapStateThrowStay.SeparateDirectPlayer) &&
+        mInput->isTriggerCapSeparateHipDrop()) {
+        al::setNerve(this, &NrvHackCapStateThrowStay.SeparateHipDropStart);
+    }
+}
 void HackCapStateThrowStay::exeSeparateHipDropStart() {
     al::LiveActor* actor = mActor;
     if (al::isFirstStep(this)) {
@@ -518,168 +686,4 @@ void HackCapStateThrowStay::exeSeparateApproachEnd() {
     }
 }
 
-// NON_MATCHING: 1484 bytes versus the 1408-byte target; next split the approach/brake decision tree and shorten search-vector lifetimes.
-void HackCapStateThrowStay::exeSeparateMove() {
-    if (al::isFirstStep(this))
-        _98 = 0.0f;
-
-    sead::Vector3f playerUp = sead::Vector3f::zero;
-    rs::calcGroundNormalOrUpDir(&playerUp, mPlayer, mCollision);
-    const f32 baseHeight = _a0.x;
-    f32 groundHeight = baseHeight * (-al::getGravity(mPlayer)).dot(playerUp);
-    groundHeight = sead::Mathf::clamp(groundHeight, 0.0f, baseHeight);
-
-    sead::Vector3f vertical = sead::Vector3f::zero;
-    al::parallelizeVec(&vertical, al::getGravity(mActor), al::getTrans(mActor) - _74);
-    const f32 verticalLength = vertical.length();
-    const bool playerAir = !rs::isPlayerCollidedGround(mPlayer);
-    const f32 verticalDistance = vertical.dot(al::getGravity(mPlayer)) - groundHeight;
-    const bool shouldApproach =
-        _9c ? !al::isNearZeroOrLess(verticalDistance, 0.001f) :
-              playerAir && verticalDistance > (_71 ? 200.0f : 500.0f);
-    _9c = shouldApproach;
-
-    f32 brakeTarget = 0.0f;
-    const bool approachOrFast = shouldApproach || _71;
-    if ((!playerAir || approachOrFast) &&
-        (verticalDistance >= 0.0f || !rs::isCollidedGround(mCollider))) {
-        if (verticalDistance <= 0.0f ||
-            (approachOrFast && !rs::isCollidedCeiling(mCollider))) {
-            brakeTarget = sead::Mathf::min(sead::Mathf::abs(verticalDistance) * 0.03f, 40.0f);
-        }
-    }
-    _98 = sead::Mathf::min(_98 + 3.0f, brakeTarget);
-    al::limitLength(&vertical, vertical,
-                    sead::Mathf::max(verticalLength - _98, groundHeight));
-    _80 = _74 + vertical;
-    al::verticalizeVec(&_8c, al::getGravity(mActor), al::getTrans(mActor) - _74);
-    updateStayMove();
-
-    if (rs::judgeAndResetReturnTrue(mJudgePreInputSeparateJump)) {
-        const sead::Vector3f up = -al::getGravity(mPlayer);
-        sead::Vector3f searchDir = sead::Vector3f::zero;
-        mInput->calcCapSeparateMoveInput(&searchDir, up);
-        bool useWideSearch = false;
-        if (!al::tryNormalizeOrZero(&searchDir)) {
-            al::verticalizeVec(&searchDir, up, al::getTrans(mActor) - _74);
-            if (!al::tryNormalizeOrZero(&searchDir)) {
-                _e0 = nullptr;
-            } else {
-                useWideSearch = true;
-            }
-        }
-
-        if (!al::isNearZero(searchDir, 0.001f)) {
-            sead::Vector3f targetDir = sead::Vector3f::zero;
-            _e0 = mEyeSensorHitHolder->findNearestSensorLimit(
-                &targetDir, al::getTrans(mActor), searchDir, up, 250.0f, 45.0f, 80.0f,
-                useWideSearch ? 300.0f : 500.0f);
-            if (!_e0 && useWideSearch) {
-                _e0 = mEyeSensorHitHolder->findNearestSensorLimit(
-                    &targetDir, al::getTrans(mActor), searchDir, up, 250.0f, 180.0f, 180.0f,
-                    300.0f);
-            }
-        }
-
-        if (_e0) {
-            al::setNerve(this, &NrvHackCapStateThrowStay.SeparateHomingAttack);
-            return;
-        }
-
-        bool jumpAway = _8c.length() >= 300.0f;
-        if (!jumpAway) {
-            sead::Vector3f input = sead::Vector3f::zero;
-            mInput->calcCapSeparateMoveInput(&input, up);
-            sead::Vector3f stayDir = _8c;
-            if (al::tryNormalizeOrZero(&input) && al::tryNormalizeOrZero(&stayDir) &&
-                input.dot(stayDir) > -0.70711f) {
-                jumpAway = true;
-            }
-        }
-        if (jumpAway)
-            al::setNerve(this, &NrvHackCapStateThrowStay.SeparateJump);
-        else
-            al::setNerve(this, &NrvHackCapStateThrowStay.SeparateHomingPlayer);
-    } else if (mInput->isTriggerCapSeparateHipDrop()) {
-        al::setNerve(this, &NrvHackCapStateThrowStay.SeparateHipDropStart);
-    }
-}
-
-// NON_MATCHING: 1492 bytes versus the 1536-byte target; next recover the corpus branch ordering around sensor validation and homing termination.
-void HackCapStateThrowStay::exeSeparateHomingAttack() {
-    const sead::Vector3f& gravity = al::getGravity(mActor);
-    if (al::isFirstStep(this)) {
-        _e8 = al::getTrans(mActor);
-        al::startHitReaction(mActor, "おすそ分けジャンプ");
-        _f4 = 1;
-    }
-
-    if (al::isLessEqualStep(this, _f4)) {
-        const sead::Vector3f& target =
-            al::isNerve(this, &NrvHackCapStateThrowStay.SeparateHomingAttack) ?
-                al::getSensorPos(_e0) :
-                rs::getPlayerBodyPos(mPlayer);
-        sead::Vector3f horizontal = sead::Vector3f::zero;
-        sead::Vector3f vertical = sead::Vector3f::zero;
-        al::separateVectorHV(&horizontal, &vertical, gravity, target - _e8);
-        al::limitLength(&horizontal, horizontal, 500.0f);
-        const f32 horizontalLength = horizontal.length();
-        const f32 verticalLimit = (sead::Mathf::max(500.0f - horizontalLength, 0.0f) + 500.0f) * 0.3f;
-        al::limitLength(&vertical, vertical, verticalLimit);
-        f32 verticalLength = vertical.length();
-        const f32 horizontalArch = sead::Mathf::max(horizontalLength * 0.3f, 200.0f);
-        f32 arch = horizontalArch + verticalLength * 0.5f;
-        if (arch > verticalLimit) {
-            if (vertical.dot(gravity) <= 0.0f) {
-                al::limitLength(&vertical, vertical,
-                                sead::Mathf::max(verticalLength - (arch - verticalLimit), 0.0f));
-                verticalLength = vertical.length();
-                arch = horizontalArch + verticalLength * 0.5f;
-            } else {
-                arch = verticalLimit;
-            }
-        }
-        _f8 = arch;
-        if (al::isFirstStep(this)) {
-            const f32 distance = sead::Mathf::max(horizontalLength, arch / 0.3f);
-            _f4 = sead::Mathf::ceil(distance / (_71 ? 20.0f : 30.0f));
-        }
-
-        const f32 rate = al::calcNerveRate(this, _f4);
-        const f32 arcOffset = _f8 * sead::Mathf::sin(sead::Mathf::deg2rad(rate * 180.0f));
-        const sead::Vector3f desired = _e8 + rate * horizontal + rate * vertical - arcOffset * gravity;
-        sead::Vector3f move = desired - al::getTrans(mActor);
-        al::limitLength(&move, move, 60.0f);
-        if (rs::isCollidedWall(mCollider)) {
-            const sead::Vector3f& normal = rs::getCollidedWallNormal(mCollider);
-            al::limitVectorOppositeDir(&move, move, normal, move.length());
-        }
-        if (rs::isCollidedCeiling(mCollider)) {
-            const sead::Vector3f& normal = rs::getCollidedCeilingNormal(mCollider);
-            al::limitVectorOppositeDir(&move, move, normal, move.length());
-        }
-        al::setVelocity(mActor, move);
-        al::verticalizeVec(&_fc, gravity, move);
-    } else {
-        if (al::isNerve(this, &NrvHackCapStateThrowStay.SeparateDirectPlayer)) {
-            kill();
-            return;
-        }
-
-        const f32 accelH = _71 ? 1.0f : 1.5f;
-        const f32 speedH = _71 ? 10.0f : 15.0f;
-        sead::Vector3f input = sead::Vector3f::zero;
-        mInput->calcCapSeparateMoveInput(&input, -gravity);
-        al::addVectorLimit(&_fc, accelH * input, speedH);
-        al::limitLength(&_fc, _fc, speedH);
-        if (tryEndSeparateJump(mActor, mCollision, _74, _e8, _fc, _a0.z, 2.0f)) {
-            al::setNerve(this, &NrvHackCapStateThrowStay.SeparateMove);
-            return;
-        }
-    }
-
-    if (!al::isNerve(this, &NrvHackCapStateThrowStay.SeparateDirectPlayer) &&
-        mInput->isTriggerCapSeparateHipDrop()) {
-        al::setNerve(this, &NrvHackCapStateThrowStay.SeparateHipDropStart);
-    }
-}
+HackCapStateThrowStay::~HackCapStateThrowStay() = default;

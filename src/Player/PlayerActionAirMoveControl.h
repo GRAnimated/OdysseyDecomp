@@ -14,18 +14,29 @@ class IUsePlayerHack;
 
 class PlayerActionAirMoveControl {
 public:
-    PlayerActionAirMoveControl(al::LiveActor*, const PlayerConst*, const PlayerInput*,
-                               const IUsePlayerCollision*, bool);
-    void setup(f32, f32, s32, f32, f32, s32, f32);
-    void setupTurn(f32, f32, f32, f32, s32, s32, s32);
-    void setExtendFrame(s32);
-    void setupCollideWallScaleVelocity(f32, f32, f32);
-    void verticalizeStartMoveDir(const sead::Vector3f&);
+    PlayerActionAirMoveControl(al::LiveActor* actor, const PlayerConst* playerConst,
+                               const PlayerInput* input, const IUsePlayerCollision* collision,
+                               bool isSlerpGravity);
+    void setup(f32 speedMax, f32 inertiaAdd, s32 extendFrame, f32 velocityV, f32 gravityAccel,
+               s32 noInputFrame, f32 inertiaRate);
+    void setupTurn(f32 angleStart, f32 angleFast, f32 angleLimit, f32 angleFastLimit,
+                   s32 accelFrame, s32 accelFrameFast, s32 brakeFrame);
+    void setExtendFrame(s32 frame);
+    void setupCollideWallScaleVelocity(f32 velocityScaleH, f32 maxVelocityH, f32 maxScaledVelocityH);
+    void verticalizeStartMoveDir(const sead::Vector3f& vertical);
     void update();
     bool isHoldJumpExtend() const;
-    void calcMoveInput(sead::Vector3f*, const sead::Vector3f&) const;
+    void calcMoveInput(sead::Vector3f* moveInput, const sead::Vector3f& up) const;
     const sead::Vector3f& getStartMoveDir() const { return mStartMoveDir; }
     void setIsPlayer2D(bool value) { _33 = value; }
+    void setPlayerHack(IUsePlayerHack** playerHack) { _20 = playerHack; }
+    void setUseGroundNormalForStartMove(bool value) { _40 = value; }
+    void setIsInertiaWall(bool value) { _41 = value; }
+    void setStartMoveSpeedClamp(bool value, f32 minSpeed, f32 maxSpeed) {
+        _42 = value;
+        _44 = minSpeed;
+        _48 = maxSpeed;
+    }
 
 private:
     al::LiveActor* mActor;

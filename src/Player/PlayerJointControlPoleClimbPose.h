@@ -12,7 +12,7 @@ class LiveActor;
 
 class PlayerJointControlPoleClimbPose : public al::JointControllerBase {
 public:
-    explicit PlayerJointControlPoleClimbPose(const al::LiveActor*);
+    PlayerJointControlPoleClimbPose(const al::LiveActor*);
 
     void calcJointCallback(s32 jointIndex, sead::Matrix34f*) override;
     void calcAngle(sead::Matrix34f*, const sead::Vector3f&);

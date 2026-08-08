@@ -32,6 +32,16 @@ struct KCPrismData {
     u32 triIndex;
 };
 
+struct KCollisionServerData {
+    u32 _0;
+    u32 octreeDataOffset;
+    u32 modelListDataOffset;
+    s32 modelCount;
+    sead::Vector3f min;
+    sead::Vector3f max;
+    u32 widthShift[3];
+};
+
 struct KCHitInfo {
     const KCPrismHeader* header;
     const KCPrismData* data;
@@ -49,7 +59,7 @@ public:
     u32 getNumInnerKcl() const;
     const KCPrismHeader* getV1Header(s32 index) const;
     bool calcFarthestVertexDistance();
-    s32 getTriangleNum(const KCPrismHeader* header) const;
+    u64 getTriangleNum(const KCPrismHeader* header) const;
     const KCPrismData& getPrismData(u32 index, const KCPrismHeader* header) const;
     bool isNearParallelNormal(const KCPrismData* data, const KCPrismHeader* header) const;
     bool isNanPrism(const KCPrismData* data, const KCPrismHeader* header) const;
@@ -127,12 +137,14 @@ public:
                     const KCPrismHeader* header);  // TODO unknown parameter usage
     s32 calcAreaBlockOffset(const sead::Vector3u& block, const KCPrismHeader* header) const;
 
+    f32 getFarthestVertexDistance() const { return mFarthestVertexDistance; }
+
     static s32 calcChildBlockOffset(const sead::Vector3u& block, s32 shift);
     static u32 getBlockData(const u32* data, u32 offset);
 
 private:
     sead::PtrArray<KCPrismHeader> mModelsData;
-    void* mData;
+    const KCollisionServerData* mData;
     ByamlIter* mAttributeIter;
     void* mModelListData;
     void* mOctreeData;
@@ -181,7 +193,7 @@ public:
     void calcInterp(sead::Vector3f* pos, f32* size, sead::Quatf* quat,
                     sead::Vector3f* remainMoveVec) const;
     void calcRemainMoveVector(sead::Vector3f* remainMoveVec) const;
-    f32 calcRadiusBaseScale(f32 unk) const;
+    f32 calcRadiusBaseScale(f32 radius) const;
     void getMoveVector(sead::Vector3f* moveVec);
 
     bool isInterpolationEnd() const { return mPrevStep == 1.0f && mCurrentStep == 1.0f; }

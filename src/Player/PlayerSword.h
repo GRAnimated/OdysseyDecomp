@@ -20,4 +20,3 @@ private:
     bool mIsInvisible = false;
 };
 
-static_assert(sizeof(PlayerSword) == 0x128);

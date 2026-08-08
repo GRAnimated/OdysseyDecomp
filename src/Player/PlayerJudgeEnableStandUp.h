@@ -10,11 +10,10 @@ public:
     PlayerJudgeEnableStandUp(const IUsePlayerCollision* collider,
                              const IUsePlayerCeilingCheck* ceilingChecker);
 
-    void reset() override {}
-
-    void update() override {}
-
     bool judge() const override;
+
+    void reset() override {}
+    void update() override {}
 
 private:
     const IUsePlayerCollision* mCollider;

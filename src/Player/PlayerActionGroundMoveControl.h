@@ -15,26 +15,30 @@ class PlayerActionTurnControl;
 
 class PlayerActionGroundMoveControl {
 public:
-    PlayerActionGroundMoveControl(al::LiveActor*, const PlayerConst*, const PlayerInput*,
-                                  const IUsePlayerCollision*);
+    friend class PlayerStateDamageFire;
+    friend class PlayerStateSpinCap;
 
-    void initDash(IJudge*, f32, s32);
-    void setupDash(f32, s32);
-    void setup(f32, f32, s32, s32, s32, f32, f32, s32);
+    PlayerActionGroundMoveControl(al::LiveActor* parent, const PlayerConst* playerConst,
+                                  const PlayerInput* playerInput,
+                                  const IUsePlayerCollision* collision);
+
+    void initDash(IJudge* judge, f32 speed, s32 frame);
+    void setupDash(f32 speed, s32 frame);
+    void setup(f32 maxSpeed, f32 minSpeed, s32 runFrame, s32 stickOnBrakeFrame, s32 brakeFrame, f32 gravityMove, f32 brakeSpeed, s32 counterBorder);
     void appear();
-    void reset(const sead::Vector3f&);
+    void reset(const sead::Vector3f& groundNormal);
     void calcInitBrakeOnCounter();
     f32 update();
     f32 updateSkateMove();
     f32 updateNormalMove();
-    void updateNormalAndSnap(sead::Vector3f*);
+    void updateNormalAndSnap(sead::Vector3f* velocity);
     f32 calcTurnTiltRate() const;
-    void calcMoveInput(sead::Vector3f*, const sead::Vector3f&);
+    void calcMoveInput(sead::Vector3f* moveInput, const sead::Vector3f& up);
     bool isActiveSquatBrake() const;
-    void updateHillAffect(const sead::Vector3f&, const sead::Vector3f&, bool);
-    f32 calcMaxSpeed(f32) const;
-    f32 calcAccelRate(f32) const;
-    void updatePoseUpFront(const sead::Vector3f&, const sead::Vector3f&, f32);
+    void updateHillAffect(const sead::Vector3f& groundNormal, const sead::Vector3f& moveInput, bool hasMoveInput);
+    f32 calcMaxSpeed(f32 speed) const;
+    f32 calcAccelRate(f32 speed) const;
+    void updatePoseUpFront(const sead::Vector3f& up, const sead::Vector3f& front, f32 speed);
 
     const sead::Vector3f& getGroundNormal() const { return mGroundNormal; }
     bool isBrake2D() const { return _64; }
@@ -42,13 +46,21 @@ public:
     void setIs2D(bool is2D) { _d5 = is2D; }
 
     void set_c4(bool c4) { _c4 = c4; }
+    void setupHackRunFlags() {
+        _bb = false;
+        _78 = true;
+        _b8 = true;
+        _bd = true;
+    }
+    void setPlayerHack(IUsePlayerHack** playerHack) { mHack = playerHack; }
+    void setTurnInvalid(bool isInvalid) { _ba = isInvalid; }
 
 private:
     al::LiveActor* mParent;
     const PlayerConst* mPlayerConst;
     const PlayerInput* mPlayerInput;
     const IUsePlayerCollision* mCollision;
-    const IUsePlayerHack** mHack = nullptr;
+    IUsePlayerHack** mHack = nullptr;
     bool mIsSetup = false;
     sead::Vector3f mGroundNormal;
     f32 mMaxSpeed;

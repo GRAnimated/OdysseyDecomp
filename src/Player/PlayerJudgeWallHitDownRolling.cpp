@@ -13,10 +13,6 @@ PlayerJudgeWallHitDownRolling::PlayerJudgeWallHitDownRolling(
     const PlayerConst* pConst, const PlayerTrigger* trigger)
     : mPlayer(player), mCollision(collision), mConst(pConst), mTrigger(trigger) {}
 
-void PlayerJudgeWallHitDownRolling::reset() {}
-
-void PlayerJudgeWallHitDownRolling::update() {}
-
 bool PlayerJudgeWallHitDownRolling::judge() const {
     if (!rs::isCollidedWall(mCollision) || rs::isActionCodeNoActionWall(mCollision) ||
         mTrigger->isOn(PlayerTrigger::ECollisionTrigger_val9))
@@ -45,8 +41,11 @@ bool PlayerJudgeWallHitDownRolling::judge() const {
     if (al::isNearZeroOrLess(groundOffset - mConst->getCollisionSmallStepHeight(), 0.001f))
         return false;
 
-    const sead::Vector3f& collidedGroundNormal = rs::getCollidedGroundNormal(mCollision);
-    groundNormal = collidedGroundNormal;
+    groundNormal = rs::getCollidedGroundNormal(mCollision);
     return al::calcAngleDegree(groundNormal, collidedWallNormal) >
            mConst->getCollisionHitDownEscapeAngleV();
 }
+
+void PlayerJudgeWallHitDownRolling::reset() {}
+
+void PlayerJudgeWallHitDownRolling::update() {}

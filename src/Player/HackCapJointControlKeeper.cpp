@@ -3,8 +3,7 @@
 #include "Library/Joint/JointControllerKeeper.h"
 #include "Library/Math/MathUtil.h"
 
-HackCapJointControlKeeper::HackCapJointControlKeeper()
-    : mRotateY(0.0f), mRotateYVelocity(0.0f), mRotateZ(0.0f), mRotateZVelocity(0.0f) {}
+HackCapJointControlKeeper::HackCapJointControlKeeper() {}
 
 void HackCapJointControlKeeper::initCapJointControl(al::LiveActor* actor) {
     al::initJointControllerKeeper(actor, 3);

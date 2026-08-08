@@ -5,6 +5,7 @@
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 
+#include "Player/PlayerActionSlopeSlideControl.h"
 #include "Player/PlayerConst.h"
 #include "Player/PlayerEffect.h"
 #include "Util/JudgeUtil.h"
@@ -27,14 +28,12 @@ public:
 };
 
 NERVE_IMPL(PlayerStateRolling, UnRoll);
+NERVE_IMPL(PlayerStateRolling, Land);
 NERVE_IMPL(PlayerStateRolling, Brake);
 
 NERVES_MAKE_STRUCT(PlayerStateRolling, Start, Rolling, BoostStart, Jump, StandUp, EndSquat, UnRoll,
-                   Brake);
+                   Land, Brake);
 }  // namespace
-
-PlayerStateRolling::~PlayerStateRolling() = default;
-
 void PlayerStateRolling::kill() {
     mEffect->tryDeleteRollingEffect();
     al::NerveStateBase::kill();
@@ -86,7 +85,18 @@ f32 PlayerStateRolling::getInverseKinematicsRate() const {
     return al::isNerve(this, &NrvPlayerStateRolling.StandUp) ? 1.0f : 0.0f;
 }
 
+bool PlayerStateRolling::isStartRollingBrake() const {
+    if (!rs::isOnGroundSlopeSlideEnd(mActor, mCollision, mConst))
+        return false;
+    if (mSlopeSlideControl->getHorizontalVelocity().length() > mConst->getSlopeRollingSpeedEnd())
+        return false;
+    return _98 >= mConst->getSlopeRollingFrameMin() && !_b0;
+}
+
 void PlayerStateRolling::exeEndSquat() {
     if (al::isFirstStep(this))
         mEffect->tryDeleteRollingEffect();
 }
+
+PlayerStateRolling::~PlayerStateRolling() = default;
+

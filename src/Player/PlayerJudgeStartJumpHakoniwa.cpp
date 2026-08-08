@@ -4,7 +4,7 @@
 #include "Util/JudgeUtil.h"
 
 PlayerJudgeStartJumpHakoniwa::PlayerJudgeStartJumpHakoniwa(const PlayerInput* input, IJudge* judge)
-    : mInput(input), mJudge(judge), mIsTrigger(false) {}
+    : mInput(input), mJudge(judge) {}
 
 void PlayerJudgeStartJumpHakoniwa::update() {
     if (rs::updateJudgeAndResult(mJudge))

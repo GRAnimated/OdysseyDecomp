@@ -17,13 +17,11 @@ public:
     PlayerJudgeStartRun(const al::LiveActor* player, const PlayerConst* pConst,
                         const IUsePlayerCollision* collision, const PlayerInput* input,
                         const PlayerCounterForceRun* counterForceRun,
-                        const IJudge* judgeWaterSurfaceRun);
-
-    void reset() override {}
-
-    void update() override {}
+                        const IJudge* judgeForceLand);
 
     bool judge() const override;
+    void reset() override {}
+    void update() override {}
 
 private:
     const al::LiveActor* mPlayer;

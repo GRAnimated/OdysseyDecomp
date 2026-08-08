@@ -13,7 +13,7 @@ class LiveActor;
 
 class PlayerJointControlGrabPose : public al::JointControllerBase {
 public:
-    explicit PlayerJointControlGrabPose(const al::LiveActor*);
+    PlayerJointControlGrabPose(const al::LiveActor* player);
 
     void calcJointCallback(s32 jointIndex, sead::Matrix34f*) override;
     void calcArmMtx(sead::Matrix34f*, const sead::SafeArray<sead::Matrix34f, 2>&,

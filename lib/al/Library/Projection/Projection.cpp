@@ -79,6 +79,10 @@ f32 Projection::getAspect() const {
     return mBase.getAspect();
 }
 
+bool isProjectionReverse() {
+    return false;
+}
+
 f32 Projection::getFovy() const {
     return mBase.getFovy();
 }

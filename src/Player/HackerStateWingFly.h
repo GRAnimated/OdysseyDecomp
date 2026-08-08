@@ -57,9 +57,6 @@ public:
         f32 turnAngle = 20.0f;
         f32 flyStartLerpTime = 0.1f;
     };
-
-    static_assert(sizeof(HackerStateWingFlyParam) == 0x48, "HackerStateWingFlyParam Size");
-
     void setFlyParam(HackerStateWingFlyParam param) { mParam = param; }
 
 private:

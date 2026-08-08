@@ -8,9 +8,9 @@ class PlayerJudgeEnablePeachAmiibo : public IJudge {
 public:
     PlayerJudgeEnablePeachAmiibo(const PlayerStateDamageFire* stateDamageFire);
 
+    bool judge() const override;
     void reset() override {}
     void update() override {}
-    bool judge() const override;
 
 private:
     const PlayerStateDamageFire* mStateDamageFire;

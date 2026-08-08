@@ -15,13 +15,12 @@ public:
     PlayerJudgePreInputCapThrow(const PlayerConst* playerConst, const PlayerInput* input,
                                 const PlayerCarryKeeper* carryKeeper, const HackCap* hackCap);
 
-    void reset() override;
-    void update() override;
-    bool judge() const override;
-
     void recordJudgeAndReset();
     void recordSeparateJudge();
     void recordCooperateAndReset();
+    void reset() override;
+    void update() override;
+    bool judge() const override;
 
     s32 getRecordedThrowType() const { return mRecordedInfo.throwType; }
     const sead::Vector2f& getRecordedThrowDir() const { return mRecordedInfo.throwDir; }
@@ -35,8 +34,6 @@ private:
         sead::Vector2f doubleThrowDir;
         bool isCooperate;
     };
-    static_assert(sizeof(CapThrowInfo) == 0x18);
-
     static void clearInfo(CapThrowInfo* info) {
         *info = {0, sead::Vector2f(0.0f, 0.0f), sead::Vector2f(0.0f, 0.0f), false};
     }

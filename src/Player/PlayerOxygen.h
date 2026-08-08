@@ -6,11 +6,11 @@ class PlayerOxygen {
 public:
     PlayerOxygen();
 
-    bool isTriggerDamage() const;
-    void recovery();
-    void reduce();
-    void reset();
     void setup(s32 no_reduce_frame, s32 reduce_frame, s32 recovery_frame, s32 damage_interval);
+    void reset();
+    void reduce();
+    void recovery();
+    bool isTriggerDamage() const;
     f32 getRate() const { return mOxygenLevel; }
     bool isReducing() const { return mFramesReducing > 0; }
 

@@ -27,6 +27,16 @@
 namespace PlayerFunction {
 
 
+void setupMarioFaceEarringVisibility(al::LiveActor* actor, const PlayerCostumeInfo* costumeInfo) {
+    if (al::isExistJoint(actor, "Earrings"))
+        al::setJointVisibility(actor, "Earrings", costumeInfo->isEnableEarring());
+}
+
+void setupMarioHeadStrapVisibility(al::LiveActor* actor, const PlayerCostumeInfo* costumeInfo) {
+    if (costumeInfo->getHeadInfo()->isUseStrap)
+        al::setJointVisibility(actor, "Strap", !costumeInfo->getBodyInfo()->isUseBeard);
+}
+
 void createCapModelName(sead::BufferedSafeStringBase<char>* modelName,
                         const char* playerModelName) {
     if (al::isEqualString(playerModelName, "MarioInvisible"))
@@ -36,9 +46,9 @@ void createCapModelName(sead::BufferedSafeStringBase<char>* modelName,
 }
 
 void initYoshiTongueParamHolder(al::LiveActor* actor) {
-    sead::SafeString resourcePath("ObjectData/MarioCapCommonInfo");
-    al::Resource* resource = al::findOrCreateResource(resourcePath, nullptr);
-    al::initActorParamHolder(actor, resource, nullptr);
+    al::initActorParamHolder(
+        actor, al::findOrCreateResource(sead::SafeString("ObjectData/MarioCapCommonInfo"), nullptr),
+        nullptr);
 }
 
 bool isNeedHairControl(const PlayerBodyCostumeInfo* bodyInfo, const char* headName) {
@@ -56,6 +66,18 @@ bool isInvisibleCap(const PlayerCostumeInfo* costumeInfo) {
     return costumeInfo->getHeadInfo()->isInvisibleHead;
 }
 
+void showHairVisibility(al::LiveActor* actor) {
+    if (al::isExistJoint(actor, "CapHair"))
+        al::setJointVisibility(actor, "CapHair", true);
+    al::setJointVisibility(actor, "Hair", true);
+}
+
+void hideHairVisibility(al::LiveActor* actor) {
+    if (al::isExistJoint(actor, "CapHair"))
+        al::setJointVisibility(actor, "CapHair", false);
+    al::setJointVisibility(actor, "Hair", false);
+}
+
 void syncBodyHairVisibility(al::LiveActor* actor, al::LiveActor* bodyActor) {
     if (al::isJointVisibility(bodyActor, "Cap") && !al::isJointVisibility(bodyActor, "Hair")) {
         al::setJointVisibility(actor, "Hair", false);
@@ -64,6 +86,14 @@ void syncBodyHairVisibility(al::LiveActor* actor, al::LiveActor* bodyActor) {
         al::setJointVisibility(actor, "Hair", true);
         al::setJointVisibility(actor, "CapHair", false);
     }
+}
+
+void getMarioFaceNoseShrinkScale(sead::Vector3f* scale) {
+    scale->set(0.75f, 1.0f, 1.0f);
+}
+
+void getMarioFaceBigEarScale(sead::Vector3f* scale) {
+    scale->set(1.5f, 1.2f, 1.0f);
 }
 
 void syncMarioFaceBeardVisibility(al::LiveActor* actor, al::LiveActor* headActor) {
@@ -75,23 +105,34 @@ void setupMarioFaceBeardVisibility(al::LiveActor* actor, const PlayerCostumeInfo
         al::setJointVisibility(actor, "Beard", !costumeInfo->isSyncFaceBeard());
 }
 
-void setupMarioFaceEarringVisibility(al::LiveActor* actor, const PlayerCostumeInfo* costumeInfo) {
-    if (al::isExistJoint(actor, "Earrings"))
-        al::setJointVisibility(actor, "Earrings", costumeInfo->isEnableEarring());
-}
-
-void setupMarioHeadStrapVisibility(al::LiveActor* actor, const PlayerCostumeInfo* costumeInfo) {
-    if (costumeInfo->getHeadInfo()->isUseStrap)
-        al::setJointVisibility(actor, "Strap", !costumeInfo->getBodyInfo()->isUseBeard);
-}
-
 void syncMarioHeadStrapVisibility(al::LiveActor* actor) {
     sead::Vector3f capTrans = al::getJointMtxPtr(actor, "Cap")->getTranslation();
     sead::Vector3f jawTrans = al::getJointMtxPtr(actor, "Jaw")->getTranslation();
-    f32 distance = (jawTrans - capTrans).length();
-    bool isNear = distance < 60.0f;
-    bool isCapVisible = al::isJointVisibility(actor, "Cap");
-    al::setJointVisibility(actor, "Strap", isCapVisible & isNear);
+    bool isNear = (jawTrans - capTrans).length() < 60.0f;
+    al::setJointVisibility(actor, "Strap", al::isJointVisibility(actor, "Cap") & isNear);
+}
+
+al::ActorDitherAnimator* createPlayerDitherAnimator(al::LiveActor* actor, f32 distance) {
+    auto* animator = new al::ActorDitherAnimator(actor);
+    animator->initSphereByProgram(distance, true);
+    animator->initSubJudgeTableByProgram(true);
+    animator->initSubJudgeBoundingBoxByProgram("SnapShotMode", sead::Vector3f(65.0f, 150.0f, 65.0f),
+                                               sead::Vector3f(0.0f, 75.0f, 5.0f));
+    return animator;
+}
+
+bool isPlayerHitPointOne(const al::LiveActor* actor) {
+    return GameDataFunction::getPlayerHitPoint(GameDataHolderAccessor(actor)) == 1;
+}
+
+bool isPlayerDeadStatus(const al::LiveActor* actor) {
+    auto* player = static_cast<PlayerActorBase*>(al::getPlayerActor(actor, 0));
+    PlayerInfo* info = player->getPlayerInfo();
+    if (info)
+        return rs::isJudge(info->getJudgeDead());
+
+    player = static_cast<PlayerActorBase*>(al::getPlayerActor(actor, 0));
+    return al::isDead(player);
 }
 
 bool isPlayerDeadWipeStart(const al::LiveActor* actor) {
@@ -121,25 +162,6 @@ void getPlayerDeadWipeInfo(const al::LiveActor* actor, const char** name, s32* w
     *wait = 0;
 }
 
-bool tryActivateAmiiboPreventDamage(const al::LiveActor* actor) {
-    auto* player = static_cast<PlayerActorBase*>(al::getPlayerActor(actor, 0));
-    PlayerInfo* info = player->getPlayerInfo();
-    if (!info)
-        return false;
-
-    PlayerDamageKeeper* damageKeeper = info->getDamageKeeper();
-    if (!damageKeeper || damageKeeper->isPreventDamage())
-        return false;
-
-    damageKeeper->activatePreventDamage();
-    if (info->getHackKeeper()->getHackSensor()) {
-        HackCap* cap = info->getHackCap();
-        if (cap)
-            cap->activateInvincibleEffect();
-    }
-    return true;
-}
-
 bool isPlayerDeadDrawForward(const al::LiveActor* actor) {
     auto* player = static_cast<PlayerActorBase*>(al::getPlayerActor(actor, 0));
     PlayerInfo* info = player->getPlayerInfo();
@@ -161,8 +183,26 @@ const sead::Matrix34f* getPlayerViewMtx(const al::LiveActor* actor) {
 void calcPlayerInputVec(sead::Vector3f* inputVec, const al::LiveActor* actor) {
     inputVec->set(sead::Vector3f::zero);
     const sead::Vector2f& input = al::getLeftStick(getPlayerInputPort(actor));
-    sead::Vector3f up = -al::getGravity(actor);
-    al::calcVecViewInput(inputVec, input, up, getPlayerViewMtx(actor));
+    al::calcVecViewInput(inputVec, input, -al::getGravity(actor), getPlayerViewMtx(actor));
+}
+
+bool tryActivateAmiiboPreventDamage(const al::LiveActor* actor) {
+    auto* player = static_cast<PlayerActorBase*>(al::getPlayerActor(actor, 0));
+    PlayerInfo* info = player->getPlayerInfo();
+    if (!info)
+        return false;
+
+    PlayerDamageKeeper* damageKeeper = info->getDamageKeeper();
+    if (!damageKeeper || damageKeeper->isPreventDamage())
+        return false;
+
+    damageKeeper->activatePreventDamage();
+    if (info->getHackKeeper()->getHackSensor()) {
+        HackCap* cap = info->getHackCap();
+        if (cap)
+            cap->activateInvincibleEffect();
+    }
+    return true;
 }
 
 const char* getPlayerDepthGroundShadowName() {
@@ -175,51 +215,6 @@ void changeDepthShadowMapSizeHigh(al::LiveActor* actor) {
 
 void changeDepthShadowMapSizeNormal(al::LiveActor* actor) {
     al::setDepthShadowMapSize(actor, 0x100, 0x100, "DepthDirectional");
-}
-
-void getMarioFaceNoseShrinkScale(sead::Vector3f* scale) {
-    scale->set(0.75f, 1.0f, 1.0f);
-}
-
-void getMarioFaceBigEarScale(sead::Vector3f* scale) {
-    scale->set(1.5f, 1.2f, 1.0f);
-}
-
-void showHairVisibility(al::LiveActor* actor) {
-    if (al::isExistJoint(actor, "CapHair"))
-        al::setJointVisibility(actor, "CapHair", true);
-    al::setJointVisibility(actor, "Hair", true);
-}
-
-void hideHairVisibility(al::LiveActor* actor) {
-    if (al::isExistJoint(actor, "CapHair"))
-        al::setJointVisibility(actor, "CapHair", false);
-    al::setJointVisibility(actor, "Hair", false);
-}
-
-al::ActorDitherAnimator* createPlayerDitherAnimator(al::LiveActor* actor, f32 distance) {
-    auto* animator = new al::ActorDitherAnimator(actor);
-    animator->initSphereByProgram(distance, true);
-    animator->initSubJudgeTableByProgram(true);
-    sead::Vector3f boxMax(65.0f, 150.0f, 65.0f);
-    sead::Vector3f boxMin(0.0f, 75.0f, 5.0f);
-    animator->initSubJudgeBoundingBoxByProgram("SnapShotMode", boxMax, boxMin);
-    return animator;
-}
-
-bool isPlayerHitPointOne(const al::LiveActor* actor) {
-    GameDataHolderAccessor accessor(actor);
-    return GameDataFunction::getPlayerHitPoint(accessor) == 1;
-}
-
-bool isPlayerDeadStatus(const al::LiveActor* actor) {
-    auto* player = static_cast<PlayerActorBase*>(al::getPlayerActor(actor, 0));
-    PlayerInfo* info = player->getPlayerInfo();
-    if (info)
-        return rs::isJudge(info->getJudgeDead());
-
-    player = static_cast<PlayerActorBase*>(al::getPlayerActor(actor, 0));
-    return al::isDead(player);
 }
 
 }  // namespace PlayerFunction

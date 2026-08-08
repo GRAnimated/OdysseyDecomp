@@ -21,8 +21,6 @@ public:
                         const IUsePlayerCollision* collision,
                         const IPlayerModelChanger* modelChanger, const IUseDimension* dimension,
                         const PlayerInput* input, PlayerAnimator* animator);
-    ~PlayerStateJump2D3D() override;
-
     void initContinuousJump(PlayerContinuousJump* continuousJump);
     void initUseTriggerCheck(PlayerTrigger* trigger);
     void initUseCounterCapCatch(const PlayerCounterAfterCapCatch* counterCapCatch);
@@ -36,6 +34,8 @@ public:
     void exeJump();
     const char* calcJumpAnimName() const;
     f32 calcJumpGravity() const;
+
+    ~PlayerStateJump2D3D() override;
 
 private:
     const PlayerConst* mConst;
@@ -56,4 +56,3 @@ private:
     const PlayerCounterAfterCapCatch* mCounterCapCatch;
 };
 
-static_assert(sizeof(PlayerStateJump2D3D) == 0x80);

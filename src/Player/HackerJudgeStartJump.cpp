@@ -4,10 +4,11 @@
 
 HackerJudgeStartJump::HackerJudgeStartJump(IUsePlayerHack** hacker) : HackerJudge(hacker) {}
 
+bool HackerJudgeStartJump::judge() const {
+    return rs::isTriggerHackJump(*getHacker());
+}
+
 void HackerJudgeStartJump::reset() {}
 
 void HackerJudgeStartJump::update() {}
 
-bool HackerJudgeStartJump::judge() const {
-    return rs::isTriggerHackJump(*getHacker());
-}

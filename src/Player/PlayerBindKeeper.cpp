@@ -11,8 +11,7 @@ bool isGreaterBindPriority(const al::HitSensor* candidate, const al::HitSensor* 
 }
 
 PlayerBindKeeper::PlayerBindKeeper(al::HitSensor* bodyHitSensor, IUsePlayerPuppet* puppet)
-    : mBodyHitSensor(bodyHitSensor), mBindSensor(nullptr), mBindableSensorList(nullptr),
-      mPuppet(puppet), _20(0), _24(false) {
+    : mBodyHitSensor(bodyHitSensor), mPuppet(puppet) {
     mBindableSensorList = new PlayerBindableSensorList();
 }
 
@@ -68,7 +67,10 @@ void PlayerBindKeeper::cancelBind() {
     if (!mBindSensor)
         return;
     al::sendMsgBindCancel(mBindSensor, mBodyHitSensor);
-    clearBindImpl();
+    mBindSensor = nullptr;
+    _24 = false;
+    mPuppet->cancel();
+    _20 = 30;
 }
 
 bool PlayerBindKeeper::receiveEndMsg(const al::SensorMsg* msg) {
@@ -144,8 +146,7 @@ bool PlayerBindKeeper::collectBindableSensor(al::HitSensor* self, al::HitSensor*
     f32 distance = al::calcDistance(other, self);
     f32 selfRadius = al::getSensorRadius(self);
     f32 otherRadius = al::getSensorRadius(other);
-    f32 overlap = selfRadius + otherRadius - distance;
-    mBindableSensorList->append(other, 0, overlap, 4);
+    mBindableSensorList->append(other, 0, selfRadius + otherRadius - distance, 4);
     return true;
 }
 

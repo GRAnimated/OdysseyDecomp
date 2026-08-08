@@ -24,8 +24,6 @@ public:
                           const PlayerTrigger* trigger, PlayerAnimator* animator,
                           const al::WaterSurfaceFinder* waterSurfaceFinder, PlayerEffect* effect,
                           IJudge* judgeInWater, IJudge* judgeOutInWater);
-    ~PlayerStateDamageSwim() override;
-
     void appear() override;
     bool tryReactionWaterIn();
     bool tryReactionWaterOut();
@@ -40,6 +38,7 @@ public:
     void exeDead();
     void exeEndGround();
     void exeEndOutOfWater();
+~PlayerStateDamageSwim() override;
 
 private:
     const PlayerConst* mConst;
@@ -48,12 +47,12 @@ private:
     PlayerAnimator* mAnimator;
     const al::WaterSurfaceFinder* mWaterSurfaceFinder;
     PlayerEffect* mEffect;
-    PlayerActionAirMoveControl* mAirMoveControl;
+    PlayerActionAirMoveControl* mAirMoveControl = nullptr;
     IJudge* mJudgeInWater;
     IJudge* mJudgeOutInWater;
-    bool _68;
-    bool _69;
-    bool mIsNoDamageDown;
+    bool _68 = false;
+    bool _69 = false;
+    bool mIsNoDamageDown = false;
     u8 _6b[5];
 };
 

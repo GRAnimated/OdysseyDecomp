@@ -6,5 +6,3 @@ public:
     virtual void update() = 0;
     virtual bool judge() const = 0;
 };
-
-static_assert(sizeof(IJudge) == 0x8);

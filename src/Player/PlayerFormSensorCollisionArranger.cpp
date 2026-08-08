@@ -27,9 +27,7 @@ const char* const sHeadSensorNames3D[] = {
 PlayerFormSensorCollisionArranger::PlayerFormSensorCollisionArranger(
     al::LiveActor* player, PlayerColliderHakoniwa* collider,
     const IPlayerModelChanger* modelChanger, const PlayerHackKeeper* hackKeeper)
-    : mPlayer(player), mCollider(collider), mModelChanger(modelChanger), mHackKeeper(hackKeeper),
-      mModelForm(0), mActionForm(0), mAttackSensorForm(0), mIsFormDirty(false),
-      mActionFront(0.0f, 0.0f, 0.0f), mIsBind(false) {}
+    : mPlayer(player), mCollider(collider), mModelChanger(modelChanger), mHackKeeper(hackKeeper) {}
 
 void PlayerFormSensorCollisionArranger::setFormModel3D() {
     if (mModelForm != 1) {
@@ -159,7 +157,7 @@ void PlayerFormSensorCollisionArranger::setCollisionShapeOffsetGround(f32 offset
     }
 }
 
-// NON_MATCHING: common-result dispatch mirrors the target outer branch; next compare unsigned range lowering.
+// NON_MATCHING: current 116 bytes versus target 100; common-result dispatch is behaviorally correct. Next hypothesis is a compact unsigned action-range/table test matching target lowering.
 const char* PlayerFormSensorCollisionArranger::getHeadSensorName() const {
     const char* sensorName = nullptr;
     if (mModelForm != 1) {
@@ -177,40 +175,24 @@ const char* PlayerFormSensorCollisionArranger::getHeadSensorName() const {
     return sensorName;
 }
 
-// NON_MATCHING: exact-size helper-inline form differs only in unsigned range compare encoding (#10/BHI vs #11/BHS).
+// NON_MATCHING: exact 136-byte size; inlined sensor selection differs at the unsigned range compare (#10/BHI vs #11/BHS). Next hypothesis is the original one-based action-range expression.
 const sead::Vector3f& PlayerFormSensorCollisionArranger::getHeadPos() const {
     return al::getSensorPos(al::getHitSensor(mPlayer, getHeadSensorName()));
 }
 
-// NON_MATCHING: exact-size helper-inline form differs only in unsigned range compare encoding (#10/BHI vs #11/BHS).
+// NON_MATCHING: exact 132-byte size; inlined sensor selection differs at the unsigned range compare (#10/BHI vs #11/BHS). Next hypothesis is the original one-based action-range expression.
 f32 PlayerFormSensorCollisionArranger::getHeadRadius() const {
     return al::getSensorRadius(al::getHitSensor(mPlayer, getHeadSensorName()));
 }
 
-// NON_MATCHING: direct-return switches are four bytes under target and reverse the outer model branch; next test a validator-clean common sensor-name dispatch.
+// NON_MATCHING: current 212 bytes versus target 216 and the outer model branch is reversed. Next hypothesis is a common body-sensor-name local followed by one lookup/return.
 const sead::Vector3f& PlayerFormSensorCollisionArranger::getBodyPos() const {
-    switch (mModelForm) {
-    case 1:
-        switch (mActionForm) {
-        case 1:
-        case 3:
-        case 7:
-        case 8:
-        case 9:
-        case 10:
-        case 11:
-            return al::getSensorPos(al::getHitSensor(mPlayer, "Body"));
-        case 2:
-            return al::getSensorPos(al::getHitSensor(mPlayer, "SquatBody"));
-        case 4:
-        case 5:
-            return al::getSensorPos(al::getHitSensor(mPlayer, "WallGrabBody"));
-        case 6:
-            return al::getSensorPos(al::getHitSensor(mPlayer, "PoleClimbBody"));
-        }
-        break;
-    case 2:
-        switch (mActionForm) {
+    const s32 modelForm = mModelForm;
+    const s32 actionForm = mActionForm;
+    if (modelForm != 1) {
+        if (modelForm != 2)
+            return sead::Vector3f::zero;
+        switch (actionForm) {
         case 1:
         case 8:
         case 9:
@@ -219,10 +201,29 @@ const sead::Vector3f& PlayerFormSensorCollisionArranger::getBodyPos() const {
             return al::getSensorPos(al::getHitSensor(mPlayer, "2DBody"));
         case 2:
             return al::getSensorPos(al::getHitSensor(mPlayer, "2DSquatBody"));
+        default:
+            return sead::Vector3f::zero;
         }
-        break;
     }
-    return sead::Vector3f::zero;
+    switch (actionForm) {
+    case 1:
+    case 3:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+        return al::getSensorPos(al::getHitSensor(mPlayer, "Body"));
+    case 2:
+        return al::getSensorPos(al::getHitSensor(mPlayer, "SquatBody"));
+    case 4:
+    case 5:
+        return al::getSensorPos(al::getHitSensor(mPlayer, "WallGrabBody"));
+    case 6:
+        return al::getSensorPos(al::getHitSensor(mPlayer, "PoleClimbBody"));
+    default:
+        return sead::Vector3f::zero;
+    }
 }
 
 bool PlayerFormSensorCollisionArranger::isEnableSafetyPointForm() const {
@@ -234,7 +235,7 @@ void PlayerFormSensorCollisionArranger::update() {
         syncForm();
 }
 
-// NON_MATCHING: complete source is 16 bytes under target because the compiler reverses the target sensor-switch layout; next test validator-clean nested conditionals.
+// NON_MATCHING: current 960 bytes versus target 976; compiler reverses the target sensor-switch layout. Next hypothesis is validator-clean nested conditionals preserving target model/action branch order.
 void PlayerFormSensorCollisionArranger::syncForm() {
     al::invalidateHitSensors(mPlayer);
 

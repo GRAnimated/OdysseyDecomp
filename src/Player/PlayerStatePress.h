@@ -15,10 +15,10 @@ class PlayerStatePress : public al::ActorStateBase {
 public:
     PlayerStatePress(al::LiveActor* player, const IUsePlayerCollision* collision,
                      PlayerAnimator* animator);
-    ~PlayerStatePress() override;
-
     void appear() override;
+
     void exePress();
+    ~PlayerStatePress() override;
 
 private:
     const IUsePlayerCollision* mCollision;

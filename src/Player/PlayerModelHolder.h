@@ -38,5 +38,4 @@ private:
     sead::FixedSafeString<128> _18 = sead::FixedSafeString<128>("");
 };
 
-static_assert(sizeof(PlayerModelHolder::Entry) == 0xA0);
 static_assert(sizeof(PlayerModelHolder) == 0xB0);

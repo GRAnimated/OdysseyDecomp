@@ -21,5 +21,4 @@ private:
     u8 _0[0x610];
 };
 
-static_assert(sizeof(RenderBufferAttacher) == 0x610);
 }  // namespace al

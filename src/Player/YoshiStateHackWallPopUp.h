@@ -18,13 +18,14 @@ class PlayerConst;
 
 class YoshiStateHackWallPopUp : public HackerStateBase {
 public:
-    YoshiStateHackWallPopUp(al::LiveActor*, IUsePlayerHack**, const PlayerConst*,
-                            const IUsePlayerCollision*, PlayerAnimator*);
+    YoshiStateHackWallPopUp(al::LiveActor* actor, IUsePlayerHack** playerHack,
+                            const PlayerConst* playerConst, const IUsePlayerCollision* collision,
+                            PlayerAnimator* animator);
 
     void appear() override;
     void kill() override;
-    void setupSnap(const al::CollisionParts*, const sead::Vector3f&, const sead::Vector3f&,
-                   const sead::Vector3f&);
+    void setupSnap(const al::CollisionParts* collisionParts, const sead::Vector3f& position,
+                   const sead::Vector3f& front, const sead::Vector3f& up);
     void exePopUp();
 
 private:

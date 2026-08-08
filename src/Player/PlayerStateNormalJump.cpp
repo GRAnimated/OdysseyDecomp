@@ -17,20 +17,16 @@ namespace {
 NERVE_IMPL(PlayerStateNormalJump, Jump)
 NERVES_MAKE_STRUCT(PlayerStateNormalJump, Jump)
 }  // namespace
-
 PlayerStateNormalJump::PlayerStateNormalJump(al::LiveActor* player, const PlayerConst* pConst,
                                              const IUsePlayerCollision* collision,
                                              const PlayerInput* input,
                                              PlayerAnimator* animator)
-    : al::ActorStateBase("ジャンプ", player), mConst(pConst), mCollision(collision),
-      mContinuousJump(nullptr), mAirMoveControl(nullptr) {
+    : al::ActorStateBase("ジャンプ", player), mConst(pConst), mCollision(collision) {
     mAnimator = animator;
     if (input)
         mAirMoveControl = new PlayerActionAirMoveControl(player, pConst, input, collision, false);
     initNerve(&NrvPlayerStateNormalJump.Jump, 0);
 }
-
-PlayerStateNormalJump::~PlayerStateNormalJump() = default;
 
 void PlayerStateNormalJump::initContinuousJump(PlayerContinuousJump* continuousJump) {
     mContinuousJump = continuousJump;
@@ -153,3 +149,6 @@ f32 PlayerStateNormalJump::calcJumpGravity() {
 bool PlayerStateNormalJump::sendMsgUpperPunch() {
     return false;
 }
+
+PlayerStateNormalJump::~PlayerStateNormalJump() = default;
+

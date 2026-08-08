@@ -55,7 +55,10 @@ void PlayerCarryKeeper::update() {
     updateNerve();
 }
 
-// NON_MATCHING: exact behavior and source evaluation order recovered; shared reset block layout differs.
+// NON_MATCHING: exact 0x194 size and recovered evaluation order; target/current differ only in the
+// placement of the shared reset/getTrans block. An explicit reset-predicate branch inversion grew the
+// body to 0x1B0 without changing the linear call-order swap and was reverted; remaining blocker is
+// compiler block placement/lifetime in a validator-clean structured CFG.
 bool PlayerCarryKeeper::updateCollideLockUp(const IUsePlayerCollision* collider,
                                             const PlayerPushReceiver* pushReceiver) {
     al::LiveActor* player = mPlayer;

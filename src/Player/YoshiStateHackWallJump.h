@@ -11,9 +11,10 @@ class YoshiTongue;
 
 class YoshiStateHackWallJump : public HackerStateBase {
 public:
-    YoshiStateHackWallJump(al::LiveActor*, IUsePlayerHack**, const PlayerConst*,
-                           const IUsePlayerCollision*, const PlayerTrigger*, const YoshiTongue*,
-                           PlayerAnimator*);
+    YoshiStateHackWallJump(al::LiveActor* actor, IUsePlayerHack** playerHack,
+                           const PlayerConst* playerConst, const IUsePlayerCollision* collision,
+                           const PlayerTrigger* trigger, const YoshiTongue* tongue,
+                           PlayerAnimator* animator);
 
     void appear() override;
     void exeJump();

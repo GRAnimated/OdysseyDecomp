@@ -1,7 +1,6 @@
 #include "Player/PlayerActionAirMoveControl.h"
 
-#include <algorithm>
-#include <cstring>
+#include <prim/seadMemUtil.h>
 
 #include "Library/LiveActor/ActorMovementFunction.h"
 #include "Library/LiveActor/ActorPoseUtil.h"
@@ -97,7 +96,8 @@ void PlayerActionAirMoveControl::setup(f32 speedMax, f32 inertiaAdd, s32 extendF
     al::setVelocity(actor, velocity);
 
     const bool isHoldJumpExtend = extendFrame > 0;
-    extendFrame = std::max(extendFrame, 0);
+    if (extendFrame < 1)
+        extendFrame = 0;
     mIsHoldJumpExtend = isHoldJumpExtend;
     mExtendFrame = extendFrame;
     _32 = false;
@@ -119,12 +119,12 @@ void PlayerActionAirMoveControl::setExtendFrame(s32 frame) {
     mExtendFrame = frame;
 }
 
-void PlayerActionAirMoveControl::setupCollideWallScaleVelocity(f32 scaleFront, f32 scaleSide,
-                                                               f32 scaleUp) {
+void PlayerActionAirMoveControl::setupCollideWallScaleVelocity(f32 velocityScaleH, f32 maxVelocityH,
+                                                               f32 maxScaledVelocityH) {
     _70 = true;
-    _74 = scaleFront;
-    _78 = scaleSide;
-    _7c = scaleUp;
+    _74 = velocityScaleH;
+    _78 = maxVelocityH;
+    _7c = maxScaledVelocityH;
 }
 
 void PlayerActionAirMoveControl::verticalizeStartMoveDir(const sead::Vector3f& vertical) {
@@ -133,7 +133,7 @@ void PlayerActionAirMoveControl::verticalizeStartMoveDir(const sead::Vector3f& v
     const sead::Vector3f* verticalDir = &vertical;
     al::verticalizeVec(&moveDir, *verticalDir, *startMoveDir);
     if (!al::tryNormalizeOrZero(&moveDir)) {
-        std::memcpy(&moveDir, &_58, sizeof(moveDir));
+        sead::MemUtil::copy(&moveDir, &_58, sizeof(moveDir));
         al::verticalizeVec(&moveDir, *verticalDir, _58);
         if (!al::tryNormalizeOrZero(&moveDir))
             return;
@@ -143,7 +143,7 @@ void PlayerActionAirMoveControl::verticalizeStartMoveDir(const sead::Vector3f& v
     if (al::isParallelDirection(up, moveDir, 0.01f))
         return;
 
-    std::memcpy(startMoveDir, &moveDir, sizeof(moveDir));
+    sead::MemUtil::copy(startMoveDir, &moveDir, sizeof(moveDir));
     _58.setCross(up, *startMoveDir);
     al::normalize(&_58);
 }

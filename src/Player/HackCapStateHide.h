@@ -16,23 +16,24 @@ class PlayerSeparateCapFlag;
 
 class HackCapStateHide : public al::ActorStateBase {
 public:
-    HackCapStateHide(al::LiveActor*, PlayerColliderHackCap*, const al::LiveActor*,
-                     const PlayerSeparateCapFlag*, const PlayerInput*, al::PartsModel*,
-                     HackCapJointControlKeeper*);
-    ~HackCapStateHide() override;
-
+    HackCapStateHide(al::LiveActor* actor, PlayerColliderHackCap* collider,
+                     const al::LiveActor* player, const PlayerSeparateCapFlag* separateCapFlag,
+                     const PlayerInput* input, al::PartsModel* partsModel,
+                     HackCapJointControlKeeper* jointControlKeeper);
     void appear() override;
+
     void kill() override;
     bool update() override;
     bool isSeparateMode() const;
     void cancelSeparateMode();
-    void calcSeparateThrowOffset(sead::Vector3f*) const;
+    void calcSeparateThrowOffset(sead::Vector3f* offset) const;
     void exeHide();
     void tryForceFollowSeparate();
+    void exeSeparateWait();
 
     void requestForceFollowSeparate() { _64 = true; }
 
-    void exeSeparateWait();
+    ~HackCapStateHide() override;
 
 private:
     PlayerColliderHackCap* mCollider;

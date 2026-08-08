@@ -27,6 +27,7 @@ public:
 
 private:
     friend class PlayerStateRunHakoniwa2D3D;
+    friend class PlayerStateSpinCap;
 
     bool mIsWaterSurfaceRun = false;
     bool mIsEnable = false;

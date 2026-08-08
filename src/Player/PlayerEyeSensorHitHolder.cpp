@@ -1,6 +1,6 @@
 #include "Player/PlayerEyeSensorHitHolder.h"
 
-#include <cstring>
+#include <prim/seadMemUtil.h>
 
 #include "Library/LiveActor/ActorFlagFunction.h"
 #include "Library/LiveActor/ActorPoseUtil.h"
@@ -11,7 +11,7 @@
 #include "Util/SensorMsgFunction.h"
 
 PlayerEyeSensorHitHolder::PlayerEyeSensorHitHolder(s32 capacity) {
-    std::memset(this, 0, sizeof(*this));
+    sead::MemUtil::fillZero(this, sizeof(*this));
     mHomingAttackSensors.allocBuffer(capacity, nullptr, 8);
 }
 
@@ -173,7 +173,9 @@ al::HitSensor* PlayerEyeSensorHitHolder::findNearestSensor(
 }
 
 
-// NON_MATCHING: first corpus-backed implementation; next compare nested angle-check temporary lifetimes.
+// NON_MATCHING: current is 972 bytes versus the 992-byte target with an exact 14/14 semantic
+// direct-call sequence. Corpus pseudo confirms the same search stages; next source-level hypothesis
+// is target-shaped reuse/spilling of maxDistance, maxAngle, minDistance, and the vector workspaces.
 al::HitSensor* PlayerEyeSensorHitHolder::findNearestSensorLimit(
     sead::Vector3f* direction, const sead::Vector3f& origin, const sead::Vector3f& front,
     const sead::Vector3f& up, f32 maxDistance, f32 maxAngle, f32 minDistance,
@@ -294,7 +296,10 @@ al::HitSensor* PlayerEyeSensorHitHolder::findTargetMarkerSensor(
 }
 
 
-// NON_MATCHING: first corpus-backed two-stage implementation; next compare shared temporary reuse and parameter spill ordering.
+// NON_MATCHING: current is 1392 bytes versus the 1396-byte target with an exact 21/21 semantic
+// direct-call sequence. Corpus pseudo confirms both candidate loops; next source-level hypothesis
+// is target-shaped floating-parameter spilling (target keeps maxDistance/maxAngle live and spills
+// minDistance) plus shared vector workspace reuse between the two searches.
 al::HitSensor* PlayerEyeSensorHitHolder::findEatTargetSensor(
     sead::Vector3f* direction, const sead::Vector3f& origin, const sead::Vector3f& front,
     const sead::Vector3f& up, f32 maxDistance, f32 maxAngle, f32 minDistance) const {

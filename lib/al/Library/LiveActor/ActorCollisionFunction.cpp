@@ -38,7 +38,7 @@ bool isEqualCollisionParts(const LiveActor* actor, const CollisionParts* collisi
 
 void validateCollisionParts(LiveActor* actor) {
     CollisionParts* collisionParts = actor->getCollisionParts();
-    if (collisionParts->getSyncCollisonMtx()) {
+    if (collisionParts->getSyncCollisionMtx()) {
         collisionParts->resetAllMtx();
     } else {
         sead::Matrix34f mtx;
@@ -56,7 +56,7 @@ void validateCollisionPartsBySystem(LiveActor* actor) {
     CollisionParts* collisionParts = actor->getCollisionParts();
     collisionParts->validateBySystem();
 
-    if (collisionParts->getSyncCollisonMtx()) {
+    if (collisionParts->getSyncCollisionMtx()) {
         collisionParts->resetAllMtx();
     } else {
         sead::Matrix34f mtx;
@@ -80,7 +80,7 @@ void setCollisionPartsSpecialPurposeName(LiveActor* actor, const char* name) {
 void resetAllCollisionMtx(LiveActor* actor) {
     CollisionParts* collisionParts = actor->getCollisionParts();
 
-    if (collisionParts->getSyncCollisonMtx()) {
+    if (collisionParts->getSyncCollisionMtx()) {
         collisionParts->resetAllMtx();
     } else {
         sead::Matrix34f mtx;
@@ -100,7 +100,7 @@ void syncCollisionMtx(LiveActor* actor, CollisionParts* collisionParts,
     if (!collisionParts->isValidCollision())
         return;
 
-    if (collisionParts->getSyncCollisonMtx()) {
+    if (collisionParts->getSyncCollisionMtx()) {
         collisionParts->syncMtx();
     } else if (mtx) {
         collisionParts->syncMtx(*mtx);

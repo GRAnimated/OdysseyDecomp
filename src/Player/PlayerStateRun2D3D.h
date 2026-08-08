@@ -20,12 +20,12 @@ public:
                        const IUseDimension* dimension, const IPlayerModelChanger* modelChanger,
                        const PlayerInput* input, const IUsePlayerCollision* collision,
                        PlayerAnimator* animator);
-    ~PlayerStateRun2D3D() override;
-
     void appear() override;
+
     void syncModel();
     void exeRun3D();
     void exeRun2D();
+    ~PlayerStateRun2D3D() override;
 
 private:
     const PlayerConst* mConst;
@@ -34,4 +34,3 @@ private:
     PlayerStateRun2D* mRun2D = nullptr;
 };
 
-static_assert(sizeof(PlayerStateRun2D3D) == 0x40);

@@ -38,20 +38,14 @@ PlayerJudgeInWater::PlayerJudgeInWater(
     (void)ignoreSurfaceFlag;
 }
 
-void PlayerJudgeInWater::reset() {}
-
-void PlayerJudgeInWater::update() {}
-
 bool PlayerJudgeInWater::judge() const {
     if (rs::isPlayer2D(mPlayer))
         return false;
 
     const PlayerConst* pConst = mConst;
     const bool checkIceWater = checkIceWaterFlag;
-    const PlayerAreaChecker* areaChecker = mAreaChecker;
     const bool ignoreSurface = ignoreSurfaceFlag;
-    const sead::Vector3f& trans = al::getTrans(mPlayer);
-    if (!isInWaterArea(pConst, areaChecker, trans, checkIceWater, ignoreSurface))
+    if (!isInWaterArea(pConst, mAreaChecker, al::getTrans(mPlayer), checkIceWater, ignoreSurface))
         return false;
 
     if (!mWaterSurfaceFinder->isFoundSurface())
@@ -82,3 +76,7 @@ bool PlayerJudgeInWater::judge() const {
 
     return !rs::isInPuddleHeight(mWaterSurfaceFinder, mHeightCheck, height);
 }
+void PlayerJudgeInWater::reset() {}
+
+void PlayerJudgeInWater::update() {}
+

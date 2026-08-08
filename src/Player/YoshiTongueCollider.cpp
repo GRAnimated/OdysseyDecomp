@@ -9,7 +9,7 @@
 #include "Player/CollisionShapeKeeper.h"
 #include "Player/PlayerCollider.h"
 
-// NON_MATCHING: target saves the PlayerCollider allocation in x22 before loading the actor vtable; current new-expression scheduling delays that move. Next hypothesis: recover the original allocation/argument helper expression.
+// NON_MATCHING: target/current are both 256 bytes, but target saves the PlayerCollider allocation in X22 before loading the actor vtable; next source-level hypothesis is recovering the original allocation/argument helper expression.
 YoshiTongueCollider::YoshiTongueCollider(al::LiveActor* actor) : mActor(actor) {
     CollisionShapeKeeper* shapeKeeper = new CollisionShapeKeeper(1, 0x40, 0x20);
     mShapeKeeper = shapeKeeper;

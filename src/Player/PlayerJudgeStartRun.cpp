@@ -9,9 +9,9 @@ PlayerJudgeStartRun::PlayerJudgeStartRun(const al::LiveActor* player, const Play
                                          const IUsePlayerCollision* collision,
                                          const PlayerInput* input,
                                          const PlayerCounterForceRun* counterForceRun,
-                                         const IJudge* judgeWaterSurfaceRun)
+                                         const IJudge* judgeForceLand)
     : mPlayer(player), mCollision(collision), mInput(input), mCounterForceRun(counterForceRun),
-      mJudgeForceLand(judgeWaterSurfaceRun) {}
+      mJudgeForceLand(judgeForceLand) {}
 
 bool PlayerJudgeStartRun::judge() const {
     if (!rs::isCollidedGround(mCollision))

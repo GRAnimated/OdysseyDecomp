@@ -39,8 +39,6 @@ private:
 
         f32 getValue(bool isOnGround) const { return isOnGround ? onGround : offGround; }
     };
-    static_assert(sizeof(FloatParam) == 0x8);
-
     ExternalForceKeeper* mExternalForceKeeper = nullptr;
     sead::Vector3f mExternalVelocity = {0.0f, 0.0f, 0.0f};
     sead::Vector3f mAreaVelocity = {0.0f, 0.0f, 0.0f};

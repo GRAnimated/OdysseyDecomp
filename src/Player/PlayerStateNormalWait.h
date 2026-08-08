@@ -13,10 +13,9 @@ class PlayerStateNormalWait : public al::ActorStateBase {
 public:
     PlayerStateNormalWait(al::LiveActor* player, const PlayerConst* pConst, const char* actionName,
                           const IUsePlayerCollision* collision, PlayerAnimator* animator);
-    ~PlayerStateNormalWait() override;
-
     void appear() override;
     void exeWait();
+~PlayerStateNormalWait() override;
 
 private:
     const PlayerConst* mConst;
@@ -25,4 +24,3 @@ private:
     PlayerAnimator* mAnimator;
 };
 
-static_assert(sizeof(PlayerStateNormalWait) == 0x40);

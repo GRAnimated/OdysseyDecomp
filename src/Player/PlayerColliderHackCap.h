@@ -13,7 +13,7 @@ class PlayerCollider;
 
 class PlayerColliderHackCap : public IUsePlayerCollision {
 public:
-    explicit PlayerColliderHackCap(al::LiveActor*);
+    PlayerColliderHackCap(al::LiveActor* player);
 
     void init();
     void updateCollider(const sead::Vector3f& velocity);
@@ -22,8 +22,8 @@ public:
 
 private:
     al::LiveActor* mPlayer;
-    PlayerCollider* mCollider;
-    CollisionShapeKeeper* mShapeKeeper;
+    PlayerCollider* mCollider = nullptr;
+    CollisionShapeKeeper* mShapeKeeper = nullptr;
 };
 
 static_assert(sizeof(PlayerColliderHackCap) == 0x20);

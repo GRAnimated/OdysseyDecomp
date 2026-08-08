@@ -11,11 +11,11 @@ class IUsePlayerPuppet;
 
 class PlayerBindKeeper {
 public:
-    PlayerBindKeeper(al::HitSensor*, IUsePlayerPuppet*);
+    PlayerBindKeeper(al::HitSensor* bodyHitSensor, IUsePlayerPuppet* puppet);
     bool sendStartMsg();
     void clearBindableSensor();
     void cancelBind();
-    bool receiveEndMsg(const al::SensorMsg*);
+    bool receiveEndMsg(const al::SensorMsg* msg);
     void clearBindImpl();
     void cancelBindByDemo();
     bool sendMsgBindDamage();
@@ -26,8 +26,8 @@ public:
     bool sendMsgBindKeepDemoExecute();
     bool sendMsgBindKeepDemoEnd();
     bool sendMsgBindRecoveryLife() const;
-    bool collectBindableSensor(al::HitSensor*, al::HitSensor*);
-    void appendBindRequest(al::HitSensor*);
+    bool collectBindableSensor(al::HitSensor* self, al::HitSensor* other);
+    void appendBindRequest(al::HitSensor* sensor);
     void resetInvalidTimer();
 
     al::HitSensor* getBindSensor() const { return mBindSensor; }
@@ -37,13 +37,13 @@ public:
 
 private:
     al::HitSensor* mBodyHitSensor;
-    al::HitSensor* mBindSensor;
-    PlayerBindableSensorList* mBindableSensorList;
+    al::HitSensor* mBindSensor = nullptr;
+    PlayerBindableSensorList* mBindableSensorList = nullptr;
     IUsePlayerPuppet* mPuppet;
-    s32 _20;
+    s32 _20 = 0;
     union {
         bool mIsKeepDemo;
-        bool _24;
+        bool _24 = false;
     };
 };
 

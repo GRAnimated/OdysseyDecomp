@@ -13,8 +13,6 @@
 #include "Player/PlayerTrigger.h"
 
 namespace {
-// NON_MATCHING: the anonymous 528-byte target has no metadata label for tools/check; local size and
-// 132-opcode sequence match the corpus exactly.
 void makeSpinCapAnimName(sead::BufferedSafeString* animName, const char* baseName,
                          const PlayerInput* input, bool isSpinAttack,
                          const sead::Vector3f& throwStartDir, const sead::Vector2f& doubleThrowDir,
@@ -168,6 +166,21 @@ void PlayerSpinCapAttack::startCapSpinAttackSwim(PlayerAnimator* animator, const
     mSpinMissAnimName.format("");
 }
 
+void PlayerSpinCapAttack::startSpinSeparate(PlayerAnimator* animator) {
+    animator->startAnim("SpinSeparate");
+    animator->startSubAnim("SpinSeparate");
+}
+
+void PlayerSpinCapAttack::startSpinSeparateSwim(PlayerAnimator* animator) {
+    animator->startAnim("SpinSeparateSwim");
+    animator->startSubAnim("SpinSeparateSwim");
+}
+
+void PlayerSpinCapAttack::startSpinSeparateSwimSurface(PlayerAnimator* animator) {
+    animator->startAnim("SwimSpinCapStartRight");
+    animator->startSubAnim("SwimSpinCapStartRight");
+}
+
 void PlayerSpinCapAttack::startCapThrow(const sead::Vector3f& startPos,
                                         const sead::Vector3f& throwDir, f32 power, bool isAppend,
                                         const sead::Vector3f& targetPos) {
@@ -215,21 +228,6 @@ bool PlayerSpinCapAttack::tryStartCapSpinAirMiss(PlayerAnimator* animator) {
     mSpinMissAnimName.format("SpinSeparate");
     animator->startSubAnimOnlyAir(sead::SafeString(mSpinMissAnimName.cstr()));
     return true;
-}
-
-void PlayerSpinCapAttack::startSpinSeparate(PlayerAnimator* animator) {
-    animator->startAnim("SpinSeparate");
-    animator->startSubAnim("SpinSeparate");
-}
-
-void PlayerSpinCapAttack::startSpinSeparateSwim(PlayerAnimator* animator) {
-    animator->startAnim("SpinSeparateSwim");
-    animator->startSubAnim("SpinSeparateSwim");
-}
-
-void PlayerSpinCapAttack::startSpinSeparateSwimSurface(PlayerAnimator* animator) {
-    animator->startAnim("SwimSpinCapStartRight");
-    animator->startSubAnim("SwimSpinCapStartRight");
 }
 
 bool PlayerSpinCapAttack::isCapSpinAttack() const {

@@ -36,8 +36,7 @@ public:
                                const PlayerCounterQuickTurnJump* counterQuickTurnJump,
                                PlayerTrigger* trigger, PlayerAnimator* animator,
                                PlayerEffect* effect,
-                               PlayerJointParamCenterDynamics* centerDynamics, bool is2D);
-    ~PlayerStateRunHakoniwa2D3D() override;
+                               PlayerJointParamCenterDynamics* centerDynamics, bool isMoon);
 
     void appear() override;
     bool update() override;
@@ -55,6 +54,7 @@ public:
     void exeRun3D();
     void exeGroundSpin3D();
     void exeRun2D();
+    ~PlayerStateRunHakoniwa2D3D() override;
 
 private:
     const PlayerConst* mConst;

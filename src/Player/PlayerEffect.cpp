@@ -179,8 +179,7 @@ void PlayerEffect::clearRunEffect() {
     if (mRunEffectName.isEmpty())
         return;
 
-    auto* modelActor = mModelHolder->getCurrentModelActor();
-    al::tryDeleteEffect(modelActor, mRunEffectName.cstr());
+    al::tryDeleteEffect(mModelHolder->getCurrentModelActor(), mRunEffectName.cstr());
     mRunEffectName = sead::SafeString::cEmptyString;
 }
 

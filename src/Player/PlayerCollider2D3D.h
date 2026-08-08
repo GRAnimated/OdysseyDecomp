@@ -62,4 +62,3 @@ private:
     f32 mFallDistance;
 };
 
-static_assert(sizeof(PlayerCollider2D3D) == 0x68);

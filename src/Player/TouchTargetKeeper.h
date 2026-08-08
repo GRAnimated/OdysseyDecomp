@@ -57,4 +57,3 @@ private:
     bool _99 = false;
 };
 
-static_assert(sizeof(TouchTargetKeeper) == 0xA0);

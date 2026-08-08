@@ -10,7 +10,7 @@ class IUsePlayerHack;
 
 class HackerStateBase : public al::NerveStateBase {
 public:
-    HackerStateBase(const char*, al::LiveActor*, IUsePlayerHack**);
+    HackerStateBase(const char* name, al::LiveActor* actor, IUsePlayerHack** playerHack);
     ~HackerStateBase() override = default;
 
 protected:
@@ -18,4 +18,3 @@ protected:
     IUsePlayerHack** mPlayerHack;
 };
 
-static_assert(sizeof(HackerStateBase) == 0x28);

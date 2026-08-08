@@ -36,15 +36,15 @@ public:
 
     bool isNearSurface(f32 distance) const;
 
-    bool isFoundSurface() const { return mIsFoundSurface; };
+    bool isFoundSurface() const { return mIsFoundSurface; }
 
-    f32 getDistance() const { return mSurface.distance; };
+    f32 getDistance() const { return mSurface.distance; }
 
-    const sead::Vector3f& getSurfacePosition() const { return mSurface.position; };
+    const sead::Vector3f& getSurfacePosition() const { return mSurface.position; }
 
-    const sead::Vector3f& getSurfaceNormal() const { return mSurface.normal; };
+    const sead::Vector3f& getSurfaceNormal() const { return mSurface.normal; }
 
-    const sead::Vector3f& getSurfaceDisplacement() const { return mSurface._1c; };
+    const sead::Vector3f& getSurfaceDisplacement() const { return mSurface._1c; }
 
 private:
     const LiveActor* mActor;

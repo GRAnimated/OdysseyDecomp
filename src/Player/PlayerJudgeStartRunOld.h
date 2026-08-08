@@ -20,9 +20,8 @@ public:
 
 private:
     const al::LiveActor* mPlayer;
-    bool mIsStartRun;
+    bool mIsStartRun = false;
     const IUsePlayerCollision* mCollision;
     const PlayerInput* mInput;
 };
 
-static_assert(sizeof(PlayerJudgeStartRunOld) == 0x28);

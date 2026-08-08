@@ -8,9 +8,9 @@ class PlayerJudgeActiveCameraSubjective : public IJudge {
 public:
     PlayerJudgeActiveCameraSubjective(const PlayerStateCameraSubjective* stateCameraSubjective);
 
+    bool judge() const override;
     void reset() override {}
     void update() override {}
-    bool judge() const override;
 
 private:
     const PlayerStateCameraSubjective* mStateCameraSubjective;

@@ -108,11 +108,6 @@ void Yoshi::initAfterPlacement() {
     rs::noticeCurrentHackYoshi(this);
 }
 
-void Yoshi::exeHack() {
-    al::updateNerveState(this);
-}
-
-
 void Yoshi::movement() {
     mTrigger->clearPreMovementTrigger();
     mTrigger->clearReceiveSensorTrigger();
@@ -185,7 +180,7 @@ void Yoshi::control() {
         mAnimator->endSubAnim();
 }
 
-// NON_MATCHING: commutative FMUL operands are reversed at 0x49485C; next hypothesis is local lifetime/order refinement.
+// NON_MATCHING: exact 1768-byte size; commutative FMUL operands are reversed at target +0x49485C. Next hypothesis is local lifetime/order refinement around the collider scale multiply.
 void Yoshi::updateCollider() {
     al::updatePoseTrans(this, al::getTrans(this));
     updateCollisionShape();
@@ -387,6 +382,11 @@ void Yoshi::exeNpc() {
     }
 }
 
+void Yoshi::exeHack() {
+    al::updateNerveState(this);
+}
+
+
 void Yoshi::attackSensor(al::HitSensor* self, al::HitSensor* other) {
     if (al::isNerve(this, &NrvYoshi.Hack) && mStateHack->attackSensor(self, other))
         return;
@@ -396,7 +396,7 @@ void Yoshi::attackSensor(al::HitSensor* self, al::HitSensor* other) {
         rs::sendMsgPushToPlayer(other, self);
 }
 
-// NON_MATCHING: target calls PlayerConst vtable +0x10, while the globally compatible declaration calls +0x0; recover the ABI without shifting already-matching PlayerConst callers.
+// NON_MATCHING: exact 752-byte size; target calls PlayerConst vtable +0x10 while the compatible declaration calls +0x0. Next hypothesis is recovering the specific accessor ABI without shifting already-matching PlayerConst callers.
 bool Yoshi::receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                        al::HitSensor* self) {
     if (al::isMsgPlayerDisregard(message)) {

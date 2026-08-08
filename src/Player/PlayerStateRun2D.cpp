@@ -27,7 +27,7 @@ PlayerStateRun2D::PlayerStateRun2D(al::LiveActor* player, const PlayerConst* pCo
                                    const IUsePlayerCollision* collision,
                                    PlayerAnimator* animator)
     : al::ActorStateBase("走り2D", player), mConst(pConst), mInput(input),
-      mCollision(collision), mAnimator(animator), mMoveControl(nullptr) {
+      mCollision(collision), mAnimator(animator) {
     auto* moveControl = new PlayerActionGroundMoveControl(player, pConst, input, collision);
     mMoveControl = moveControl;
     auto* judgeStartDash = new PlayerJudgeStartDash(mInput);
@@ -36,8 +36,6 @@ PlayerStateRun2D::PlayerStateRun2D(al::LiveActor* player, const PlayerConst* pCo
     mMoveControl->setIs2D(true);
     initNerve(&NrvPlayerStateRun2D.Run, 0);
 }
-
-PlayerStateRun2D::~PlayerStateRun2D() = default;
 
 void PlayerStateRun2D::appear() {
     if (mAnimator->isSubAnimPlaying())
@@ -53,6 +51,13 @@ void PlayerStateRun2D::appear() {
     mMoveControl->appear();
     al::setNerve(this, &NrvPlayerStateRun2D.Run);
     al::ActorStateBase::appear();
+}
+
+bool PlayerStateRun2D::isBrake() const {
+    if (isDead())
+        return false;
+    return al::isNerve(this, &NrvPlayerStateRun2D.Brake) ||
+           al::isNerve(this, &NrvPlayerStateRun2D.Turn);
 }
 
 
@@ -77,13 +82,6 @@ void PlayerStateRun2D::exeRun() {
         al::setNerve(this, &NrvPlayerStateRun2D.Brake);
     else if (mMoveControl->isStopped())
         kill();
-}
-
-bool PlayerStateRun2D::isBrake() const {
-    if (isDead())
-        return false;
-    return al::isNerve(this, &NrvPlayerStateRun2D.Brake) ||
-           al::isNerve(this, &NrvPlayerStateRun2D.Turn);
 }
 
 void PlayerStateRun2D::exeBrake() {
@@ -126,7 +124,7 @@ void PlayerStateRun2D::exeBrake() {
         kill();
 }
 
-// NON_MATCHING: full turn behavior and the target length/ground-copy schedule are recovered; remaining differences are gravity/front vector association plus end-turn quaternion/register ordering.
+// NON_MATCHING: target is 608 bytes while current is 632; next source-level hypothesis is correcting gravity/front vector association and end-turn quaternion/register ordering.
 void PlayerStateRun2D::exeTurn() {
     sead::Vector3f moveVelocity = {0.0f, 0.0f, 0.0f};
     mMoveControl->updateNormalAndSnap(&moveVelocity);
@@ -160,3 +158,5 @@ void PlayerStateRun2D::exeTurn() {
         kill();
     }
 }
+
+PlayerStateRun2D::~PlayerStateRun2D() = default;

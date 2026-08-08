@@ -42,7 +42,7 @@ public:
     void setup(const al::CollisionParts* collisionParts, const sead::Vector3f& position,
                const sead::Vector3f& front, const sead::Vector3f& up, f32 depth, f32 moveRate,
                const char* animationName);
-    void updatePoleDepth(f32 depth, f32 rate);
+    void updatePoleDepth(f32 depth, f32 moveRate);
     bool isAttachPole() const;
     bool isPoleJump() const;
     bool isTriggerReaction() const;
@@ -74,7 +74,7 @@ private:
     const PlayerConst* mConst;
     const PlayerInput* mInput;
     PlayerModelHolder* mModelHolder;
-    const IUsePlayerCollision* mCollision;
+    IUsePlayerCollision* mCollision;
     PlayerAnimator* mAnimator;
     PlayerJointParamHandLegAngle* mHandLegAngle;
     PlayerJudgePreInputJump* mJudgePreInputJump;

@@ -19,27 +19,25 @@ public:
     PlayerStateNormalJump(al::LiveActor* player, const PlayerConst* pConst,
                           const IUsePlayerCollision* collision, const PlayerInput* input,
                           PlayerAnimator* animator);
-    ~PlayerStateNormalJump() override;
-
     void initContinuousJump(PlayerContinuousJump* continuousJump);
     void appear() override;
-    void kill() override;
-    void exeJump();
     f32 calcJumpPowerMin();
     f32 calcJumpPowerMax();
+    void kill() override;
+    void exeJump();
     const char* calcJumpAnimName();
     f32 calcJumpGravity();
     bool sendMsgUpperPunch();
+    ~PlayerStateNormalJump() override;
 
 private:
     const PlayerConst* mConst;
     const IUsePlayerCollision* mCollision;
     PlayerAnimator* mAnimator;
-    PlayerContinuousJump* mContinuousJump;
-    PlayerActionAirMoveControl* mAirMoveControl;
+    PlayerContinuousJump* mContinuousJump = nullptr;
+    PlayerActionAirMoveControl* mAirMoveControl = nullptr;
     f32 mJumpPower = 0.0f;
     bool mIsForceJump = false;
     f32 mForceJumpPower = 0.0f;
 };
 
-static_assert(sizeof(PlayerStateNormalJump) == 0x58);

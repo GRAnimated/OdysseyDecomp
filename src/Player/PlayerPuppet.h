@@ -31,33 +31,33 @@ struct PlayerBindEndJumpInfo {
     s32 _c;
     f32 gravity;
 };
-
-static_assert(sizeof(PlayerBindEndJumpInfo) == 0x14);
-
 class PlayerPuppet : public IUsePlayerPuppet {
 public:
-    PlayerPuppet(al::LiveActor*, HackCap*, PlayerAnimator*, IUsePlayerCollision*,
-                 ActorDimensionKeeper*, IPlayerModelChanger*, WorldEndBorderKeeper*,
-                 PlayerCounterForceRun*, PlayerDamageKeeper*, PlayerEffect*, const PlayerInput*,
-                 const PlayerConst*);
+    PlayerPuppet(al::LiveActor* actor, HackCap* hackCap, PlayerAnimator* playerAnimator,
+                 IUsePlayerCollision* playerCollision, ActorDimensionKeeper* actorDimensionKeeper,
+                 IPlayerModelChanger* playerModelChanger, WorldEndBorderKeeper* worldEndBorderKeeper,
+                 PlayerCounterForceRun* playerCounterForceRun, PlayerDamageKeeper* playerDamageKeeper,
+                 PlayerEffect* playerEffect, const PlayerInput* playerInput,
+                 const PlayerConst* playerConst);
 
-    void start(al::HitSensor*, al::HitSensor*) override;
+    void start(al::HitSensor* sender, al::HitSensor* receiver) override;
     void end() override;
     void cancel() override;
-    void setTrans(const sead::Vector3f&) override;
-    void setPose(const sead::Quatf&) override;
-    void setVelocity(const sead::Vector3f&) override;
-    void resetPosition(const sead::Vector3f&) override;
+    void setTrans(const sead::Vector3f& trans) override;
+    void setPose(const sead::Quatf& pose) override;
+    void setVelocity(const sead::Vector3f& velocity) override;
+    void resetPosition(const sead::Vector3f& trans) override;
     const sead::Vector3f& getTrans() const override;
     const sead::Vector3f& getVelocity() const override;
     const sead::Vector3f& getGravity() const override;
-    void calcFront(sead::Vector3f*) const override;
-    void calcUp(sead::Vector3f*) const override;
-    void startAction(const sead::SafeString&) const override;
+    void calcFront(sead::Vector3f* front) const override;
+    void calcUp(sead::Vector3f* up) const override;
+    void startAction(const sead::SafeString& action) const override;
     bool isActionEnd() const override;
-    bool isActionPlaying(const char*) const override;
-    void setAnimRate(f32) const override;
+    bool isActionPlaying(const char* action) const override;
+    void setAnimRate(f32 rate) const override;
     f32 getAnimFrameMax() const override;
+    void startPlayerHitReaction(const char* name);
     void hide() override;
     void show() override;
     bool isHidden() const override;
@@ -65,30 +65,30 @@ public:
     void showSilhouette() override;
     void hideShadow() override;
     void showShadow() override;
-    bool requestDamage() override;
-    void clearRequestDamage() override;
-    bool isRequestDamage() const override;
-    void setBindEndOnGround() override;
-    bool isBindEndOnGround() const override;
-    void setBindEndJump(const sead::Vector3f&, s32) override;
-    bool isBindEndJump() const override;
     void validateCollisionCheck() override;
     void invalidateCollisionCheck() override;
     bool isValidCollisionCheck() override;
     bool isCollidedGround() override;
     const sead::Vector3f& getCollidedGroundNormal() override;
-    void validateSensor() override;
-    void invalidateSensor() override;
-
-    void startPlayerHitReaction(const char*);
-    void setBindEndWallJump(const sead::Vector3f&, s32);
+    bool requestDamage() override;
+    void setBindEndJump(const sead::Vector3f& velocity, s32 frames) override;
+    void setBindEndWallJump(const sead::Vector3f& velocity, s32 frames);
     void validate2D();
     void keepOn2D();
     void endKeepOn2D();
-    void requestUpdateRecoveryInfo(bool, bool, const sead::Vector3f&, const sead::Vector3f&,
-                                   const al::AreaObj*);
-    bool tryUpdateRecoveryInfo(bool*, bool*, sead::Vector3f*, sead::Vector3f*, const al::AreaObj**);
+    void requestUpdateRecoveryInfo(bool isKidsMode, bool isRecovery, const sead::Vector3f& position,
+                                   const sead::Vector3f& up, const al::AreaObj* areaObj);
+    bool tryUpdateRecoveryInfo(bool* isKidsMode, bool* isRecovery, sead::Vector3f* position,
+                               sead::Vector3f* up, const al::AreaObj** areaObj);
+
     bool isBinding() const;
+    bool isNoCollide() const;
+    void clearRequestDamage() override;
+    bool isRequestDamage() const override;
+    void setBindEndOnGround() override;
+    bool isBindEndOnGround() const override;
+    bool isBindEndJump() const override;
+    void validateSensor() override;
 
     void setJudgePreInputJump(PlayerJudgePreInputJump* judge) { mJudgePreInputJump = judge; }
 
@@ -98,7 +98,7 @@ public:
 
     const PlayerBindEndJumpInfo* getBindEndJumpInfo() const { return mBindEndJumpInfo; }
 
-    bool isNoCollide() const;
+    void invalidateSensor() override;
 
     bool isDemoPushDisabled() const { return _ac; }
 

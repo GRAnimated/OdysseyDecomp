@@ -17,7 +17,7 @@ public:
                            PlayerModelHolder* modelHolder,
                            const ActorDimensionKeeper* dimensionKeeper);
 
-    void update(bool isDemo);
+    void update(bool isChangeEnabled);
     const char* getModelName();
     void changeModel(al::LiveActor* modelActor);
     void updateDead();
@@ -27,7 +27,6 @@ public:
     bool requestMini();
     bool requestDeath();
     void syncPose(const al::LiveActor* actor);
-
     bool isFireFlower() const override;
     bool isMini() const override;
     bool isChange() const override;
@@ -45,20 +44,19 @@ public:
 private:
     const al::LiveActor* mPlayer;
     const PlayerInput* mInput;
-    bool mIsChange;
-    bool mIs2DModel;
-    bool mIsDeathRequested;
+    bool mIsChange = false;
+    bool mIs2DModel = false;
+    bool mIsDeathRequested = false;
     u8 _1b;
-    s32 mModel;
-    s32 mRequestedModel;
+    s32 mModel = 0;
+    s32 mRequestedModel = 0;
     u32 _24;
-    al::LiveActor* mModelActor;
-    const char* mBlinkModelName;
-    const char* mTargetModelName;
+    al::LiveActor* mModelActor = nullptr;
+    const char* mBlinkModelName = nullptr;
+    const char* mTargetModelName = nullptr;
     PlayerModelHolder* mModelHolder;
     const ActorDimensionKeeper* mDimensionKeeper;
-    s32 mBlinkTimer;
-    s32 mChangeCooldown;
+    s32 mBlinkTimer = 0;
+    s32 mChangeCooldown = 0;
 };
 
-static_assert(sizeof(PlayerModelChanger2D3D) == 0x58);

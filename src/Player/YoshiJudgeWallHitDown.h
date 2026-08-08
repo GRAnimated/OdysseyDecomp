@@ -15,9 +15,9 @@ public:
     YoshiJudgeWallHitDown(IUsePlayerHack** hacker, const al::LiveActor* actor,
                           const IUsePlayerCollision* collision, const PlayerConst* playerConst);
 
+    bool judge() const override;
     void reset() override;
     void update() override;
-    bool judge() const override;
 
 private:
     const al::LiveActor* mActor;

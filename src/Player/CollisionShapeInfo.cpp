@@ -51,13 +51,8 @@ CollisionShapeInfoSphere::CollisionShapeInfoSphere(const char* name, f32 radius,
                                                    const sead::Vector3f& center)
     : CollisionShapeInfoBase(CollisionShapeId::Sphere, name), mBoundingRadius(radius),
       mBoundingCenter(center), mBoundingCenterRelative(sead::Vector3f(0.0f, 0.0f, 0.0f)),
-      mIsSupportGround(false), mSupportGroundRange(0.0f),
-      mUp(sead::Vector3f::ey), mIsIgnoreGround(false), _69(false) {
+      mUp(sead::Vector3f::ey), _69(false) {
     calcWorldShapeInfo(sead::Matrix34f::ident, 1.0f);
-}
-
-void CollisionShapeInfoSphere::updateShapeOffset(const sead::Vector3f& offset) {
-    mBoundingCenter = offset;
 }
 
 void CollisionShapeInfoSphere::calcWorldShapeInfo(const sead::Matrix34f& matrix, f32 scale) {
@@ -80,8 +75,8 @@ CollisionShapeInfoDisk::CollisionShapeInfoDisk(const char* name, f32 radius,
       mAxis(sead::Vector3f::ey), mHalfHeight(0.0f), mHalfHeightWorld(0.0f),
       mBoundingCenterWorld(sead::Vector3f(0.0f, 0.0f, 0.0f)), mAxisWorld(sead::Vector3f(0.0f, 0.0f, 0.0f)),
       mBoundingCenterRelative(sead::Vector3f(0.0f, 0.0f, 0.0f)), mAxisRelative(sead::Vector3f(0.0f, 0.0f, 0.0f)),
-      mIsSupportGround(false), mSupportGroundRange(0.0f), mSupportGroundRangeWorld(0.0f),
-      mUp(sead::Vector3f::ey), mUpWorld(sead::Vector3f::ey), mIsIgnoreGround(false) {
+      mSupportGroundRangeWorld(0.0f),
+      mUp(sead::Vector3f::ey), mUpWorld(sead::Vector3f::ey) {
     updateDiskShape(radius, axis, halfHeight);
     calcWorldShapeInfo(sead::Matrix34f::ident, 1.0f);
 }
@@ -93,10 +88,6 @@ void CollisionShapeInfoDisk::updateDiskShape(f32 radius, const sead::Vector3f& a
     mHalfHeight = halfHeight;
     mBoundingRadius = sead::Vector2f(mRadius, mHalfHeight).length();
     mCheckStepRange = sead::Mathf::min(mRadius, mHalfHeight + mHalfHeight);
-}
-
-void CollisionShapeInfoDisk::updateShapeOffset(const sead::Vector3f& offset) {
-    mBoundingCenter = offset;
 }
 
 void CollisionShapeInfoDisk::calcWorldShapeInfo(const sead::Matrix34f& matrix, f32 scale) {
@@ -165,6 +156,10 @@ f32 CollisionShapeInfoSphere::getCheckStepRangeWorld() const {
     return mBoundingRadiusWorld;
 }
 
+void CollisionShapeInfoSphere::updateShapeOffset(const sead::Vector3f& offset) {
+    mBoundingCenter = offset;
+}
+
 const sead::Vector3f& CollisionShapeInfoDisk::getBoundingCenter() const {
     return mBoundingCenter;
 }
@@ -187,4 +182,8 @@ f32 CollisionShapeInfoDisk::getCheckStepRange() const {
 
 f32 CollisionShapeInfoDisk::getCheckStepRangeWorld() const {
     return mCheckStepRangeWorld;
+}
+
+void CollisionShapeInfoDisk::updateShapeOffset(const sead::Vector3f& offset) {
+    mBoundingCenter = offset;
 }

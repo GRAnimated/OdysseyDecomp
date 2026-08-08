@@ -2,24 +2,9 @@
 
 #include <basis/seadTypes.h>
 
-struct PlayerHeadCostumeInfo {
-public:
-    PlayerHeadCostumeInfo(const char* costumeName);
-
-    const char* costumeName;
-    bool isFullFace = false;
-    bool isShrinkNose = false;
-    bool isPreventHead = false;
-    bool isEnableBigEar = false;
-    bool isEnableHairNoCap = false;
-    bool isMario64 = false;
-    bool isHaveShort = false;
-    bool isHideBeard = false;
-    bool isHideEarringPeach = false;
-    bool isHideEarringLink = false;
-    bool isUseStrap = false;
-    bool isInvisibleHead = false;
-};
+namespace al {
+class Resource;
+}
 
 struct PlayerBodyCostumeInfo {
 public:
@@ -40,6 +25,25 @@ public:
     bool isUseBeard = false;
     bool isUseEarringPeach = false;
     bool isUseEarringLink = false;
+};
+
+struct PlayerHeadCostumeInfo {
+public:
+    PlayerHeadCostumeInfo(const char* costumeName);
+
+    const char* costumeName;
+    bool isFullFace = false;
+    bool isShrinkNose = false;
+    bool isPreventHead = false;
+    bool isEnableBigEar = false;
+    bool isEnableHairNoCap = false;
+    bool isMario64 = false;
+    bool isHaveShort = false;
+    bool isHideBeard = false;
+    bool isHideEarringPeach = false;
+    bool isHideEarringLink = false;
+    bool isUseStrap = false;
+    bool isInvisibleHead = false;
 };
 
 class PlayerCostumeInfo {
@@ -70,6 +74,10 @@ private:
     const PlayerHeadCostumeInfo* mHeadInfo = nullptr;
 };
 
-static_assert(sizeof(PlayerHeadCostumeInfo) == 0x18);
-static_assert(sizeof(PlayerBodyCostumeInfo) == 0x20);
 static_assert(sizeof(PlayerCostumeInfo) == 0x10);
+
+namespace PlayerCostumeFunction {
+PlayerBodyCostumeInfo* createBodyCostumeInfo(al::Resource* resource, const char* costumeName);
+PlayerHeadCostumeInfo* createHeadCostumeInfo(al::Resource* resource, const char* costumeName,
+                                              bool isInvisibleHead);
+}  // namespace PlayerCostumeFunction

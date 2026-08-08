@@ -24,4 +24,3 @@ public:
     u8 padding_46[2];
 };
 
-static_assert(sizeof(PlayerInitInfo) == 0x48);

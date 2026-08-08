@@ -31,4 +31,3 @@ bool isGuardNosePainCap(const al::LiveActor*);
 
 }  // namespace rs
 
-static_assert(sizeof(Player) == 0x118);

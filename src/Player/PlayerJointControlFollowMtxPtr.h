@@ -7,7 +7,7 @@
 
 class PlayerJointControlFollowMtxPtr : public al::JointControllerBase {
 public:
-    explicit PlayerJointControlFollowMtxPtr(const sead::Matrix34f*);
+    PlayerJointControlFollowMtxPtr(const sead::Matrix34f*);
 
     void calcJointCallback(s32 jointIndex, sead::Matrix34f*) override;
     const char* getCtrlTypeName() const override;

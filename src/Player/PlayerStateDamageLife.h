@@ -25,6 +25,7 @@ public:
     void exeDamage();
     void exeLand();
     void exeDead();
+    ~PlayerStateDamageLife() override = default;
 
 private:
     const PlayerConst* mConst;

@@ -32,8 +32,6 @@ public:
                        PlayerJudgePreInputJump* judgePreInputJump,
                        PlayerJudgePreInputCapThrow* judgePreInputCapThrow, IJudge* judgeStartRise,
                        PlayerContinuousLongJump* continuousLongJump, PlayerSeCtrl* seCtrl);
-    ~PlayerStateRolling() override;
-
     void appear() override;
     void kill() override;
     bool update() override;
@@ -58,6 +56,7 @@ public:
     void exeBrake();
     void exeStandUp();
     void exeEndSquat();
+~PlayerStateRolling() override;
 
 private:
     const PlayerConst* mConst;

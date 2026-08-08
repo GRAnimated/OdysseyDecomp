@@ -27,10 +27,8 @@ PlayerModelChanger2D3D::PlayerModelChanger2D3D(const al::LiveActor* player,
                                                const PlayerInput* input,
                                                PlayerModelHolder* modelHolder,
                                                const ActorDimensionKeeper* dimensionKeeper)
-    : mPlayer(player), mInput(input), mIsChange(false), mIs2DModel(false),
-      mIsDeathRequested(false), mModel(0), mRequestedModel(0), mModelActor(nullptr), mBlinkModelName(nullptr), mTargetModelName(nullptr),
-      mModelHolder(modelHolder), mDimensionKeeper(dimensionKeeper), mBlinkTimer(0),
-      mChangeCooldown(0) {
+    : mPlayer(player), mInput(input), mModelHolder(modelHolder),
+      mDimensionKeeper(dimensionKeeper) {
     mModelActor = mModelHolder->getCurrentModelActor();
     mModelActor->makeActorAlive();
     mIs2DModel = mModelHolder->isCurrentModelLabelSubString("2D");

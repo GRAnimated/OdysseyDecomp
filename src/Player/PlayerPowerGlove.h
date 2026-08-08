@@ -6,14 +6,13 @@ class PlayerPowerGlove : public al::LiveActor {
 public:
     PlayerPowerGlove();
 
-    void init(const al::ActorInitInfo& info) override {}
-
     void initPartsMtx(al::LiveActor* player, const al::ActorInitInfo& info,
                       const sead::Matrix34f* playerBaseMtx);
     void makeActorAlive() override;
     void updatePose();
     void control() override;
     void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
+    void init(const al::ActorInitInfo& info) override {}
 
 private:
     al::LiveActor* mPlayer = nullptr;
@@ -22,4 +21,3 @@ private:
     bool mIsInvisible = false;
 };
 
-static_assert(sizeof(PlayerPowerGlove) == 0x128);

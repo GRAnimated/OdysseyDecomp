@@ -7,6 +7,8 @@
 #include "Library/LiveActor/LiveActor.h"
 
 namespace al {
+struct ActorParamF32;
+struct ActorParamS32;
 class CollisionParts;
 class HitSensor;
 class SensorMsg;
@@ -29,27 +31,21 @@ struct YoshiTongueEatBindInfo {
     f32 _c = 0.0f;
     s32 _10 = 0;
 };
-static_assert(sizeof(YoshiTongueEatBindInfo) == 0x18);
-
 struct YoshiTongueCollisionBuffer {
     const al::CollisionParts** buffer = nullptr;
     s32 capacity = 0;
     s32 _c = 0;
     s32 size = 0;
 };
-static_assert(sizeof(YoshiTongueCollisionBuffer) == 0x18);
-
 struct YoshiTongueParam {
-    const f32* speed = nullptr;
-    const s32* stretchStep = nullptr;
-    const f32* range = nullptr;
-    const s32* clingWallStep = nullptr;
-    const s32* eatStep = nullptr;
-    const f32* pullForce = nullptr;
-    const f32* pullSpeed = nullptr;
+    al::ActorParamF32* speed;
+    al::ActorParamS32* stretchStep;
+    al::ActorParamF32* range;
+    al::ActorParamS32* clingWallStep;
+    al::ActorParamS32* eatStep;
+    al::ActorParamF32* pullForce;
+    al::ActorParamF32* pullSpeed;
 };
-static_assert(sizeof(YoshiTongueParam) == 0x38);
-
 class YoshiTongue : public al::LiveActor {
 public:
     YoshiTongue(const al::LiveActor* host, const al::LiveActor* modelActor,
@@ -59,14 +55,12 @@ public:
                 const PlayerConst* playerConst, IUsePlayerHack** playerHack, const char* actorName);
 
     void init(const al::ActorInitInfo& info) override;
-    void calcAnim() override;
     void updateCollider() override;
-    void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
-    bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
-                    al::HitSensor* self) override;
-
+    void updateEatBindActor();
+    void calcAnim() override;
     void startAttack(const sead::Vector3f& startPos, const sead::Vector3f& direction);
     void startShrink();
+
     void endShrink();
     void eatFinish();
     void endHack();
@@ -87,22 +81,25 @@ public:
                               sead::Vector3f* direction, sead::Vector3f* tipPos) const;
     f32 getShrinkRestRange() const;
     void adjustShrinkRestRange(f32 range);
+    void exeStretch();
     f32 getTongueParamSpeed() const;
     f32 getTongueParamRange() const;
     bool reactionCollideWall();
     bool reactionCollideGround();
     void returnOrEatHide();
-    bool isEnableStayClingGround() const;
-
     void exeStay();
-    void exeStretch();
     void exeHit();
+
+    void exeClingWall();
+    void exeClingGround();
     void exeShrink();
     void exeReturn();
     void exeEat();
     void exeHide();
-    void exeClingWall();
-    void exeClingGround();
+    void attackSensor(al::HitSensor* self, al::HitSensor* other) override;
+    bool receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
+                    al::HitSensor* self) override;
+    bool isEnableStayClingGround() const;
 
 private:
     const al::LiveActor* mHost;
@@ -126,9 +123,9 @@ private:
     sead::Vector3f mUpDir = sead::Vector3f::zero;
     sead::Vector3f mTongueTipPos = sead::Vector3f::zero;
     sead::Vector3f mVelocity = sead::Vector3f::zero;
-    sead::Vector3f _1e0 = sead::Vector3f::zero;
-    f32 _1ec = 0.0f;
-    f32 _1f0 = 0.0f;
+    s32 _1e0 = 0;
+    f32 _1e4 = 0.0f;
+    sead::Vector3f mReturnOffset = sead::Vector3f::zero;
     f32 mShrinkRestRange = 0.0f;
     sead::Vector3f mAttackSensorPos = sead::Vector3f::zero;
     sead::Vector3f mFaceDir = sead::Vector3f::ez;

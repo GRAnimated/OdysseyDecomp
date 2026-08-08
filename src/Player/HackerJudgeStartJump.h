@@ -6,10 +6,10 @@ class IUsePlayerHack;
 
 class HackerJudgeStartJump : public HackerJudge {
 public:
-    HackerJudgeStartJump(IUsePlayerHack**);
+    HackerJudgeStartJump(IUsePlayerHack** hacker);
+    bool judge() const override;
     void reset() override;
     void update() override;
-    bool judge() const override;
 };
 
 static_assert(sizeof(HackerJudgeStartJump) == 0x10);

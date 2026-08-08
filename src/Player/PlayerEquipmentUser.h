@@ -21,8 +21,8 @@ public:
     void endEquip();
     void noticeDamage();
 
-    bool isEquip() const { return mEquipmentSensor != nullptr; }
-    bool hasEquipment() const { return mEquipmentSensor != nullptr; }
+    bool isEquip() const { return mEquipmentSensor; }
+    bool hasEquipment() const { return mEquipmentSensor; }
     void setStateRolling(PlayerStateRolling* state) { mPlayerStateRolling = state; }
 
 private:

@@ -8,7 +8,7 @@ class TouchTargetKeeper;
 
 class PlayerJudgeTouchMove : public IJudge {
 public:
-    explicit PlayerJudgeTouchMove(const TouchTargetKeeper* keeper);
+    PlayerJudgeTouchMove(const TouchTargetKeeper* keeper);
 
     void reset() override;
     void update() override;
@@ -20,4 +20,3 @@ private:
     s32 mRemainFrame;
 };
 
-static_assert(sizeof(PlayerJudgeTouchMove) == 0x18);

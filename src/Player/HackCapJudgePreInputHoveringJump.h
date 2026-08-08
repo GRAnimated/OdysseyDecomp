@@ -14,8 +14,9 @@ class PlayerInput;
 
 class HackCapJudgePreInputHoveringJump : public IJudge {
 public:
-    HackCapJudgePreInputHoveringJump(const al::LiveActor*, const IUsePlayerCollision*,
-                                     const HackCap*, const PlayerInput*);
+    HackCapJudgePreInputHoveringJump(const al::LiveActor* player,
+                                     const IUsePlayerCollision* collision, const HackCap* hackCap,
+                                     const PlayerInput* input);
 
     void reset() override;
     void update() override;

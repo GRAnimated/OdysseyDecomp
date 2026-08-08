@@ -14,30 +14,27 @@ class CollisionShapeKeeper {
 public:
     friend class CollisionMultiShape;
     CollisionShapeKeeper(s32 maxShapes, s32 maxCollideResults, s32 maxCollideSupportResults);
-    // TODO: rename parameters
-    void createShapeArrow(const char* name, const sead::Vector3f& start, const sead::Vector3f& end,
-                          f32 unk1, s32 unk2);
-    void createShapeSphere(const char* name, f32 radius, const sead::Vector3f& position);
-    // TODO: rename parameter
-    void createShapeSphereSupportGround(const char* name, f32 radius, const sead::Vector3f& pos,
-                                        const sead::Vector3f& up, f32 unk1);
-    void createShapeSphereIgnoreGround(const char* name, f32 radius, const sead::Vector3f& pos);
-    // TODO: rename parameters
-    void createShapeDisk(const char* name, f32 a1, const sead::Vector3f& a2,
-                         const sead::Vector3f& a3, f32 a4);
-    // TODO: rename parameters
-    void createShapeDiskSupportGround(const char* name, f32 a1, const sead::Vector3f& a2,
-                                      const sead::Vector3f& a3, f32 a4, const sead::Vector3f& a5,
-                                      f32 a6);
-    // TODO: rename parameters
-    void createShapeDiskIgnoreGround(const char* name, f32 a1, const sead::Vector3f& a2,
-                                     const sead::Vector3f& a3, f32 a4);
+    void createShapeArrow(const char* name, const sead::Vector3f& start,
+                          const sead::Vector3f& arrow, f32 radius, s32 index);
+    void createShapeSphere(const char* name, f32 radius, const sead::Vector3f& center);
+    void createShapeSphereSupportGround(const char* name, f32 radius,
+                                        const sead::Vector3f& center,
+                                        const sead::Vector3f& up, f32 range);
+    void createShapeSphereIgnoreGround(const char* name, f32 radius,
+                                       const sead::Vector3f& center);
+    void createShapeDisk(const char* name, f32 radius, const sead::Vector3f& center,
+                         const sead::Vector3f& axis, f32 halfHeight);
+    void createShapeDiskSupportGround(const char* name, f32 radius,
+                                      const sead::Vector3f& center,
+                                      const sead::Vector3f& axis, f32 halfHeight,
+                                      const sead::Vector3f& up, f32 range);
+    void createShapeDiskIgnoreGround(const char* name, f32 radius,
+                                     const sead::Vector3f& center,
+                                     const sead::Vector3f& axis, f32 halfHeight);
     void updateShape();
     void clearResult();
-    // TODO: rename parameters
-    void calcWorldShapeInfo(const sead::Matrix34f& a2, f32 a3);
-    // TODO: rename parameter
-    void calcRelativeShapeInfo(const sead::Matrix34f& a2);
+    void calcWorldShapeInfo(const sead::Matrix34f& matrix, f32 scale);
+    void calcRelativeShapeInfo(const sead::Matrix34f& matrix);
     void registerCollideResult(const CollidedShapeResult& result);
     void registerCollideSupportResult(const CollidedShapeResult& result);
     bool isCollidedResultFull() const;

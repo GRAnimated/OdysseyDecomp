@@ -12,17 +12,7 @@
 namespace {
 bool judgeCollision(const PlayerConst* pConst, const sead::Vector3f& front,
                     const sead::Vector3f& collisionNormal, const sead::Vector3f& up,
-                    const sead::Vector3f& groundNormal) {
-    sead::Vector3f normalH = {0.0f, 0.0f, 0.0f};
-    al::verticalizeVec(&normalH, up, collisionNormal);
-    if (!al::tryNormalizeOrZero(&normalH))
-        return false;
-    if (al::calcAngleDegree(normalH, -front) > pConst->getCollisionHitDownAngleH())
-        return false;
-    f32 angle = al::calcAngleDegree(groundNormal, collisionNormal);
-    f32 escape = pConst->getCollisionHitDownEscapeAngleV();
-    return al::isInRange(angle, escape, 180.0f - escape);
-}
+                    const sead::Vector3f& groundNormal);
 }  // namespace
 
 PlayerJudgeWallHitDownForceRun::PlayerJudgeWallHitDownForceRun(
@@ -33,10 +23,6 @@ PlayerJudgeWallHitDownForceRun::PlayerJudgeWallHitDownForceRun(
       mCounterForceRun(counterForceRun), mTrigger(trigger) {
     (void)mTrigger;
 }
-
-void PlayerJudgeWallHitDownForceRun::reset() {}
-
-void PlayerJudgeWallHitDownForceRun::update() {}
 
 bool PlayerJudgeWallHitDownForceRun::judge() const {
     if (!mCounterForceRun->isForceRun() ||
@@ -66,3 +52,23 @@ bool PlayerJudgeWallHitDownForceRun::judge() const {
         return true;
     return false;
 }
+
+namespace {
+bool judgeCollision(const PlayerConst* pConst, const sead::Vector3f& front,
+                    const sead::Vector3f& collisionNormal, const sead::Vector3f& up,
+                    const sead::Vector3f& groundNormal) {
+    sead::Vector3f normalH = {0.0f, 0.0f, 0.0f};
+    al::verticalizeVec(&normalH, up, collisionNormal);
+    if (!al::tryNormalizeOrZero(&normalH))
+        return false;
+    if (al::calcAngleDegree(normalH, -front) > pConst->getCollisionHitDownAngleH())
+        return false;
+    f32 escape = pConst->getCollisionHitDownEscapeAngleV();
+    return al::isInRange(al::calcAngleDegree(groundNormal, collisionNormal), escape,
+                         180.0f - escape);
+}
+}  // namespace
+
+void PlayerJudgeWallHitDownForceRun::reset() {}
+
+void PlayerJudgeWallHitDownForceRun::update() {}

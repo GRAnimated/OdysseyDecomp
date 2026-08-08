@@ -26,7 +26,9 @@ NERVE_IMPL(PlayerStateRunHakoniwa2D3D, Run2D)
 NERVES_MAKE_STRUCT(PlayerStateRunHakoniwa2D3D, Run3D, GroundSpin3D, Run2D)
 }  // namespace
 
-// NON_MATCHING: constructor layout, strings, nerves, and owned-state wiring are recovered at the target size; remaining differences are parameter/register allocation from initializer ordering.
+// NON_MATCHING: target/current are 0x1f4 bytes; strings, nerves, and owned-state wiring are
+// recovered but initializer ordering gives different parameter/register lifetimes; next
+// source-level hypothesis is to group owned-state construction in target call order before member stores.
 PlayerStateRunHakoniwa2D3D::PlayerStateRunHakoniwa2D3D(
     al::LiveActor* player, const PlayerConst* pConst, const IUseDimension* dimension,
     const PlayerInput* input, const IUsePlayerCollision* collision,
@@ -53,8 +55,6 @@ PlayerStateRunHakoniwa2D3D::PlayerStateRunHakoniwa2D3D(
                        "地上スピン");
     al::initNerveState(this, mRun2D, &NrvPlayerStateRunHakoniwa2D3D.Run2D, "走り2D");
 }
-
-PlayerStateRunHakoniwa2D3D::~PlayerStateRunHakoniwa2D3D() = default;
 
 void PlayerStateRunHakoniwa2D3D::appear() {
     al::ActorStateBase::appear();
@@ -188,3 +188,5 @@ void PlayerStateRunHakoniwa2D3D::exeRun2D() {
     if (isStateEnd)
         kill();
 }
+
+PlayerStateRunHakoniwa2D3D::~PlayerStateRunHakoniwa2D3D() = default;

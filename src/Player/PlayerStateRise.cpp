@@ -20,13 +20,10 @@ NERVES_MAKE_STRUCT(PlayerStateRise, Rise)
 PlayerStateRise::PlayerStateRise(al::LiveActor* player, const PlayerConst* pConst,
                                  const IUsePlayerCollision* collision, const PlayerInput* input,
                                  PlayerAnimator* animator)
-    : al::ActorStateBase("浮き上がり", player), mCollision(collision), mAnimator(animator),
-      mAirMoveControl(nullptr) {
+    : al::ActorStateBase("浮き上がり", player), mCollision(collision), mAnimator(animator) {
     mAirMoveControl = new PlayerActionAirMoveControl(player, pConst, input, collision, false);
     initNerve(&NrvPlayerStateRise.Rise, 0);
 }
-
-PlayerStateRise::~PlayerStateRise() = default;
 
 void PlayerStateRise::appear() {
     al::NerveStateBase::appear();
@@ -42,8 +39,7 @@ void PlayerStateRise::appear() {
     al::setNerve(this, &NrvPlayerStateRise.Rise);
 }
 
-// NON_MATCHING: behavior and surrounding symbols match, but exeRise differs from the target;
-// compare clamp/max expression lowering and local vector lifetime against the exact assembly.
+// NON_MATCHING: exact 464-byte size; instructions through the rise-area clamp/velocity work match, with the first mismatch at target 0x47A794 where corpus uses separate mActor/mAirMoveControl loads but current code folds them through post-indexed X19. Next hypothesis is a source lifetime/order that keeps this in X19 while staging both members without the post-index addressing fold.
 void PlayerStateRise::exeRise() {
     al::LiveActor* actor = mActor;
     if (al::isFirstStep(this))
@@ -75,3 +71,5 @@ void PlayerStateRise::exeRise() {
     }
     mAirMoveControl->update();
 }
+
+PlayerStateRise::~PlayerStateRise() = default;

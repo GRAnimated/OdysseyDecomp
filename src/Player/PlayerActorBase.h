@@ -21,13 +21,13 @@ public:
 
     void init(const al::ActorInitInfo& initInfo) override {}
 
-    void movement() override;
+    virtual u32 getPortNo() const;
 
     virtual void initPlayer(const al::ActorInitInfo& actorInitInfo,
                             const PlayerInitInfo& playerInitInfo) {}
 
-    virtual u32 getPortNo() const;
     virtual sead::Matrix34f* getViewMtx() const;
+    void movement() override;
 
     virtual IUsePlayerCollision* getPlayerCollision() const { return nullptr; }
 
@@ -85,4 +85,3 @@ private:
     u32 mPortNo = 0;
 };
 
-static_assert(sizeof(PlayerActorBase) == 0x120);

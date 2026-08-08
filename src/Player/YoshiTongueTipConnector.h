@@ -11,7 +11,7 @@ class MtxConnector;
 
 class YoshiTongueTipConnector {
 public:
-    explicit YoshiTongueTipConnector(const al::LiveActor* actor);
+    YoshiTongueTipConnector(const al::LiveActor* actor);
 
     void reset();
     void attachCollision(const al::CollisionParts* collisionParts,
