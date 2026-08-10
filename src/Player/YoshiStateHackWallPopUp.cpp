@@ -32,7 +32,7 @@ YoshiStateHackWallPopUp::YoshiStateHackWallPopUp(al::LiveActor* actor,
       mSnapMtx(sead::Matrix34f::ident), mConnectedMtx(sead::Matrix34f::ident), mPath(nullptr) {
     mConnector = al::createCollisionPartsConnector(actor, sead::Quatf::unit);
     mPath = new al::ParabolicPath();
-    initNerve(&PopUp, 0);
+    initNerve(&PopUp);
 }
 
 void YoshiStateHackWallPopUp::appear() {
@@ -91,7 +91,7 @@ void YoshiStateHackWallPopUp::exePopUp() {
     pathPos.set(0.0f, 0.0f, 0.0f);
     mPath->calcPosition(&pathPos, rate);
     sead::Vector3f velocity = pathPos - al::getTrans(actor);
-    if (al::isNearZero(velocity, 0.001f) && rs::isCollidedGround(mCollision)) {
+    if (al::isNearZero(velocity) && rs::isCollidedGround(mCollision)) {
         sead::Vector3f groundNormal;
         groundNormal.set(0.0f, 0.0f, 0.0f);
         rs::calcGroundNormalOrGravityDir(&groundNormal, actor, mCollision);

@@ -29,7 +29,8 @@ class PlayerConst;
 
 class PlayerJointControlKeeper {
 public:
-    PlayerJointControlKeeper(al::LiveActor*, const PlayerConst*, bool, bool, bool);
+    PlayerJointControlKeeper(al::LiveActor* player, const PlayerConst* playerConst,
+                             bool isNeedShrinkNose, bool isEnableBigEar, bool isFollowJoeStrap);
 
     void update();
     void updateLookAt();

@@ -23,7 +23,7 @@ YoshiStateHackFall::YoshiStateHackFall(al::LiveActor* actor, IUsePlayerHack** pl
     mAirMoveControl->setPlayerHack(playerHack);
     mAirMoveControl->setupCollideWallScaleVelocity(mPlayerConst->getFallWallScaleVelocity(), 0.0f,
                                                    mPlayerConst->getNormalMaxSpeed());
-    initNerve(&Fall, 0);
+    initNerve(&Fall);
 }
 
 void YoshiStateHackFall::appear() {

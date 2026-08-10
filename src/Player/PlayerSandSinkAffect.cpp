@@ -90,6 +90,5 @@ f32 PlayerSandSinkAffect::calcSandSinkDeathRate() const {
 }
 
 bool isInMePlayArea(const al::LiveActor* player) {
-    const al::IUseAreaObj* areaUser = player;
-    return al::tryFindAreaObj(areaUser, "PlayerMePlayArea", al::getTrans(player)) != nullptr;
+    return al::tryFindAreaObj(player, "PlayerMePlayArea", al::getTrans(player));
 }

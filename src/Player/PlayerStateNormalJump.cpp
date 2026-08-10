@@ -32,7 +32,7 @@ void PlayerStateNormalJump::initContinuousJump(PlayerContinuousJump* continuousJ
     mContinuousJump = continuousJump;
 }
 
-// NON_MATCHING: generated function is 12 bytes large; selector switch lowering is the next hypothesis.
+// NON_MATCHING: target/current are both 336 bytes; remaining differences are the inlined continuous-jump selector block order and duplicated getter tails. A finite ordinary case-order sweep did not recover the target; next hypothesis is a distinct selector source shape rather than textual case reordering.
 void PlayerStateNormalJump::appear() {
     f32 jumpPower = PlayerActionFunction::calcJumpSpeed(
         al::calcSpeedH(mActor), mConst->getNormalMinSpeed(), mConst->getNormalMaxSpeed(),
@@ -49,7 +49,7 @@ void PlayerStateNormalJump::appear() {
     al::setNerve(this, &NrvPlayerStateNormalJump.Jump);
 }
 
-// NON_MATCHING: current selector still folds cases 1/2 into a range; reverse explicit case order.
+// NON_MATCHING: target/current are both 80 bytes; target compares count 2 then 1 before the zero/default split, while current hoists count 0. Ordinary case-order permutations did not recover the target; next hypothesis is a selector form that preserves the shared 1/2 getter after both comparisons.
 f32 PlayerStateNormalJump::calcJumpPowerMin() {
     if (!mContinuousJump)
         return mConst->getJumpPowerMin();
@@ -66,7 +66,7 @@ f32 PlayerStateNormalJump::calcJumpPowerMin() {
     }
 }
 
-// NON_MATCHING: exact target compares 2 then 1; reverse source case order to steer switch layout.
+// NON_MATCHING: target/current are both 76 bytes; target compares count 2 then 1, while current lowers the same switch with a different branch target layout. Ordinary case-order permutations were ineffective; next hypothesis is a branch-local selector form.
 f32 PlayerStateNormalJump::calcJumpPowerMax() {
     if (!mContinuousJump)
         return mConst->getJumpPowerMax();
@@ -131,7 +131,7 @@ const char* PlayerStateNormalJump::calcJumpAnimName() {
     return "Jump3";
 }
 
-// NON_MATCHING: exact target compares 2 then 1; reverse source case order to steer switch layout.
+// NON_MATCHING: target/current are both 76 bytes; target compares count 2 then 1, while current lowers the same switch with a different branch target layout. Ordinary case-order permutations were ineffective; next hypothesis is a branch-local selector form.
 f32 PlayerStateNormalJump::calcJumpGravity() {
     if (!mContinuousJump)
         return mConst->getJumpGravity();

@@ -30,7 +30,7 @@ public:
     const LiveActor* getConnectedHost() const;
     void initParts(const sead::Matrix34f&);
     void resetAllMtx(const sead::Matrix34f&);
-    void updateBoundingSphereRange(sead::Vector3f);
+    void updateBoundingSphereRange(sead::Vector3f scale);
     void validateByUser();
     void invalidateByUser();
     void validateBySystem();
@@ -46,8 +46,8 @@ public:
     void syncMtx();
     void updateMtx();
     void updateScale();
-    void updateBoundingSphereRangePrivate(f32);
-    bool checkBoundingSphereRange(const sead::Vector3f&, f32);
+    void updateBoundingSphereRangePrivate(f32 scale);
+    bool checkBoundingSphereRange(const sead::Vector3f& position, f32 radius);
     s32 checkStrikePoint(HitInfo*, const sead::Vector3f&, const TriangleFilterBase*) const;
     s32 checkStrikeSphere(SphereHitResultBuffer*, const sead::Vector3f&, f32, bool,
                           const sead::Vector3f&, const TriangleFilterBase*) const;

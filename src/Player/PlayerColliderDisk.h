@@ -70,5 +70,5 @@ private:
     CollisionMultiShape* mCollisionMultiShape;
     sead::PtrArray<al::HitInfo> mHitInfoArray;
     al::HitInfo* mHitInfoBuffer;
-    s32 mHitInfoCount;
+    u32 mHitInfoCount;
 };

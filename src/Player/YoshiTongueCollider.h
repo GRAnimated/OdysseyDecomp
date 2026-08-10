@@ -15,7 +15,7 @@ class YoshiTongueCollider : public IUsePlayerCollision {
 public:
     YoshiTongueCollider(al::LiveActor* actor);
 
-    void collide(const sead::Vector3f& position, const sead::Vector3f& direction);
+    sead::Vector3f collide(const sead::Vector3f& position, const sead::Vector3f& direction);
     void resetCollision(const sead::Vector3f& position);
 
     PlayerCollider* getPlayerCollider() const override { return mPlayerCollider; }

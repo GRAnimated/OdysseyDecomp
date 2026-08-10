@@ -27,7 +27,7 @@ public:
     void invalidateTurn();
     void validateTurn();
 
-    f32 getPoseRate() const { return _88; }
+    f32 getPoseRate() const { return mPoseRate; }
 
     void exePivot();
     void exeRun();
@@ -48,8 +48,8 @@ private:
     bool mIsTurnJump = false;
     sead::Vector3f _74 = {0.0f, 0.0f, 0.0f};
     f32 _80 = 0.0f;
-    f32 _84 = 0.0f;
-    f32 _88 = 0.0f;
+    s32 mIKBlendCounter = 0;
+    f32 mPoseRate = 0.0f;
 };
 
 static_assert(sizeof(YoshiStateHackRun) == 0x90);

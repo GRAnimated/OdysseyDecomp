@@ -39,7 +39,7 @@ void PlayerStateRise::appear() {
     al::setNerve(this, &NrvPlayerStateRise.Rise);
 }
 
-// NON_MATCHING: exact 464-byte size; instructions through the rise-area clamp/velocity work match, with the first mismatch at target 0x47A794 where corpus uses separate mActor/mAirMoveControl loads but current code folds them through post-indexed X19. Next hypothesis is a source lifetime/order that keeps this in X19 while staging both members without the post-index addressing fold.
+// NON_MATCHING: exact 464-byte size and 15/15 semantic calls; the first residual at target 0x47A794 is member-load/register scheduling, where corpus stages mActor/mAirMoveControl separately. Inlining the one-use speedHRaw local is codegen-neutral; next source-level hypothesis is the original setup-member lifetime/order.
 void PlayerStateRise::exeRise() {
     al::LiveActor* actor = mActor;
     if (al::isFirstStep(this))

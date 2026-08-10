@@ -124,7 +124,6 @@ void PlayerStateRun2D::exeBrake() {
         kill();
 }
 
-// NON_MATCHING: target is 608 bytes while current is 632; next source-level hypothesis is correcting gravity/front vector association and end-turn quaternion/register ordering.
 void PlayerStateRun2D::exeTurn() {
     sead::Vector3f moveVelocity = {0.0f, 0.0f, 0.0f};
     mMoveControl->updateNormalAndSnap(&moveVelocity);
@@ -140,14 +139,15 @@ void PlayerStateRun2D::exeTurn() {
                 mConst->getHillPoseDegreeMax());
 
     sead::Vector3f front = {0.0f, 0.0f, 0.0f};
-    f32 gravityMove = -mConst->getGravityMove();
+    sead::Vector3f gravityVelocity = groundNormal * -mConst->getGravityMove();
     al::calcFrontDir(&front, mActor);
-    al::setVelocity(mActor, groundNormal * gravityMove + front * brakeSpeed);
+    al::setVelocity(mActor, gravityVelocity + front * brakeSpeed);
 
     if (!al::isLessStep(this, mConst->getNormalBrakeFrame2D())) {
+        al::LiveActor* actor = mActor;
         f32 speedEnd = mConst->getNormalMaxSpeed2D();
-        al::setVelocity(mActor, groundNormal * gravityMove -
-                                   front * speedEnd * mConst->getTurnEndSpeedRate2D());
+        al::setVelocity(actor, gravityVelocity -
+                                  front * speedEnd * mConst->getTurnEndSpeedRate2D());
 
         sead::Vector3f up;
         al::calcUpDir(&up, mActor);

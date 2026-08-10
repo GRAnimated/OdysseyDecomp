@@ -12,6 +12,8 @@ public:
     void recordWallJump(const IUsePlayerCollision* collider, const sead::Vector3f& position);
     void recordWallJump(const sead::Vector3f& position, const sead::Vector3f& normal);
     void recordWallLeave(const sead::Vector3f& position, const sead::Vector3f& normal);
+    bool isJumpStored() const { return mIsJumpStored; }
+    const sead::Vector3f& getJumpWallPosition() const { return mJumpWallPosition; }
 
 private:
     bool mIsJumpStored = false;

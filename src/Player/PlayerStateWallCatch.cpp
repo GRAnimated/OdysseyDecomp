@@ -1,5 +1,7 @@
 #include "Player/PlayerStateWallCatch.h"
 
+#include "Library/Collision/CollisionPartsKeeperUtil.h"
+#include "Library/LiveActor/ActorCollisionFunction.h"
 #include "Library/LiveActor/ActorMovementFunction.h"
 #include "Library/LiveActor/ActorPoseUtil.h"
 #include "Library/Math/MathUtil.h"
@@ -7,6 +9,7 @@
 #include "Library/Nerve/NerveUtil.h"
 
 #include "Player/IJudge.h"
+#include "Player/IUsePlayerCeilingCheck.h"
 #include "Player/PlayerActionAirMoveControl.h"
 #include "Player/PlayerActionCollisionSnap.h"
 #include "Player/PlayerAnimator.h"
@@ -41,6 +44,8 @@ s64 calcWallCatchMoveInputType(sead::Vector2f* inputDir, sead::Vector2f* previou
                                 const PlayerInput* input, const sead::Vector3f& up,
                                 const sead::Vector3f& front, const sead::Vector3f& side,
                                 f32 climbDegree, f32 moveDegree, f32 repeatAngle);
+bool updateWallCatchPose(al::LiveActor* actor, PlayerActionCollisionSnap* collisionSnap,
+                         const PlayerConst* pConst);
 }  // namespace
 
 // NON_MATCHING: behavior and target size (0x188) are recovered; remaining differences are constructor
@@ -74,7 +79,7 @@ PlayerStateWallCatch::PlayerStateWallCatch(
     mJudgePreInputPoleClimbSwing = new PlayerJudgePreInputPoleClimbSwing(pConst, input);
     mCollisionSnap = new PlayerActionCollisionSnap(player, collision);
     mCollisionSnap->setVerticalizeSnapFront(true);
-    initNerve(&NrvPlayerStateWallCatch.Start, 0);
+    initNerve(&NrvPlayerStateWallCatch.Start);
 }
 
 void PlayerStateWallCatch::appear() {
@@ -294,6 +299,88 @@ void PlayerStateWallCatch::exeStart() {
     }
 }
 
+// NON_MATCHING: complete target behavior/call surface is restored (40/40); current is 1240 vs target
+// 1296. The validator-approved component expression collapses back to the shorter vector schedule;
+// next hypothesis is the original scalar-local lifetime shape for projected targetPos.
+bool PlayerStateWallCatch::followCollision(bool* isWallLost, bool allowMove) {
+    *isWallLost = false;
+    if (!updateWallCatchPose(mActor, mCollisionSnap, mConst))
+        return false;
+    if (!mCollisionSnap->isSnapPartsValid())
+        return false;
+
+    if (!isWallCatchForm())
+        return true;
+
+    al::LiveActor* actor = mActor;
+    if (rs::isCollidedGround(mCollision)) {
+        sead::Vector3f front(0.0f, 0.0f, 0.0f);
+        al::calcFrontDir(&front, actor);
+        if ((rs::getCollidedGroundPos(mCollision) - al::getTrans(actor)).dot(front) < -5.0f)
+            return false;
+    }
+
+    if (!rs::isCollidedWall(mCollision) || mCeilingCheck->isPressedCeil())
+        return false;
+
+    if (rs::isCollidedCeiling(mCollision)) {
+        const sead::Vector3f& gravity = al::getGravity(actor);
+        const sead::Vector3f& trans = al::getTrans(actor);
+        const sead::Vector3f& ceilingPos = rs::getCollidedCeilingPos(mCollision);
+        if ((trans - ceilingPos).dot(gravity) > 0.0f)
+            return false;
+    }
+
+    bool snapPartsStationary = !mCollisionSnap->isSnapPartsMoving();
+    const s32 wallHitInfoNum = rs::getWallHitInfoNum(mCollision);
+    for (s32 i = 0; i < wallHitInfoNum; i++) {
+        const al::CollisionParts* parts = rs::getWallHitInfoCollisionParts(mCollision, i);
+        const bool partsMoving = al::isCollisionMoving(parts);
+        if (!mCollisionSnap->isSnapParts(parts)) {
+            const sead::Vector3f& normal = rs::getWallHitInfoNormal(mCollision, i);
+            if (!al::isReverseDirection(mCollisionSnap->getSnapFront(), normal, 0.01f) &&
+                (mCollisionSnap->isSnapPartsMoving() || al::isCollisionMoving(parts))) {
+                *isWallLost = enableClimb();
+                return false;
+            }
+        }
+        snapPartsStationary = snapPartsStationary && !partsMoving;
+    }
+
+    if (!allowMove)
+        return true;
+
+    if (snapPartsStationary) {
+        const sead::Vector3f& snapPos = mCollisionSnap->getCurrentSnapPos();
+        const sead::Vector3f delta = al::getTrans(actor) - snapPos;
+        const sead::Vector3f& gravity = al::getGravity(actor);
+        sead::Vector3f front(0.0f, 0.0f, 0.0f);
+        al::calcFrontDir(&front, actor);
+        const f32 vertical = delta.dot(gravity);
+        const f32 horizontal = delta.dot(front);
+        sead::Vector3f targetPos;
+        targetPos.set(snapPos.x + gravity.x * vertical + front.x * horizontal,
+                      snapPos.y + gravity.y * vertical + front.y * horizontal,
+                      snapPos.z + gravity.z * vertical + front.z * horizontal);
+        if ((targetPos - al::getTrans(actor)).length() >= 0.5f) {
+            sead::Vector3f judgeFront(0.0f, 0.0f, 0.0f);
+            sead::Vector3f up(0.0f, 0.0f, 0.0f);
+            al::calcFrontDir(&judgeFront, actor);
+            al::calcUpDir(&up, actor);
+            if (rs::judgeWallCatchClimb(actor, mCollision, mCeilingCheck, judgeFront, targetPos,
+                                        mConst->getCollisionRadiusStand(), true, up))
+                mCollisionSnap->resetSnapPos(targetPos);
+        }
+    } else if (mCollisionSnap->getForceMovePower().length() < 0.5f) {
+        const sead::Vector3f trans = al::getTrans(actor);
+        al::updatePoseTrans(actor, trans);
+        rs::resetCollision(mCollision);
+        al::setTrans(actor, trans);
+    }
+
+    return true;
+}
+
 // NON_MATCHING: target is 0x1a0 bytes and validator-clean current is 0x18c; behavior/call signature
 // match, but sead vector helpers shorten and reallocate the target-position reconstruction. Next
 // source-level hypothesis is a validator-clean expression retaining delta/vertical in D12-D14.
@@ -457,11 +544,11 @@ void PlayerStateWallCatch::exeMoveLeft() {
     }
 }
 
-// NON_MATCHING: target/current are 0x4c bytes; target reloads mAnimator before FP epilogue/divide scheduling while current reload occurs later; next source-level hypothesis is a source lifetime that retains the animator member address through getAnimFrameMax.
 void PlayerStateWallCatch::initMoveFrameLeftRight() {
     const s32 moveFrame = 2 * mCollisionSnap->getMoveFrame() - 1;
     const f32 animFrameMax = mAnimator->getAnimFrameMax();
-    mAnimator->setAnimRate(animFrameMax / static_cast<f32>(moveFrame) * 0.999f);
+    const f32 animRate = animFrameMax / static_cast<f32>(moveFrame) * 0.999f;
+    mAnimator->setAnimRate(animRate);
 }
 
 void PlayerStateWallCatch::exeMoveRight() {
@@ -479,6 +566,120 @@ void PlayerStateWallCatch::exeMoveRight() {
         mGrabJoint->dynamicsRate = 1.0f;
         al::setNerve(this, &NrvPlayerStateWallCatch.Wait);
     }
+}
+
+void PlayerStateWallCatch::exeClimb() {
+    if (al::isFirstStep(this))
+        mAnimator->startAnim("WallCatchEnd");
+
+    PlayerJointParamGrab* grabJoint = mGrabJoint;
+    grabJoint->dynamicsRate = al::converge(grabJoint->dynamicsRate, 0.2f, 0.2f);
+    if (followCollisionClimb()) {
+        if (rs::judgeAndResetReturnTrue(mJudgePreInputJump) && enableClimb()) {
+            if (_8c <= mConst->getWallClimbJumpEndFrame()) {
+                al::setNerve(this, &NrvPlayerStateWallCatch.Jump);
+                return;
+            }
+            if (al::isLessEqualStep(this, 20)) {
+                al::setNerve(this, &NrvPlayerStateWallCatch.ClimbFast);
+                return;
+            }
+        }
+
+        if (!isWallCatchForm()) {
+            rs::waitGround(mActor, mCollision, mConst->getWallClimbGravity(),
+                           mConst->getFallSpeedMax(), mConst->getSlerpQuatRateWait(),
+                           mConst->getWaitPoseDegreeMax());
+        } else if (enableClimb()) {
+            IUsePlayerCollision* collision = mCollision;
+            al::LiveActor* actor = mActor;
+            if (rs::isCollidedCeiling(collision)) {
+                const sead::Vector3f& gravity = al::getGravity(actor);
+                const sead::Vector3f& ceilingPos = rs::getCollidedCeilingPos(collision);
+                if ((ceilingPos - al::getTrans(actor)).dot(gravity) < 0.0f) {
+                    endClimb();
+                    return;
+                }
+            }
+
+            if (al::isStep(this, 25)) {
+                mTrigger->set(PlayerTrigger::EActionTrigger_val3);
+                rs::waitGround(mActor, mCollision, mConst->getWallClimbGravity(),
+                               mConst->getFallSpeedMax(), mConst->getSlerpQuatRateWait(),
+                               mConst->getWaitPoseDegreeMax());
+            }
+
+            _8c++;
+            if (!mAnimator->isAnimEnd())
+                return;
+
+            mTrigger->set(PlayerTrigger::EActionTrigger_val3);
+            endClimb();
+            return;
+        } else {
+            endFallFromWall();
+            return;
+        }
+
+        _8c++;
+        if (!mAnimator->isAnimEnd())
+            return;
+        mTrigger->set(PlayerTrigger::EActionTrigger_val3);
+        endClimb();
+        return;
+    }
+
+    endFallFromWall();
+}
+
+// NON_MATCHING: complete target behavior/call surface is restored (24/24); current is 788 vs target
+// 844. The validator-approved component expression collapses to the shorter vector schedule; next
+// hypothesis is the original scalar-local lifetime shape for projected targetPos.
+bool PlayerStateWallCatch::followCollisionClimb() {
+    if (!isWallCatchForm()) {
+        sead::Quatf quat = sead::Quatf::unit;
+        al::calcQuat(&quat, mActor);
+        mCollisionSnap->followCollision();
+        al::updatePoseQuat(mActor, quat);
+        return mCollisionSnap->isSnapPartsValid();
+    }
+
+    updateWallCatchPose(mActor, mCollisionSnap, mConst);
+    if (!mCollisionSnap->isSnapPartsValid())
+        return false;
+
+    if (rs::isCollidedGround(mCollision)) {
+        sead::Vector3f front(0.0f, 0.0f, 0.0f);
+        al::calcFrontDir(&front, mActor);
+        if ((rs::getCollidedGroundPos(mCollision) - al::getTrans(mActor)).dot(front) < -5.0f)
+            return false;
+    }
+
+    al::LiveActor* actor = mActor;
+    const sead::Vector3f& snapPos = mCollisionSnap->getCurrentSnapPos();
+    const sead::Vector3f delta = al::getTrans(actor) - snapPos;
+    const sead::Vector3f& gravity = al::getGravity(actor);
+    sead::Vector3f front(0.0f, 0.0f, 0.0f);
+    al::calcFrontDir(&front, actor);
+    const f32 vertical = delta.dot(gravity);
+    const f32 horizontal = delta.dot(front);
+    sead::Vector3f targetPos;
+    targetPos.set(snapPos.x + gravity.x * vertical + front.x * horizontal,
+                  snapPos.y + gravity.y * vertical + front.y * horizontal,
+                  snapPos.z + gravity.z * vertical + front.z * horizontal);
+    if ((targetPos - al::getTrans(actor)).length() <= 5.0f)
+        return true;
+
+    sead::Vector3f judgeFront(0.0f, 0.0f, 0.0f);
+    sead::Vector3f up(0.0f, 0.0f, 0.0f);
+    al::calcFrontDir(&judgeFront, actor);
+    al::calcUpDir(&up, actor);
+    if (!rs::judgeWallCatchClimb(actor, mCollision, mCeilingCheck, judgeFront, targetPos,
+                                 mConst->getCollisionRadiusStand(), true, up))
+        return false;
+
+    mCollisionSnap->resetSnapPos(targetPos);
+    return true;
 }
 
 // NON_MATCHING: behavior is recovered; current is 0x1c0 vs target 0x1bc. The target retains
@@ -514,6 +715,60 @@ void PlayerStateWallCatch::endClimb() {
     targetPos += snapPos;
     al::setTrans(actor, targetPos);
     kill();
+}
+
+void PlayerStateWallCatch::exeClimbFast() {
+    if (al::isFirstStep(this))
+        mAnimator->startAnim("WallCatchEndFast");
+
+    PlayerJointParamGrab* grabJoint = mGrabJoint;
+    grabJoint->dynamicsRate = al::converge(grabJoint->dynamicsRate, 0.2f, 0.2f);
+    if (!followCollisionClimb()) {
+        endFallFromWall();
+        return;
+    }
+
+    if (!isWallCatchForm()) {
+        rs::waitGround(mActor, mCollision, mConst->getWallClimbGravity(),
+                       mConst->getFallSpeedMax(), mConst->getSlerpQuatRateWait(),
+                       mConst->getWaitPoseDegreeMax());
+    } else {
+        if (!enableClimb()) {
+            endFallFromWall();
+            return;
+        }
+
+        IUsePlayerCollision* collision = mCollision;
+        al::LiveActor* actor = mActor;
+        if (rs::isCollidedCeiling(collision)) {
+            const sead::Vector3f& gravity = al::getGravity(actor);
+            const sead::Vector3f& ceilingPos = rs::getCollidedCeilingPos(collision);
+            if ((ceilingPos - al::getTrans(actor)).dot(gravity) < 0.0f) {
+                endClimb();
+                return;
+            }
+        }
+
+        if (al::isStep(this, 15)) {
+            mGrabJoint->interpolateRate = 0.0f;
+            sead::Vector3f followDir(0.0f, 0.0f, 0.0f);
+            mCollisionSnap->calcFollowDir(&followDir, _80);
+            sead::Vector3f front(0.0f, 0.0f, 0.0f);
+            al::calcFrontDir(&front, mActor);
+            rs::slerpUpFront(mActor, followDir, front, 1.0f, mConst->getWaitPoseDegreeMax());
+            rs::waitGround(mActor, mCollision, mConst->getWallClimbGravity(),
+                           mConst->getFallSpeedMax(), mConst->getSlerpQuatRateWait(),
+                           mConst->getWaitPoseDegreeMax());
+            mTrigger->set(PlayerTrigger::EActionTrigger_val3);
+        } else {
+            mGrabJoint->interpolateRate = al::calcNerveRate(this, 15);
+        }
+    }
+
+    if (mAnimator->isAnimEnd()) {
+        mTrigger->set(PlayerTrigger::EActionTrigger_val3);
+        endClimb();
+    }
 }
 
 void PlayerStateWallCatch::exeJump() {
@@ -559,7 +814,7 @@ s64 calcWallCatchMoveInputType(sead::Vector2f* inputDir, sead::Vector2f* previou
 
     f32 sideDot;
     f32 frontDot;
-    if (al::isNearZero(*previousStick, 0.001f)) {
+    if (al::isNearZero(*previousStick)) {
         sead::Vector3f normalizedInput;
         normalizedInput.set(0.0f, 0.0f, 0.0f);
         al::normalize(&normalizedInput, moveInput);
@@ -610,5 +865,53 @@ void PlayerStateWallCatch::moveCatchPos(const al::CollisionParts* collisionParts
     mCollisionSnap->moveSnapPos(collisionParts, position, -front, up, moveFrame);
     _80 = up;
 }
+
+namespace {
+// NON_MATCHING: unlabeled target helper at 0x7100492150; behavior and target size 576/576 are
+// recovered under a behavior-derived name, but exact tools/check selection is unavailable because
+// corpus has no recovered symbol.
+bool updateWallCatchPose(al::LiveActor* actor, PlayerActionCollisionSnap* collisionSnap,
+                         const PlayerConst* pConst) {
+    collisionSnap->followCollision();
+
+    const sead::Vector3f& gravity = al::getGravity(actor);
+    const sead::Vector3f up = -gravity;
+    sead::Vector3f front(0.0f, 0.0f, 0.0f);
+    al::calcFrontDir(&front, actor);
+    const sead::Vector3f originalFront = front;
+    al::verticalizeVec(&front, up, front);
+    if (!al::tryNormalizeOrZero(&front))
+        return false;
+
+    sead::Vector3f actorUp(0.0f, 0.0f, 0.0f);
+    al::calcUpDir(&actorUp, actor);
+    sead::Vector3f horizontal(0.0f, 0.0f, 0.0f);
+    sead::Vector3f vertical(0.0f, 0.0f, 0.0f);
+    al::separateVectorHV(&horizontal, &vertical, up, actorUp);
+    const f32 keepDegree = pConst->getWallCatchKeepDegree();
+
+    sead::Vector3f horizontalFront(0.0f, 0.0f, 0.0f);
+    al::verticalizeVec(&horizontalFront, front, horizontal);
+    sead::Vector3f targetUp = horizontalFront + vertical;
+    if (!al::tryNormalizeOrZero(&targetUp))
+        return false;
+
+    const f32 angle = al::calcAngleDegree(targetUp, up);
+    const f32 frontLimit = sead::Mathf::max(-originalFront.dot(up), 0.0f);
+    f32 frontPower = sead::Mathf::max(front.dot(horizontal), 0.0f);
+    if (frontPower > frontLimit)
+        frontPower = frontLimit;
+
+    horizontal.setScale(front, frontPower);
+    targetUp = horizontal + vertical;
+    if (!al::tryNormalizeOrZero(&targetUp) || al::isParallelDirection(front, targetUp))
+        return false;
+
+    sead::Quatf quat = sead::Quatf::unit;
+    al::makeQuatUpFront(&quat, targetUp, front);
+    al::updatePoseQuat(actor, quat);
+    return angle <= keepDegree;
+}
+}  // namespace
 
 PlayerStateWallCatch::~PlayerStateWallCatch() = default;

@@ -89,7 +89,7 @@ void CollisionShapeKeeper::updateShape() {
         f32 radius = mCollisionShape[i]->getBoundingRadius();
         sead::Vector3f centerOff = center - mBoundingCenter;
         f32 centerDist = centerOff.length();
-        if (al::isNearZero(centerDist, 0.001f)) {
+        if (al::isNearZero(centerDist)) {
             if (radius > mBoundingRadius)
                 mBoundingRadius = radius;
         } else if (radius + centerDist > mBoundingRadius) {

@@ -102,7 +102,7 @@ bool PlayerTrigger::isOnUpperPunchHitToss() const {
     return mAttackSensorTrigger.isOn(0x10);
 }
 
-// NON_MATCHING: exact semantics and target source shape; LLVM narrows the 64-bit action-trigger bit test and folds the target's two CSEL stages.
+// NON_MATCHING: current 84 bytes versus target 92 with the corpus-pseudo expression shape preserved; LLVM narrows the 64-bit action-trigger test to LDRB/TBNZ-style bit folding and merges the target's two CSEL stages. No calls or declaration/order issues remain; next source-level hypothesis is an original 64-bit temporary/type lifetime that prevents narrowing.
 bool PlayerTrigger::isOnAnyDamage() const {
     const u32 collisionTrigger = mCollisionTrigger.getDirect();
     if (collisionTrigger & 0x44)

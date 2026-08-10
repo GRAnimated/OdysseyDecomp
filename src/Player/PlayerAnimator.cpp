@@ -646,7 +646,6 @@ void PlayerAnimator::calcModelJointRootMtx(sead::Matrix34f* out) const {
     *out = *al::getJointMtxPtr(mModelHolder->getCurrentModelActor(), "JointRoot");
 }
 
-// NON_MATCHING: target/current are both 652 bytes, but the whole-function register assignment swaps this/name (X19/X20); next source-level hypothesis is shortening the player/face temporary lifetimes before finalPartName selection.
 void PlayerAnimator::startPartsAnim(const sead::SafeString& name) {
     al::LiveActor* player = mModelHolder->getCurrentModelActor();
     bool isUpperBodyAnim = _1a3;
@@ -698,9 +697,10 @@ void PlayerAnimator::startPartsAnim(const sead::SafeString& name) {
         }
     }
 
-    if (mPlayerDeco) {
-        if (!al::tryStartAction(mPlayerDeco, name.cstr()))
-            al::startAction(mPlayerDeco, "Wait");
+    al::LiveActor* playerDeco = mPlayerDeco;
+    if (playerDeco) {
+        if (!al::tryStartAction(playerDeco, name.cstr()))
+            al::startAction(playerDeco, "Wait");
     }
 }
 

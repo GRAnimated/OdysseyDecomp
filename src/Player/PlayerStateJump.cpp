@@ -54,13 +54,13 @@ PlayerStateJump::PlayerStateJump(
       _ac(0), _b0(0), _b4(0), _b5(0), _b6(0), _b7(0), _b8(0), _b9(0), _ba(0), _bb(0),
       _bc(0.0f, 0.0f, 0.0f), _c8(nullptr), _d0(nullptr), mInput(input),
       mIsDownFallGroundCollision(false), mDownFallGroundPos(0.0f, 0.0f, 0.0f) {
-    turnJumpAngle.set(0.0f, 0.0f, 0.0f);
-    downFallConvergeCounter = 0;
+    _e0.set(0.0f, 0.0f, 0.0f);
+    mDownFallConvergeCounter = 0;
 
     mAirMoveControl = new PlayerActionAirMoveControl(player, pConst, input, collision, false);
     mAirMoveControl->setUseGroundNormalForStartMove(true);
     mAirMoveControl->setStartMoveSpeedClamp(true, 0.0f, pConst->getJumpBaseSpeedMax());
-    initNerve(&NrvPlayerStateJump.Jump, 0);
+    initNerve(&NrvPlayerStateJump.Jump);
 }
 
 f32 PlayerStateJump::calcJumpPowerBorderSpeedMin() const {
@@ -242,7 +242,7 @@ bool PlayerStateJump::isEnableTrampleByHipDropAttack() const {
     return !isDead() &&
            (al::isNerve(this, &NrvPlayerStateJump.JumpSpinFlowerDownFall) ||
             al::isNerve(this, &NrvPlayerStateJump.JumpSpinGroundDownFall)) &&
-           downFallConvergeCounter == 0;
+           mDownFallConvergeCounter == 0;
 }
 
 bool PlayerStateJump::isEnableReactionCapCatch() const {

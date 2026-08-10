@@ -31,8 +31,6 @@ void PlayerStateNormalWait::appear() {
     al::setNerve(this, &NrvPlayerStateNormalWait.Wait);
 }
 
-// NON_MATCHING: generated function is 0x18c versus target 0x194 after using aggregate zero
-// initialization; next preserve the target's scalar ground-normal copy without manual components.
 void PlayerStateNormalWait::exeWait() {
     al::LiveActor* actor = mActor;
     if (al::isFirstStep(this)) {
@@ -63,7 +61,8 @@ void PlayerStateNormalWait::exeWait() {
         al::reboundVelocityFromCollision(actor, 0.0f, 0.0f, 0.0f);
 
     al::addVelocityToDirection(actor, -groundNormal, 3.0f);
-    sead::Vector3f front = {};
+    sead::Vector3f front;
+    front.set(0.0f, 0.0f, 0.0f);
     al::calcFrontDir(&front, actor);
     rs::slerpUpFront(actor, groundNormal, front, mConst->getSlerpQuatRate(),
                      mConst->getWaitPoseDegreeMax());

@@ -396,7 +396,6 @@ void Yoshi::attackSensor(al::HitSensor* self, al::HitSensor* other) {
         rs::sendMsgPushToPlayer(other, self);
 }
 
-// NON_MATCHING: exact 752-byte size; target calls PlayerConst vtable +0x10 while the compatible declaration calls +0x0. Next hypothesis is recovering the specific accessor ABI without shifting already-matching PlayerConst callers.
 bool Yoshi::receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                        al::HitSensor* self) {
     if (al::isMsgPlayerDisregard(message)) {
@@ -419,13 +418,13 @@ bool Yoshi::receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
 
     if (canReceivePush) {
         bool isHack = al::isNerve(this, &NrvYoshi.Hack);
-        f32 gravity = mPlayerConst->getGravity();
-        f32 pushPower = isHack ? gravity : gravity * 5.0f;
+        f32 pushPowerBase = mPlayerConst->getPushPower();
+        f32 pushPower = isHack ? pushPowerBase : pushPowerBase * 5.0f;
         if (mPushReceiver->receivePushMsgHacker(message, other, self, pushPower, true))
             return true;
     } else if (al::isNerve(this, &NrvYoshi.Npc) &&
                mPushReceiver->receivePushMsgYoshiNpc(message, other, self,
-                                                    mPlayerConst->getGravity() * 5.0f)) {
+                                                    mPlayerConst->getPushPower() * 5.0f)) {
         return true;
     }
 

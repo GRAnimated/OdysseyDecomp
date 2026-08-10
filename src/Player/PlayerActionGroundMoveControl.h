@@ -43,6 +43,8 @@ public:
     const sead::Vector3f& getGroundNormal() const { return mGroundNormal; }
     bool isBrake2D() const { return _64; }
     bool isStopped() const { return mHasStopped; }
+    bool isPivotTurn() const { return mIsPivotTurn; }
+    const sead::Vector3f& getMoveInput() const { return _84; }
     void setIs2D(bool is2D) { _d5 = is2D; }
 
     void set_c4(bool c4) { _c4 = c4; }
@@ -54,6 +56,10 @@ public:
     }
     void setPlayerHack(IUsePlayerHack** playerHack) { mHack = playerHack; }
     void setTurnInvalid(bool isInvalid) { _ba = isInvalid; }
+    void setForceRunControl(bool active, f32 speed) {
+        mIsForceRunCtrlActive = active;
+        _a0 = speed;
+    }
 
 private:
     al::LiveActor* mParent;
@@ -93,7 +99,7 @@ private:
     bool _b9;
     bool _ba;
     bool _bb;
-    bool _bc;
+    bool mIsPivotTurn;
     bool _bd;
     f32 _c0;
     bool _c4;

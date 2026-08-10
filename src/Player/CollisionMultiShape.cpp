@@ -75,7 +75,7 @@ bool CollisionMultiShape::check(
     return mShapeKeeper->mNumCollideResult > 0;
 }
 
-// NON_MATCHING: exact size, but disk culling first differs at 0x71003F6A90 in center/axis load scheduling; next source-level hypothesis is the disk vector-expression evaluation order.
+// NON_MATCHING: target/current are both 1484 bytes with all 15 semantic calls in target order; first remaining drift is disk-culling center/axis load/register scheduling. Next source-level hypothesis is the original center/axis expression lifetime order.
 void CollisionMultiShape::callbackFromParts(al::CollisionParts* collisionParts) {
     mCollisionParts = collisionParts;
     _3c = collisionParts->getMtxScale();
@@ -100,9 +100,7 @@ void CollisionMultiShape::callbackFromParts(al::CollisionParts* collisionParts) 
         bool isFarAway;
         if (CollisionShapeFunction::isShapeArrow(shapeInfo)) {
             sead::Vector3f partsCenter;
-            partsCenter.set(collisionParts->getBaseMtx().m[0][3],
-                            collisionParts->getBaseMtx().m[1][3],
-                            collisionParts->getBaseMtx().m[2][3]);
+            collisionParts->getBaseMtx().getTranslation(partsCenter);
             const f32 partsRadius = collisionParts->getBoundingSphereRange();
             const CollisionShapeInfoArrow* arrow =
                 CollisionShapeFunction::getShapeInfoArrow(shapeInfo);
@@ -115,16 +113,14 @@ void CollisionMultiShape::callbackFromParts(al::CollisionParts* collisionParts) 
             }
         } else if (CollisionShapeFunction::isShapeDisk(shapeInfo)) {
             sead::Vector3f partsCenter;
-            partsCenter.set(collisionParts->getBaseMtx().m[0][3],
-                            collisionParts->getBaseMtx().m[1][3],
-                            collisionParts->getBaseMtx().m[2][3]);
+            collisionParts->getBaseMtx().getTranslation(partsCenter);
             const f32 partsRadius = collisionParts->getBoundingSphereRange();
             const CollisionShapeInfoDisk* disk = CollisionShapeFunction::getShapeInfoDisk(shapeInfo);
             sead::Vector3f centerToParts = disk->getCenterWorld() - partsCenter;
             const f32 axialRange = partsRadius + disk->getHalfHeightWorld();
             const f32 axisDistance = disk->getAxisWorld().dot(centerToParts);
             const f32 minusAxisDistance = -axisDistance;
-            const f32 absAxisDistance = axisDistance <= 0.0f ? minusAxisDistance : axisDistance;
+            const f32 absAxisDistance = axisDistance > 0.0f ? axisDistance : minusAxisDistance;
             if (absAxisDistance > axialRange) {
                 isFarAway = true;
             } else {
@@ -190,7 +186,7 @@ void CollisionMultiShape::callbackFromParts(al::CollisionParts* collisionParts) 
     }
 }
 
-// NON_MATCHING: target is 0x9B0 bytes and current output is 0x9B4; the arrow locals now follow target order, but start X/Y still emit separate stores instead of the target STP; next source-level hypothesis is the original start-vector construction idiom.
+// NON_MATCHING: target is 0x9b0 bytes and current is 0x9cc after recovering the corpus-proven shared sphere/disk result-storage and registration tail; all 42 semantic calls are present. Next source-level hypothesis is remaining branch/layout and vector-local lifetime order, especially sphere/disk block placement and arrow start construction.
 void CollisionMultiShape::callbackFromServer(const al::KCPrismData* prismData,
                                               const al::KCPrismHeader* prismHeader) {
     if (mKCPrismHeader == prismHeader) {
@@ -204,6 +200,7 @@ void CollisionMultiShape::callbackFromServer(const al::KCPrismData* prismData,
         mKCPrismDataArray.pushBack(prismData);
 
     if (!mShapeKeeper->isShapeArrow(_38)) {
+        sead::StorageFor<CollidedShapeResult> resultStorage;
         if (mShapeKeeper->isShapeSphere(_38)) {
             al::SphereHitInfo sphereHitInfo;
             al::HitInfo* hitInfo = *sphereHitInfo;
@@ -232,15 +229,11 @@ void CollisionMultiShape::callbackFromServer(const al::KCPrismData* prismData,
             hitInfo->collisionLocation = static_cast<al::CollisionLocation>(collisionLocation);
             setMovingReaction(hitInfo, mCollisionParts, _40);
 
-            CollidedShapeResult result(shape);
-            result.setSphereHitInfo(sphereHitInfo);
-            if (!mShapeKeeper->isCollidedResultFull())
-                mShapeKeeper->registerCollideResult(result);
-            return;
-        }
-
-        if (!mShapeKeeper->isShapeDisk(_38))
-            return;
+            CollidedShapeResult* result = resultStorage.construct(shape);
+            result->setSphereHitInfo(sphereHitInfo);
+        } else {
+            if (!mShapeKeeper->isShapeDisk(_38))
+                return;
 
         al::DiskHitInfo diskHitInfo;
         al::HitInfo* hitInfo = *diskHitInfo;
@@ -271,10 +264,11 @@ void CollisionMultiShape::callbackFromServer(const al::KCPrismData* prismData,
         hitInfo->collisionLocation = static_cast<al::CollisionLocation>(collisionLocation);
         setMovingReaction(hitInfo, mCollisionParts, _40);
 
-        CollidedShapeResult result(shape);
-        result.setDiskHitInfo(diskHitInfo);
+            CollidedShapeResult* result = resultStorage.construct(shape);
+            result->setDiskHitInfo(diskHitInfo);
+        }
         if (!mShapeKeeper->isCollidedResultFull())
-            mShapeKeeper->registerCollideResult(result);
+            mShapeKeeper->registerCollideResult(*resultStorage);
         return;
     }
 
@@ -310,7 +304,7 @@ void CollisionMultiShape::callbackFromServer(const al::KCPrismData* prismData,
 }
 
 namespace {
-// NON_MATCHING: exact size, but first mismatch at 0x71003F78C4 swaps the X22/X23 shape/parts allocation; next source-level hypothesis is parameter lifetime/order in the generic branch.
+// NON_MATCHING: target and current are both 0x1ec bytes with all 9 semantic calls in target order, but register allocation still swaps the shape/parts lifetimes near the generic branch. Next source-level hypothesis is parameter/local lifetime order.
 void searchPrism(al::KCollisionServer* server, const CollisionShapeInfoBase* shapeInfo,
                  const al::CollisionParts* collisionParts, const sead::Vector3f& offset,
                  sead::IDelegate2<const al::KCPrismData*, const al::KCPrismHeader*>& callback,

@@ -53,10 +53,10 @@ PlayerStateGrabCeil::PlayerStateGrabCeil(
     mAirMoveControl->setupCollideWallScaleVelocity(mConst->getFallWallScaleVelocity(), 0.0f,
                                                    mConst->getNormalMaxSpeed());
     mCollisionSnap = new PlayerActionCollisionSnap(actor, collision);
-    initNerve(&Start, 0);
+    initNerve(&Start);
 }
 
-// NON_MATCHING: target 1444 bytes, current 1428 bytes; inertial spring/local setup is close but not instruction-identical. next source-level hypothesis: recover the original max/abs expression and temporary ordering around the two spring-energy calculations.
+// NON_MATCHING: target 1444 bytes, current 1424 bytes; inertial spring/local setup is close but not instruction-identical. Next source-level hypothesis: recover the original max/abs expression and temporary ordering around the two spring-energy calculations.
 void PlayerStateGrabCeil::appear() {
     _c0 = 1.0f;
     al::NerveStateBase::appear();
@@ -90,20 +90,20 @@ void PlayerStateGrabCeil::appear() {
     f32 frontSign = al::sign(frontEnergy);
     f32 sideSign = al::sign(sideEnergy);
     if (al::tryNormalizeOrZero(&snapDelta)) {
-        if (al::isNearZero(frontSign, 0.001f))
+        if (al::isNearZero(frontSign))
             frontSign = -1.0f;
         f32 angle = sead::Mathf::abs(
             al::calcAngleOnPlaneDegreeOrZero(al::getGravity(actor), snapDelta, _a0));
         _84 = -frontSign * sead::Mathf::min(angle, 90.0f);
 
-        if (al::isNearZero(sideSign, 0.001f))
+        if (al::isNearZero(sideSign))
             sideSign = -1.0f;
         angle = sead::Mathf::abs(
             al::calcAngleOnPlaneDegreeOrZero(al::getGravity(actor), snapDelta, _94));
         _88 = -sideSign * sead::Mathf::min(angle, 20.0f);
     }
 
-    if (al::isNearZero(frontSign, 0.001f)) {
+    if (al::isNearZero(frontSign)) {
         _8c = -7.5f;
     } else {
         const f32 springSpeed = al::convertSpringEnergyToSpeed(_84, frontEnergy, 0.01f);
@@ -112,7 +112,7 @@ void PlayerStateGrabCeil::appear() {
         _8c = frontSign * (remaining + sead::Mathf::max(7.5f - springSpeed, 0.0f));
     }
 
-    if (al::isNearZero(sideSign, 0.001f)) {
+    if (al::isNearZero(sideSign)) {
         _90 = -0.0f;
     } else {
         const f32 springSpeed = al::convertSpringEnergyToSpeed(_88, sideEnergy, 0.01f);
@@ -145,7 +145,7 @@ void PlayerStateGrabCeil::appear() {
 }
 
 namespace {
-// NON_MATCHING: target 1500 bytes, current 1416 bytes; input-power/counter damping control flow is still too compact. next source-level hypothesis: mirror the corpus branch ordering around inputCounter, reverse power, and spring damping without algebraic consolidation.
+// NON_MATCHING: target 1500 bytes, current 1492 bytes with exact 29/29 semantic calls; restoring the corpus snapUp zero-then-copy lifetime recovered 16 bytes, but current still uses a 0x110 frame vs target 0x100. next source-level hypothesis: recover the target stack lifetime around the input-power/counter branch without scalarizing vector code.
 bool updateGrabCeilSwing(PlayerActionCollisionSnap* collisionSnap, f32* angle,
                     f32* angleVelocity, f32* sideAngle, f32* sideAngleVelocity,
                     s32* reverseCounter, f32* inputPower, s32* inputCounter,
@@ -163,11 +163,12 @@ bool updateGrabCeilSwing(PlayerActionCollisionSnap* collisionSnap, f32* angle,
     else
         *reverseCounter = al::converge(*reverseCounter, 0, 1);
 
-    sead::Vector3f snapUp = front;
+    sead::Vector3f snapUp{0.0f, 0.0f, 0.0f};
     sead::Vector3f snapFront = front.cross(side);
     al::rotateVectorDegree(&snapFront, snapFront, front, *sideAngle);
     al::rotateVectorDegree(&snapFront, snapFront, side, *angle);
     al::normalize(&snapFront);
+    snapUp = front;
     al::rotateVectorDegree(&snapUp, snapUp, side, *angle);
     al::normalize(&snapUp);
     collisionSnap->setSnapPose(snapUp, snapFront);
@@ -189,8 +190,8 @@ bool updateGrabCeilSwing(PlayerActionCollisionSnap* collisionSnap, f32* angle,
     }
 
     const f32 previousInputPower = *inputPower;
-    if (!al::isNearZero(swingInput, 0.001f)) {
-        if (al::isNearZero(*inputPower, 0.001f)) {
+    if (!al::isNearZero(swingInput)) {
+        if (al::isNearZero(*inputPower)) {
             *inputPower = swingInput;
         } else if (swingInput * *inputPower < 0.0f) {
             *inputPower = swingInput;
@@ -207,12 +208,12 @@ bool updateGrabCeilSwing(PlayerActionCollisionSnap* collisionSnap, f32* angle,
         const f32 absInputPower = *inputPower > 0.0f ? *inputPower : -*inputPower;
         if (absSwingInput > absInputPower) {
             *inputPower = absSwingInput * al::sign(*inputPower);
-        } else if (al::isNearZero(absSwingInput, 0.001f)) {
+        } else if (al::isNearZero(absSwingInput)) {
             swingInput = *inputPower;
         } else {
             swingInput = absInputPower * al::sign(swingInput);
         }
-    } else if (*inputCounter == 0 && !al::isNearZero(previousInputPower, 0.001f)) {
+    } else if (*inputCounter == 0 && !al::isNearZero(previousInputPower)) {
         *inputPower = swingInput;
     }
 
@@ -235,16 +236,23 @@ bool updateGrabCeilSwing(PlayerActionCollisionSnap* collisionSnap, f32* angle,
     f32 inputForce = 0.0f;
     const f32 absAngle = *angle > 0.0f ? *angle : -*angle;
     if (!isReversePower && absAngle < 90.0f) {
-        f32 rate = 1.0f;
-        if (!isSwing) {
-            rate = al::clamp(springSpeed / playerConst->getGrabCeilInputPowerBorder(), 0.0f,
-                             1.0f);
-            rate = al::easeIn(rate);
-        }
-        if (isWaitSwing)
+        if (isWaitSwing) {
+            f32 rate = 1.0f;
+            if (!isSwing) {
+                rate = al::clamp(
+                    springSpeed / playerConst->getGrabCeilInputPowerBorder(), 0.0f, 1.0f);
+                rate = al::easeIn(rate);
+            }
             inputForce = swingInput * al::lerpValue(3.5f, 1.2f, rate);
-        else
+        } else {
+            f32 rate = 1.0f;
+            if (!isSwing) {
+                rate = al::clamp(
+                    springSpeed / playerConst->getGrabCeilInputPowerBorder(), 0.0f, 1.0f);
+                rate = al::easeIn(rate);
+            }
             inputForce = swingInput * al::lerpValue(0.5f, 0.08f, rate);
+        }
     }
 
     const f32 addForce = inputVelocity < 0.0f ? -inputForce : inputForce;
@@ -343,10 +351,9 @@ bool PlayerStateGrabCeil::isEnableNextGrabCeil() const {
 bool PlayerStateGrabCeil::isEnableSnapForce() const {
     if (!isJump())
         return false;
-    const s32 frame = al::isNerve(this, &NrvPlayerStateGrabCeil.Fall)
-                          ? mConst->getGrabCeilEnableFallSnapFrame()
-                          : mConst->getGrabCeilEnableNextFrame();
-    return al::isGreaterStep(this, frame);
+    return al::isGreaterStep(this, al::isNerve(this, &NrvPlayerStateGrabCeil.Fall)
+                                       ? mConst->getGrabCeilEnableFallSnapFrame()
+                                       : mConst->getGrabCeilEnableNextFrame());
 }
 
 bool PlayerStateGrabCeil::isEnableTrample() const {
@@ -418,12 +425,13 @@ void PlayerStateGrabCeil::exeStart() {
 }
 
 
-// NON_MATCHING: 1264 bytes vs target 1284; target explicitly calls al::getGravity(actor) before the zero-initialized calcUpDir path and keeps different local lifetimes; next source-level hypothesis: recover the source expression that forces that gravity call and target stack/register schedule.
+// NON_MATCHING: 1272 bytes vs target 1284; target/current semantic call sequence is now 33/33 after restoring the explicit getGravity(actor) call before calcUpDir. Remaining mismatch is local lifetime/stack-register scheduling; next source-level hypothesis: recover the target lifetime of the leave-speed/up/follow-direction temporaries.
 void PlayerStateGrabCeil::leaveGrabCeil(bool isJumpInput) {
     followCollision();
 
     al::LiveActor* actor = mActor;
     const f32 leaveSpeedMin = mConst->getGrabCeilLeaveSpeedMin();
+    al::getGravity(actor);
     sead::Vector3f up{0.0f, 0.0f, 0.0f};
     al::calcUpDir(&up, actor);
     const f32 energy = al::convertSpringEnergyToSpeed(_84, _8c, 0.01f);
@@ -543,7 +551,7 @@ void PlayerStateGrabCeil::exeWait() {
         al::setNerve(this, &NrvPlayerStateGrabCeil.Swing);
 }
 
-// NON_MATCHING: target 1068 bytes, current 952 bytes; swing behavior is recovered but energy/frame calculation and bookkeeping are too compact. next source-level hypothesis: mirror the target energy-limit and animator-frame temporary order before the wait transition.
+// NON_MATCHING: target 1068 bytes, current 988 bytes; target/current semantic call sequence is now 25/25 after restoring the spring-rate isNearZero guard before the energy-limit length. Remaining mismatch is bookkeeping/vector lifetime expansion; next source-level hypothesis: recover the target inlined updateWaitSwingFlag and followCollision temporary lifetimes.
 void PlayerStateGrabCeil::exeSwing() {
     if (al::isFirstStep(this))
         mAnimator->startAnim("GrabCeilSwing");
@@ -560,11 +568,14 @@ void PlayerStateGrabCeil::exeSwing() {
     const bool isSwingInput =
         updateGrabCeilSwing(mCollisionSnap, &_84, &_8c, &_88, &_90, &_ac, &_b0, &_b4,
                        mInput, mConst, _94, _a0, up, true, _80, _79);
-    const f32 energy = al::convertSpringEnergyToSpeed(_84, _8c, 0.01f);
+    const f32 springRate = 0.01f;
+    const f32 energy = al::convertSpringEnergyToSpeed(_84, _8c, springRate);
     updateWaitSwingFlag(isSwingInput, energy);
 
+    f32 energyLimit = 0.0f;
     const sead::Vector2f swingEnergy{_84, _8c * 10.0f};
-    const f32 energyLimit = swingEnergy.length();
+    if (!al::isNearZero(springRate))
+        energyLimit = swingEnergy.length();
     const f32 angleRate = al::calcRate01(_84, -energyLimit, energyLimit);
     const f32 direction = _84 - prevAngle > 0.0f ? 1.0f : 0.0f;
     const f32 frameRate = al::lerpValue(0.5f, direction, angleRate);

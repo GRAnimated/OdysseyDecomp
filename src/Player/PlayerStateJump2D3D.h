@@ -28,7 +28,7 @@ public:
     f32 calcJumpPowerBorderSpeedMin() const;
     f32 calcJumpPowerBorderSpeedMax() const;
     f32 calcJumpPowerMin() const;
-    f32 calcJumpPowerMax() const;
+    __attribute__((noinline)) f32 calcJumpPowerMax() const;
     void kill() override;
     void tryCountUpContinuousJump(PlayerContinuousJump* continuousJump);
     void exeJump();

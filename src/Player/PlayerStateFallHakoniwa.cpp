@@ -22,7 +22,6 @@ namespace {
 NERVE_IMPL(PlayerStateFallHakoniwa, Fall)
 NERVES_MAKE_STRUCT(PlayerStateFallHakoniwa, Fall)
 }  // namespace
-// NON_MATCHING: generated constructor is four bytes smaller than the target; next compare zero-initializer store grouping.
 PlayerStateFallHakoniwa::PlayerStateFallHakoniwa(
     al::LiveActor* player, const PlayerConst* pConst, const IUsePlayerCollision* collision,
     const PlayerInput* input, const PlayerTrigger* trigger, const PlayerAreaChecker* areaChecker,
@@ -31,18 +30,17 @@ PlayerStateFallHakoniwa::PlayerStateFallHakoniwa(
       mDimension(dimension), mAnimator(animator) {
     mJudgeInvalidateInputFall =
         new PlayerJudgeInvalidateInputFall(player, areaChecker, collision);
-    mAirMoveControl = new PlayerActionAirMoveControl(player, pConst, input, collision, false);
-    mAirMoveControl->setupCollideWallScaleVelocity(pConst->getFallSpeedMax(), 0.0f,
-                                                   pConst->getJumpPowerMaxBorder2D());
-    initNerve(&NrvPlayerStateFallHakoniwa.Fall, 0);
+    mAirMoveControl = new PlayerActionAirMoveControl(player, pConst, input, mCollision, false);
+    mAirMoveControl->setupCollideWallScaleVelocity(mConst->getFallWallScaleVelocity(), 0.0f,
+                                                   mConst->getNormalMaxSpeed());
+    initNerve(&NrvPlayerStateFallHakoniwa.Fall);
 }
 
-// NON_MATCHING: corpus behavior is implemented; next compare trigger initialization and clamp lowering.
 void PlayerStateFallHakoniwa::appear() {
     al::NerveStateBase::appear();
     _58 = 0;
     _5c = 0;
-    _60 = {};
+    mWallCatchReferenceFront.set(0.0f, 0.0f, 0.0f);
     mIsInvalidInputFall = false;
     mIsRunFall = false;
 
@@ -52,20 +50,22 @@ void PlayerStateFallHakoniwa::appear() {
         if (mTrigger->isOn(PlayerTrigger::EActionTrigger_val32)) {
             _58 = 8;
             _5c = 15;
-            al::calcFrontDir(&_60, mActor);
+            al::calcFrontDir(&mWallCatchReferenceFront, mActor);
         }
     }
 
     const f32 speed = al::calcSpeedH(mActor);
-    mFallSpeed = sead::Mathf::clamp(speed, mConst->getJumpPowerMaxBorder2D(),
-                                    mConst->getJumpBaseSpeedMax());
+    mFallSpeed = sead::Mathf::clamp(speed, mConst->getNormalMaxSpeed(),
+                                    mConst->getJumpMoveSpeedMax());
     mFallTargetArea = nullptr;
     updateFallTargetArea();
     mAirMoveControl->setIsPlayer2D(rs::isPlayer2D(mActor));
     al::setNerve(this, &NrvPlayerStateFallHakoniwa.Fall);
 }
 
-// NON_MATCHING: corpus vector behavior is implemented; next compare temporary ordering and min/max lowering.
+// NON_MATCHING: exact 580/580 size with all 10 semantic calls aligned; first remaining diff is FP
+// register/scheduling after separateVectorParallelVertical (target keeps direction.z in S7 and
+// materializes 5.0f later). Next test a natural scalar/vector lifetime around the 0.75f/5.0f selection.
 void PlayerStateFallHakoniwa::updateFallTargetArea() {
     if (!mFallTargetArea) {
         if (!rs::updateJudgeAndResult(mJudgeInvalidateInputFall))
@@ -73,25 +73,34 @@ void PlayerStateFallHakoniwa::updateFallTargetArea() {
         mFallTargetArea = mJudgeInvalidateInputFall->getArea();
     }
 
-    sead::Vector3f areaUp = {};
-    sead::Vector3f areaPos = {};
+    al::LiveActor* actor = mActor;
     const sead::Matrix34f& areaMtx = al::getAreaObjBaseMtx(mFallTargetArea);
+    sead::Vector3f areaUp;
+    areaUp.set(0.0f, 0.0f, 0.0f);
+    sead::Vector3f areaPos;
+    areaPos.set(0.0f, 0.0f, 0.0f);
     areaMtx.getBase(areaUp, 1);
     areaMtx.getTranslation(areaPos);
 
-    sead::Vector3f toArea = areaPos - al::getTrans(mActor);
+    sead::Vector3f toArea;
+    toArea.set(0.0f, 0.0f, 0.0f);
+    toArea.setSub(areaPos, al::getTrans(actor));
     al::verticalizeVec(&toArea, areaUp, toArea);
     const f32 distance = toArea.length();
 
-    sead::Vector3f velocityH = {};
-    sead::Vector3f velocityV = {};
-    al::separateVectorHV(&velocityH, &velocityV, areaUp, al::getVelocity(mActor));
+    sead::Vector3f velocityH;
+    velocityH.set(0.0f, 0.0f, 0.0f);
+    sead::Vector3f velocityV;
+    velocityV.set(0.0f, 0.0f, 0.0f);
+    al::separateVectorHV(&velocityH, &velocityV, areaUp, al::getVelocity(actor));
 
-    sead::Vector3f adjustedH = {};
-    sead::Vector3f direction = {};
+    sead::Vector3f direction;
+    direction.set(0.0f, 0.0f, 0.0f);
     if (al::tryNormalizeOrZero(&direction, toArea)) {
-        sead::Vector3f parallel = {};
-        sead::Vector3f vertical = {};
+        sead::Vector3f parallel;
+    parallel.set(0.0f, 0.0f, 0.0f);
+        sead::Vector3f vertical;
+    vertical.set(0.0f, 0.0f, 0.0f);
         al::separateVectorParallelVertical(&parallel, &vertical, direction, velocityH);
         const f32 towardSpeed = parallel.dot(direction);
         vertical *= 0.75f;
@@ -103,37 +112,40 @@ void PlayerStateFallHakoniwa::updateFallTargetArea() {
                 nextSpeed = towardSpeed * 0.75f;
         }
         nextSpeed += 0.1f;
-        nextSpeed = sead::Mathf::clampMax(nextSpeed, sead::Mathf::clampMax(mFallSpeed, distance));
-        adjustedH = vertical + direction * nextSpeed;
+        nextSpeed = sead::Mathf::clampMax(nextSpeed, sead::Mathf::min(distance, mFallSpeed));
+        velocityH = vertical + direction * nextSpeed;
+    } else {
+        velocityH.set(0.0f, 0.0f, 0.0f);
     }
 
-    al::setVelocity(mActor, adjustedH + velocityV);
+    al::setVelocity(mActor, velocityH + velocityV);
 }
 
-// NON_MATCHING: target uses a shared true-return epilogue before the vector block; next preserve the positive validity condition.
 bool PlayerStateFallHakoniwa::isValidWallCatch() const {
-    if (!isDead() && _5c && !al::isGreaterStep(this, _5c)) {
-        sead::Vector3f front = {};
-        al::calcFrontDir(&front, mActor);
-        return front.dot(_60) < 0.70711f;
-    }
-    return true;
+    if (isDead())
+        return true;
+    if (!_5c || al::isGreaterStep(this, _5c))
+        return true;
+    sead::Vector3f front;
+    front.set(0.0f, 0.0f, 0.0f);
+    al::calcFrontDir(&front, mActor);
+    return front.dot(mWallCatchReferenceFront) < 0.70711f;
 }
 
-// NON_MATCHING: corpus behavior is implemented and generated code is eight bytes smaller than the target; next compare setup argument evaluation order.
 void PlayerStateFallHakoniwa::exeFall() {
     updateFallTargetArea();
     if (al::isFirstStep(this)) {
         mAnimator->startAnim("Fall");
         PlayerActionAirMoveControl* airMoveControl = mAirMoveControl;
-        const f32 baseSpeedMax = mConst->getJumpBaseSpeedMax();
-        const f32 gravity = mConst->getJumpGravity();
+        const f32 moveSpeedMax = mConst->getJumpMoveSpeedMax();
+        const f32 moveSpeedMin = mConst->getJumpMoveSpeedMin();
         const f32 speedV = al::calcSpeedV(mActor);
-        const f32 jumpPowerMin = mConst->getJumpPowerMin();
-        airMoveControl->setup(baseSpeedMax, gravity, 0, speedV, jumpPowerMin, _58, 0.0f);
+        const f32 gravity = mConst->getJumpGravity();
+        airMoveControl->setup(moveSpeedMax, moveSpeedMin, 0, speedV, gravity, _58, 0.0f);
     }
     if (rs::isPlayer2D(mActor) && rs::isIn2DArea(mDimension)) {
-        sead::Vector3f lockDirection = {};
+        sead::Vector3f lockDirection;
+        lockDirection.set(0.0f, 0.0f, 0.0f);
         rs::calcLockDirection(&lockDirection, mDimension);
         mAirMoveControl->verticalizeStartMoveDir(lockDirection);
     }

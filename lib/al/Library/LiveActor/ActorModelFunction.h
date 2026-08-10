@@ -18,6 +18,7 @@ class ResTexture;
 namespace al {
 class LayoutTextureRenderObj;
 class LiveActor;
+class ModelKeeper;
 class ClippingDirector;
 
 void updateMaterialCodeGround(LiveActor* actor, const char*);
@@ -68,6 +69,7 @@ void setMaterialProgrammable(LiveActor* actor);
 bool isIncludePrepassCullingShape(LiveActor* actor);
 bool isExistJoint(const LiveActor* actor, const char*);
 s32 getJointIndex(const LiveActor* actor, const char*);
+s32 getJointIndex(const ModelKeeper* modelKeeper, const char* jointName);
 sead::Matrix34f* getJointMtxPtr(const LiveActor* actor, const char*);  // return type might be const
 sead::Matrix34f* getJointMtxPtrByIndex(const LiveActor* actor, s32);
 void getJointLocalTrans(sead::Vector3f*, const LiveActor* actor, const char*);

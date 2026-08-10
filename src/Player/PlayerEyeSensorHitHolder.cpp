@@ -173,9 +173,7 @@ al::HitSensor* PlayerEyeSensorHitHolder::findNearestSensor(
 }
 
 
-// NON_MATCHING: current is 972 bytes versus the 992-byte target with an exact 14/14 semantic
-// direct-call sequence. Corpus pseudo confirms the same search stages; next source-level hypothesis
-// is target-shaped reuse/spilling of maxDistance, maxAngle, minDistance, and the vector workspaces.
+// NON_MATCHING: current 972 bytes vs target 992 with exact 14/14 semantic calls; corpus pseudo confirms the same search stages and 0x48 holder layout. Remaining gap is target-shaped reuse/spilling of maxDistance, maxAngle, minDistance, and vector workspaces; next hypothesis is the original local scope/lifetime grouping.
 al::HitSensor* PlayerEyeSensorHitHolder::findNearestSensorLimit(
     sead::Vector3f* direction, const sead::Vector3f& origin, const sead::Vector3f& front,
     const sead::Vector3f& up, f32 maxDistance, f32 maxAngle, f32 minDistance,
@@ -257,7 +255,6 @@ al::HitSensor* PlayerEyeSensorHitHolder::findTargetMarkerSensor(
     f32 nearestDistance = 10000.0f;
     al::HitSensor** sensorPtr = mTargetMarkerSensors.dataBegin();
     al::HitSensor** sensorEnd = mTargetMarkerSensors.dataEnd();
-    const f32 negativeMaxAngle = -maxAngle;
     for (; sensorPtr != sensorEnd; sensorPtr++) {
         sead::Vector3f cross;
         sead::Vector3f sensorDirection = al::getSensorPos(*sensorPtr) - origin;
@@ -280,7 +277,7 @@ al::HitSensor* PlayerEyeSensorHitHolder::findTargetMarkerSensor(
 
         cross = front.cross(normalizedDirection);
         al::tryNormalizeOrZero(&cross);
-        f32 angleOffset = negativeMaxAngle;
+        f32 angleOffset = -maxAngle;
         if (cross.dot(up) >= 0.0f)
             angleOffset = maxAngle;
         const f32 angleLimit = maxDistance + angleOffset;
@@ -296,10 +293,7 @@ al::HitSensor* PlayerEyeSensorHitHolder::findTargetMarkerSensor(
 }
 
 
-// NON_MATCHING: current is 1392 bytes versus the 1396-byte target with an exact 21/21 semantic
-// direct-call sequence. Corpus pseudo confirms both candidate loops; next source-level hypothesis
-// is target-shaped floating-parameter spilling (target keeps maxDistance/maxAngle live and spills
-// minDistance) plus shared vector workspace reuse between the two searches.
+// NON_MATCHING: current 1392 bytes vs target 1396 with exact 21/21 semantic calls; corpus pseudo confirms both candidate loops. Remaining gap is target-shaped floating-parameter spilling (maxDistance/maxAngle live, minDistance spilled) plus shared vector workspace reuse; next hypothesis is the original local scope/lifetime grouping.
 al::HitSensor* PlayerEyeSensorHitHolder::findEatTargetSensor(
     sead::Vector3f* direction, const sead::Vector3f& origin, const sead::Vector3f& front,
     const sead::Vector3f& up, f32 maxDistance, f32 maxAngle, f32 minDistance) const {

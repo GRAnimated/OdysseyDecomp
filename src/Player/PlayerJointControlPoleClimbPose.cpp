@@ -22,22 +22,22 @@ PlayerJointControlPoleClimbPose::PlayerJointControlPoleClimbPose(const al::LiveA
     appendJointId(mJointIndexLegR1);
 }
 
-// NON_MATCHING: target is 416 bytes while the clean vector/helper form is 396 bytes;
-// next hypothesis is a natural source expression that keeps all six angle components live without
-// scalarizing them (the validator correctly rejects manual component laundering).
 void PlayerJointControlPoleClimbPose::calcJointCallback(s32 jointIndex,
                                                          sead::Matrix34f* jointMtx) {
-    if (al::isNearZero(_34, 0.001f) && al::isNearZero(_28, 0.001f))
+    if (al::isNearZero(_34) && al::isNearZero(_28))
         return;
 
+    const sead::Vector3f armAngle = _28;
+    const sead::Vector3f legAngle = _34;
+
     if (jointIndex == mJointIndexArmL1)
-        calcAngle(jointMtx, _28);
+        calcAngle(jointMtx, armAngle);
     if (jointIndex == mJointIndexArmR1)
-        calcAngle(jointMtx, -_28);
+        calcAngle(jointMtx, -armAngle);
     if (jointIndex == mJointIndexLegL1)
-        calcAngle(jointMtx, _34);
+        calcAngle(jointMtx, legAngle);
     if (jointIndex == mJointIndexLegR1)
-        calcAngle(jointMtx, -_34);
+        calcAngle(jointMtx, -legAngle);
 }
 
 void PlayerJointControlPoleClimbPose::calcAngle(sead::Matrix34f* jointMtx,

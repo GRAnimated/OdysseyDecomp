@@ -16,7 +16,6 @@
 #include "Util/PlayerCollisionUtil.h"
 #include "Util/WorldEndBorderKeeper.h"
 
-// NON_MATCHING: target/current are both 164 bytes, but recovery-vector zero stores are scheduled after the flag stores; next source-level hypothesis is recovering the original in-class default/member-initializer arrangement.
 PlayerPuppet::PlayerPuppet(al::LiveActor* actor, HackCap* hackCap, PlayerAnimator* playerAnimator,
                            IUsePlayerCollision* playerCollision,
                            ActorDimensionKeeper* actorDimensionKeeper,
@@ -30,13 +29,17 @@ PlayerPuppet::PlayerPuppet(al::LiveActor* actor, HackCap* hackCap, PlayerAnimato
       mIPlayerModelChanger(playerModelChanger), mWorldEndBorderKeeper(worldEndBorderKeeper),
       mPlayerCounterForceRun(playerCounterForceRun), mPlayerDamageKeeper(playerDamageKeeper),
       mPlayerEffect(playerEffect), mJudgePreInputJump(nullptr), mPlayerInput(playerInput),
-      mPlayerConst(playerConst), _70(nullptr), _78(nullptr), _80(false), _81(false), _82(false),
-      _84(0.0f, 0.0f, 0.0f), _90(0.0f, 0.0f, 0.0f), mAreaObj(nullptr),
-      mIsBindEndOnGround(false), mIsBindEndJump(false), mIsBindEndCapThrow(false),
-      mIsValidCollisionCheck(true), _ac(false), mIsRequestDamage(false), _ae(false),
+      mPlayerConst(playerConst), _70(nullptr), _78(nullptr),
+      _84(0.0f, 0.0f, 0.0f), _90(0.0f, 0.0f, 0.0f), mIsValidCollisionCheck(true), _ac(false), mIsRequestDamage(false), _ae(false),
       mIsSensorValid(false), _b0(false), _b1(false), _b2(false), _b3(false), _b4(false),
-      _b5(false), _b6(false), mLookAtTargetPosition(0.0f, 0.0f, 0.0f),
-      mBindEndJumpInfo(new PlayerBindEndJumpInfo()) {}
+      _b5(false), _b6(false) {
+    _82 = false;
+    _80 = false;
+    _81 = false;
+    sead::MemUtil::fillZero(&mAreaObj, sizeof(mAreaObj) + sizeof(bool) * 3);
+    mLookAtTargetPosition.set(0.0f, 0.0f, 0.0f);
+    mBindEndJumpInfo = new PlayerBindEndJumpInfo();
+}
 
 void PlayerPuppet::start(al::HitSensor* sender, al::HitSensor* receiver) {
     *reinterpret_cast<volatile u8*>(&_b0) = 0;
@@ -215,31 +218,32 @@ void PlayerPuppet::endKeepOn2D() {
     mActorDimensionKeeper->forceEndChange2DKeep();
 }
 
-void PlayerPuppet::requestUpdateRecoveryInfo(bool isKidsMode, bool isRecovery,
-                                                   const sead::Vector3f& position,
-                                                   const sead::Vector3f& up,
-                                                   const al::AreaObj* areaObj) {
+void PlayerPuppet::requestUpdateRecoveryInfo(bool requestSafetyPoint, bool skipIfValid,
+                                             const sead::Vector3f& recoveryPos,
+                                             const sead::Vector3f& recoveryNormal,
+                                             const al::AreaObj* recoveryArea) {
     _80 = true;
-    _81 = isKidsMode;
-    _82 = isRecovery;
-    _84 = position;
-    _90 = up;
-    mAreaObj = areaObj;
+    _81 = requestSafetyPoint;
+    _82 = skipIfValid;
+    _84 = recoveryPos;
+    _90 = recoveryNormal;
+    mAreaObj = recoveryArea;
 }
 
-bool PlayerPuppet::tryUpdateRecoveryInfo(bool* isKidsMode, bool* isRecovery,
-                                         sead::Vector3f* position, sead::Vector3f* up,
-                                         const al::AreaObj** areaObj) {
+bool PlayerPuppet::tryUpdateRecoveryInfo(bool* requestSafetyPoint, bool* skipIfValid,
+                                         sead::Vector3f* recoveryPos,
+                                         sead::Vector3f* recoveryNormal,
+                                         const al::AreaObj** recoveryArea) {
     if (!_80)
         return false;
 
-    *isKidsMode = _81;
-    *isRecovery = _82;
-    position->z = _84.z;
-    sead::MemUtil::copy(position, &_84, sizeof(f32) * 2);
-    up->z = _90.z;
-    sead::MemUtil::copy(up, &_90, sizeof(f32) * 2);
-    *areaObj = mAreaObj;
+    *requestSafetyPoint = _81;
+    *skipIfValid = _82;
+    recoveryPos->z = _84.z;
+    sead::MemUtil::copy(recoveryPos, &_84, sizeof(f32) * 2);
+    recoveryNormal->z = _90.z;
+    sead::MemUtil::copy(recoveryNormal, &_90, sizeof(f32) * 2);
+    *recoveryArea = mAreaObj;
     _80 = false;
     return true;
 }

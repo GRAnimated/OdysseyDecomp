@@ -33,7 +33,7 @@ PlayerActionGroundMoveControl::PlayerActionGroundMoveControl(
       mJudge(nullptr), _70(0.0f), _74(0), _78(false), _7c(0.0f), mHasStopped(false),
       _84(sead::Vector3f::zero), _90(sead::Vector3f::zero), mIsForceRunCtrlActive(false), _a0(0.0f), mAlwaysFalse(false), _a8(0.0f), _ac(0.0f),
       mTurnCtrl(new PlayerActionTurnControl(parent)), _b8(false), _b9(false), _ba(false),
-      _bb(false), _bc(false), _bd(false), _c0(0.0f), _c4(false), _d4(false), _d5(false) {}
+      _bb(false), mIsPivotTurn(false), _bd(false), _c0(0.0f), _c4(false), _d4(false), _d5(false) {}
 
 void PlayerActionGroundMoveControl::initDash(IJudge* judge, f32 speed, s32 frame) {
     mJudge = judge;
@@ -131,7 +131,7 @@ f32 PlayerActionGroundMoveControl::updateSkateMove() {
         rs::updateJudge(mJudge);
     _64 = false;
     mHasStopped = false;
-    _bc = false;
+    mIsPivotTurn = false;
 
     mTurnCtrl->setup(mPlayerConst->getIceRoundMinDegree(),
                      mPlayerConst->getIceRoundFastDegree(),
@@ -272,18 +272,17 @@ f32 PlayerActionGroundMoveControl::updateSkateMove() {
     return speed;
 }
 
-// NON_MATCHING: target is 0xbbc bytes and current is 0xb90. Corpus review recovered the target's
-// conditional `_c0` reset, preserved sub-0.1 scalar speed, manual sqrt/scale velocity clamp, and
-// shared fallback tail with one target-shaped late setVelocity; the semantic direct-call count is
-// target-equal (43/43). Remaining differences are
-// register/lifetime pressure (target saves D15/D14, current only D14); next hypothesis is the
-// front/pose-front and velocity temporary lifetimes around the early-return blocks.
+// NON_MATCHING: target is 0xbbc bytes and current is 0xb90 with the same 43 semantic calls, but
+// their static order still differs: target emits isNearZero/isNormalize/calcTurnPowerRate before
+// the two updatePoseUpFront/setVelocity early-return blocks, while current emits those branch calls
+// first. Register pressure also differs (target saves D15/D14, current only D14). Next hypothesis is
+// recovering the original shared-tail/early-return block shape and front/pose-front lifetimes.
 f32 PlayerActionGroundMoveControl::updateNormalMove() {
     if (mJudge)
         rs::updateJudge(mJudge);
     _64 = false;
     mHasStopped = false;
-    _bc = false;
+    mIsPivotTurn = false;
 
     sead::Vector3f velocity = {0.0f, 0.0f, 0.0f};
     updateNormalAndSnap(&velocity);
@@ -403,7 +402,7 @@ f32 PlayerActionGroundMoveControl::updateNormalMove() {
         (frontSpeed < 0.0f || speed <= mMinSpeed)) {
         updatePoseUpFront(mGroundNormal, poseFront, speed);
         al::setVelocity(mParent, speed * velocityDir - mGravityMove * mGroundNormal);
-        _bc = true;
+        mIsPivotTurn = true;
         _90 = poseFront;
         return speed;
     }

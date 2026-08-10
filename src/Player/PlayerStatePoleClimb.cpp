@@ -67,7 +67,7 @@ PlayerStatePoleClimb::PlayerStatePoleClimb(
     al::initNerveState(this, mTopJump, &NrvPlayerStatePoleClimb.TopJump, "頂上ジャンプ");
 }
 
-// NON_MATCHING: target/current are 404/604 after the validator-required sead dot rewrite made the shared classifier cheap enough to inline again. Next recover a validator-accepted classifier shape near the target 376-byte cost so this caller remains out-of-line without attributes.
+// NON_MATCHING: target/current are 404/404 with all 13 semantic calls preserved; first difference at target 0x476BAC is an LDP mConst/mInput reload versus the current separate mConst load while the earlier input cache remains live. Next test a source-natural input lifetime that restores the paired reload without growing the frame.
 void PlayerStatePoleClimb::appear() {
     al::NerveStateBase::appear();
     mCollisionSnap->start();
@@ -111,7 +111,7 @@ void PlayerStatePoleClimb::appear() {
 }
 
 namespace {
-// NON_MATCHING: target/current are 376/364 after replacing rejected scalarized dot products with sead vector helpers; semantics remain reconstructed. Next recover the target scalar/vector lifetime shape using validator-accepted sead operations.
+// NON_MATCHING: target/current are 376/372 with all 5 semantic calls preserved; using (-up).dot(inputDir) restores the target separate down-direction evaluation and keeps this helper out-of-line in its callers. Next recover the remaining one-instruction result/control-flow difference using validator-accepted vector operations.
 s32 calcPoleMoveDirection(const PlayerInput* input, const sead::Vector3f& up,
                           const sead::Vector3f& side, const IJudge* judge, s32 moveDirection,
                           bool enableDown, f32 inputX, f32 inputY, f32 inputDegree) {
@@ -121,12 +121,11 @@ s32 calcPoleMoveDirection(const PlayerInput* input, const sead::Vector3f& up,
     const sead::Vector3f inputDir = {inputXValue + up.x * inputY, inputYValue, inputZValue};
 
     s32 result;
-    if (al::isNearZero(inputDir, 0.001f)) {
+    if (al::isNearZero(inputDir)) {
         result = 2;
         if (moveDirection <= 0) {
-            const bool isHoldDown = input->isHoldPoleClimbDown();
             result = 2;
-            if (!isHoldDown)
+            if (!input->isHoldPoleClimbDown())
                 return rs::isJudge(judge) & 1;
         }
     } else {
@@ -134,7 +133,7 @@ s32 calcPoleMoveDirection(const PlayerInput* input, const sead::Vector3f& up,
         const f32 upDot = up.dot(inputDir);
         result = 1;
         if (upDot <= cosDegree) {
-            if (-upDot <= cosDegree) {
+            if ((-up).dot(inputDir) <= cosDegree) {
                 result = 3;
                 if (side.dot(inputDir) <= 0.0f)
                     return 4;
@@ -241,7 +240,7 @@ void PlayerStatePoleClimb::updatePoleDepth(f32 depth, f32 moveRate) {
 
     const f32 centerDepth = mConst->getPoleClimbCatchRange();
     f32 jointAngle = 0.0f;
-    if (!al::isNearZero(_88 - centerDepth, 0.001f)) {
+    if (!al::isNearZero(_88 - centerDepth)) {
         const f32 poleDepth = _88;
         if (!(poleDepth > centerDepth)) {
             const f32 rate = al::calcRate01(poleDepth, mConst->getPoleClimbJointRangeMin(),
@@ -312,9 +311,7 @@ void PlayerStatePoleClimb::updateLeavePoleTrans() const {
     al::LiveActor* actor = mActor;
     sead::Vector3f front = {0.0f, 0.0f, 0.0f};
     al::calcFrontDir(&front, actor);
-    const sead::Vector3f& trans = al::getTrans(actor);
-    const f32 distance = mConst->getCollisionRadius();
-    al::setTrans(actor, trans - front * distance);
+    al::setTrans(actor, al::getTrans(actor) - front * mConst->getCollisionRadius());
 }
 
 void PlayerStatePoleClimb::exeStart() {
@@ -326,6 +323,11 @@ void PlayerStatePoleClimb::exeStart() {
 
     if (!tryStartClimbMove(0, nullptr) && !mAnimator->isAnimEnd())
         al::setNerve(this, &NrvPlayerStatePoleClimb.Wait);
+}
+
+bool PlayerStatePoleClimb::followCollision() {
+    mCollisionSnap->followCollision();
+    return mCollisionSnap->isSnapPartsValid();
 }
 
 // NON_MATCHING: target/current are 1712/1516; behavior and both search-call ABI argument sets are reconstructed, but current local lifetimes/branch scheduling are substantially more compact. Next align output/search temporary lifetimes against target assembly without attributes.
@@ -448,7 +450,7 @@ bool PlayerStatePoleClimb::tryStartClimbMove(s32 direction, s32* moveDirection) 
             mActor, front, up, targetPos, moveSpeed, mConst->getPoleClimbUpMargine(), 50.0f,
             mConst->getPoleClimbMoveWallDegree(), _88, mConst->getPoleClimbCatchRangeMax());
         if (isTopStart) {
-            snapFront = al::isParallelDirection(front, snapUp, 0.01f) ? up : front;
+            snapFront = al::isParallelDirection(front, snapUp) ? up : front;
             moveFrame = mConst->getPoleTopStartFrame();
             _90 = depth;
             depth = _88;
@@ -542,8 +544,7 @@ void PlayerStatePoleClimb::exeUp() {
 void PlayerStatePoleClimb::changeUpMoveSpeed(s32 startFrame, s32 endFrame) {
     const f32 rate = static_cast<f32>(startFrame) / static_cast<f32>(_98);
     const f32 remainRate = 1.0f - rate;
-    const f32 remainingFrame = static_cast<f32>(endFrame) * remainRate;
-    const s32 moveFrame = sead::Mathf::ceil(remainingFrame);
+    const s32 moveFrame = sead::Mathf::ceil(endFrame * remainRate);
     mCollisionSnap->restartMoveCurrentMtx(moveFrame);
     const f32 animFrame = rate * mAnimator->getAnimFrameMax();
     const f32 animRate =
@@ -594,146 +595,12 @@ void PlayerStatePoleClimb::exeDown() {
     if (!al::isFloorPolygon(up, gravity))
         return;
 
-    const sead::Vector3f& groundNormal = rs::getCollidedGroundNormal(mCollision);
-    if (up.dot(groundNormal) < 0.70711f)
+    if (up.dot(rs::getCollidedGroundNormal(mCollision)) < 0.70711f)
         return;
 
     mAnimator->startAnim("Fall");
     mAnimator->clearInterpolation();
     kill();
-}
-
-void PlayerStatePoleClimb::exeTopStart() {
-    if (al::isFirstStep(this)) {
-        mAnimator->startAnim("PoleHandStandStart");
-        mHandLegAngle->legAngle.set(0.0f, 0.0f, 0.0f);
-        rs::tryClosePlayerClimbPoleTutorial(mActor);
-        rs::tryAppearPlayerClimbPoleTopTutorial(mActor);
-    }
-
-    mCollisionSnap->updateMove();
-    mCollisionSnap->followCollision();
-    if (!mCollisionSnap->isSnapPartsValid()) {
-        kill();
-        return;
-    }
-
-    rs::resetCollision(mCollision);
-    if (rs::judgeAndResetReturnTrue(reinterpret_cast<IJudge*>(mJudgePreInputJump)))
-        al::setNerve(this, &NrvPlayerStatePoleClimb.TopJump);
-    else if (mAnimator->isAnimEnd())
-        al::setNerve(this, &NrvPlayerStatePoleClimb.TopWait);
-}
-
-void PlayerStatePoleClimb::exeTopWait() {
-    if (al::isFirstStep(this))
-        mAnimator->startAnim("PoleHandStandWait");
-
-    mCollisionSnap->updateMove();
-    mCollisionSnap->followCollision();
-    if (!mCollisionSnap->isSnapPartsValid()) {
-        kill();
-        return;
-    }
-
-    rs::resetCollision(mCollision);
-    if (rs::judgeAndResetReturnTrue(reinterpret_cast<IJudge*>(mJudgePreInputJump)))
-        al::setNerve(this, &NrvPlayerStatePoleClimb.TopJump);
-    else
-        tryTurnTopOrClimb();
-}
-
-// NON_MATCHING: target/current are 620/808 after the validator-required sead dot rewrite made the shared classifier inline again. Next recover a validator-accepted classifier shape near the target 376-byte cost before refining top-transition temporary lifetimes.
-bool PlayerStatePoleClimb::tryTurnTopOrClimb() {
-    sead::Vector3f up = {0.0f, 0.0f, 0.0f};
-    al::calcUpDir(&up, mActor);
-    sead::Vector3f side = {0.0f, 0.0f, 0.0f};
-    al::calcSideDir(&side, mActor);
-
-    const PlayerInput* input = mInput;
-    const s32 direction =
-        calcPoleMoveDirection(input, up, side,
-                              reinterpret_cast<IJudge*>(mJudgePreInputPoleClimbSwing), _b0, false,
-                              _9c.x, _9c.y, mConst->getPoleClimbInputDegreeMove());
-    if (direction < 2)
-        return false;
-
-    if (direction == 2) {
-        const al::CollisionParts* parts = nullptr;
-        sead::Vector3f position = {0.0f, 0.0f, 0.0f};
-        sead::Vector3f front = {0.0f, 0.0f, 0.0f};
-        sead::Vector3f snapUp = {0.0f, 0.0f, 0.0f};
-        const char* materialCode = nullptr;
-        f32 moveRate = 0.0f;
-        f32 depth = 0.0f;
-
-        sead::Vector3f actorFront = {0.0f, 0.0f, 0.0f};
-        al::calcFrontDir(&actorFront, mActor);
-        const sead::Vector3f& trans = al::getTrans(mActor);
-        const sead::Vector3f checkPos =
-            trans - actorFront * (_90 * 0.5f) - up * mConst->getPoleTopEndUnderOffsetY();
-        if (!rs::findPoleClimbFromTopPos(&parts, &position, &front, &snapUp, &depth, &moveRate,
-                                         &materialCode, mActor, checkPos, 50.0f, _88,
-                                         mConst->getPoleClimbCatchRangeMax()))
-            return false;
-
-        updatePoleDepth(depth, moveRate);
-        mHandLegAngle->blendRate = 0.1f;
-        mCollisionSnap->moveSnapPos(parts, position, front, snapUp, mConst->getPoleTopEndFrame());
-        mMaterialCode = materialCode;
-        al::setNerve(this, &NrvPlayerStatePoleClimb.TopEnd);
-        return true;
-    }
-
-    f32 turnSpeed = mConst->getPoleTopTurnSpeed();
-    if (direction != 3)
-        turnSpeed = -turnSpeed;
-    mCollisionSnap->turnSnapFrontAxisUp(turnSpeed);
-    if (al::isNerve(this, &NrvPlayerStatePoleClimb.TopTurn))
-        return true;
-    al::setNerve(this, &NrvPlayerStatePoleClimb.TopTurn);
-    return true;
-}
-
-void PlayerStatePoleClimb::exeTopTurn() {
-    if (al::isFirstStep(this))
-        mAnimator->startAnim("PoleHandStandTurn");
-
-    mCollisionSnap->updateMove();
-    mCollisionSnap->followCollision();
-    if (!mCollisionSnap->isSnapPartsValid()) {
-        kill();
-        return;
-    }
-
-    rs::resetCollision(mCollision);
-    if (rs::judgeAndResetReturnTrue(reinterpret_cast<IJudge*>(mJudgePreInputJump))) {
-        al::setNerve(this, &NrvPlayerStatePoleClimb.TopJump);
-    } else if (!tryTurnTopOrClimb()) {
-        al::setNerve(this, &NrvPlayerStatePoleClimb.TopWait);
-    }
-}
-
-void PlayerStatePoleClimb::exeTopEnd() {
-    if (al::isFirstStep(this)) {
-        _b4 = false;
-        mAnimator->startAnim("PoleHandStandEnd");
-        rs::tryClosePlayerClimbPoleTopTutorial(mActor);
-        rs::tryAppearPlayerClimbPoleTutorial(mActor);
-    }
-
-    mCollisionSnap->updateMove();
-    mCollisionSnap->followCollision();
-    if (!mCollisionSnap->isSnapPartsValid()) {
-        kill();
-        return;
-    }
-
-    rs::resetCollision(mCollision);
-    if (mAnimator->isAnimEnd()) {
-        mHandLegAngle->blendRate = 1.0f;
-        al::setNerve(this, &NrvPlayerStatePoleClimb.Wait);
-    }
 }
 
 void PlayerStatePoleClimb::exeTurn() {
@@ -783,6 +650,141 @@ void PlayerStatePoleClimb::exeJump() {
         kill();
 }
 
+void PlayerStatePoleClimb::exeTopStart() {
+    if (al::isFirstStep(this)) {
+        mAnimator->startAnim("PoleHandStandStart");
+        mHandLegAngle->legAngle.set(0.0f, 0.0f, 0.0f);
+        rs::tryClosePlayerClimbPoleTutorial(mActor);
+        rs::tryAppearPlayerClimbPoleTopTutorial(mActor);
+    }
+
+    mCollisionSnap->updateMove();
+    mCollisionSnap->followCollision();
+    if (!mCollisionSnap->isSnapPartsValid()) {
+        kill();
+        return;
+    }
+
+    rs::resetCollision(mCollision);
+    if (rs::judgeAndResetReturnTrue(reinterpret_cast<IJudge*>(mJudgePreInputJump)))
+        al::setNerve(this, &NrvPlayerStatePoleClimb.TopJump);
+    else if (mAnimator->isAnimEnd())
+        al::setNerve(this, &NrvPlayerStatePoleClimb.TopWait);
+}
+
+void PlayerStatePoleClimb::exeTopWait() {
+    if (al::isFirstStep(this))
+        mAnimator->startAnim("PoleHandStandWait");
+
+    mCollisionSnap->updateMove();
+    mCollisionSnap->followCollision();
+    if (!mCollisionSnap->isSnapPartsValid()) {
+        kill();
+        return;
+    }
+
+    rs::resetCollision(mCollision);
+    if (rs::judgeAndResetReturnTrue(reinterpret_cast<IJudge*>(mJudgePreInputJump)))
+        al::setNerve(this, &NrvPlayerStatePoleClimb.TopJump);
+    else
+        tryTurnTopOrClimb();
+}
+
+// NON_MATCHING: target/current are 620/620 with all 11 semantic calls preserved and the target 0xD0 frame; inputDegree lifetime, unsigned direction branch, search-output layout, and turn branch now match. First checker difference is the classifier result copied through W20 instead of X20 at target 0x478728; next require ABI/type evidence before changing that width.
+bool PlayerStatePoleClimb::tryTurnTopOrClimb() {
+    sead::Vector3f up = {0.0f, 0.0f, 0.0f};
+    al::calcUpDir(&up, mActor);
+    sead::Vector3f side = {0.0f, 0.0f, 0.0f};
+    al::calcSideDir(&side, mActor);
+
+    const PlayerInput* input = mInput;
+    const f32 inputDegree = mConst->getPoleClimbInputDegreeMove();
+    const u32 direction =
+        calcPoleMoveDirection(input, up, side,
+                              reinterpret_cast<IJudge*>(mJudgePreInputPoleClimbSwing), _b0, false,
+                              _9c.x, _9c.y, inputDegree);
+    if (direction < 2)
+        return false;
+
+    if (direction == 2) {
+        const al::CollisionParts* parts = nullptr;
+        sead::Vector3f position = {0.0f, 0.0f, 0.0f};
+        sead::Vector3f front = {0.0f, 0.0f, 0.0f};
+        sead::Vector3f snapUp = {0.0f, 0.0f, 0.0f};
+        f32 depth = 0.0f;
+        f32 moveRate = 0.0f;
+        const char* materialCode = nullptr;
+
+        sead::Vector3f actorFront = {0.0f, 0.0f, 0.0f};
+        al::calcFrontDir(&actorFront, mActor);
+        const sead::Vector3f& trans = al::getTrans(mActor);
+        const sead::Vector3f checkPos =
+            trans - actorFront * (_90 * 0.5f) - up * mConst->getPoleTopEndUnderOffsetY();
+        if (!rs::findPoleClimbFromTopPos(&parts, &position, &front, &snapUp, &depth, &moveRate,
+                                         &materialCode, mActor, checkPos, 50.0f, _88,
+                                         mConst->getPoleClimbCatchRangeMax()))
+            return false;
+
+        updatePoleDepth(depth, moveRate);
+        mHandLegAngle->blendRate = 0.1f;
+        mCollisionSnap->moveSnapPos(parts, position, front, snapUp, mConst->getPoleTopEndFrame());
+        mMaterialCode = materialCode;
+        al::setNerve(this, &NrvPlayerStatePoleClimb.TopEnd);
+        return true;
+    }
+
+    const f32 turnSpeed = mConst->getPoleTopTurnSpeed();
+    if (direction == 3)
+        mCollisionSnap->turnSnapFrontAxisUp(turnSpeed);
+    else
+        mCollisionSnap->turnSnapFrontAxisUp(-turnSpeed);
+    if (al::isNerve(this, &NrvPlayerStatePoleClimb.TopTurn))
+        return true;
+    al::setNerve(this, &NrvPlayerStatePoleClimb.TopTurn);
+    return true;
+}
+
+void PlayerStatePoleClimb::exeTopTurn() {
+    if (al::isFirstStep(this))
+        mAnimator->startAnim("PoleHandStandTurn");
+
+    mCollisionSnap->updateMove();
+    mCollisionSnap->followCollision();
+    if (!mCollisionSnap->isSnapPartsValid()) {
+        kill();
+        return;
+    }
+
+    rs::resetCollision(mCollision);
+    if (rs::judgeAndResetReturnTrue(reinterpret_cast<IJudge*>(mJudgePreInputJump))) {
+        al::setNerve(this, &NrvPlayerStatePoleClimb.TopJump);
+    } else if (!tryTurnTopOrClimb()) {
+        al::setNerve(this, &NrvPlayerStatePoleClimb.TopWait);
+    }
+}
+
+void PlayerStatePoleClimb::exeTopEnd() {
+    if (al::isFirstStep(this)) {
+        _b4 = false;
+        mAnimator->startAnim("PoleHandStandEnd");
+        rs::tryClosePlayerClimbPoleTopTutorial(mActor);
+        rs::tryAppearPlayerClimbPoleTutorial(mActor);
+    }
+
+    mCollisionSnap->updateMove();
+    mCollisionSnap->followCollision();
+    if (!mCollisionSnap->isSnapPartsValid()) {
+        kill();
+        return;
+    }
+
+    rs::resetCollision(mCollision);
+    if (mAnimator->isAnimEnd()) {
+        mHandLegAngle->blendRate = 1.0f;
+        al::setNerve(this, &NrvPlayerStatePoleClimb.Wait);
+    }
+}
+
 void PlayerStatePoleClimb::exeTopJump() {
     if (al::isFirstStep(this)) {
         mHandLegAngle->handAngle.set(0.0f, 0.0f, 0.0f);
@@ -794,11 +796,6 @@ void PlayerStatePoleClimb::exeTopJump() {
 
     if (al::updateNerveState(this))
         kill();
-}
-
-bool PlayerStatePoleClimb::followCollision() {
-    mCollisionSnap->followCollision();
-    return mCollisionSnap->isSnapPartsValid();
 }
 
 PlayerStatePoleClimb::~PlayerStatePoleClimb() = default;

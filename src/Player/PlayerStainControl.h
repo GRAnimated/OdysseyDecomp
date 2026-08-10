@@ -23,6 +23,7 @@ struct PlayerStainControlParam {
     s32 blizzardCount;
 };
 
+static_assert(sizeof(PlayerStainControlParam) == 0x28);
 
 class PlayerStainControl {
 public:
@@ -121,4 +122,5 @@ private:
     u8 _82[6];
 };
 
+static_assert(sizeof(PlayerStainControl::StainType) == 0x4);
 static_assert(sizeof(PlayerStainControl) == 0x88);

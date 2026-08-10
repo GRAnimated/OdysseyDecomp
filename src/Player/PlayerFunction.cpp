@@ -187,8 +187,8 @@ void calcPlayerInputVec(sead::Vector3f* inputVec, const al::LiveActor* actor) {
 }
 
 bool tryActivateAmiiboPreventDamage(const al::LiveActor* actor) {
-    auto* player = static_cast<PlayerActorBase*>(al::getPlayerActor(actor, 0));
-    PlayerInfo* info = player->getPlayerInfo();
+    PlayerInfo* info =
+        static_cast<PlayerActorBase*>(al::getPlayerActor(actor, 0))->getPlayerInfo();
     if (!info)
         return false;
 

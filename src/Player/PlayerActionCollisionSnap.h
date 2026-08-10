@@ -47,6 +47,7 @@ public:
     al::HitSensor* tryGetConnectedSensor() const;
     const sead::Vector3f& getSnapFront() const { return mState.snapFront; }
     const sead::Vector3f& getCurrentSnapPos() const { return mState._48; }
+    const sead::Vector3f& getForceMovePower() const { return mState.forceMovePower; }
     s32 getMoveFrame() const { return mMoveFrame; }
     bool isMoveEnd() const { return mMoveFrame == mMoveStep; }
     void setVerticalizeSnapFront(bool value) { _108 = value; }

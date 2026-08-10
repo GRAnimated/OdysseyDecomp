@@ -58,7 +58,7 @@ void PlayerFormSensorCollisionArranger::setFormActionStandup() {
 }
 
 void PlayerFormSensorCollisionArranger::setFormActionWallGrab(const sead::Vector3f& front) {
-    if (mActionForm != 4 || !al::isNearDirection(mActionFront, front, 0.01f)) {
+    if (mActionForm != 4 || !al::isNearDirection(mActionFront, front)) {
         mActionForm = 4;
         mActionFront = front;
         mIsFormDirty = true;
@@ -66,7 +66,7 @@ void PlayerFormSensorCollisionArranger::setFormActionWallGrab(const sead::Vector
 }
 
 void PlayerFormSensorCollisionArranger::setFormActionGrabCeil(const sead::Vector3f& front) {
-    if (mActionForm != 5 || !al::isNearDirection(mActionFront, front, 0.01f)) {
+    if (mActionForm != 5 || !al::isNearDirection(mActionFront, front)) {
         mActionForm = 5;
         mActionFront = front;
         mIsFormDirty = true;
@@ -74,7 +74,7 @@ void PlayerFormSensorCollisionArranger::setFormActionGrabCeil(const sead::Vector
 }
 
 void PlayerFormSensorCollisionArranger::setFormActionPoleClimb(const sead::Vector3f& front) {
-    if (mActionForm != 6 || !al::isNearDirection(mActionFront, front, 0.01f)) {
+    if (mActionForm != 6 || !al::isNearDirection(mActionFront, front)) {
         mActionForm = 6;
         mActionFront = front;
         mIsFormDirty = true;
@@ -111,7 +111,7 @@ void PlayerFormSensorCollisionArranger::setFormActionRecovery() {
 }
 
 void PlayerFormSensorCollisionArranger::setFormActionAbyss(const sead::Vector3f& front) {
-    if (mActionForm != 10 || !al::isNearDirection(mActionFront, front, 0.01f)) {
+    if (mActionForm != 10 || !al::isNearDirection(mActionFront, front)) {
         mActionForm = 10;
         mActionFront = front;
         mIsFormDirty = true;
@@ -148,7 +148,7 @@ void PlayerFormSensorCollisionArranger::setFormAttackSensorTornado() {
 
 void PlayerFormSensorCollisionArranger::setCollisionShapeOffsetGround(f32 offset) {
     if (!mModelChanger->is2DModel()) {
-        if (al::isNearZero(offset, 0.001f))
+        if (al::isNearZero(offset))
             mCollider->validateGroundSupport();
         else
             mCollider->invalidateGroundSupport();

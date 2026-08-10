@@ -10,7 +10,7 @@ void calcMtx34JointMtxByIndexRaw(sead::Matrix34f*, al::ModelKeeper*, s32);
 }
 
 namespace {
-// NON_MATCHING: 612 bytes vs target 656; the SEAD basis-vector rotation preserves the target translation semantics, but current FP register pressure/store scheduling differs; next hypothesis is an owner/helper source form that left-rotates the three basis columns without generic Matrix33 x Matrix34 translation rotation.
+// NON_MATCHING: 612 bytes vs target 656 with the exact 3/3 semantic-call sequence; current SEAD basis-vector rotation is behavior-complete but lowers with different FP lifetimes/store scheduling. Moving this anonymous definition to target-relative source order did not change emitted order; next hypothesis is the original basis-rotation helper spelling.
 void calcTiltMtx(sead::Matrix34f* mtx, const sead::Vector3f& axis,
                  const sead::Vector3f& targetDir, f32 degree, f32 rate, f32 limit) {
     f32 angle = al::calcAngleDegree(sead::Vector3f::ey, targetDir);
@@ -40,7 +40,7 @@ void PlayerJointControlGroundPose::calcJointCallback(s32 jointIndex, sead::Matri
 }
 
 void PlayerJointControlGroundPose::calcTilt(s32 jointIndex, sead::Matrix34f* jointMtx) {
-    if (al::isNearZero(_1e4, 0.001f))
+    if (al::isNearZero(_1e4))
         return;
 
     if (jointIndex == mJointIndexAllRoot)
@@ -90,7 +90,7 @@ f32 PlayerJointControlGroundPose::calcCenterBalanceBlendRate() const {
     return _220 * _1dc;
 }
 
-// NON_MATCHING: best clean form is 764 bytes vs target 720 with matching 0x90 frame and behavior; current forward/transpose Matrix33 member stores are scalar where the target pairs adjacent stores. Next hypothesis is the original source form that materializes paired forward/inverse matrix stores without changing quaternion behavior.
+// NON_MATCHING: 764 bytes vs target 720 with the exact 5/5 semantic-call sequence and matching 0x90 frame; current forward/transpose Matrix33 member stores are scalar where the target pairs adjacent stores. Next hypothesis is the original source form that materializes paired forward/inverse matrix stores without changing quaternion behavior.
 void PlayerJointControlGroundPose::calcRootMtx(sead::Matrix34f* jointMtx) {
     sead::Vector3f up = -al::getGravity(mPlayer);
 
@@ -177,7 +177,7 @@ void PlayerJointControlGroundPose::resetTiltRate() {
 
 void PlayerJointControlGroundPose::calcGroundPoseUp(sead::Vector3f* up) const {
     al::calcUpDir(up, mPlayer);
-    if (!al::isNearZero(_1dc, 0.001f)) {
+    if (!al::isNearZero(_1dc)) {
         up->mul(_e4);
         al::normalize(up);
     }

@@ -62,7 +62,6 @@ void PlayerHackStartShaderCtrl::start() {
     al::makeQuatUpFront(&mQuat, up, front);
 }
 
-// NON_MATCHING: target/current size and all instructions match except the height flag uses W9 in the target versus W8 currently; next source-level hypothesis is a source lifetime that keeps the parameter pointer live across the flag load.
 void PlayerHackStartShaderCtrl::update() {
     if (!mIsActive)
         return;
@@ -77,8 +76,9 @@ void PlayerHackStartShaderCtrl::update() {
         al::ModelCtrl* modelCtrl = mParent->getModelKeeper()->getModelCtrl();
         sead::Matrix44f projection;
         sead::Vector3f trans = al::getTrans(mParent);
+        const bool useCenteredHeight = mParam->_0;
         const f32 startHeight = mParam->_4;
-        if (mParam->_0)
+        if (useCenteredHeight)
             trans.y += al::lerpValue(startHeight * 0.5f, startHeight * -0.5f, rate);
         else
             trans.y += al::lerpValue(startHeight, 0.0f, rate);

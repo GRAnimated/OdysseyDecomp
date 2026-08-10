@@ -11,6 +11,7 @@
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
 
+#include "Player/PlayerActionFunction.h"
 #include "Player/PlayerActionTurnControl.h"
 #include "Player/PlayerAnimControlSwimWalk.h"
 #include "Player/PlayerAnimator.h"
@@ -28,6 +29,23 @@
 #include "Util/PlayerCollisionUtil.h"
 
 namespace {
+void updateSwimVelocityH(sead::Vector3f* velocityH, al::LiveActor* actor,
+                         const PlayerConst* pConst, const PlayerInput* input,
+                         const IUsePlayerCollision* collision, bool isHighAccel, bool isSurface,
+                         bool isSpinCapSurface);
+void updateSwimVelocityV(sead::Vector3f* velocityV, const PlayerConst* pConst,
+                         const IUsePlayerCollision* collision, const PlayerTrigger* trigger,
+                         const sead::Vector3f& normal, u32 step, f32 gravity);
+void updateSwimVelocity(al::LiveActor* actor, sead::Vector3f* normal, const PlayerConst* pConst,
+                        const PlayerInput* input, const IUsePlayerCollision* collision,
+                        const PlayerTrigger* trigger, s32 step);
+void updateSwimSurfaceVerticalSpeed(f32* speed, const al::WaterSurfaceFinder* waterSurfaceFinder,
+                                    const PlayerConst* pConst, s32 counter, bool isMove);
+void updateSwimSurfaceVelocity(al::LiveActor* actor, sead::Vector3f* normal,
+                               const PlayerConst* pConst, const PlayerInput* input,
+                               const IUsePlayerCollision* collision,
+                               const al::WaterSurfaceFinder* waterSurfaceFinder, s32 surfaceCounter,
+                               s32 step, bool isSpinCapSurface);
 void updateSwimJointParams(PlayerJointParamSwim* joint, al::LiveActor* actor,
                            const PlayerConst* pConst, PlayerActionTurnControl* turnControl);
 void updateSwimHeadSliding(s32* counter, al::LiveActor* actor, const PlayerConst* pConst,
@@ -92,7 +110,7 @@ PlayerStateSwim::PlayerStateSwim(
     turnControl->setup(turnConst->getSwimRotStartAngle(), turnConst->getSwimRotFastAngle(),
                        rotSpeedMax, rotSpeedMax, turnConst->getSwimRotAccelFrame(),
                        turnConst->getSwimRotAccelFrameFast(), turnConst->getSwimRotBrakeFrame());
-    initNerve(&NrvPlayerStateSwim.SwimMove, 0);
+    initNerve(&NrvPlayerStateSwim.SwimMove);
 }
 
 void PlayerStateSwim::kill() {
@@ -131,8 +149,8 @@ bool PlayerStateSwim::attackHipDropKnockDown(al::HitSensor* self, al::HitSensor*
 f32 PlayerStateSwim::calcEyeHeadTiltRate() const {
     if (isDead())
         return 0.0f;
-    f32 rate = mSwimJoint->_c * 1.75f / mConst->getSwimBentSpineMax();
-    return al::easeIn(sead::Mathf::clamp(rate, -1.0f, 1.0f));
+    return al::easeIn(sead::Mathf::clamp(
+        mSwimJoint->_c * 1.75f / mConst->getSwimBentSpineMax(), -1.0f, 1.0f));
 }
 
 bool PlayerStateSwim::isEndSwimJump() const {
@@ -344,12 +362,195 @@ bool PlayerStateSwim::tryReactionWaterOut() {
 }
 
 
+// NON_MATCHING: target/current are both 1872 bytes with the complete observed call surface and the
+// EndSwimJump terminal path corrected to the target +0x28 kill() virtual. Remaining mismatch is the
+// 0xB0 target vs 0xA0 current frame/stack coloring plus the still-inlined 0x710048AFE8 helper; next
+// hypothesis is recovering that helper as a separate function to restore target temporary lifetimes.
+void PlayerStateSwim::exeSwimSurface() {
+    if (al::isFirstStep(this)) {
+        mAnimator->startAnim("SwimStandSurface");
+        _f4 = 0;
+        if (mWaterSurfaceFinder->isFoundSurface())
+            _e4 = mWaterSurfaceFinder->getSurfacePosition();
+        else
+            _e4 = al::getTrans(mActor);
+    }
+
+    al::LiveActor* actor = mActor;
+    const al::WaterSurfaceFinder* waterSurfaceFinder = mWaterSurfaceFinder;
+    bool shouldLeaveSurface =
+        (!waterSurfaceFinder->isFoundSurface() ||
+         waterSurfaceFinder->getDistance() >= mConst->getSwimSurfaceEndDist()) &&
+        _fc < 1;
+
+    updateSwimSurfaceVelocity(actor, &_d8, mConst, mInput, mCollision, waterSurfaceFinder, _f4,
+                              _a0, false);
+
+    bool isMove = mInput->isMove();
+    if (isMove) {
+        if (waterSurfaceFinder->isFoundSurface()) {
+            sead::Vector3f up = -al::getGravity(actor);
+            al::addVelocityToDirection(
+                actor, up,
+                sead::Mathf::min((waterSurfaceFinder->getSurfacePosition() - _e4).dot(up), 0.0f) *
+                    0.1f);
+            sead::Vector3f trans =
+                waterSurfaceFinder->getSurfaceDisplacement() + al::getTrans(actor);
+            al::setTrans(actor, trans);
+        }
+    } else if (waterSurfaceFinder->isFoundSurface()) {
+        sead::Vector3f trans =
+            waterSurfaceFinder->getSurfaceDisplacement() + al::getTrans(actor);
+        al::setTrans(actor, trans);
+    }
+
+    if (waterSurfaceFinder->isFoundSurface())
+        _e4 = waterSurfaceFinder->getSurfacePosition();
+    else
+        _e4 = al::getTrans(actor);
+
+    updateSwimTurn(actor, mTurnControl, mInput, mConst, _a0, 1.0f);
+
+    const PlayerConst* pConst = mConst;
+    PlayerJointParamSwim* joint = mSwimJoint;
+    f32 forwardBlend = pConst->getSwimBentForwardBlendRate();
+    joint->_0 = al::lerpValue(joint->_0, 0.0f, forwardBlend);
+    f32 sideBlend = pConst->getSwimBentSideBlendRate();
+    joint->_4 = al::lerpValue(joint->_4, 0.0f, sideBlend);
+    f32 sideBlend2 = pConst->getSwimBentSideBlendRate();
+    joint->_8 = al::lerpValue(joint->_8, 0.0f, sideBlend2);
+    f32 frontBlend = pConst->getSwimBentFrontBlendRate();
+    joint->_c = al::lerpValue(joint->_c, 0.0f, frontBlend);
+
+    s32 damperStart = mConst->getSwimSurfaceDamperStart();
+    s32 damperFrame = mConst->getSwimSurfaceDamperFrame();
+    bool canPaddleFromWait = false;
+    if (mInput->isMove()) {
+        _f4 = mConst->getSwimSurfaceDamperStart();
+        if (mCarryKeeper->isCarry()) {
+            if (!mAnimator->isAnim("SwimSurfaceCarry")) {
+                if (mAnimator->isAnim("SwimSurfaceNormal")) {
+                    f32 frame = mAnimator->getAnimFrame();
+                    mAnimator->startAnim("SwimSurfaceCarry");
+                    mAnimator->setAnimFrame(frame);
+                } else {
+                    mAnimator->startAnim("SwimSurfaceCarry");
+                }
+            }
+        } else {
+            if (!mAnimator->isAnim("SwimSurfaceNormal")) {
+                if (mAnimator->isAnim("SwimSurfaceCarry")) {
+                    f32 frame = mAnimator->getAnimFrame();
+                    mAnimator->startAnim("SwimSurfaceNormal");
+                    mAnimator->setAnimFrame(frame);
+                } else {
+                    mAnimator->startAnim("SwimSurfaceNormal");
+                }
+            }
+        }
+    } else {
+        if (!mAnimator->isAnim("SwimStandSurface") && !mAnimator->isAnim("SwimStandWait"))
+            mAnimator->startAnim("SwimStandSurface");
+
+        if (mAnimator->isAnim("SwimStandSurface")) {
+            if (rs::isCollidedGround(mCollision) &&
+                (!waterSurfaceFinder->isFoundSurface() ||
+                 waterSurfaceFinder->getDistance() >= mConst->getSwimSurfaceStartDist() + 5.0f)) {
+                mAnimator->startAnim("SwimStandWait");
+            }
+        } else if (mAnimator->isAnim("SwimStandWait") &&
+                   waterSurfaceFinder->isFoundSurface() &&
+                   waterSurfaceFinder->getDistance() < mConst->getSwimSurfaceStartDist()) {
+            mAnimator->startAnim("SwimStandSurface");
+        }
+        canPaddleFromWait = mAnimator->isAnim("SwimStandWait") && _100 == 0;
+        _f4 = al::converge(_f4, damperStart + damperFrame, 1);
+    }
+
+    if (_100 == 0 && rs::isJudge(mJudgeStartSwimJump)) {
+        _fc = 0;
+        al::setNerve(this, &NrvPlayerStateSwim.EndSwimJump);
+        kill();
+        return;
+    }
+    if (mInput->isTriggerHipDrop()) {
+        _fc = 0;
+        al::setNerve(this, &NrvPlayerStateSwim.SwimHipDropStart);
+        return;
+    }
+
+    if (shouldLeaveSurface) {
+        if (!mAnimator->isAnim("SwimStandWait") || !rs::isCollidedGround(mCollision)) {
+            al::setNerve(this, &NrvPlayerStateSwim.SwimMove);
+            return;
+        }
+        al::setNerve(this, &NrvPlayerStateSwim.SwimWalk);
+    }
+
+    if (canPaddleFromWait && mInput->isTriggerPaddle()) {
+        _a0 = 0;
+        sead::Vector3f* velocity = al::getVelocityPtr(actor);
+        sead::Vector3f up = -al::getGravity(actor);
+        al::limitVectorOppositeDir(velocity, up, *velocity, velocity->length());
+    }
+
+    if (waterSurfaceFinder->isFoundSurface() &&
+        waterSurfaceFinder->getDistance() < mConst->getSwimSurfaceStartDist()) {
+        _fc = 0;
+        return;
+    }
+    _fc = al::converge(_fc, 0, 1);
+}
+
 namespace {
+// NON_MATCHING: target is the unlabeled 572-byte helper at 0x71004860CC; current is 820 bytes because
+// the target's 364-byte 0x710048AFE8 surface-vertical helper still inlines here. Complete observed
+// behavior is recovered; next hypothesis is the original helper factoring/inliner-cost source shape.
+void updateSwimSurfaceVelocity(al::LiveActor* actor, sead::Vector3f* normal,
+                               const PlayerConst* pConst, const PlayerInput* input,
+                               const IUsePlayerCollision* collision,
+                               const al::WaterSurfaceFinder* waterSurfaceFinder, s32 surfaceCounter,
+                               s32 step, bool isSpinCapSurface) {
+    sead::Vector3f previousNormal = *normal;
+    sead::Vector3f velocityH = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f velocityV = {0.0f, 0.0f, 0.0f};
+    al::separateVelocityDirHV(&velocityH, &velocityV, actor, previousNormal);
+    rs::calcGroundNormalOrGravityDir(normal, actor, collision);
+    al::alongVectorNormalH(&velocityH, velocityH, previousNormal, *normal);
+
+    f32 speedV = previousNormal.dot(velocityV);
+    velocityV = *normal * speedV;
+    f32 surfaceSpeed = velocityV.dot(*normal);
+    updateSwimSurfaceVerticalSpeed(&surfaceSpeed, waterSurfaceFinder, pConst, surfaceCounter,
+                                   input->isMove());
+
+    f32 risePower = pConst->getSwimRisePower();
+    f32 surfaceGravity = pConst->getSwimSurfaceGravity();
+    f32 targetSpeed;
+    if (pConst->getSwimHighAccelPermitFrame() <= static_cast<u32>(step)) {
+        targetSpeed = surfaceSpeed - surfaceGravity;
+        f32 fallSpeed = -pConst->getSwimFallSpeedMax();
+        if (targetSpeed < fallSpeed)
+            targetSpeed = fallSpeed;
+    } else {
+        targetSpeed = surfaceSpeed + risePower;
+        f32 riseSpeedMax = pConst->getSwimRiseSpeedMax();
+        if (targetSpeed > riseSpeedMax)
+            targetSpeed = riseSpeedMax;
+    }
+    velocityV = *normal * targetSpeed;
+
+    updateSwimVelocityH(&velocityH, actor, pConst, input, collision, false, true,
+                        isSpinCapSurface);
+    sead::Vector3f velocity = velocityH + velocityV;
+    al::setVelocity(actor, velocity);
+}
+
 void updateSwimTurn(al::LiveActor* actor, PlayerActionTurnControl* turnControl,
                     const PlayerInput* input, const PlayerConst* pConst, s32 step, f32 scale) {
-    f32 speedRate = al::calcRate01(al::calcSpeedH(actor), pConst->getSwimRotSpeedChangeStart(),
-                                  pConst->getSwimLowSpeedMaxH());
-    f32 turnRate = al::easeIn(speedRate) *
+    f32 turnRate =
+        al::easeIn(al::calcRate01(al::calcSpeedH(actor), pConst->getSwimRotSpeedChangeStart(),
+                                 pConst->getSwimLowSpeedMaxH())) *
                    al::calcRate01(static_cast<f32>(step), 0.0f,
                                   static_cast<f32>(static_cast<u32>(pConst->getSwimHighAccelPermitFrame())));
     f32 turnSpeed =
@@ -371,11 +572,11 @@ void updateSwimTurn(al::LiveActor* actor, PlayerActionTurnControl* turnControl,
 }
 }  // namespace
 
-// NON_MATCHING: current 788 bytes versus target 804; the leading swim-velocity helper is absent. Next hypothesis is restoring that helper call before tuning branch/codegen shape.
 void PlayerStateSwim::exeSwimMove() {
     if (al::isFirstStep(this))
         _ac = 0;
 
+    updateSwimVelocity(mActor, &_d8, mConst, mInput, mCollision, mTrigger, _a0);
     updateSwimTurn(mActor, mTurnControl, mInput, mConst, _a0, 1.0f);
     updateSwimJointParams(mSwimJoint, mActor, mConst, mTurnControl);
 
@@ -385,7 +586,7 @@ void PlayerStateSwim::exeSwimMove() {
         return;
     }
     if (mTrigger->isOn(PlayerTrigger::EAttackSensorTrigger_val2)) {
-        al::setNerve(this, &NrvPlayerStateSwim.SwimDive);
+        al::setNerve(this, &NrvPlayerStateSwim.SwimTrample);
         return;
     }
     if (mInput->isTriggerPaddle()) {
@@ -399,61 +600,87 @@ void PlayerStateSwim::exeSwimMove() {
 
     bool isOnGround = rs::isOnGround(mActor, mCollision);
     bool isMove = mInput->isMove();
-    if (!isOnGround) {
-        const char* animName;
+    if (isOnGround) {
+        const IUsePlayerCollision* collision = mCollision;
+        const PlayerConst* pConst = mConst;
+        al::LiveActor* actor = mActor;
         if (isMove) {
-            _ac = 15;
-            animName = "SwimStandMove";
+            sead::Vector3f groundNormal = {0.0f, 0.0f, 0.0f};
+            sead::Vector3f velocity;
+            rs::calcGroundNormalOrGravityDir(&groundNormal, actor, collision);
+            velocity = {0.0f, 0.0f, 0.0f};
+            al::verticalizeVec(&velocity, groundNormal, al::getVelocity(actor));
+            velocity -= groundNormal * pConst->getSwimGravityWalk();
+            al::setVelocity(actor, velocity);
+            al::setNerve(this, &NrvPlayerStateSwim.SwimWalk);
         } else {
-            if (mAnimator->isAnim("SwimStand")) {
-                if (mAnimator->isAnimEnd())
-                    mAnimator->startAnim("SwimStandWait");
-                _ac = al::converge(_ac, 0, 1);
-                return;
-            }
-            if (_ac > 0) {
-                _ac = al::converge(_ac, 0, 1);
-                return;
-            }
-            animName = "SwimStandWait";
+            rs::waitGround(actor, collision, pConst->getSwimGravity(),
+                           pConst->getSwimFallSpeedMax(), 0.0f, 0.0f);
+            al::setNerve(this, &NrvPlayerStateSwim.SwimLand);
         }
-        if (!mAnimator->isAnim(animName))
-            mAnimator->startAnim(animName);
-        _ac = al::converge(_ac, 0, 1);
         return;
     }
 
-    if (!isMove) {
-        rs::waitGround(mActor, mCollision, mConst->getSwimGravity(),
-                       mConst->getSwimFallSpeedMax(), 0.0f, 0.0f);
-        al::setNerve(this, &NrvPlayerStateSwim.SwimLand);
-        return;
+    if (isMove) {
+        _ac = 15;
+        if (!mAnimator->isAnim("SwimStandMove"))
+            mAnimator->startAnim("SwimStandMove");
+    } else if (mAnimator->isAnim("SwimStand")) {
+        if (mAnimator->isAnimEnd())
+            mAnimator->startAnim("SwimStandWait");
+    } else if (_ac <= 0 && !mAnimator->isAnim("SwimStandWait")) {
+        mAnimator->startAnim("SwimStandWait");
     }
-
-    sead::Vector3f groundNormal = sead::Vector3f::zero;
-    rs::calcGroundNormalOrGravityDir(&groundNormal, mActor, mCollision);
-    sead::Vector3f velocity = sead::Vector3f::zero;
-    al::verticalizeVec(&velocity, groundNormal, al::getVelocity(mActor));
-    f32 gravityWalk = mConst->getSwimGravityWalk();
-    velocity -= groundNormal * gravityWalk;
-    al::setVelocity(mActor, velocity);
-    al::setNerve(this, &NrvPlayerStateSwim.SwimWalk);
+    s32 next = _ac - 1;
+    if (next < 0)
+        next = 0;
+    _ac = next;
+    return;
 }
 
 namespace {
+// NON_MATCHING: target is the unlabeled 512-byte helper at 0x7100486834; source recovers
+// its complete observed velocity split/ground-normal/update behavior. Exact symbol selection is
+// unavailable because the corpus/file list has no label for this target function.
+void updateSwimVelocity(al::LiveActor* actor, sead::Vector3f* normal, const PlayerConst* pConst,
+                        const PlayerInput* input, const IUsePlayerCollision* collision,
+                        const PlayerTrigger* trigger, s32 step) {
+    sead::Vector3f previousNormal = *normal;
+    sead::Vector3f velocityV = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f velocityH = {0.0f, 0.0f, 0.0f};
+
+    f32 gravity = pConst->getSwimGravity();
+    if (rs::calcOnGroundNormalOrGravityDir(normal, actor, collision)) {
+        al::separateVelocityDirHV(&velocityH, &velocityV, actor, previousNormal);
+        al::alongVectorNormalH(&velocityH, velocityH, previousNormal, *normal);
+        f32 speedV = previousNormal.dot(velocityV);
+        velocityV = *normal * speedV;
+        gravity = pConst->getSwimGravityWalk();
+    } else {
+        rs::scaleVelocityInertiaWallHit(actor, collision, 0.75f,
+                                        pConst->getSwimWallHitSpeedMinH(),
+                                        pConst->getSwimHighSpeedMaxH());
+        al::separateVelocityDirHV(&velocityH, &velocityV, actor, *normal);
+    }
+
+    updateSwimVelocityV(&velocityV, pConst, collision, trigger, *normal, step, gravity);
+    bool isHighAccel = pConst->getSwimHighAccelPermitFrame() > static_cast<u32>(step);
+    updateSwimVelocityH(&velocityH, actor, pConst, input, collision, isHighAccel, false, false);
+    al::setVelocity(actor, velocityH + velocityV);
+}
+
 void updateSwimJointParams(PlayerJointParamSwim* joint, al::LiveActor* actor,
                            const PlayerConst* pConst, PlayerActionTurnControl* turnControl) {
     sead::Vector3f front = {0.0f, 0.0f, 0.0f};
     al::calcFrontDir(&front, actor);
-    f32 speed = front.dot(al::getVelocity(actor));
-    f32 speedRate = al::calcRate01(speed, 0.0f, pConst->getSwimLowSpeedMaxH());
+    f32 speedRate =
+        al::calcRate01(front.dot(al::getVelocity(actor)), 0.0f, pConst->getSwimLowSpeedMaxH());
 
     f32 bentForward = speedRate * pConst->getSwimBentForwardMax();
     f32 forwardBlend = pConst->getSwimBentForwardBlendRate();
     joint->_0 = al::lerpValue(joint->_0, bentForward, forwardBlend);
 
-    sead::Vector3f up = -al::getGravity(actor);
-    f32 turnRate = speedRate * turnControl->calcTurnPowerRate(up);
+    f32 turnRate = speedRate * turnControl->calcTurnPowerRate(-al::getGravity(actor));
     f32 bentSide = turnRate * pConst->getSwimBentSideMax();
     f32 sideBlend = pConst->getSwimBentSideBlendRate();
     joint->_4 = al::lerpValue(joint->_4, bentSide, sideBlend);
@@ -526,6 +753,107 @@ void PlayerStateSwim::exeSwimLand() {
 }
 
 
+// NON_MATCHING: target/current are both 1300 bytes (325 instructions). Behavior and helper factoring
+// are recovered; remaining mismatch is the 0xC0 target vs 0xD0 current frame/stack coloring around
+// SafeString and velocity temporaries. Next hypothesis is original local scope/lifetime grouping.
+void PlayerStateSwim::exeSwimWalk() {
+    if (al::isFirstStep(this)) {
+        mAnimator->startAnim("SwimWalk");
+        _f0 = 0;
+    }
+
+    al::LiveActor* actor = mActor;
+    const PlayerConst* pConst = mConst;
+    const IUsePlayerCollision* collision = mCollision;
+    const PlayerInput* input = mInput;
+    const PlayerTrigger* trigger = mTrigger;
+    s32 step = _a0;
+    sead::Vector3f previousNormal = _d8;
+
+    sead::Vector3f velocityH = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f velocityV = {0.0f, 0.0f, 0.0f};
+    al::separateVelocityDirHV(&velocityH, &velocityV, actor, previousNormal);
+
+    sead::Vector3f snapPosition = {0.0f, 0.0f, 0.0f};
+    bool isSnapped = rs::calcSnapGroundNormalOrGravityDir(
+        &_d8, &snapPosition, actor, collision, 15.0f, previousNormal);
+    al::alongVectorNormalH(&velocityH, velocityH, previousNormal, _d8);
+    f32 speedV = previousNormal.dot(velocityV);
+    sead::Vector3f velocity;
+
+    f32 gravity = 0.0f;
+    if (isSnapped) {
+        speedV = sead::Mathf::min(speedV, 0.0f);
+        velocityV = _d8 * speedV;
+
+        f32 offset = (snapPosition - al::getTrans(actor)).dot(_d8) - 7.0f;
+        velocity = al::getTrans(actor) + _d8 * offset;
+        al::setTrans(actor, velocity);
+        gravity = pConst->getSwimGravityWalk();
+    } else {
+        velocityV = _d8 * speedV;
+        gravity = pConst->getSwimGravity();
+    }
+
+    updateSwimVelocityV(&velocityV, pConst, collision, trigger, _d8, step, gravity);
+    updateSwimVelocityH(&velocityH, actor, pConst, input, collision,
+                        pConst->getSwimHighAccelPermitFrame() > static_cast<u32>(step), false, false);
+
+    velocity = velocityH + velocityV;
+    al::setVelocity(actor, velocity);
+    f32 speedH = velocityH.length();
+
+    updateSwimTurn(mActor, mTurnControl, mInput, mConst, _a0, 0.75f);
+
+    const PlayerConst* jointConst = mConst;
+    PlayerJointParamSwim* joint = mSwimJoint;
+    f32 forwardBlend = jointConst->getSwimBentForwardBlendRate();
+    joint->_0 = al::lerpValue(joint->_0, 0.0f, forwardBlend);
+    f32 sideBlend = jointConst->getSwimBentSideBlendRate();
+    joint->_4 = al::lerpValue(joint->_4, 0.0f, sideBlend);
+    f32 sideBlend2 = jointConst->getSwimBentSideBlendRate();
+    joint->_8 = al::lerpValue(joint->_8, 0.0f, sideBlend2);
+    f32 frontBlend = jointConst->getSwimBentFrontBlendRate();
+    joint->_c = al::lerpValue(joint->_c, 0.0f, frontBlend);
+
+    if (mWaterSurfaceFinder->isFoundSurface() &&
+        mWaterSurfaceFinder->getDistance() < mConst->getSwimSurfaceStartDist()) {
+        al::setNerve(this, &NrvPlayerStateSwim.SwimSurface);
+        return;
+    }
+    if (mInput->isTriggerPaddle()) {
+        al::setNerve(this, &NrvPlayerStateSwim.SwimPaddle);
+        return;
+    }
+    if (mTrigger->isOn(PlayerTrigger::EAttackSensorTrigger_val2)) {
+        al::setNerve(this, &NrvPlayerStateSwim.SwimTrample);
+        return;
+    }
+    if (mTrigger->isOn(PlayerTrigger::EAttackSensorTrigger_val1)) {
+        al::setNerve(this, &NrvPlayerStateSwim.SwimPaddle);
+        return;
+    }
+
+    if (rs::isCollidedGround(mCollision)) {
+        _f0 = 0;
+    } else if (_f0++ >= 2) {
+        al::setNerve(this, &NrvPlayerStateSwim.SwimMove);
+        return;
+    }
+
+    if (mInput->isMove()) {
+        if (!mAnimator->isAnim("SwimWalk"))
+            mAnimator->startAnim("SwimWalk");
+        mAnimControlSwimWalk->update(speedH);
+    } else if (al::calcSpeedExceptDir(mActor, _d8) >= 2.0f) {
+        if (mAnimator->isAnim("SwimWalk"))
+            mAnimControlSwimWalk->update(speedH);
+    } else if (!mAnimator->isAnim("SwimStandWait")) {
+        mAnimator->startAnim("SwimStandWait");
+    }
+}
+
+
 
 void PlayerStateSwim::exeSwimDive() {
     if (al::isFirstStep(this)) {
@@ -578,8 +906,7 @@ void PlayerStateSwim::updateNerveDownFall() {
 
     f32 speed = -al::calcSpeedV(mActor);
     if (mConst->getSwimDiveEndSpeed() > speed) {
-        u32 step = ++_bc;
-        if (step >= static_cast<u32>(mConst->getSwimDiveEndFrame())) {
+        if (static_cast<u32>(++_bc) >= static_cast<u32>(mConst->getSwimDiveEndFrame())) {
             if (mWaterSurfaceFinder->isFoundSurface() &&
                 mWaterSurfaceFinder->getDistance() < mConst->getSwimSurfaceStartDist())
                 al::setNerve(this, &NrvPlayerStateSwim.SwimSurface);
@@ -733,31 +1060,34 @@ void PlayerStateSwim::exeSwimHipDropHeadSliding() {
     }
     if (mAnimator->isAnim("SwimHeadSlidingStart") && mAnimator->isAnimEnd())
         mAnimator->startAnim("SwimHeadSliding");
-    if (al::isNearZeroOrLess(al::calcSpeedExceptDir(actor, gravity) - speedEnd, 0.001f))
+    if (al::isNearZeroOrLess(al::calcSpeedExceptDir(actor, gravity) - speedEnd))
         al::setNerve(this, &NrvPlayerStateSwim.SwimHipDropHeadSlidingEnd);
 }
 
 namespace {
-// NON_MATCHING: current 520 bytes versus target 532; target keeps a packed 64-bit surface-found/distance snapshot. Next hypothesis is a single aggregate/local snapshot spanning the counter branch.
 void updateSwimHeadSliding(s32* counter, al::LiveActor* actor, const PlayerConst* pConst,
                            const al::WaterSurfaceFinder* waterSurfaceFinder) {
     {
-        bool isFoundSurface = waterSurfaceFinder->isFoundSurface();
-        f32 surfaceDistance = waterSurfaceFinder->getDistance();
         if (*counter != 0) {
-            if (!isFoundSurface || surfaceDistance >= pConst->getSwimSurfaceEndDist()) {
+            const al::WaterSurfaceState surface = waterSurfaceFinder->getSurfaceState();
+            if (!surface.isFoundSurface ||
+                surface.distance >= pConst->getSwimSurfaceEndDist()) {
                 *counter = 0;
                 return;
             }
             (*counter)++;
-        } else if (!isFoundSurface ||
-                   surfaceDistance > pConst->getSwimSurfaceStartDist()) {
-            return;
+        } else {
+            const al::WaterSurfaceState surface = waterSurfaceFinder->getSurfaceState();
+            if (!surface.isFoundSurface ||
+                !(surface.distance < pConst->getSwimSurfaceStartDist())) {
+                return;
+            }
         }
     }
 
-    sead::Vector3f vertical = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f velocity;
     sead::Vector3f horizontal = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f vertical = {0.0f, 0.0f, 0.0f};
     al::separateVelocityHV(&horizontal, &vertical, actor);
     sead::Vector3f up = -al::getGravity(actor);
     f32 speed = vertical.dot(up);
@@ -771,7 +1101,7 @@ void updateSwimHeadSliding(s32* counter, al::LiveActor* actor, const PlayerConst
         if (speed > speedMax)
             speed = speedMax;
     }
-    sead::Vector3f velocity = horizontal + up * speed;
+    velocity = up * speed + horizontal;
     al::setVelocity(actor, velocity);
     if (waterSurfaceFinder->isFoundSurface()) {
         sead::Vector3f displacement = waterSurfaceFinder->getSurfaceDisplacement();
@@ -815,24 +1145,125 @@ void PlayerStateSwim::exeSwimHipDropHeadSlidingEnd() {
         al::setNerve(this, &NrvPlayerStateSwim.SwimHipDropStart);
         return;
     }
-    if (al::isNearZeroOrLess(al::calcSpeedExceptDir(actor, gravity) - speedMin, 0.001f))
+    if (al::isNearZeroOrLess(al::calcSpeedExceptDir(actor, gravity) - speedMin))
         al::setNerve(this, &NrvPlayerStateSwim.SwimMove);
 }
 
-// NON_MATCHING: current 724 bytes versus target 744; the leading swim-velocity helper is absent. Next hypothesis is restoring that helper call before tuning branch/codegen shape.
-void PlayerStateSwim::exeSwimTrample() {
+
+// NON_MATCHING: target/current are both 1124 bytes (281 instructions) with the target 0xF0 frame,
+// D8-D10 saves, FMAX clamp, >= surface-end branch, and EndSwimJump kill() virtual recovered. Remaining
+// differences are the two -gravity argument-construction schedules around calcCapThrowInput() and
+// startCapThrow(); next hypothesis is an original vector-expression form that interleaves callee loads.
+void PlayerStateSwim::exeSwimSpinCapSurface() {
+    al::LiveActor* actor = mActor;
+    const sead::Vector3f& gravity = al::getGravity(actor);
+    bool isSeparateSingleSpin = mSpinCapAttack->isSeparateSingleSpin();
+
     if (al::isFirstStep(this)) {
+        if (isSeparateSingleSpin)
+            mSpinCapAttack->startSpinSeparateSwimSurface(mAnimator);
+        else
+            mSpinCapAttack->startCapSpinAttackSwim(mAnimator, mInput);
+
+        {
+            sead::Vector3f up = -gravity;
+            mInput->calcCapThrowInput(&_c0, up);
+        }
+        if (!al::tryNormalizeOrZero(&_c0)) {
+            sead::Vector3f front = {0.0f, 0.0f, 0.0f};
+            al::calcFrontDir(&front, actor);
+            al::verticalizeVec(&_c0, gravity, front);
+            if (!al::tryNormalizeOrZero(&_c0))
+                _c0 = front;
+        }
+        al::faceToDirection(actor, _c0);
+
+        sead::Matrix34f rootMtx = sead::Matrix34f::ident;
+        mAnimator->calcModelJointRootMtx(&rootMtx);
+        sead::Vector3f jointUp = {rootMtx.m[0][1], rootMtx.m[1][1], rootMtx.m[2][1]};
+        al::normalize(&jointUp);
+        sead::Vector3f jointFront = {rootMtx.m[0][0], rootMtx.m[1][0], rootMtx.m[2][0]};
+        al::normalize(&jointFront);
+        mSwimJoint->_0 =
+            sead::Mathf::max(0.0f, al::calcAngleOnPlaneDegree(-gravity, jointUp, jointFront));
+    }
+
+    bool isSpinCapSurface = al::isLessEqualStep(this, mConst->getSwimSurfaceSpinCapFrame());
+    updateSwimSurfaceVelocity(actor, &_d8, mConst, mInput, mCollision, mWaterSurfaceFinder,
+                              al::getNerveStep(this), _a0, isSpinCapSurface);
+
+    if (mWaterSurfaceFinder->isFoundSurface()) {
+        sead::Vector3f displacement = mWaterSurfaceFinder->getSurfaceDisplacement();
+        sead::Vector3f trans = displacement + al::getTrans(actor);
+        al::setTrans(actor, trans);
+    }
+
+    updateSwimTurn(actor, mTurnControl, mInput, mConst, _a0, 1.0f);
+    const PlayerConst* pConst = mConst;
+    PlayerJointParamSwim* joint = mSwimJoint;
+    f32 forwardBlend = pConst->getSwimBentForwardBlendRate();
+    joint->_0 = al::lerpValue(joint->_0, 0.0f, forwardBlend);
+    f32 sideBlend = pConst->getSwimBentSideBlendRate();
+    joint->_4 = al::lerpValue(joint->_4, 0.0f, sideBlend);
+    f32 sideBlend2 = pConst->getSwimBentSideBlendRate();
+    joint->_8 = al::lerpValue(joint->_8, 0.0f, sideBlend2);
+    f32 frontBlend = pConst->getSwimBentFrontBlendRate();
+    joint->_c = al::lerpValue(joint->_c, 0.0f, frontBlend);
+
+    s32 throwFrame = mSpinCapAttack->getThrowFrameSwim();
+    if (isSeparateSingleSpin) {
+        if (!al::isGreaterEqualStep(this, throwFrame))
+            return;
+    } else {
+        if (al::isStep(this, throwFrame) && mSpinCapAttack->isCapSpinAttack()) {
+            sead::Vector3f up = -gravity;
+            mSpinCapAttack->startCapThrow(_c0, up, 0.5f, false, sead::Vector3f::zero);
+        }
+        if (mSpinCapAttack->isCapSpinAttack())
+            return;
+    }
+
+    if (rs::isJudge(mJudgeStartSwimJump)) {
+        if (mAnimator->isSubAnimPlaying())
+            mAnimator->endSubAnim();
+        al::setNerve(this, &NrvPlayerStateSwim.EndSwimJump);
+        kill();
+        return;
+    }
+
+    if (mInput->isTriggerHipDrop()) {
+        if (mAnimator->isSubAnimPlaying())
+            mAnimator->endSubAnim();
+        al::setNerve(this, &NrvPlayerStateSwim.SwimHipDropStart);
+        return;
+    }
+
+    if (!mAnimator->isAnimEnd())
+        return;
+    if (!mWaterSurfaceFinder->isFoundSurface() ||
+        mWaterSurfaceFinder->getDistance() >= mConst->getSwimSurfaceEndDist())
+        al::setNerve(this, &NrvPlayerStateSwim.SwimMove);
+    else
+        al::setNerve(this, &NrvPlayerStateSwim.SwimSurface);
+}
+
+void PlayerStateSwim::exeSwimTrample() {
+    sead::Vector3f groundNormal;
+    sead::Vector3f velocity;
+    if (al::isFirstStep(this)) {
+        const PlayerConst* pConst = mConst;
         f32 intervalRate =
             1.0f - al::calcRate01(static_cast<f32>(_a0),
-                                  static_cast<f32>(mConst->getSwimPaddleAnimRateIntervalMin()),
-                                  static_cast<f32>(mConst->getSwimPaddleAnimRateIntervalMax()));
+                                  static_cast<f32>(pConst->getSwimPaddleAnimRateIntervalMin()),
+                                  static_cast<f32>(pConst->getSwimPaddleAnimRateIntervalMax()));
         intervalRate = sead::Mathf::clamp(intervalRate, 0.0f, 1.0f);
+        _a4 = al::lerpValue(1.0f, pConst->getSwimPaddleAnimMaxRate(), intervalRate);
         _a0 = 0;
         _a8 = false;
-        _a4 = al::lerpValue(1.0f, mConst->getSwimPaddleAnimMaxRate(), intervalRate);
         mAnimator->startAnim("SwimTrample");
     }
 
+    updateSwimVelocity(mActor, &_d8, mConst, mInput, mCollision, mTrigger, _a0);
     updateSwimTurn(mActor, mTurnControl, mInput, mConst, _a0, 1.0f);
     updateSwimJointParams(mSwimJoint, mActor, mConst, mTurnControl);
 
@@ -851,17 +1282,21 @@ void PlayerStateSwim::exeSwimTrample() {
     }
 
     if (rs::isOnGround(mActor, mCollision)) {
-        if (mInput->isMove()) {
-            sead::Vector3f groundNormal = {0.0f, 0.0f, 0.0f};
-            rs::calcGroundNormalOrGravityDir(&groundNormal, mActor, mCollision);
-            sead::Vector3f velocity = {0.0f, 0.0f, 0.0f};
-            al::verticalizeVec(&velocity, groundNormal, al::getVelocity(mActor));
-            velocity -= groundNormal * mConst->getSwimGravityWalk();
-            al::setVelocity(mActor, velocity);
+        bool isMove = mInput->isMove();
+        const IUsePlayerCollision* collision = mCollision;
+        const PlayerConst* pConst = mConst;
+        al::LiveActor* actor = mActor;
+        if (isMove) {
+            groundNormal = {0.0f, 0.0f, 0.0f};
+            rs::calcGroundNormalOrGravityDir(&groundNormal, actor, collision);
+            velocity = {0.0f, 0.0f, 0.0f};
+            al::verticalizeVec(&velocity, groundNormal, al::getVelocity(actor));
+            velocity -= groundNormal * pConst->getSwimGravityWalk();
+            al::setVelocity(actor, velocity);
             al::setNerve(this, &NrvPlayerStateSwim.SwimWalk);
         } else {
-            rs::waitGround(mActor, mCollision, mConst->getSwimGravity(),
-                           mConst->getSwimFallSpeedMax(), 0.0f, 0.0f);
+            rs::waitGround(actor, collision, pConst->getSwimGravity(),
+                           pConst->getSwimFallSpeedMax(), 0.0f, 0.0f);
             al::setNerve(this, &NrvPlayerStateSwim.SwimLand);
         }
         return;
@@ -873,12 +1308,11 @@ void PlayerStateSwim::exeSwimTrample() {
 
 
 
-// NON_MATCHING: current 468 bytes versus target 448; compiler preserves this+0x20 in X21 across the first-step branch. Next hypothesis is shortening the actor/local lifetime across first-step setup.
 void PlayerStateSwim::exeSwimReflectDownFall() {
     al::LiveActor* player = mActor;
     if (al::isFirstStep(this)) {
         mAnimator->startAnim("SwimTrample");
-        sead::Vector3f gravity = al::getGravity(player);
+        const sead::Vector3f& gravity = al::getGravity(player);
         f32 x = gravity.x;
         f32 y = gravity.y;
         f32 z = gravity.z;
@@ -891,8 +1325,9 @@ void PlayerStateSwim::exeSwimReflectDownFall() {
     al::addVelocityToGravity(player, mConst->getSwimGravity());
     updateSwimJointParams(mSwimJoint, mActor, mConst, mTurnControl);
 
+    const PlayerConst* pConstSurface = mConst;
     if (mWaterSurfaceFinder->isFoundSurface() &&
-        mWaterSurfaceFinder->getDistance() < mConst->getSwimSurfaceStartDist()) {
+        mWaterSurfaceFinder->getDistance() < pConstSurface->getSwimSurfaceStartDist()) {
         al::setNerve(this, &NrvPlayerStateSwim.SwimSurface);
         return;
     }
@@ -938,3 +1373,133 @@ bool PlayerStateSwim::tryChangeHipDropLand(s32* state, s32* step) {
 }
 
 PlayerStateSwim::~PlayerStateSwim() = default;
+
+namespace {
+// NON_MATCHING: target is the unlabeled 872-byte helper at 0x710048AC80; current is 868 bytes.
+// Behavior, 0xC0 frame, target stack-vector reuse, and the otherwise surprising acceleration.length()
+// operation are recovered. Remaining mismatch is one split X/Y component store before limitLength.
+void updateSwimVelocityH(sead::Vector3f* velocityH, al::LiveActor* actor,
+                         const PlayerConst* pConst, const PlayerInput* input,
+                         const IUsePlayerCollision* collision, bool isHighAccel, bool isSurface,
+                         bool isSpinCapSurface) {
+    f32 brakeRate = pConst->getSwimBrakeRateH();
+    if (!input->isMove()) {
+        *velocityH *= brakeRate;
+        return;
+    }
+
+    const sead::Vector3f& gravity = al::getGravity(actor);
+    sead::Vector3f moveInput = {0.0f, 0.0f, 0.0f};
+    sead::Vector3f moveDir = -gravity;
+    input->calcMoveInput(&moveInput, moveDir);
+
+    moveDir.set(0.0f, 0.0f, 0.0f);
+    al::tryNormalizeOrZero(&moveDir, moveInput);
+    if (PlayerActionFunction::isOppositeVec(moveDir, *velocityH)) {
+        *velocityH *= brakeRate;
+    } else {
+        sead::Vector3f front = {0.0f, 0.0f, 0.0f};
+        sead::Vector3f gravityUp = -gravity;
+        if (rs::calcAlongDirFront(&front, actor, gravityUp)) {
+            al::scaleVectorExceptDirection(velocityH, front, *velocityH, brakeRate);
+            if (!input->isMoveDeepDown()) {
+                f32 directionScale = al::lerpValue(1.0f, brakeRate, moveInput.length());
+                al::scaleVectorDirection(velocityH, front, *velocityH, directionScale);
+            }
+        }
+    }
+
+    sead::Vector3f acceleration;
+    f32 maxSpeed;
+    if (isSpinCapSurface) {
+        acceleration = moveInput * pConst->getSwimSurfaceAccelH();
+        maxSpeed = pConst->getSwimSurfaceSpinCapSpeedMaxH();
+    } else if (isSurface) {
+        acceleration = moveInput * pConst->getSwimSurfaceAccelH();
+        maxSpeed = pConst->getSwimSurfaceSpeedMaxH();
+    } else if (rs::isOnGround(actor, collision)) {
+        acceleration = moveInput * pConst->getSwimFloorAccelH();
+        maxSpeed = pConst->getSwimFloorSpeedMaxH();
+    } else if (isHighAccel) {
+        acceleration = moveInput * pConst->getSwimHighAccelH();
+        maxSpeed = pConst->getSwimHighSpeedMaxH();
+    } else {
+        acceleration = moveInput * pConst->getSwimLowAccelH();
+        maxSpeed = pConst->getSwimLowSpeedMaxH();
+    }
+
+    acceleration.length();
+    f32 speed = velocityH->length();
+    if (speed > maxSpeed) {
+        f32 brakedSpeed = brakeRate * speed;
+        if (brakedSpeed >= maxSpeed)
+            maxSpeed = brakedSpeed;
+    }
+
+    velocityH->setAdd(*velocityH, acceleration);
+    al::limitLength(velocityH, *velocityH, maxSpeed);
+}
+
+// NON_MATCHING: target is the unlabeled 364-byte helper at 0x710048AFE8; behavior and target call
+// order are recovered from corpus. Exact selection is unavailable because the target has no label.
+void updateSwimSurfaceVerticalSpeed(f32* speed, const al::WaterSurfaceFinder* waterSurfaceFinder,
+                                    const PlayerConst* pConst, s32 counter, bool isMove) {
+    f32 rate = static_cast<f32>(counter - pConst->getSwimSurfaceDamperStart()) /
+               static_cast<f32>(pConst->getSwimSurfaceDamperFrame());
+    if (rate >= 0.0f) {
+        if (rate > 1.0f)
+            rate = 1.0f;
+    } else {
+        rate = 0.0f;
+    }
+
+    if (!waterSurfaceFinder->isFoundSurface())
+        return;
+
+    if (isMove) {
+        *speed *= pConst->getSwimSurfaceMoveDamper();
+        *speed += (waterSurfaceFinder->getDistance() - pConst->getSwimSurfaceMoveBaseHeight()) *
+                  pConst->getSwimSurfaceMoveSpring();
+    } else {
+        *speed *= rate + (1.0f - rate) * pConst->getSwimSurfaceDamper();
+        *speed += (1.0f - rate) *
+                  (waterSurfaceFinder->getDistance() - pConst->getSwimSurfaceBaseHeight()) *
+                  pConst->getSwimSurfaceSpring();
+    }
+
+    *speed = sead::Mathf::min(*speed, pConst->getSwimRiseSpeedMax());
+}
+
+// NON_MATCHING: target/current are both 348 bytes and 87 instructions for the unlabeled helper at
+// 0x710048B154. Corpus proves unsigned step comparison and setScale write shape; exact selection is
+// unavailable because the target has no recovered label (MOV/ORR immediate aliases differ by disassembler).
+void updateSwimVelocityV(sead::Vector3f* velocityV, const PlayerConst* pConst,
+                         const IUsePlayerCollision* collision, const PlayerTrigger* trigger,
+                         const sead::Vector3f& normal, u32 step, f32 gravity) {
+    f32 speed = velocityV->dot(normal);
+    if (rs::isCollidedGround(collision) && speed < 0.0f)
+        speed = 0.0f;
+
+    f32 targetSpeed;
+    if (trigger->isOn(PlayerTrigger::EAttackSensorTrigger_val2)) {
+        targetSpeed = pConst->getDiveTramplePower();
+    } else if (trigger->isOn(PlayerTrigger::EAttackSensorTrigger_val1)) {
+        targetSpeed = pConst->getSwimTramplePower();
+    } else {
+        f32 risePower = pConst->getSwimRisePower();
+        if (pConst->getSwimHighAccelPermitFrame() <= static_cast<u32>(step)) {
+            targetSpeed = speed - gravity;
+            f32 fallSpeed = -pConst->getSwimFallSpeedMax();
+            if (targetSpeed < fallSpeed)
+                targetSpeed = fallSpeed;
+        } else {
+            targetSpeed = speed + risePower;
+            f32 riseSpeedMax = pConst->getSwimRiseSpeedMax();
+            if (targetSpeed > riseSpeedMax)
+                targetSpeed = riseSpeedMax;
+        }
+    }
+
+    velocityV->setScale(normal, targetSpeed);
+}
+}  // namespace

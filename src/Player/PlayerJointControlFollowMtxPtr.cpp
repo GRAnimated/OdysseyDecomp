@@ -3,7 +3,7 @@
 PlayerJointControlFollowMtxPtr::PlayerJointControlFollowMtxPtr(const sead::Matrix34f* followMtx)
     : al::JointControllerBase(16), mIsValid(true), mFollowMtx(followMtx) {}
 
-void PlayerJointControlFollowMtxPtr::calcJointCallback(s32, sead::Matrix34f* jointMtx) {
+void PlayerJointControlFollowMtxPtr::calcJointCallback(s32 jointIndex, sead::Matrix34f* jointMtx) {
     if (mIsValid)
         *jointMtx = *mFollowMtx;
 }

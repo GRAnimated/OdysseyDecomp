@@ -21,10 +21,10 @@ public:
 
     void init(const al::ActorInitInfo& initInfo) override {}
 
-    virtual u32 getPortNo() const;
-
     virtual void initPlayer(const al::ActorInitInfo& actorInitInfo,
                             const PlayerInitInfo& playerInitInfo) {}
+
+    virtual u32 getPortNo() const;
 
     virtual sead::Matrix34f* getViewMtx() const;
     void movement() override;

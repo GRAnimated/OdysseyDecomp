@@ -31,6 +31,9 @@ struct PlayerBindEndJumpInfo {
     s32 _c;
     f32 gravity;
 };
+
+static_assert(sizeof(PlayerBindEndJumpInfo) == 0x14);
+
 class PlayerPuppet : public IUsePlayerPuppet {
 public:
     PlayerPuppet(al::LiveActor* actor, HackCap* hackCap, PlayerAnimator* playerAnimator,
@@ -76,10 +79,13 @@ public:
     void validate2D();
     void keepOn2D();
     void endKeepOn2D();
-    void requestUpdateRecoveryInfo(bool isKidsMode, bool isRecovery, const sead::Vector3f& position,
-                                   const sead::Vector3f& up, const al::AreaObj* areaObj);
-    bool tryUpdateRecoveryInfo(bool* isKidsMode, bool* isRecovery, sead::Vector3f* position,
-                               sead::Vector3f* up, const al::AreaObj** areaObj);
+    void requestUpdateRecoveryInfo(bool requestSafetyPoint, bool skipIfValid,
+                                   const sead::Vector3f& recoveryPos,
+                                   const sead::Vector3f& recoveryNormal,
+                                   const al::AreaObj* recoveryArea);
+    bool tryUpdateRecoveryInfo(bool* requestSafetyPoint, bool* skipIfValid,
+                               sead::Vector3f* recoveryPos, sead::Vector3f* recoveryNormal,
+                               const al::AreaObj** recoveryArea);
 
     bool isBinding() const;
     bool isNoCollide() const;

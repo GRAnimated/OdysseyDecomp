@@ -62,7 +62,7 @@ bool PlayerJudgeInWater::judge() const {
             const sead::Vector3f& groundNormal = rs::getCollidedGroundNormal(mCollision);
             sead::Vector3f up = {0.0f, 0.0f, 0.0f};
             al::calcUpDir(&up, mPlayer);
-            if (!al::isParallelDirection(up, groundNormal, 0.01f) && up.dot(groundNormal) > 0.0f) {
+            if (!al::isParallelDirection(up, groundNormal) && up.dot(groundNormal) > 0.0f) {
                 sead::Quatf rotation = sead::Quatf::unit;
                 al::makeQuatRotationRate(&rotation, up, groundNormal, 1.0f);
                 sead::Vector3f offset =

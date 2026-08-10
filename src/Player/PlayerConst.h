@@ -847,7 +847,7 @@ public:
 
     virtual f32 getSwimWallHitSpeedMinH() const { return mSwimWallHitSpeedMinH; }
 
-    virtual s32 getSwimHighAccelPermitFrame() const { return mSwimHighAccelPermitFrame; }
+    virtual u32 getSwimHighAccelPermitFrame() const { return mSwimHighAccelPermitFrame; }
 
     virtual f32 getSwimFlowFieldBlend() const { return mSwimFlowFieldBlend; }
 
@@ -1115,9 +1115,9 @@ public:
 
     virtual s32 getSwimPaddleAnimInterval() const { return mSwimPaddleAnimInterval; }
 
-    virtual s32 getSwimPaddleAnimRateIntervalMax() const { return mSwimPaddleAnimRateIntervalMax; }
+    virtual u32 getSwimPaddleAnimRateIntervalMax() const { return mSwimPaddleAnimRateIntervalMax; }
 
-    virtual s32 getSwimPaddleAnimRateIntervalMin() const { return mSwimPaddleAnimRateIntervalMin; }
+    virtual u32 getSwimPaddleAnimRateIntervalMin() const { return mSwimPaddleAnimRateIntervalMin; }
 
     virtual f32 getSwimPaddleAnimMaxRate() const { return mSwimPaddleAnimMaxRate; }
 

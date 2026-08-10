@@ -3,7 +3,10 @@
 #include <algorithm>
 #include <prim/seadMemUtil.h>
 
+#include "Library/Area/AreaObjUtil.h"
 #include "Library/Collision/CollisionPartsKeeperUtil.h"
+#include "Library/Collision/CollisionPartsTriangle.h"
+#include "Library/Collision/PartsInterpolator.h"
 #include "Library/LiveActor/ActorActionFunction.h"
 #include "Library/LiveActor/ActorInitUtil.h"
 #include "Library/LiveActor/ActorFlagFunction.h"
@@ -17,9 +20,12 @@
 #include "Library/Math/MatrixUtil.h"
 #include "Library/Nerve/NerveSetupUtil.h"
 #include "Library/Nerve/NerveUtil.h"
+#include "Library/Nature/NatureUtil.h"
 #include "Library/Shadow/ActorShadowUtil.h"
 
 #include "Player/PlayerConst.h"
+#include "Player/PlayerEyeSensorHitHolder.h"
+#include "Player/PlayerWallActionHistory.h"
 #include "Player/YoshiJudgeStartTongueClingFix.h"
 #include "Player/YoshiTongueCollider.h"
 #include "Player/YoshiTongueJointControlKeeper.h"
@@ -28,6 +34,7 @@
 #include "Util/PlayerCollisionUtil.h"
 #include "Util/PlayerHackInputFunction.h"
 #include "Util/SensorMsgFunction.h"
+#include "Util/YoshiUtil.h"
 
 namespace {
 const sead::Vector3f cTongueJointTrans(0.0f, 10.0f, 10.0f);
@@ -56,7 +63,46 @@ bool tryResetTongueCollision(sead::Vector3f* position, YoshiTongueCollider* coll
                              const al::LiveActor* actor);
 void calcTongueDirection(sead::Vector3f* tongueDir, sead::Vector3f* upDir,
                          al::LiveActor* actor, const sead::Vector3f& direction);
+void attachTongueTipCollision(YoshiTongueTipConnector* connector, const al::LiveActor* actor,
+                              const al::CollisionParts* collisionParts,
+                              const sead::Vector3f& normal, const sead::Vector3f& position,
+                              const sead::Vector3f& tongueDir);
 }  // namespace
+
+YoshiTongue::YoshiTongue(const al::LiveActor* host, const al::LiveActor* modelActor,
+                         const IUsePlayerCollision* collision,
+                         const PlayerWallActionHistory* wallActionHistory,
+                         const PlayerEyeSensorHitHolder* eyeSensorHitHolder,
+                         const PlayerConst* playerConst, IUsePlayerHack** playerHack,
+                         const char* actorName)
+    : al::LiveActor(actorName),
+      mHost(host),
+      mModelActor(modelActor),
+      mCollision(collision),
+      mWallActionHistory(wallActionHistory),
+      mEyeSensorHitHolder(eyeSensorHitHolder),
+      mPlayerConst(playerConst),
+      mPlayerHack(playerHack),
+      mIsHack(false),
+      mStartPos(0.0f, 0.0f, 0.0f),
+      mTongueDir(0.0f, 0.0f, 0.0f),
+      mUpDir(0.0f, 0.0f, 0.0f),
+      mTongueTipPos(0.0f, 0.0f, 0.0f),
+      mVelocity(0.0f, 0.0f, 0.0f),
+      _1e0(0),
+      _1e4(0.0f),
+      mReturnOffset(0.0f, 0.0f, 0.0f),
+      mShrinkRestRange(0.0f),
+      mAttackSensorPos(0.0f, 0.0f, 0.0f),
+      mIsStayClingGround(false),
+      _214(0) {
+    mCollisionBuffer.tryAllocBuffer(4, nullptr, 8);
+
+    mEatBindInfo.allocBuffer(16, nullptr);
+    mEatBindInfoBuffer.tryAllocBuffer(16, nullptr, 8);
+    for (s32 i = 0; i < 16; i++)
+        mEatBindInfoBuffer[i] = new YoshiTongueEatBindInfo;
+}
 
 void YoshiTongue::init(const al::ActorInitInfo& info) {
     al::initChildActorWithArchiveNameNoPlacementInfo(this, info, "YoshiTongue", nullptr);
@@ -83,11 +129,243 @@ void YoshiTongue::init(const al::ActorInitInfo& info) {
     makeActorDead();
 }
 
+void YoshiTongue::updateCollider() {
+    if (al::isNoCollide(this)) {
+        mTongueTipPos += mVelocity;
+        mTongueCollider->resetCollision(mTongueTipPos);
+    } else if (al::isNerve(this, &NrvYoshiTongue.ClingWall) ||
+               al::isNerve(this, &NrvYoshiTongue.ClingGround) ||
+               al::isNerve(this, &NrvYoshiTongue.Shrink)) {
+        mTongueCollider->collide(mTongueTipPos, mVelocity);
+    } else {
+        mTongueTipPos += mTongueCollider->collide(mTongueTipPos, mVelocity);
+    }
+
+    if (al::isNerve(this, &NrvYoshiTongue.Stretch) ||
+        al::isNerve(this, &NrvYoshiTongue.Hit)) {
+        if (rs::isCollidedWall(mTongueCollider)) {
+            mTongueTipPos.set(rs::getCollidedWallPos(mTongueCollider));
+            YoshiTongueTipConnector* connector = mTipConnector;
+            const al::CollisionParts* collisionParts =
+                rs::getCollidedWallCollisionParts(mTongueCollider);
+            const sead::Vector3f& normal = rs::getCollidedWallNormal(mTongueCollider);
+            attachTongueTipCollision(connector, this, collisionParts, normal, mTongueTipPos,
+                                     mTongueDir);
+        } else if (rs::isCollidedGround(mTongueCollider)) {
+            YoshiTongueTipConnector* connector = mTipConnector;
+            const al::CollisionParts* collisionParts =
+                rs::getCollidedGroundCollisionParts(mTongueCollider);
+            const sead::Vector3f& normal = rs::getCollidedGroundNormal(mTongueCollider);
+            const sead::Vector3f& position = rs::getCollidedGroundPos(mTongueCollider);
+            sead::Vector3f direction(0.0f, 0.0f, 0.0f);
+            al::alongVectorNormalH(&direction, mTongueDir, mUpDir, normal);
+            if (al::tryNormalizeOrZero(&direction))
+                connector->attachCollision(collisionParts, direction, normal, position, normal,
+                                           al::getGravity(this));
+        }
+    }
+
+    mJointControlKeeper->update(mTongueDir, mUpDir, mTongueTipPos);
+
+    sead::Vector3f offset = mTongueTipPos - al::getTrans(this);
+    mAttackSensorPos.setScaleAdd(0.5f, offset, al::getTrans(this));
+    const f32 tongueLength = offset.length();
+    al::setSensorRadius(this, "AttackLine", tongueLength * 0.5f);
+    if (!al::tryNormalizeOrZero(&mFaceDir, offset)) {
+        al::calcFrontDir(&mFaceDir, this);
+        al::normalize(&mFaceDir);
+    }
+
+    if (!al::isNerve(this, &NrvYoshiTongue.Stay)) {
+        sead::Vector3f side = mFaceDir.cross(al::getGravity(this));
+        if (al::tryNormalizeOrZero(&side)) {
+            const sead::Vector3f sideStart = al::getTrans(this) - side * 80.0f;
+            const sead::Vector3f sideEnd = sideStart + side * 160.0f;
+            const sead::Vector3f along = mFaceDir * tongueLength;
+            const sead::Vector3f quadEnd = sideEnd + along;
+            const sead::Vector3f quadStart = sideStart + along;
+            al::tryAddQuadRipple(this, quadStart, quadEnd, sideEnd, sideStart, 0.02f);
+        }
+    }
+
+    updateEatBindActor();
+}
+
+namespace {
+void attachTongueTipCollision(YoshiTongueTipConnector* connector, const al::LiveActor* actor,
+                              const al::CollisionParts* collisionParts,
+                              const sead::Vector3f& normal, const sead::Vector3f& position,
+                              const sead::Vector3f& tongueDir) {
+    sead::Vector3f front(0.0f, 0.0f, 0.0f);
+    front.setCross(normal, al::getGravity(actor));
+    al::normalize(&front);
+
+    const f32 dot = front.dot(tongueDir);
+    const f32 absDot = sead::Mathf::abs(dot);
+    if (absDot < 0.86603f) {
+        sead::Vector3f rotateFront = normal.cross(front);
+        al::normalize(&rotateFront);
+        const f32 degree = al::calcRate01(absDot, 0.0f, 0.86603f) * -90.0f * al::sign(dot);
+        al::rotateVectorDegree(&front, rotateFront, normal, degree);
+        al::normalize(&front);
+    } else if (dot < 0.0f) {
+        front = -front;
+    }
+
+    connector->attachCollision(collisionParts, front, normal, position, normal,
+                               al::getGravity(actor));
+}
+}  // namespace
+
+// NON_MATCHING: target 520 bytes; full 10/10 call surface recovered and bind-info radius/offset types proven by attackSensor; next hypothesis recover the original scalar vector-expression lifetime/store schedule.
+void YoshiTongue::updateEatBindActor() {
+    if (mEatBindInfo.isEmpty())
+        return;
+    if (!al::isNerve(this, &NrvYoshiTongue.Stretch) &&
+        !al::isNerve(this, &NrvYoshiTongue.Hit) &&
+        !al::isNerve(this, &NrvYoshiTongue.Eat))
+        return;
+
+    const s32 lastIndex = mEatBindInfo.size() - 1;
+    if (lastIndex < 0)
+        return;
+
+    const sead::Vector3f tipPos = mTongueTipPos;
+    const f32 rotateStep = 80.0f;
+    for (s32 i = 0;; i++) {
+        YoshiTongueEatBindInfo* info = mEatBindInfo.at(i);
+        f32 scale = info->scale;
+        if (al::isNerve(this, &NrvYoshiTongue.Eat))
+            scale = al::lerpValue(info->scale, 0.25f,
+                                  al::calcNerveEaseInRate(this, mParam->eatStep->value));
+
+        al::LiveActor* actor = al::getSensorHost(info->sensor);
+        const f32 radius = scale * info->radius;
+        const f32 offset = scale * info->offset;
+
+        sead::Vector3f rotatedUp = mUpDir;
+        al::rotateVectorDegree(&rotatedUp, rotatedUp, mTongueDir, i * rotateStep);
+
+        sead::Vector3f position = mTongueDir * radius;
+        position += tipPos;
+        position = position + rotatedUp * radius;
+        position -= mUpDir * offset;
+        al::resetPosition(actor, position);
+        al::setScaleAll(actor, scale);
+
+        if (i == lastIndex)
+            break;
+    }
+}
+
 void YoshiTongue::calcAnim() {
     al::LiveActor::calcAnim();
     sead::BoundBox3f boundingBox;
     mJointControlKeeper->calcTongueBoundingBox(&boundingBox);
     al::setDepthShadowMapBoundingBox(this, boundingBox.getMin(), boundingBox.getMax(), "Ground");
+}
+
+// NON_MATCHING: current is 1360 bytes versus the 1356-byte target with exact 37/37 semantic direct
+// calls and the same 0x120 stack frame. Remaining drift is in vector-copy/snap arithmetic scheduling;
+// next hypothesis is the original adjusted-direction temporary/expression order.
+void YoshiTongue::startAttack(const sead::Vector3f& attackDir, const sead::Vector3f& up) {
+    al::onCollide(this);
+    mCollisionBuffer.clear();
+    mEatBindInfo.clear();
+
+    {
+        sead::Matrix34f headMtx = sead::Matrix34f::ident;
+        al::makeMtxFollowTarget(&headMtx, *al::getJointMtxPtr(mModelActor, "Head"),
+                                cTongueJointTrans, cTongueJointRotate);
+        al::updatePoseMtx(this, &headMtx);
+    }
+
+    sead::Vector3f* startPos = &mStartPos;
+    const sead::Vector3f* trans = &al::getTrans(this);
+    startPos->z = trans->z;
+    sead::MemUtil::copy(startPos, trans, sizeof(sead::Vector2f));
+    sead::MemUtil::copy(&mTongueTipPos, trans, sizeof(sead::Vector2f));
+    mTongueTipPos.z = trans->z;
+    mShrinkRestRange = 1000.0f;
+    mTongueCollider->resetCollision(mTongueTipPos);
+    mTipConnector->reset();
+    al::setSensorRadius(this, "AttackLine", 0.0f);
+
+    IUsePlayerHack* playerHack = *mPlayerHack;
+    const f32 rotateRate =
+        al::calcRate01(sead::Mathf::abs(rs::getHackStickRotateSpeed(playerHack)), 2.0f, 9.0f);
+    const f32 searchAngleOffset =
+        rs::isOnHackMoveStickDeepDown(*mPlayerHack) ? 15.0f : 20.0f;
+    const f32 searchAngle = std::min(rotateRate * 45.0f + searchAngleOffset, 45.0f);
+
+    mIsHack = rs::isTriggerHackSwing(playerHack);
+    mIsStayClingGround = false;
+
+    sead::Vector3f sideDir;
+    sead::Vector3f sideUp;
+    sead::Vector3f snapDir;
+    sead::Vector3f areaCenter;
+    sead::Vector3f snapPos;
+    sead::Vector3f hitPos;
+    sead::Vector3f hitNormal;
+    sead::Vector3f tongueDir = attackDir;
+    sead::Vector3f tongueUp = up;
+    mEyeSensorHitHolder->findEatTargetSensor(&tongueDir, mStartPos, attackDir, up, 200.0f,
+                                             searchAngle, 45.0f);
+
+    const f32 snapDistance = mShrinkRestRange;
+    al::AreaObj* snapArea = al::tryFindAreaObj(this, "YoshiTongueSnapArea", mStartPos);
+    if (snapArea) {
+        sideDir.set(0.0f, 0.0f, 0.0f);
+        al::getAreaObjDirSide(&sideDir, snapArea);
+        if (!(sead::Mathf::abs(sideDir.dot(tongueDir)) > 0.96593f)) {
+            sideUp.set(0.0f, 0.0f, 0.0f);
+            al::verticalizeVec(&sideUp, sideDir, tongueUp);
+            if (!al::tryNormalizeOrZero(&sideUp)) {
+                sideUp = tongueUp * al::sign(sideDir.dot(tongueUp));
+                al::normalize(&sideUp);
+            }
+
+            snapDir.set(0.0f, 0.0f, 0.0f);
+            al::verticalizeVec(&snapDir, sideDir, tongueDir);
+            if (!al::tryNormalizeOrZero(&snapDir)) {
+                snapDir = sideUp.cross(sideDir);
+                snapDir *= al::sign(sideDir.dot(tongueDir));
+                al::normalize(&snapDir);
+            }
+
+            areaCenter.set(0.0f, 0.0f, 0.0f);
+            al::calcAreaObjCenterPos(&areaCenter, snapArea);
+            snapPos = mStartPos + snapDir * snapDistance;
+            hitPos.set(0.0f, 0.0f, 0.0f);
+            hitNormal.set(0.0f, 0.0f, 0.0f);
+            const sead::Vector3f& adjustedPos =
+                al::checkAreaObjCollisionByArrow(&hitPos, &hitNormal, snapArea, mStartPos, snapPos)
+                    ? hitPos
+                    : snapPos;
+            sead::Vector3f adjustedDir =
+                adjustedPos + sideDir * (areaCenter - adjustedPos).dot(sideDir) - mStartPos;
+            if (al::tryNormalizeOrZero(&adjustedDir)) {
+                snapDir.z = adjustedDir.z;
+                sead::MemUtil::copy(&snapDir, &adjustedDir, sizeof(sead::Vector2f));
+            }
+
+            sead::Quatf rotation = sead::Quatf::unit;
+            al::makeQuatFrontUp(&rotation, snapDir, sideUp);
+            al::calcQuatFront(&tongueDir, rotation);
+            al::calcQuatUp(&tongueUp, rotation);
+        }
+    }
+
+    mTongueDir = tongueDir;
+    al::verticalizeVec(&mUpDir, mTongueDir, tongueUp);
+    al::normalize(&mUpDir);
+    rs::resetJudge(mJudgeStartClingFix);
+    mJointControlKeeper->update(mTongueDir, mUpDir, mTongueTipPos);
+    al::setNerve(this, &NrvYoshiTongue.Stretch);
+    makeActorAlive();
+    al::startHitReaction(this, "舌を伸ばす");
+    al::startHitReaction(mHost, "舌を伸ばす");
 }
 
 void YoshiTongue::startShrink() {
@@ -289,6 +567,57 @@ void YoshiTongue::adjustShrinkRestRange(f32 range) {
     mShrinkRestRange = clampedRange;
 }
 
+// NON_MATCHING: target-sized 608/608 with exact 14/14 semantic direct calls; remaining mismatch
+// is the first-step start/tip vector-copy and deceleration FP register schedule. Next hypothesis:
+// original vector-copy/calculation declaration order.
+void YoshiTongue::exeStretch() {
+    const al::LiveActor* modelActor = mModelActor;
+    sead::Matrix34f headMtx = sead::Matrix34f::ident;
+    al::makeMtxFollowTarget(&headMtx, *al::getJointMtxPtr(modelActor, "Head"),
+                            cTongueJointTrans, cTongueJointRotate);
+    al::updatePoseMtx(this, &headMtx);
+
+    if (al::isFirstStep(this)) {
+        sead::Vector3f* startPos = &mStartPos;
+        const sead::Vector3f* trans = &al::getTrans(this);
+        startPos->z = trans->z;
+        sead::MemUtil::copy(startPos, trans, sizeof(sead::Vector2f));
+        mTongueTipPos.z = trans->z;
+        sead::MemUtil::copy(&mTongueTipPos, trans, sizeof(sead::Vector2f));
+        al::resetPosition(this, *startPos);
+
+        const f32 speed = getTongueParamSpeed();
+        const f32 stretchStep = mParam->stretchStep->value;
+        const f32 deceleration = speed / stretchStep;
+        _1e0 = (s32)((getTongueParamRange() -
+                      (speed * stretchStep + stretchStep * (stretchStep * (deceleration * -0.5f)))) /
+                     speed);
+        _1e4 = -deceleration;
+        mVelocity = mTongueDir * getTongueParamSpeed();
+    }
+
+    if (rs::isTriggerHackAction(*mPlayerHack))
+        mIsStayClingGround = true;
+
+    if (al::isGreaterEqualStep(this, _1e0))
+        mVelocity += mTongueDir * _1e4;
+
+    if (reactionCollideWall() || reactionCollideGround())
+        return;
+
+    if (tryResetTongueCollision(&mTongueTipPos, mTongueCollider, this)) {
+        mVelocity.set(0.0f, 0.0f, 0.0f);
+        if (isExistEatBind())
+            al::setNerve(this, &NrvYoshiTongue.Eat);
+        else
+            al::setNerve(this, &NrvYoshiTongue.Return);
+        return;
+    }
+
+    if (al::isNearZeroOrLess(mTongueDir.dot(mVelocity), 0.001f))
+        al::setNerve(this, &NrvYoshiTongue.Hit);
+}
+
 f32 YoshiTongue::getTongueParamSpeed() const {
     const bool isHack = mIsHack;
     const f32 speed = mParam->speed->value;
@@ -301,12 +630,15 @@ f32 YoshiTongue::getTongueParamRange() const {
     return mParam->range->value;
 }
 
-// NON_MATCHING: target is 508 bytes while current is 520; next source-level hypothesis is changing source-level lifetime/order around isCancel and the connector branch without altering the observed early-false semantics.
+// NON_MATCHING: 496 bytes vs target 508 with the same 17 semantic calls, but current Clang
+// hoists the single shared setNerve call into the cancel fast path while target places it at the
+// physical tail. Next hypothesis: original next-nerve branch/declaration shape that inhibits hoist.
 bool YoshiTongue::reactionCollideWall() {
     if (!rs::isCollidedWall(mTongueCollider))
         return false;
 
     mVelocity.set(0.0f, 0.0f, 0.0f);
+    const al::Nerve* nextNerve = nullptr;
     bool isCancel = rs::isActionCodeNoTongueClingWall(mTongueCollider);
     if (!isCancel) {
         const sead::Vector3f& wallPos = rs::getCollidedWallPos(mTongueCollider);
@@ -319,28 +651,29 @@ bool YoshiTongue::reactionCollideWall() {
     if (isCancel) {
         al::startHitReaction(this, "壁接触による伸びキャンセル");
         if (isExistEatBind())
-            al::setNerve(this, &NrvYoshiTongue.Eat);
+            nextNerve = &NrvYoshiTongue.Eat;
         else
-            al::setNerve(this, &NrvYoshiTongue.Return);
+            nextNerve = &NrvYoshiTongue.Return;
     } else {
         mTipConnector->tryCalcConnect(&mTongueDir, &mUpDir, &mTongueTipPos);
         if ((rs::isHoldHackAction(*mPlayerHack) || mIsHack) && !isExistEatBind()) {
             al::startHitReaction(this, "壁接触によるくっつき");
             mJudgeStartClingFix->setCheckWall();
             rs::updateJudgeAndResult(mJudgeStartClingFix);
-            al::setNerve(this, &NrvYoshiTongue.ClingWall);
+            nextNerve = &NrvYoshiTongue.ClingWall;
         } else if (al::isNerve(this, &NrvYoshiTongue.Hit)) {
             al::startHitReaction(this, "壁接触による伸びキャンセル");
             if (isExistEatBind())
-                al::setNerve(this, &NrvYoshiTongue.Eat);
+                nextNerve = &NrvYoshiTongue.Eat;
             else
-                al::setNerve(this, &NrvYoshiTongue.Return);
+                nextNerve = &NrvYoshiTongue.Return;
         } else {
             al::startHitReaction(this, "壁接触");
-            al::setNerve(this, &NrvYoshiTongue.Hit);
+            nextNerve = &NrvYoshiTongue.Hit;
         }
     }
 
+    al::setNerve(this, nextNerve);
     return true;
 }
 
@@ -352,9 +685,8 @@ bool YoshiTongue::reactionCollideGround() {
         if (!rs::isHoldHackAction(*mPlayerHack) && !mIsHack)
             return false;
 
-        const IUsePlayerCollision* collision = mTongueCollider;
-        const f32 angle = mPlayerConst->getStandAngleMin();
-        if (!rs::isCollidedGroundOverAngle(this, collision, angle))
+        if (!rs::isCollidedGroundOverAngle(this, mTongueCollider,
+                                            mPlayerConst->getStandAngleMin()))
             return false;
     }
 
@@ -382,20 +714,18 @@ bool YoshiTongue::reactionCollideGround() {
 }
 
 namespace {
-// NON_MATCHING: 284 bytes vs target 260; target packs direction/length temporaries more tightly. Next hypothesis: recover original separateScalarAndDirection local declaration/order.
 bool tryResetTongueCollision(sead::Vector3f* position, YoshiTongueCollider* collider,
                              const al::LiveActor* actor) {
     const sead::Vector3f& trans = al::getTrans(actor);
-    const sead::Vector3f distance = *position - trans;
     f32 distanceLength = 0.0f;
-    sead::Vector3f direction = sead::Vector3f::zero;
-    al::separateScalarAndDirection(&distanceLength, &direction, distance);
-    distanceLength = sead::Mathf::max(distanceLength - 5.0f, 0.0f);
-    if (al::isNearZero(distanceLength, 0.001f))
+    sead::Vector3f direction(0.0f, 0.0f, 0.0f);
+    al::separateScalarAndDirection(&distanceLength, &direction, *position - trans);
+    distanceLength = sead::Mathf::max(0.0f, distanceLength - 5.0f);
+    if (al::isNearZero(distanceLength))
         return false;
 
-    const sead::Vector3f arrow = direction * distanceLength;
-    if (!alCollisionUtil::getHitPosOnArrow(actor, position, trans, arrow, nullptr, nullptr))
+    if (!alCollisionUtil::getHitPosOnArrow(actor, position, trans, direction * distanceLength,
+                                            nullptr, nullptr))
         return false;
 
     collider->resetCollision(*position);
@@ -410,9 +740,179 @@ void YoshiTongue::returnOrEatHide() {
         al::setNerve(this, &NrvYoshiTongue.Return);
 }
 
+// NON_MATCHING: 1044 bytes vs target 1048 with exact 23/23 semantic direct calls; direct zero
+// construction now reproduces the target cling-position zero stores. The remaining one-instruction
+// delta is in the first-step return-offset assignment. Next hypothesis: canonical SEAD vector helper
+// form that preserves the target component-load schedule.
+void YoshiTongue::exeStay() {
+    if (al::isFirstStep(this)) {
+        mReturnOffset = mTongueTipPos - al::getTrans(this);
+        _214 = 0;
+    }
+
+    {
+        const al::LiveActor* modelActor = mModelActor;
+        sead::Matrix34f headMtx = sead::Matrix34f::ident;
+        al::makeMtxFollowTarget(&headMtx, *al::getJointMtxPtr(modelActor, "Head"),
+                                cTongueJointTrans, cTongueJointRotate);
+        al::updatePoseMtx(this, &headMtx);
+    }
+
+    if (reactionCollideWall() || reactionCollideGround())
+        return;
+
+    if (tryResetTongueCollision(&mTongueTipPos, mTongueCollider, this)) {
+        mVelocity.set(0.0f, 0.0f, 0.0f);
+        if (isExistEatBind())
+            al::setNerve(this, &NrvYoshiTongue.Eat);
+        else
+            al::setNerve(this, &NrvYoshiTongue.Return);
+        return;
+    }
+
+    if (mIsStayClingGround) {
+        if (_214 > 0 || rs::isHoldHackAction(*mPlayerHack)) {
+            if (!isExistEatBind()) {
+                sead::Vector3f clingPos(0.0f, 0.0f, 0.0f);
+                if (rs::findClingGroundPos(&clingPos, mHost, mTongueTipPos, 180.0f)) {
+                    const sead::Vector3f& trans = al::getTrans(this);
+                    sead::Vector3f currentDir = mTongueTipPos - trans;
+                    if (al::tryNormalizeOrZero(&currentDir)) {
+                        sead::Vector3f clingDir = clingPos - trans;
+                        if (al::tryNormalizeOrZero(&clingDir) &&
+                            !al::isParallelDirection(currentDir, clingDir)) {
+                            sead::Quatf rotation = sead::Quatf::unit;
+                            al::makeQuatRotationLimit(&rotation, currentDir, clingDir,
+                                                      sead::Mathf::deg2rad(5.0f));
+                            mReturnOffset.setRotated(rotation, mReturnOffset);
+                        }
+                    }
+                }
+            }
+            --_214;
+        }
+    } else {
+        if (rs::isTriggerHackAction(*mPlayerHack))
+            mIsStayClingGround = true;
+        if (rs::isTriggerHackSwing(*mPlayerHack)) {
+            _214 = 30;
+            mIsStayClingGround = true;
+        }
+    }
+
+    mVelocity = al::getTrans(this) + mReturnOffset - mTongueTipPos;
+    rs::cutVectorCollision(&mVelocity, mTongueCollider, 1.0f);
+    mReturnOffset = mTongueTipPos + mVelocity - al::getTrans(this);
+
+    if (!al::isLessStep(this, mParam->clingWallStep->value)) {
+        if (isExistEatBind())
+            al::setNerve(this, &NrvYoshiTongue.Eat);
+        else
+            al::setNerve(this, &NrvYoshiTongue.Return);
+        return;
+    }
+
+    if (isExistEatBind())
+        al::setNerve(this, &NrvYoshiTongue.Eat);
+}
+
 void YoshiTongue::exeHit() {}
 
-// NON_MATCHING: target-sized 524 bytes; current keeps head matrix at sp+0x10 instead of reusing target sp slot and differs in register/branch layout. Next hypothesis: original matrix/direction declaration lifetime shape.
+// NON_MATCHING: target 1564 bytes vs current 1480; 37/37 semantic calls, 0x130 frame, unordered comparisons, and FMAX clamps recovered. Next hypothesis: recover the target FP callee-save placement for wallAlong/tip/history values across checkHitLinePlane.
+void YoshiTongue::exeClingWall() {
+    const al::LiveActor* modelActor = mModelActor;
+    {
+        sead::Matrix34f headMtx = sead::Matrix34f::ident;
+        al::makeMtxFollowTarget(&headMtx, *al::getJointMtxPtr(modelActor, "Head"),
+                                cTongueJointTrans, cTongueJointRotate);
+        al::updatePoseMtx(this, &headMtx);
+    }
+
+    if (!mTipConnector->tryCalcConnect(&mTongueDir, &mUpDir, &mTongueTipPos)) {
+        al::setNerve(this, &NrvYoshiTongue.Return);
+        return;
+    }
+
+    YoshiTongueTipConnector* connector = mTipConnector;
+    if (tryResetTongueCollision(&mTongueTipPos, mTongueCollider, this)) {
+        al::setNerve(this, &NrvYoshiTongue.Return);
+        return;
+    }
+
+    sead::Vector3f direction = al::getTrans(this) - mTongueTipPos;
+    if (al::tryNormalizeOrZero(&direction) && !connector->isGroundAttached() &&
+        !(direction.dot(mUpDir) > 0.087156f)) {
+        al::setNerve(this, &NrvYoshiTongue.Return);
+        return;
+    }
+
+    if (al::isFirstStep(this)) {
+        const sead::Vector3f& trans = al::getTrans(this);
+        mShrinkRestRange = sead::Mathf::max(150.0f, (mTongueTipPos - trans).length());
+        mReturnOffset = mTongueTipPos - al::getTrans(this);
+    }
+
+    if (!rs::updateJudgeAndResult(mJudgeStartClingFix)) {
+        if (!rs::isCollidedWall(mTongueCollider)) {
+            al::setNerve(this, &NrvYoshiTongue.Return);
+            return;
+        }
+
+        if (mWallActionHistory->isJumpStored()) {
+            const sead::Vector3f& wallNormal = rs::getCollidedWallNormal(mTongueCollider);
+            sead::Vector3f wallSide = wallNormal.cross(al::getGravity(this));
+            al::normalize(&wallSide);
+            sead::Vector3f wallAlong = wallNormal.cross(wallSide);
+            al::normalize(&wallAlong);
+
+            const sead::Vector3f historyPos = mWallActionHistory->getJumpWallPosition();
+            const sead::Vector3f tipPos = mTongueTipPos;
+            sead::Vector3f lineDir = mReturnOffset;
+            if (!al::tryNormalizeOrZero(&lineDir))
+                lineDir = -wallNormal;
+
+            sead::Vector3f lineHit(0.0f, 0.0f, 0.0f);
+            if (al::checkHitLinePlane(&lineHit, al::getTrans(this), lineDir, mTongueTipPos,
+                                      wallNormal)) {
+                f32 moveDistance = (lineHit - tipPos).dot(wallAlong);
+                const f32 maxMove =
+                    sead::Mathf::max(0.0f, (historyPos - tipPos).dot(wallAlong)) + 5.0f;
+                moveDistance = sead::Mathf::clamp(moveDistance, 5.0f, maxMove);
+                const sead::Vector3f movePos = tipPos + wallAlong * moveDistance;
+
+                sead::Vector3f rayDir = -wallNormal;
+                al::verticalizeVec(&rayDir, al::getGravity(this), rayDir);
+                al::normalize(&rayDir);
+                const sead::Vector3f& gravity = al::getGravity(this);
+                al::TriangleFilterWallOnly filter(gravity);
+                const sead::Vector3f rayStart = movePos - rayDir * 50.0f;
+                const sead::Vector3f rayDelta = rayDir * 100.0f;
+                const al::ArrowHitInfo* hitInfo = nullptr;
+                if (alCollisionUtil::getFirstPolyOnArrow(this, &hitInfo, rayStart, rayDelta,
+                                                         nullptr, &filter)) {
+                    mTongueTipPos = alCollisionUtil::getCollisionHitPos(**hitInfo);
+                    attachTongueTipCollision(connector, this,
+                                             alCollisionUtil::getCollisionHitParts(**hitInfo),
+                                             alCollisionUtil::getCollisionHitNormal(**hitInfo),
+                                             mTongueTipPos, mTongueDir);
+                } else {
+                    mTongueTipPos = movePos;
+                }
+
+                mTongueCollider->resetCollision(mTongueTipPos);
+                f32 currentRange = (mTongueTipPos - al::getTrans(this)).length();
+                if (!(currentRange < mShrinkRestRange))
+                    currentRange = mShrinkRestRange;
+                mShrinkRestRange = sead::Mathf::max(150.0f, currentRange);
+                mReturnOffset = mTongueTipPos - al::getTrans(this);
+            }
+        }
+    }
+
+    if (al::isGreaterEqualStep(this, 1) && rs::isOnGround(mHost, mCollision))
+        al::setNerve(this, &NrvYoshiTongue.Return);
+}
+
 void YoshiTongue::exeClingGround() {
     const al::LiveActor* modelActor = mModelActor;
     {
@@ -422,32 +922,35 @@ void YoshiTongue::exeClingGround() {
         al::updatePoseMtx(this, &headMtx);
     }
 
+    if (!mTipConnector->tryCalcConnect(&mTongueDir, &mUpDir, &mTongueTipPos)) {
+        al::setNerve(this, &NrvYoshiTongue.Return);
+        return;
+    }
+
     YoshiTongueTipConnector* connector = mTipConnector;
-    if (!connector->tryCalcConnect(&mTongueDir, &mUpDir, &mTongueTipPos) ||
-        tryResetTongueCollision(&mTongueTipPos, mTongueCollider, this)) {
+    if (tryResetTongueCollision(&mTongueTipPos, mTongueCollider, this)) {
         al::setNerve(this, &NrvYoshiTongue.Return);
         return;
     }
 
     sead::Vector3f direction = al::getTrans(this) - mTongueTipPos;
     if (al::tryNormalizeOrZero(&direction) && !connector->isGroundAttached() &&
-        direction.dot(mUpDir) <= 0.087156f) {
+        !(direction.dot(mUpDir) > 0.087156f)) {
         al::setNerve(this, &NrvYoshiTongue.Return);
         return;
     }
 
     if (al::isFirstStep(this)) {
-        const sead::Vector3f& trans = al::getTrans(this);
-        mShrinkRestRange = sead::Mathf::max((mTongueTipPos - trans).length(), 150.0f);
+        mShrinkRestRange = sead::Mathf::max(150.0f, (mTongueTipPos - al::getTrans(this)).length());
         mReturnOffset = mTongueTipPos - al::getTrans(this);
     }
 
-    if ((!rs::updateJudgeAndResult(mJudgeStartClingFix) && !rs::isCollidedGround(mCollision)) ||
+    if ((!rs::updateJudgeAndResult(mJudgeStartClingFix) &&
+         !rs::isCollidedGround(mTongueCollider)) ||
         al::isGreaterEqualStep(this, 1))
         al::setNerve(this, &NrvYoshiTongue.Return);
 }
 
-// NON_MATCHING: target-sized 324 bytes; target reuses the head-matrix stack slot for direction while current allocates a larger frame. Next hypothesis: original matrix/direction declaration lifetime shape.
 void YoshiTongue::exeShrink() {
     const al::LiveActor* modelActor = mModelActor;
     {
@@ -457,12 +960,12 @@ void YoshiTongue::exeShrink() {
         al::updatePoseMtx(this, &headMtx);
     }
 
-    YoshiTongueTipConnector* connector = mTipConnector;
-    if (!connector->tryCalcConnect(&mTongueDir, &mUpDir, &mTongueTipPos)) {
+    if (!mTipConnector->tryCalcConnect(&mTongueDir, &mUpDir, &mTongueTipPos)) {
         al::setNerve(this, &NrvYoshiTongue.Return);
         return;
     }
 
+    YoshiTongueTipConnector* connector = mTipConnector;
     if (tryResetTongueCollision(&mTongueTipPos, mTongueCollider, this)) {
         al::setNerve(this, &NrvYoshiTongue.Return);
         return;
@@ -476,17 +979,19 @@ void YoshiTongue::exeShrink() {
     al::setNerve(this, &NrvYoshiTongue.Return);
 }
 
-// NON_MATCHING: 412 bytes vs target 396; target reuses the expired head-matrix slot for the normalized direction. Next hypothesis: original offset/matrix/direction declaration order.
+// NON_MATCHING: target-sized 396/396; current uses the same 0x60 frame but assigns offset to the upper stack slot while target places offset at sp and reuses the matrix slot for direction. Next hypothesis: original local declaration/lifetime order that yields target stack coloring.
 void YoshiTongue::exeReturn() {
     if (al::isFirstStep(this)) {
         mReturnOffset = mTongueTipPos - al::getTrans(this);
         al::offCollide(this);
     }
 
-    sead::Vector3f offset = sead::Vector3f::zero;
+    sead::Vector3f offset;
+    offset.set(0.0f, 0.0f, 0.0f);
+    const al::LiveActor* modelActor = mModelActor;
     {
         sead::Matrix34f headMtx = sead::Matrix34f::ident;
-        al::makeMtxFollowTarget(&headMtx, *al::getJointMtxPtr(mModelActor, "Head"),
+        al::makeMtxFollowTarget(&headMtx, *al::getJointMtxPtr(modelActor, "Head"),
                                 cTongueJointTrans, cTongueJointRotate);
         al::updatePoseMtx(this, &headMtx);
     }
@@ -504,14 +1009,15 @@ void YoshiTongue::exeReturn() {
 }
 
 namespace {
-// NON_MATCHING: 312 bytes vs target 308; current copies actorUp into baseDir before the parallel test, while target branches between actorUp/frontDir loads at the common cross product. Next hypothesis: natural source form that tail-merges the two basis paths.
+// NON_MATCHING: 296 bytes vs target 308; direct actor-up zeroing is corpus-faithful, but compact baseDir selection elides target side/front temporary stores. Next hypothesis: original basis-selection source form that preserves branch-local front storage without duplicating the cross product.
 void calcTongueDirection(sead::Vector3f* tongueDir, sead::Vector3f* upDir,
                          al::LiveActor* actor, const sead::Vector3f& direction) {
-    sead::Vector3f actorUp = sead::Vector3f::zero;
+    sead::Vector3f actorUp;
+    actorUp.set(0.0f, 0.0f, 0.0f);
     al::calcUpDir(&actorUp, actor);
 
     sead::Vector3f baseDir = actorUp;
-    if (al::isParallelDirection(actorUp, direction, 0.01f))
+    if (al::isParallelDirection(actorUp, direction))
         al::calcFrontDir(&baseDir, actor);
 
     sead::Vector3f sideDir = direction.cross(baseDir);
@@ -523,17 +1029,19 @@ void calcTongueDirection(sead::Vector3f* tongueDir, sead::Vector3f* upDir,
 }
 }  // namespace
 
-// NON_MATCHING: 372 bytes vs target 356; target reuses the expired head-matrix slot for the normalized direction. Next hypothesis: original offset/matrix/direction declaration order.
+// NON_MATCHING: target-sized 356/356; direct offset zeroing and model-actor lifetime recover target size, but stack coloring still swaps the offset and matrix/direction slots. Next hypothesis: original local declaration/lifetime order that places offset at sp.
 void YoshiTongue::exeEat() {
     if (al::isFirstStep(this)) {
         mReturnOffset = mTongueTipPos - al::getTrans(this);
         al::offCollide(this);
     }
 
-    sead::Vector3f offset = sead::Vector3f::zero;
+    sead::Vector3f offset;
+    offset.set(0.0f, 0.0f, 0.0f);
+    const al::LiveActor* modelActor = mModelActor;
     {
         sead::Matrix34f headMtx = sead::Matrix34f::ident;
-        al::makeMtxFollowTarget(&headMtx, *al::getJointMtxPtr(mModelActor, "Head"),
+        al::makeMtxFollowTarget(&headMtx, *al::getJointMtxPtr(modelActor, "Head"),
                                 cTongueJointTrans, cTongueJointRotate);
         al::updatePoseMtx(this, &headMtx);
     }
@@ -549,6 +1057,69 @@ void YoshiTongue::exeEat() {
 
 void YoshiTongue::exeHide() {
     makeActorDead();
+}
+
+void YoshiTongue::attackSensor(al::HitSensor* self, al::HitSensor* other) {
+    if (al::isNerve(this, &NrvYoshiTongue.Stretch) && al::isLessEqualStep(this, 0) &&
+        al::isSensorName(self, "AttackBottom"))
+        return;
+
+    if (al::isSensorName(self, "AttackLine")) {
+        sead::Vector3f sensorOffset = al::getSensorPos(other) - al::getTrans(this);
+        al::verticalizeVec(&sensorOffset, mFaceDir, sensorOffset);
+        if (sensorOffset.length() - al::getSensorRadius(other) > 50.0f)
+            return;
+    }
+
+    if (al::isSensorPlayerAttack(self) &&
+        (al::isNerve(this, &NrvYoshiTongue.Stretch) || al::isNerve(this, &NrvYoshiTongue.Hit) ||
+         al::isNerve(this, &NrvYoshiTongue.Eat))) {
+        f32 radius = al::getSensorRadius(other);
+        f32 offset = al::getSensorRadius(other);
+        f32 scale = 1.0f;
+        if (rs::sendMsgYoshiTongueEatBind(other, self, &radius, &offset, &scale)) {
+            const s32 bindIndex = mEatBindInfo.size();
+            mEatBindInfoBuffer[bindIndex]->sensor = other;
+            mEatBindInfoBuffer[bindIndex]->scale = scale;
+            mEatBindInfoBuffer[bindIndex]->radius = radius;
+            mEatBindInfoBuffer[bindIndex]->offset = offset;
+            mEatBindInfo.pushBack(mEatBindInfoBuffer[bindIndex]);
+            return;
+        }
+    }
+
+    if (al::isSensorPlayerAttack(self) && !al::isNerve(this, &NrvYoshiTongue.Hide) &&
+        !al::isNerve(this, &NrvYoshiTongue.Stay)) {
+        bool isAlreadyHit = false;
+        if (mCollisionBuffer) {
+            al::LiveActor* sensorHost = al::getSensorHost(other);
+            for (s32 i = 0; i < mCollisionBuffer.size(); i++) {
+                if (mCollisionBuffer(i) == sensorHost) {
+                    isAlreadyHit = true;
+                    break;
+                }
+            }
+        }
+
+        if (!isAlreadyHit && rs::sendMsgYoshiTongueAttack(other, self)) {
+            al::LiveActor* sensorHost = al::getSensorHost(other);
+            mCollisionBuffer.forcePushBack(sensorHost);
+
+            if (!al::isNerve(this, &NrvYoshiTongue.Return) &&
+                !al::isNerve(this, &NrvYoshiTongue.Eat)) {
+                if (mEatBindInfo.isEmpty())
+                    al::setNerve(this, &NrvYoshiTongue.Return);
+                else
+                    al::setNerve(this, &NrvYoshiTongue.Eat);
+                return;
+            }
+        }
+    }
+
+    if (al::isSensorPlayerAttack(self) && !al::isNerve(this, &NrvYoshiTongue.Hide) &&
+        !al::isNerve(this, &NrvYoshiTongue.Stay))
+        rs::sendMsgWeaponItemGet(other, self);
+
 }
 
 bool YoshiTongue::receiveMsg(const al::SensorMsg* message, al::HitSensor* other,

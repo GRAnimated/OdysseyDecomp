@@ -52,7 +52,7 @@ bool PlayerJudgeRecoveryLifeFast::judge() const {
     f32 margin = hackKeeper->getHackStayGravityMargine();
     if (al::isInRange(gravity.dot(velocity), -margin, margin))
         al::verticalizeVec(&velocity, gravity, velocity);
-    return al::isNearZero(velocity, 0.001f);
+    return al::isNearZero(velocity);
 }
 
 bool PlayerJudgeRecoveryLifeFast::isEnableRecoveryLifeState() const {

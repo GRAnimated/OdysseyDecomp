@@ -64,8 +64,8 @@ public:
     void prepareLockOn(al::HitSensor* sensor);
     bool sendMsgStartHack(al::HitSensor* sensor);
     bool receiveRequestTransferHack(al::HitSensor* sensor, al::HitSensor* playerSensor);
-    void startThrowSeparatePlayHack(al::HitSensor* sensor, const sead::Vector3f& startPos,
-                                    const sead::Vector3f& velocity, f32 speed);
+    void startThrowSeparatePlayHack(al::HitSensor* sensor, const sead::Vector3f& throwDir,
+                                    const sead::Vector3f& up, f32 power);
     void startHack();
     void emitHackStartEffect();
     void noticeHackMarioEnter();
@@ -79,8 +79,8 @@ public:
     void startThrow(bool, const sead::Vector3f&, const sead::Vector3f&, f32, const sead::Vector2f&,
                     const sead::Vector2f&, const sead::Vector3f&, bool, const sead::Vector3f&,
                     SwingHandType, bool, f32, s32);
-    void startThrowSeparatePlay(const sead::Vector3f& startPos, const sead::Vector3f& velocity, f32 speed, bool isThrowType);
-    void startThrowSeparatePlayJump(const sead::Vector3f& startPos, const sead::Vector3f& velocity, f32 speed);
+    void startThrowSeparatePlay(const sead::Vector3f& throwDir, const sead::Vector3f& up, f32 power, bool isFast);
+    void startThrowSeparatePlayJump(const sead::Vector3f& throwDir, const sead::Vector3f& up, f32 power);
     void startCatch(const char* actionName, bool isHitReaction, const sead::Vector3f& hitPos);
     bool isNoPutOnHide() const;
     void forcePutOn();
@@ -118,14 +118,14 @@ public:
     void updateSeparateMode(const PlayerSeparateCapFlag* separateCapFlag);
     bool isEnableRescuePlayer() const;
     bool isRescuePlayer() const;
-    bool isEnableHackThrow(bool* isCapEyeValid) const;
+    bool isEnableHackThrow(bool* isReaction) const;
     bool isSeparateHipDropLand() const;
     bool isSeparateHide() const;
     bool isSeparateThrowFlying() const;
     void startRescuePlayer();
     void prepareCooperateThrow();
     void requestForceFollowSeparateHide();
-    f32 calcSeparateHideSpeedH(const sead::Vector3f& dir) const;
+    f32 calcSeparateHideSpeedH(const sead::Vector3f& up) const;
     void updateModelAlphaForSnapShot();
     s32 getPadRumblePort() const;
     bool isEnableThrowSeparate() const;

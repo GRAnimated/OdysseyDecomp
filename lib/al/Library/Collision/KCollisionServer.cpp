@@ -328,15 +328,8 @@ void SpherePoseInterpolator::startInterp(const sead::Vector3f& posStart,
     mPos = posStart;
     mMove = posEnd - posStart;
 
-    mQuatStart.x = quatStart.x;
-    mQuatStart.y = quatStart.y;
-    mQuatStart.z = quatStart.z;
-    mQuatStart.w = quatStart.w;
-
-    mQuatEnd.x = quatEnd.x;
-    mQuatEnd.y = quatEnd.y;
-    mQuatEnd.z = quatEnd.z;
-    mQuatEnd.w = quatEnd.w;
+    mQuatStart = quatStart;
+    mQuatEnd = quatEnd;
 
     mSizeStart = sizeStart;
     mSizeEnd = sizeEnd;

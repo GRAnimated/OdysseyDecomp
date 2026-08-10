@@ -20,7 +20,7 @@ PlayerStateSwordAttack::PlayerStateSwordAttack(al::LiveActor* player, al::LiveAc
     // BUG: the target resource name is misspelled "PowerGrove"; this flag tracks PlayerPowerGlove.
     if (sword)
         mIsPowerGlove = al::isEqualString(al::getModelName(sword), "PowerGrove");
-    initNerve(&NrvPlayerStateSwordAttack.Attack, 0);
+    initNerve(&NrvPlayerStateSwordAttack.Attack);
 }
 
 void PlayerStateSwordAttack::appear() {
@@ -34,15 +34,13 @@ void PlayerStateSwordAttack::kill() {
         al::invalidateHitSensors(mSword);
 }
 
-// NON_MATCHING: target/current are both 356 bytes, but target keeps the ground flag live across both branches; next source-level hypothesis is moving the shared action-end test after the movement branch to mirror the corpus CFG.
+// NON_MATCHING: exact 356-byte size with all semantic operations present; current air-path isActionEnd is an R_AARCH64_JUMP26 tail call while target uses BL into a shared epilogue, and target keeps the raw ground result in W20 so the ground normal occupies X21. The first-step Punch/Fire branch now matches corpus layout; next source-level hypothesis is the original ground-result/action-end lifetime that prevents tail-call folding.
 void PlayerStateSwordAttack::exeAttack() {
     if (al::isFirstStep(this)) {
-        const char* actionName;
         if (mIsPowerGlove)
-            actionName = "Punch";
+            al::startAction(mActor, "Punch");
         else
-            actionName = "Fire";
-        al::startAction(mActor, actionName);
+            al::startAction(mActor, "Fire");
     }
 
     if (al::isStep(this, 0) && mSword)

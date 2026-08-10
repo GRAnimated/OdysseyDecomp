@@ -23,7 +23,7 @@ PlayerCapManHeroEyesControl::PlayerCapManHeroEyesControl(const char* name,
     : al::NerveExecutor(name), mPuppetEye(puppetEye), mPuppetEye2D(puppetEye2D) {
     mPuppetEye->kill();
     mPuppetEye2D->kill();
-    initNerve(&Dead, 0);
+    initNerve(&Dead);
 }
 
 void PlayerCapManHeroEyesControl::start() {

@@ -428,7 +428,7 @@ void clearMclAnim(LiveActor* actor) {
 }
 
 bool isMclAnimExist(const LiveActor* actor) {
-    return getMcl(actor) != nullptr;
+    return getMcl(actor);
 }
 
 bool isMclAnimEnd(const LiveActor* actor) {

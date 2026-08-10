@@ -72,7 +72,7 @@ public:
     bool isTriggerCapSeparateHipDrop() const;
     bool isTriggerSwingPoleClimbFast() const;
     bool isHoldPoleClimbDown() const;
-    bool isTriggerAppendCapAttack(bool isSeparatePlay) const;
+    bool isTriggerAppendCapAttack(bool a1) const;
     bool isHoldSquat() const;
     void calcInputDirectionSnap2D(sead::Vector3f* input) const;
     bool isHoldSpinCap() const;
@@ -83,7 +83,7 @@ public:
     bool isHoldHackJump() const;
     bool isHoldEnterUpperDokan2D() const;
     bool isHoldEnterSideDokan2D(const sead::Vector3f& dir) const;
-    void calcMoveDirection(sead::Vector3f* input, const sead::Vector3f& gravity) const;
+    void calcMoveDirection(sead::Vector3f* input, const sead::Vector3f& up) const;
     bool isTriggerChange2D() const;
     bool isTriggerChange3D() const;
     bool isReleaseJump() const;
@@ -93,13 +93,13 @@ public:
     bool isSpinInput() const;
     bool isSpinClockwise() const;
     bool isSpinCounterClockwise() const;
-    void calcMoveInput(sead::Vector3f* input, const sead::Vector3f& gravity) const;
-    void calc2DSnapJumpMoveInput(sead::Vector3f* input, const sead::Vector3f& gravity) const;
+    void calcMoveInput(sead::Vector3f* input, const sead::Vector3f& up) const;
+    void calc2DSnapJumpMoveInput(sead::Vector3f* input, const sead::Vector3f& up) const;
     bool isPoleMoveInputReverseX() const;
     const sead::Matrix34f* getInputViewMtx() const;
     void calcPoleMoveInput(sead::Vector2f* input) const;
-    void calcCapThrowInput(sead::Vector3f* input, const sead::Vector3f& gravity) const;
-    void calcCapSeparateMoveInput(sead::Vector3f* input, const sead::Vector3f& gravity) const;
+    void calcCapThrowInput(sead::Vector3f* input, const sead::Vector3f& up) const;
+    void calcCapSeparateMoveInput(sead::Vector3f* input, const sead::Vector3f& up) const;
     bool isSameStickMove(const sead::Vector2f& dir, f32 angleDegree) const;
     f32 getRadiconInputSteeringValue() const;
     sead::Vector2f getStickCameraRaw() const;

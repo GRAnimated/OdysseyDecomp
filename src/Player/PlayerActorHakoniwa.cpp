@@ -1548,17 +1548,17 @@ void PlayerActorHakoniwa::movement() {
             } else if (al::isNerve(this, &NrvPlayerActorHakoniwa.Bind)) {
                 bool requestSafetyPoint = false;
                 bool skipIfValid = false;
-                sead::Vector3f recoveryNormal = sead::Vector3f::zero;
                 sead::Vector3f recoveryPos = sead::Vector3f::zero;
+                sead::Vector3f recoveryNormal = sead::Vector3f::zero;
                 const al::AreaObj* recoveryArea = nullptr;
                 if (recoveryPuppet->tryUpdateRecoveryInfo(&requestSafetyPoint, &skipIfValid,
-                                                          &recoveryNormal, &recoveryPos,
+                                                          &recoveryPos, &recoveryNormal,
                                                           &recoveryArea)) {
                     if (requestSafetyPoint) {
-                        recoverySafetyPoint->noticeRequestSafetyPoint(recoveryNormal, recoveryPos,
+                        recoverySafetyPoint->noticeRequestSafetyPoint(recoveryPos, recoveryNormal,
                                                                       recoveryArea);
                     } else {
-                        recoverySafetyPoint->noticeDangerousPoint(recoveryNormal, skipIfValid);
+                        recoverySafetyPoint->noticeDangerousPoint(recoveryPos, skipIfValid);
                     }
                 }
             } else if (!al::isNerve(this, &NrvPlayerActorHakoniwa.WallAir) ||
@@ -2369,13 +2369,13 @@ void PlayerActorHakoniwa::updateCollider() {
         al::WaterSurfaceFinder* waterSurfaceFinder = mWaterSurfaceFinder;
         PlayerEffect* effect = mEffect;
         const sead::Vector3f& waterSurfaceTrans = al::getTrans(this);
-        const sead::Vector3f up = -al::getGravity(this);
+        sead::Vector3f up = -al::getGravity(this);
         waterSurfaceFinder->update(waterSurfaceTrans, up, 200.0f);
         effect->updateWaterSurfaceMtx(waterSurfaceFinder);
-        const sead::Vector3f heightUp = -al::getGravity(this);
+        up = -al::getGravity(this);
         const sead::Vector3f& heightTrans = al::getTrans(this);
-        mCollider->updateHeightCheck(heightTrans, heightUp, false);
-        mCollider->updateCeilingCheck(heightTrans, heightUp, 0.0f, 0.0f);
+        mCollider->updateHeightCheck(heightTrans, up, false);
+        mCollider->updateCeilingCheck(heightTrans, up, 0.0f, 0.0f);
         mExternalVelocity->resetSnapForce();
 
         if (al::isNerve(this, &NrvPlayerActorHakoniwa.Demo) && mDemoActionFlag->isDemoAction()) {
@@ -5504,14 +5504,6 @@ void PlayerActorHakoniwa::sendCollisionMsg() {
     }
 }
 
-// NON_MATCHING: current is 0xff4 versus target 0xff8 after recovering the corpus-pseudo cached
-// PlayerJumpMessageRequest and nested Hack/Abyss tail control flow. The remaining structural gap is
-// the force-dash zero initialization: target keeps forceRunFrames at SP+0x10 and forceRunSpeed at
-// SP+0x2C and emits two STRs, while current colors speed at SP+0xC and fuses them into one STP. A
-// named GameDataHolderAccessor recovers 0xff8 but collapses the target 0x80 frame to 0x70. Moving
-// the f32 lifetime earlier only swaps the adjacent SP+0xC/SP+0x10 colors. Next hypothesis: recover
-// the source lifetime that places the accessor at target SP+8 without allowing it to share the
-// SafeString slot, which should free SP+0x2C for forceRunSpeed.
 void PlayerActorHakoniwa::attackSensor(al::HitSensor* self, al::HitSensor* other) {
     if (al::isSensorPlayerEye(self)) {
         if (mEyeSensorHitHolder->isEnableRecordLookAt(other, self)) {
@@ -5571,6 +5563,9 @@ void PlayerActorHakoniwa::attackSensor(al::HitSensor* self, al::HitSensor* other
             mAnimator->startSubAnim("RabbitGet");
         return;
     }
+
+    s32 forceRunFrames;
+    f32 forceRunSpeed;
 
     if (!PlayerFunction::isPlayerDeadStatus(this) &&
         !al::isNerve(this, &NrvPlayerActorHakoniwa.Demo) &&
@@ -5841,8 +5836,8 @@ void PlayerActorHakoniwa::attackSensor(al::HitSensor* self, al::HitSensor* other
         al::sendMsgPlayerPutOnEquipment(other, self)) {
         const PlayerEquipmentUser* equipmentUser = mEquipmentUser;
         PlayerCounterForceRun* counterForceRun = mCounterForceRun;
-        s32 forceRunFrames = 0;
-        f32 forceRunSpeed = 0.0f;
+        forceRunFrames = 0;
+        forceRunSpeed = 0.0f;
         if (PlayerEquipmentFunction::tryGetEquipmentForceDashInfo(&forceRunFrames, &forceRunSpeed,
                                                                   equipmentUser)) {
             if (counterForceRun->getCounter() <= 0)
@@ -5911,11 +5906,6 @@ void PlayerActorHakoniwa::attackSensor(al::HitSensor* self, al::HitSensor* other
     }
 }
 
-// NON_MATCHING: exact 0xBA0-byte body; after restoring the target unordered floating-point rejection and
-// jump-request store order, the only aligned difference is three commutative FMUL operand
-// reversals. Scalar-first vector multiplication and an explicit scaled-vector constructor still
-// canonicalize to the current operand order. Next hypothesis: recover the original escape-scale
-// lifetime/producer that keeps S8 as the first FMUL operand without scalarizing the vector.
 bool PlayerActorHakoniwa::receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                                      al::HitSensor* self) {
     bool jumpResult = false;
@@ -5977,8 +5967,8 @@ bool PlayerActorHakoniwa::receiveMsg(const al::SensorMsg* message, al::HitSensor
                     al::tryNormalizeOrZero(&horizontal);
                 }
 
-                const sead::Vector3f horizontalVelocity = horizontal * 5.0f;
                 const f32 escapeScale = endParam->escapeScale;
+                const sead::Vector3f horizontalVelocity = horizontal * 5.0f;
                 const sead::Vector3f velocity =
                     horizontalVelocity * escapeScale - (al::getGravity(this) * 20.0f) * escapeScale;
                 mStateEndHack->setEndVelocity(velocity, endParam->delayFrames);

@@ -29,7 +29,7 @@ void PlayerActionPivotTurnControl::reset() {
     rs::calcGroundNormalOrGravityDir(&_28, mPlayer, mCollision);
 }
 
-// NON_MATCHING: exact 0x428 target size; first mismatch at 0x7100418D54 in the gravity-subtraction load/register order; next hypothesis is a validator-safe vector source shape that emits the target LDP/STR/STP schedule.
+// NON_MATCHING: target/current are both 1064 bytes with exact 24/24 semantic calls and the proven 0x50 layout; first mismatch is gravity-subtraction load/register order. Next hypothesis is a validator-safe vector source shape that emits the target LDP/STR/STP schedule without changing behavior.
 void PlayerActionPivotTurnControl::update() {
     sead::Vector3f previousUp = _28;
     rs::calcGroundNormalOrGravityDir(&_28, mPlayer, mCollision);

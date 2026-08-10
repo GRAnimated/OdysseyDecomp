@@ -117,9 +117,9 @@ void AudioGeneralPurposeAreaChecker::update() {
 
     if (mPrevArea) {
         mIsEnteredArea = false;
-        mIsExitedArea = mCurArea == nullptr;
+        mIsExitedArea = !mCurArea;
     } else {
-        mIsEnteredArea = mCurArea != nullptr;
+        mIsEnteredArea = mCurArea;
         mIsExitedArea = false;
     }
 
@@ -128,12 +128,8 @@ void AudioGeneralPurposeAreaChecker::update() {
     mIsAreaChanged = curActiveArea != prevActiveArea;
 
     bool isCurAreaActive = mCurArea && mCurArea->isValid();
-    bool wasCurAreaActive = mIsCurAreaActive;
-    if (curActiveArea == prevActiveArea) {
-        bool shouldKeepAreaState = isCurAreaActive | !wasCurAreaActive;
-        if (!shouldKeepAreaState)
-            mIsAreaChanged = true;
-    }
+    if (curActiveArea == prevActiveArea && !(isCurAreaActive | !mIsCurAreaActive))
+        mIsAreaChanged = true;
     mIsCurAreaActive = isCurAreaActive;
 
     if (!mCurArea)
@@ -169,14 +165,14 @@ bool AudioGeneralPurposeAreaChecker::tryFindAreaObjPlayerOne(AreaObj** area) con
     }
 
     *area = selectedArea;
-    return missedArea || selectedArea != nullptr;
+    return missedArea || selectedArea;
 }
 
 
 bool AudioGeneralPurposeAreaChecker::isInArea() const {
     if (!mAreaName || !mPlayerHolder || !mAreaObjDirector)
         return false;
-    return ::al::tryFindAreaObjPlayerOne(mPlayerHolder, mAreaName) != nullptr;
+    return ::al::tryFindAreaObjPlayerOne(mPlayerHolder, mAreaName);
 }
 
 bool AudioGeneralPurposeAreaChecker::isInvaridByOneTime() const {

@@ -2,8 +2,7 @@
 
 #include <basis/seadTypes.h>
 
-class HackerStateConst {
-public:
+struct HackerStateConst {
     HackerStateConst();
 
     f32 _0 = 35.0f;

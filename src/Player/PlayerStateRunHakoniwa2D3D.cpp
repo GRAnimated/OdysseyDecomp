@@ -26,9 +26,6 @@ NERVE_IMPL(PlayerStateRunHakoniwa2D3D, Run2D)
 NERVES_MAKE_STRUCT(PlayerStateRunHakoniwa2D3D, Run3D, GroundSpin3D, Run2D)
 }  // namespace
 
-// NON_MATCHING: target/current are 0x1f4 bytes; strings, nerves, and owned-state wiring are
-// recovered but initializer ordering gives different parameter/register lifetimes; next
-// source-level hypothesis is to group owned-state construction in target call order before member stores.
 PlayerStateRunHakoniwa2D3D::PlayerStateRunHakoniwa2D3D(
     al::LiveActor* player, const PlayerConst* pConst, const IUseDimension* dimension,
     const PlayerInput* input, const IUsePlayerCollision* collision,
@@ -43,13 +40,13 @@ PlayerStateRunHakoniwa2D3D::PlayerStateRunHakoniwa2D3D(
       mJudgeStartGroundSpin(nullptr), mJudgeWaterSurfaceRun(nullptr) {
     mJudgeStartGroundSpin = new PlayerJudgeStartGroundSpin(player, collision, input);
     mJudgeWaterSurfaceRun =
-        new PlayerJudgeWaterSurfaceRun(player, pConst, waterSurfaceFinder, counterForceRun);
+        new PlayerJudgeWaterSurfaceRun(player, mConst, waterSurfaceFinder, counterForceRun);
     initNerve(&NrvPlayerStateRunHakoniwa2D3D.Run3D, 3);
-    mRun3D = new PlayerStateRunHakoniwa(player, pConst, input, collision, counterForceRun,
+    mRun3D = new PlayerStateRunHakoniwa(player, mConst, input, collision, counterForceRun,
                                         counterQuickTurnJump, trigger, animator, effect,
                                         centerDynamics, mJudgeWaterSurfaceRun, isMoon);
-    mGroundSpin3D = new PlayerStateGroundSpin(player, collision, input, pConst, animator);
-    mRun2D = new PlayerStateRun2D(player, pConst, input, collision, animator);
+    mGroundSpin3D = new PlayerStateGroundSpin(player, collision, input, mConst, animator);
+    mRun2D = new PlayerStateRun2D(player, mConst, input, collision, animator);
     al::initNerveState(this, mRun3D, &NrvPlayerStateRunHakoniwa2D3D.Run3D, "走り3D");
     al::initNerveState(this, mGroundSpin3D, &NrvPlayerStateRunHakoniwa2D3D.GroundSpin3D,
                        "地上スピン");

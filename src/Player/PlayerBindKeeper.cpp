@@ -15,7 +15,7 @@ PlayerBindKeeper::PlayerBindKeeper(al::HitSensor* bodyHitSensor, IUsePlayerPuppe
     mBindableSensorList = new PlayerBindableSensorList();
 }
 
-// NON_MATCHING: exact 0x104 size; final success-path store is scheduled after the return-value move instead of before it. Next hypothesis is a source lifetime that consumes mBindSensor before setting _24.
+// NON_MATCHING: exact 260-byte size and 10/10 semantic calls; only the final success-path store is scheduled after the return-value move instead of before it. Inlining the distance local in exact collectBindableSensor breaks its match and was reverted; next source-level hypothesis is a bindSensor/mBindSensor lifetime that orders the final _24 store earlier.
 bool PlayerBindKeeper::sendStartMsg() {
     s32 invalidTimer = _20 - 1;
     if (invalidTimer >= 0) {

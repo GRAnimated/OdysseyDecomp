@@ -19,7 +19,7 @@ PlayerStateCapCatchPop::PlayerStateCapCatchPop(al::LiveActor* player, const Play
                                                PlayerAnimator* animator, HackCap* hackCap)
     : al::ActorStateBase("", player), mConst(pConst), mCollision(collision), mAnimator(animator), mHackCap(hackCap) {
     mAirMoveControl = new PlayerActionAirMoveControl(player, pConst, input, collision, false);
-    initNerve(&NrvPlayerStateCapCatchPop.Pop, 0);
+    initNerve(&NrvPlayerStateCapCatchPop.Pop);
 }
 
 void PlayerStateCapCatchPop::appear() {

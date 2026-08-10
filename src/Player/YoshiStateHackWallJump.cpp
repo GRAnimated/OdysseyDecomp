@@ -47,7 +47,10 @@ void YoshiStateHackWallJump::appear() {
 }
 
 
-// NON_MATCHING: exact target/current size 764/764 but velocity expression allocates S2 where target uses S1 at 0x710049F248; next source-level hypothesis: recover the original sead scale-add expression that preserves target FP register order.
+// NON_MATCHING: target/current 764/764 with the complete 27/27 semantic call sequence. The
+// target's +0xC8 ceiling-reflection getter is now correctly `getReflectCeilingPower`; remaining
+// differences are confined to the first-step `front * 15 + up * 15` vector temporary/register
+// schedule. Next source-level hypothesis: recover the original sead scale/add lifetime shape.
 void YoshiStateHackWallJump::exeJump() {
     al::LiveActor* actor = mActor;
     sead::Vector3f up = -al::getGravity(actor);
@@ -91,7 +94,7 @@ void YoshiStateHackWallJump::exeJump() {
         mAnimator->startAnim("JumpTongueLoop");
 
     if (mTrigger->isOnUpperPunchHit())
-        rs::reflectCeiling(actor, mPlayerConst->getReflectUpperPunchScaleH());
+        rs::reflectCeiling(actor, mPlayerConst->getReflectCeilingPower());
 
     if (rs::isCollidedCeiling(mCollision))
         rs::reflectCeiling(mActor, 0.0f);

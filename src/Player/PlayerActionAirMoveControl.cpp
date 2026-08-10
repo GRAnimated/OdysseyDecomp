@@ -32,11 +32,7 @@ PlayerActionAirMoveControl::PlayerActionAirMoveControl(al::LiveActor* actor,
                         mConst->getJumpTurnBrakeFrame());
 }
 
-// NON_MATCHING: behavior complete; current is 0x340 versus target 0x348 (difflib score 670).
-// Direct member cross construction restores the target 0xa0 stack frame, and delaying the hold-jump
-// member store restores the target clamp-result register. The remaining size gap is one paired cross
-// store replacing two scalar stores and LLVM reusing the first frame comparison instead of emitting
-// the target CMP W20, #1. Next hypothesis is a natural vector/clamp lifetime that prevents both folds.
+// NON_MATCHING: current 832 bytes vs target 840 with exact 21/21 semantic calls. Direct member cross construction restores the target 0xA0 frame, and delaying the hold-jump store restores the target clamp-result register. Remaining gap is one paired cross store plus LLVM reusing the first frame comparison instead of target CMP W20,#1; next hypothesis is the original vector/clamp local lifetime.
 void PlayerActionAirMoveControl::setup(f32 speedMax, f32 inertiaAdd, s32 extendFrame, f32 velocityV,
                                        f32 gravityAccel, s32 noInputFrame, f32 inertiaRate) {
     _68 = gravityAccel;

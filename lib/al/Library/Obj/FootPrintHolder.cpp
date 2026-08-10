@@ -20,9 +20,8 @@ FootPrintHolder::FootPrintHolder(LiveActor* actor, const char* objectName, HitSe
       mActionCount(0), mActionCountCopy(0), mActions(nullptr), mActionName(nullptr),
       mActionFrame(0.0f),
       mCharacterName(nullptr), mMetamorphosisName(nullptr) {
-    const sead::SafeString objectNameString(objectName);
-    const sead::SafeString categoryName("FootPrintInfo");
-    const auto* data = tryGetBymlFromObjectResource(objectNameString, categoryName);
+    const auto* data = tryGetBymlFromObjectResource(sead::SafeString(objectName),
+                                                    sead::SafeString("FootPrintInfo"));
     if (data)
         mInfoIter = new ByamlIter(data);
 
@@ -170,8 +169,7 @@ void FootPrintHolder::createTimingList(Action* action, ByamlIter* actionIter) {
 
 s32 FootPrintHolder::calcMaxAppearNum() const {
     const s32 alivePlayerNum = getAlivePlayerNum(mActor);
-    const s32 maxAppearNum = alivePlayerNum == 2 ? 8 : 5;
-    return alivePlayerNum < 2 ? 12 : maxAppearNum;
+    return alivePlayerNum < 2 ? 12 : (alivePlayerNum == 2 ? 8 : 5);
 }
 
 }  // namespace al

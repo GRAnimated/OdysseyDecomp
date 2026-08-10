@@ -49,7 +49,7 @@ PlayerColliderDisk::PlayerColliderDisk(al::CollisionDirector* collisionDirector,
     mCollisionCurrent = mCollisionNormal;
     mCollisionMultiShape = new CollisionMultiShape(this, 128);
     mHitInfoBuffer = new al::HitInfo[128];
-    mHitInfoArray.allocBuffer(128, nullptr, 8);
+    mHitInfoArray.allocBuffer(128, nullptr);
 }
 
 void PlayerColliderDisk::clear() {
@@ -108,10 +108,10 @@ sead::Vector3f PlayerColliderDisk::collide(const sead::Vector3f& velocity) {
     sead::Vector3f targetAxis;
     targetAxis.setRotated(*mMtxPtr, mOffset);
 
-    if (!al::isNearZero(contactDelta, 0.001f) ||
-        !al::isNearZero(mRadiusCurrent - mRadius, 0.001f) ||
-        !al::isNearZero(mHalfHeightCurrent - mHalfHeight, 0.001f) ||
-        !al::isNearDirection(targetAxis, currentAxis, 0.01f)) {
+    if (!al::isNearZero(contactDelta) ||
+        !al::isNearZero(mRadiusCurrent - mRadius) ||
+        !al::isNearZero(mHalfHeightCurrent - mHalfHeight) ||
+        !al::isNearDirection(targetAxis, currentAxis)) {
         moveCollide(&position, &radius, &halfHeight, &mtx, contactTarget, mRadius, mHalfHeight,
                     mMtxPtr, contactDelta, firstCheckRange);
     }
@@ -151,11 +151,6 @@ bool PlayerColliderDisk::calcMovePowerByContact(sead::Vector3f* movePower,
     return true;
 }
 
-// NON_MATCHING: target/current are both 724 bytes with matching 0x130-byte frames, 181/181
-// instructions, and an exact 13/13 semantic direct-call sequence. Loading remainMove.x before the
-// normalization-result branch matches the target lifetime and reduces the aligned diff from six to five
-// FP-scheduling hunks; scalarized component rebuilds are validator-invalid, so the next hypothesis is a
-// sanctioned vector/helper spelling that preserves this frame and operand schedule.
 void PlayerColliderDisk::moveCollide(sead::Vector3f* position, f32* radius, f32* halfHeight,
                                      sead::Matrix34f* mtx,
                                      const sead::Vector3f& targetPosition, f32 targetRadius,
@@ -187,14 +182,14 @@ void PlayerColliderDisk::moveCollide(sead::Vector3f* position, f32* radius, f32*
         const bool hasFixDirection = al::tryNormalizeOrZero(&fixDirection);
         const f32 remainX = remainMove.x;
         if (hasFixDirection) {
-            const f32 fixDot = fixDirection.x * remainX + fixDirection.y * remainMove.y +
-                               fixDirection.z * remainMove.z;
+            const f32 fixDot = fixDirection.x * remainX + remainMove.y * fixDirection.y +
+                               remainMove.z * fixDirection.z;
             if (fixDot < 0.0f)
-                remainMove -= fixDirection * fixDot;
+                remainMove.setScaleAdd(-fixDot, fixDirection, remainMove);
         }
 
         const f32 moveDot = moveVector.dot(remainMove);
-        if (moveDot < 0.0f && !al::isNearZero(moveDot, 0.001f))
+        if (moveDot < 0.0f && !al::isNearZero(moveDot))
             break;
 
         sead::Vector3f retryPosition = *position + remainMove;
@@ -242,19 +237,20 @@ bool PlayerColliderDisk::findCollidePos(al::DiskInterpolator* interpolator) {
     return false;
 }
 
-// NON_MATCHING: current is 1728 bytes versus the 1736-byte target with an exact 6/6 semantic
-// direct-call sequence. The ABI velocity parameter is present but unread by the target body; next
-// source-level hypothesis is a pointer-valued duplicate search that reproduces the target PtrArray
-// control shape while preserving the current per-axis fix behavior.
+// NON_MATCHING: current is 1732 bytes versus the 1736-byte target with an exact 6/6 semantic
+// direct-call sequence; unsigned mHitInfoCount matches the corpus field use. Remaining differences
+// are duplicate-search control shape, PtrArray capacity lifetime, and FP allocation; next hypothesis
+// is the original
+// duplicate-search helper/source lifetime shape.
 void PlayerColliderDisk::calcResultVec(sead::Vector3f* result, const sead::Vector3f& velocity) {
     (void)velocity;
 
     const sead::Vector3f gravity = *mGravityPtr;
-    sead::Vector3f minFix(0.0f, 0.0f, 0.0f);
     sead::Vector3f maxFix(0.0f, 0.0f, 0.0f);
+    sead::Vector3f minFix(0.0f, 0.0f, 0.0f);
 
     const s32 resultCount = mCollisionCurrent->getNumCollidedShapeResults();
-    for (s32 i = 0; i < resultCount; ++i) {
+    for (s32 i = 0; i != resultCount; ++i) {
         const CollidedShapeResult* collideResult = mCollisionCurrent->getCollidedShapeResult(i);
         const al::DiskHitInfo& diskHit = collideResult->getDiskHitInfo();
         const al::HitInfo& hitInfo = **diskHit;
@@ -284,17 +280,17 @@ void PlayerColliderDisk::calcResultVec(sead::Vector3f* result, const sead::Vecto
             mHitDistance3 = hitInfo._70;
         }
 
-        bool isRegistered = false;
+        al::HitInfo* registeredHitInfo = nullptr;
         for (s32 j = 0; j < mHitInfoArray.size(); ++j) {
-            if (mHitInfoArray[j]->triangle.getCollisionParts() ==
-                hitInfo.triangle.getCollisionParts()) {
-                isRegistered = true;
+            al::HitInfo* candidate = mHitInfoArray[j];
+            if (candidate->triangle.getCollisionParts() == hitInfo.triangle.getCollisionParts()) {
+                registeredHitInfo = candidate;
                 break;
             }
         }
 
-        if (!isRegistered && static_cast<u32>(mHitInfoCount) <
-                                 static_cast<u32>(mHitInfoArray.capacity())) {
+        if (!registeredHitInfo && static_cast<u32>(mHitInfoCount) <
+                                      static_cast<u32>(mHitInfoArray.capacity())) {
             mHitInfoBuffer[mHitInfoCount] = hitInfo;
             if (!mHitInfoArray.isFull())
                 mHitInfoArray.pushBack(&mHitInfoBuffer[mHitInfoCount]);

@@ -21,7 +21,7 @@ public:
     const char* getModelName();
     void changeModel(al::LiveActor* modelActor);
     void updateDead();
-    bool requestDamage();
+    void requestDamage();
     bool requestKinokoSuper();
     bool requestFireFlower();
     bool requestMini();

@@ -38,7 +38,7 @@ bool PlayerJudgeWallHitDownRolling::judge() const {
     const sead::Vector3f wallPos = rs::getCollidedWallPos(mCollision);
     const sead::Vector3f groundPos = rs::getCollidedGroundPos(mCollision);
     f32 groundOffset = (groundPos - wallPos).dot(gravity);
-    if (al::isNearZeroOrLess(groundOffset - mConst->getCollisionSmallStepHeight(), 0.001f))
+    if (al::isNearZeroOrLess(groundOffset - mConst->getCollisionSmallStepHeight()))
         return false;
 
     groundNormal = rs::getCollidedGroundNormal(mCollision);

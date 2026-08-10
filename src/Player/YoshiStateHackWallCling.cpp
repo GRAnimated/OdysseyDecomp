@@ -31,10 +31,9 @@ YoshiStateHackWallCling::YoshiStateHackWallCling(al::LiveActor* actor,
     : HackerStateBase("壁接着", actor, playerHack), mPlayerConst(playerConst), mCollision(collision),
       mAnimator(animator) {
     mConnector = al::createCollisionPartsConnector(actor, sead::Quatf::unit);
-    initNerve(&Cling, 0);
+    initNerve(&Cling);
 }
 
-// NON_MATCHING: target/current are both 272 bytes and differ first at the X-component scale multiply operand order (target `FMUL S2, S0, S2`, current `FMUL S2, S2, S0`); next source-level hypothesis is a vector-expression form that preserves the target packed load schedule while forcing scalar-first multiplication.
 void YoshiStateHackWallCling::appear() {
     al::LiveActor* actor = mActor;
     HackerStateBase::appear();
@@ -49,8 +48,8 @@ void YoshiStateHackWallCling::appear() {
     al::updatePoseQuat(actor, quat);
     al::attachCollisionPartsConnector(mConnector, mCollisionParts);
 
-    sead::Vector3f trans =
-        mPosition + (mPlayerConst->getCollisionRadius() - 5.0f) * mNormal;
+    const f32 offset = mPlayerConst->getCollisionRadius() - 5.0f;
+    sead::Vector3f trans = mPosition + mNormal * offset;
     al::setConnectorBaseQuatTrans(quat, trans, mConnector);
     al::setNerve(this, &Cling);
 }
@@ -63,7 +62,7 @@ void YoshiStateHackWallCling::setup(const al::CollisionParts* collisionParts,
     mNormal = normal;
 }
 
-// NON_MATCHING: target/current are both 848 bytes with the same 0x70-byte frame; target assigns the persistent front vector to SP+0x10 and reuses the prior SafeString slot at SP+0x20 for oppositeFront, while current swaps those two vector slots; next source-level hypothesis is a source lifetime/declaration shape that makes Clang reuse the SafeString slot for oppositeFront without extending either vector lifetime.
+// NON_MATCHING: target/current are both 848 bytes with the same 0x70-byte frame and exact 23/23 semantic calls; target assigns persistent front to SP+0x10 and reuses the prior SafeString slot at SP+0x20 for oppositeFront, while current swaps those vector slots. Next hypothesis is the original local scope/lifetime grouping that drives that stack-slot reuse.
 void YoshiStateHackWallCling::exeCling() {
     if (!al::isMtxConnectorConnecting(mConnector))
         kill();

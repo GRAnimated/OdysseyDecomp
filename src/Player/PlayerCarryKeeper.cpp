@@ -55,10 +55,10 @@ void PlayerCarryKeeper::update() {
     updateNerve();
 }
 
-// NON_MATCHING: exact 0x194 size and recovered evaluation order; target/current differ only in the
-// placement of the shared reset/getTrans block. An explicit reset-predicate branch inversion grew the
-// body to 0x1B0 without changing the linear call-order swap and was reverted; remaining blocker is
-// compiler block placement/lifetime in a validator-clean structured CFG.
+// NON_MATCHING: exact 404/404 size with all 9 semantic calls present; only the final linear call
+// order differs (target converge->getTrans, current getTrans->converge) from compiler placement of the
+// failure reset block. Explicit branch inversion grew to 432 bytes and was reverted; next hypothesis
+// is a structured-C++ spelling that preserves target block placement without changing evaluation.
 bool PlayerCarryKeeper::updateCollideLockUp(const IUsePlayerCollision* collider,
                                             const PlayerPushReceiver* pushReceiver) {
     al::LiveActor* player = mPlayer;

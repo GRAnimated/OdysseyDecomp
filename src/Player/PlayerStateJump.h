@@ -110,15 +110,11 @@ private:
     const char* _c8;
     const char* _d0;
     const PlayerInput* mInput;
-    union {
-        sead::Quatf mJumpTurnQuat;
-        struct {
-            sead::Vector3f turnJumpAngle;
-            s32 downFallConvergeCounter;
-        };
-    };
+    sead::Vector3f _e0;
+    s32 mDownFallConvergeCounter;
     bool mIsDownFallGroundCollision;
     u8 _f1[3];
     sead::Vector3f mDownFallGroundPos;
 };
 
+static_assert(sizeof(PlayerStateJump) == 0x100);

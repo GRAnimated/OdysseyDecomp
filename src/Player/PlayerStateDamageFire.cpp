@@ -39,7 +39,7 @@ PlayerStateDamageFire::PlayerStateDamageFire(al::LiveActor* player, const Player
     mGroundMoveControl->_bb = true;
     mGroundMoveControl->_b8 = true;
     mGroundMoveControl->_b9 = true;
-    initNerve(&NrvPlayerStateDamageFire.Jump, 0);
+    initNerve(&NrvPlayerStateDamageFire.Jump);
 }
 
 void PlayerStateDamageFire::appear() {
@@ -109,7 +109,7 @@ void PlayerStateDamageFire::exeJump2nd() {
 
         sead::Vector3f moveDir(0.0f, 0.0f, 0.0f);
         mInput->calcMoveDirection(&moveDir, groundNormal);
-        if (!al::isNearZero(moveDir, 0.001f)) {
+        if (!al::isNearZero(moveDir)) {
             sead::Vector3f velocityVertical(0.0f, 0.0f, 0.0f);
             sead::Vector3f velocityParallel(0.0f, 0.0f, 0.0f);
             al::separateVectorParallelVertical(&velocityParallel, &velocityVertical, groundNormal,

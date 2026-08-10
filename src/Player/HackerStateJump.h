@@ -9,7 +9,7 @@ class LiveActor;
 }
 
 class HackerActionAirMoveControl;
-class HackerStateConst;
+struct HackerStateConst;
 class IUsePlayerHack;
 
 class HackerStateJump : public HackerStateBase {

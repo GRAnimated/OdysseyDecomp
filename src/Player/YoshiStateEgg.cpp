@@ -36,7 +36,7 @@ YoshiStateEgg::YoshiStateEgg(const al::ActorInitInfo& info, al::LiveActor* actor
       mWaterSurfaceFinder(waterSurfaceFinder), mModelChanger(modelChanger) {
     mEgg = new YoshiEgg(actor, collision);
     mEgg->init(info);
-    initNerve(&Wait, 0);
+    initNerve(&Wait);
 }
 
 void YoshiStateEgg::appear() {

@@ -69,32 +69,6 @@ bool PlayerStateSquat::isEnableLongJump() const {
     return front.dot(al::getVelocity(mActor)) > 0.0f;
 }
 
-void PlayerStateSquat::setNerveStandUpOrKill() {
-    if (mModelChanger->is2DModel())
-        kill();
-    else
-        al::setNerve(this, &NrvPlayerStateSquat.StandUp);
-}
-
-void PlayerStateSquat::fixPressRumble() {
-    if (!rs::isCollidedGround(mCollision) || !rs::isCollidedCeiling(mCollision))
-        return;
-
-    const sead::Vector3f& groundNormal = rs::getCollidedGroundNormal(mCollision);
-    const sead::Vector3f& ceilingNormal = rs::getCollidedCeilingNormal(mCollision);
-    if (!al::isReverseDirection(groundNormal, ceilingNormal))
-        return;
-
-    al::LiveActor* actor = mActor;
-    f32 distanceClippedIntoGround = sead::Mathf::clampMin(
-        (rs::getCollidedGroundPos(mCollision) - al::getTrans(actor)).dot(groundNormal), 0.0f);
-    // instead of pulling Mario up by half the current "clip distance",
-    // it clips him further into the ground by this amount. This is probably correct, because being
-    // pushed up by the ground will move Mario up even further, so in total, he is
-    // moved upwards (out of the ground) by about half the clip distance.
-    al::setTrans(actor, al::getTrans(actor) - (groundNormal * (distanceClippedIntoGround * 0.5f)));
-}
-
 void PlayerStateSquat::exeBrake() {
     sead::Vector3f up = {0.0f, 0.0f, 0.0f};
     rs::calcGroundNormalOrUpDir(&up, mActor, mCollision);
@@ -167,6 +141,13 @@ void PlayerStateSquat::exeBrake() {
     }
 }
 
+void PlayerStateSquat::setNerveStandUpOrKill() {
+    if (mModelChanger->is2DModel())
+        kill();
+    else
+        al::setNerve(this, &NrvPlayerStateSquat.StandUp);
+}
+
 void PlayerStateSquat::exeWait() {
     if (al::isFirstStep(this) && !mModelChanger->is2DModel())
         mAnimator->startAnim("SquatWait");
@@ -185,6 +166,25 @@ void PlayerStateSquat::exeWait() {
 
     if (rs::updateJudgeAndResult(mJudgeStartRun) && !mModelChanger->is2DModel())
         al::setNerve(this, &NrvPlayerStateSquat.Walk);
+}
+
+void PlayerStateSquat::fixPressRumble() {
+    if (!rs::isCollidedGround(mCollision) || !rs::isCollidedCeiling(mCollision))
+        return;
+
+    const sead::Vector3f& groundNormal = rs::getCollidedGroundNormal(mCollision);
+    const sead::Vector3f& ceilingNormal = rs::getCollidedCeilingNormal(mCollision);
+    if (!al::isReverseDirection(groundNormal, ceilingNormal))
+        return;
+
+    al::LiveActor* actor = mActor;
+    f32 distanceClippedIntoGround = sead::Mathf::clampMin(
+        (rs::getCollidedGroundPos(mCollision) - al::getTrans(actor)).dot(groundNormal), 0.0f);
+    // instead of pulling Mario up by half the current "clip distance",
+    // it clips him further into the ground by this amount. This is probably correct, because being
+    // pushed up by the ground will move Mario up even further, so in total, he is
+    // moved upwards (out of the ground) by about half the clip distance.
+    al::setTrans(actor, al::getTrans(actor) - (groundNormal * (distanceClippedIntoGround * 0.5f)));
 }
 
 void PlayerStateSquat::exeWalk() {

@@ -36,7 +36,7 @@ PlayerModelChanger2D3D::PlayerModelChanger2D3D(const al::LiveActor* player,
 }
 
 
-// NON_MATCHING: complete model-blink and dimension-change behavior is recovered; remaining differences are branch/register shape around model-name selection and cooldown clamping.
+// NON_MATCHING: target is 0x2b8 bytes and current is 0x2bc with all 9 semantic calls in target order; the unsigned blink-phase compare now matches target B.CS, while model-name range lowering still uses cmp #2/B.HI instead of target cmp #3/B.CS. Next source-level hypothesis is the original selector expression/lifetime shape.
 void PlayerModelChanger2D3D::update(bool isChangeEnabled) {
     if (mModel != mRequestedModel) {
         mBlinkModelName = ::getModelName(mModel, mIs2DModel);
@@ -47,7 +47,7 @@ void PlayerModelChanger2D3D::update(bool isChangeEnabled) {
 
     if (mBlinkTimer >= 1) {
         mBlinkTimer += mBlinkTimer == 1 ? -1 : -2;
-        if ((mBlinkTimer & 7) < (mBlinkTimer >> 3))
+        if ((mBlinkTimer & 7u) < (u32)(mBlinkTimer >> 3))
             mModelHolder->changeModel(mBlinkModelName);
         else
             mModelHolder->changeModel(mTargetModelName);
@@ -82,7 +82,7 @@ void PlayerModelChanger2D3D::update(bool isChangeEnabled) {
     changeModel(mModelHolder->getCurrentModelActor());
 }
 
-// NON_MATCHING: labels and fallback are exact, but the target uses cmp #3 with separate flag/range branches while this shared-fallback form uses cmp #2/b.hi; next hypothesis is the original switch/table source form.
+// NON_MATCHING: target is 0x44 bytes and current is 0x40 with identical labels/fallback and no calls; target hoists cmp #3 before the 2D flag and reuses B.CS in both branches, while current lowers the range as cmp #2/B.HI. Next source-level hypothesis is the original range-predicate source shape.
 const char* PlayerModelChanger2D3D::getModelName() {
     s32 model = mModel;
     bool is2D = mIs2DModel;
@@ -112,12 +112,9 @@ void PlayerModelChanger2D3D::updateDead() {
     changeModel(mModelHolder->getCurrentModelActor());
 }
 
-// NON_MATCHING: behavior and control flow match, with one extra bool-normalization instruction on return; next hypothesis is the original integer-width declaration or call-site type.
-bool PlayerModelChanger2D3D::requestDamage() {
-    bool result = isMini();
-    if (!result)
+void PlayerModelChanger2D3D::requestDamage() {
+    if (!isMini())
         mRequestedModel = mModel - 1;
-    return result;
 }
 
 bool PlayerModelChanger2D3D::requestKinokoSuper() {

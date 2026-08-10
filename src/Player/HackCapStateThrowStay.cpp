@@ -206,7 +206,7 @@ bool HackCapStateThrowStay::sendHipDropObjMsg(HackCapTrigger* trigger, al::HitSe
 void HackCapStateThrowStay::exeStay() {}
 
 
-// NON_MATCHING: 1484 bytes versus the 1408-byte target; next split the approach/brake decision tree and shorten search-vector lifetimes.
+// NON_MATCHING: target 1408 bytes, current 1504 bytes with all 35 semantic calls restored; source now matches corpus search fallback, second gravity snapshot, and initial getTrans/getGravity order, while compiler basic-block placement and vector live ranges remain larger. next source-level hypothesis: shorten approach/brake vector lifetimes without changing the recovered search CFG.
 void HackCapStateThrowStay::exeSeparateMove() {
     if (al::isFirstStep(this))
         _98 = 0.0f;
@@ -218,7 +218,8 @@ void HackCapStateThrowStay::exeSeparateMove() {
     groundHeight = sead::Mathf::clamp(groundHeight, 0.0f, baseHeight);
 
     sead::Vector3f vertical = sead::Vector3f::zero;
-    al::parallelizeVec(&vertical, al::getGravity(mActor), al::getTrans(mActor) - _74);
+    const sead::Vector3f actorOffset = al::getTrans(mActor) - _74;
+    al::parallelizeVec(&vertical, al::getGravity(mActor), actorOffset);
     const f32 verticalLength = vertical.length();
     const bool playerAir = !rs::isPlayerCollidedGround(mPlayer);
     const f32 verticalDistance = vertical.dot(al::getGravity(mPlayer)) - groundHeight;
@@ -248,16 +249,16 @@ void HackCapStateThrowStay::exeSeparateMove() {
         sead::Vector3f searchDir = sead::Vector3f::zero;
         mInput->calcCapSeparateMoveInput(&searchDir, up);
         bool useWideSearch = false;
-        if (!al::tryNormalizeOrZero(&searchDir)) {
-            al::verticalizeVec(&searchDir, up, al::getTrans(mActor) - _74);
-            if (!al::tryNormalizeOrZero(&searchDir)) {
-                _e0 = nullptr;
-            } else {
-                useWideSearch = true;
-            }
+        bool hasSearchDir = al::tryNormalizeOrZero(&searchDir);
+        if (!hasSearchDir) {
+            sead::Vector3f verticalized = sead::Vector3f::zero;
+            al::verticalizeVec(&verticalized, up, al::getTrans(mActor) - _74);
+            hasSearchDir = al::tryNormalizeOrZero(&searchDir, verticalized);
+            useWideSearch = hasSearchDir;
         }
 
-        if (!al::isNearZero(searchDir, 0.001f)) {
+        _e0 = nullptr;
+        if (hasSearchDir) {
             sead::Vector3f targetDir = sead::Vector3f::zero;
             _e0 = mEyeSensorHitHolder->findNearestSensorLimit(
                 &targetDir, al::getTrans(mActor), searchDir, up, 250.0f, 45.0f, 80.0f,
@@ -274,10 +275,11 @@ void HackCapStateThrowStay::exeSeparateMove() {
             return;
         }
 
+        const sead::Vector3f jumpUp = -al::getGravity(mPlayer);
         bool jumpAway = _8c.length() >= 300.0f;
         if (!jumpAway) {
             sead::Vector3f input = sead::Vector3f::zero;
-            mInput->calcCapSeparateMoveInput(&input, up);
+            mInput->calcCapSeparateMoveInput(&input, jumpUp);
             sead::Vector3f stayDir = _8c;
             if (al::tryNormalizeOrZero(&input) && al::tryNormalizeOrZero(&stayDir) &&
                 input.dot(stayDir) > -0.70711f) {
@@ -448,7 +450,7 @@ bool tryEndSeparateJump(al::LiveActor* actor, const IUsePlayerCollision* collisi
         approachSpeed = moveLimit;
     al::limitLength(&stayDirH, stayDirH, approachSpeed);
 
-    if (al::isNearZero(gravity, 0.001f) && distanceV > 0.0f)
+    if (al::isNearZero(gravity) && distanceV > 0.0f)
         actorVelocityV.set(0.0f, 0.0f, 0.0f);
     al::setVelocity(actor, stayDirH + velocityH + actorVelocityV);
     return false;

@@ -147,7 +147,7 @@ void YoshiStateHack::exeHack() {
     al::updateNerveState(this);
 }
 
-// NON_MATCHING: target/current are both 96 bytes, but current tail-calls YoshiStateHackPlay::attackSensor while target calls it, tests bit 0, and normalizes the bool result; wider-integer return experiments collapse to an AND instead, so next hypothesis is the original wrapper/control-flow source shape.
+// NON_MATCHING: target/current are both 96 bytes and relocation audit proves the complete 2-call behavior; current tail-calls YoshiStateHackPlay::attackSensor while target uses BL/TBZ plus explicit bool normalization. The corpus-pseudo &&/(result & 1) spelling still tail-calls here; next hypothesis is the original wrapper/lifetime source shape that inhibits tail-call formation.
 bool YoshiStateHack::attackSensor(al::HitSensor* self, al::HitSensor* other) {
     if (!al::isNerve(this, &NrvYoshiStateHack.Hack))
         return false;
@@ -156,7 +156,7 @@ bool YoshiStateHack::attackSensor(al::HitSensor* self, al::HitSensor* other) {
     return true;
 }
 
-// NON_MATCHING: target is 468 bytes; current natural bool-wrapper form is expected to remain 476 bytes because the final YoshiStateHackPlay::receiveMsg call tail-calls after the epilogue instead of target BL/TBZ/normalization; wider-return declaration experiments produced a 464-byte AND form, so next hypothesis is a natural wrapper/lifetime form that preserves post-call normalization.
+// NON_MATCHING: current 476 bytes vs target 468; relocation audit proves the complete 18-call behavior, with the final YoshiStateHackPlay::receiveMsg present as a tail call where target uses BL/TBZ/normalization. Next hypothesis is the original wrapper/local lifetime form that preserves the target shared epilogue instead of tail-call formation.
 bool YoshiStateHack::receiveMsg(const al::SensorMsg* message, al::HitSensor* other,
                                 al::HitSensor* self) {
     if (!rs::isSensorTypeYoshiMsgReceivable(self))
@@ -205,7 +205,7 @@ bool YoshiStateHack::receiveMsgSetNerveState(const al::SensorMsg* message, al::H
     return rs::isMsgCapStartLockOn(message);
 }
 
-// NON_MATCHING: target/current are both 276 bytes with matching branch/call behavior, but the current compiler assigns the message and isReturnEgg callee-saved registers opposite the target; next hypothesis is a natural parameter/lifetime expression that changes x21/x22 allocation without altering semantics.
+// NON_MATCHING: target/current are both 276 bytes with exact 16/16 semantic-call behavior, but current assigns the message and isReturnEgg callee-saved registers opposite the target. Next hypothesis is a natural parameter/lifetime expression that changes x21/x22 allocation without altering semantics.
 bool YoshiStateHack::receiveMsgEndState(bool* isReturnEgg, const al::SensorMsg* message,
                                         al::HitSensor* other, al::HitSensor* self) {
 

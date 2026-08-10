@@ -31,9 +31,7 @@ HackerActionAirMoveControl::HackerActionAirMoveControl(al::LiveActor* actor, boo
     mTurnControl->setup(1.0f, 135.0f, 6.0f, 25.0f, 20, 1, 10);
 }
 
-// NON_MATCHING: exact 912-byte size; first mismatch at 0x40E0F0 is initial
-// member-store/cross-product scheduling, with a later extend-frame compare difference; next
-// source-level hypothesis is to group the initial vector derivation before committing scalar members.
+// NON_MATCHING: target/current are both 912 bytes with exact 25/25 semantic calls and corpus-proven behavior; first mismatch is initial member-store/cross-product scheduling, with a later extend-frame compare difference. Removing the one-use final velocity local is codegen-identical and retained; next hypothesis is to group the initial vector derivation before committing scalar members.
 void HackerActionAirMoveControl::setup(f32 speedMax, f32 inertiaAdd, s32 extendFrame,
                                        f32 velocityV, f32 gravityAccel, s32 noInputFrame,
                                        f32 inertiaRate, f32 fallSpeedMax, f32 normalMinSpeed,
@@ -106,9 +104,8 @@ void HackerActionAirMoveControl::setup(f32 speedMax, f32 inertiaAdd, s32 extendF
     mSpeedH = moveSpeed;
 
     al::LiveActor* actor = mActor;
-    const sead::Vector3f velocity =
-        startSpeed * mStartMoveDir - velocityV * al::getGravity(actor) + inertia;
-    al::setVelocity(actor, velocity);
+    al::setVelocity(
+        actor, startSpeed * mStartMoveDir - velocityV * al::getGravity(actor) + inertia);
 
     mIsForceJumpExtend = false;
     mIsHoldJumpExtend = extendFrame > 0;
@@ -160,7 +157,7 @@ void HackerActionAirMoveControl::verticalizeStartMoveDir(const sead::Vector3f& v
     al::normalize(&mSideDir);
 }
 
-// NON_MATCHING: 1096 bytes versus the 1228-byte target; next recover the missing turn/collision branch structure and its retained velocity temporaries.
+// NON_MATCHING: current 1096 bytes vs target 1228, but both use a 0x80 frame and the exact 32/32 semantic-call sequence; corpus pseudo confirms every wall-scale, jump-extend, input/turn, velocity-limit, and pose branch is present. Remaining gap is aggressive vector/register lifetime folding; next hypothesis is target-shaped persistent component pointers/vector temporaries in the input-acceleration block.
 void HackerActionAirMoveControl::update() {
     if (mIsScaleWallVelocity) {
         if (mCollision) {

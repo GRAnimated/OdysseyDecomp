@@ -35,7 +35,7 @@ PlayerStateJump2D3D::PlayerStateJump2D3D(al::LiveActor* player, const PlayerCons
       mIsJumpPowerOverridden(false), mOverrideJumpPower(0.0f), mContinuousJumpCount(0),
       mIsCanCountContinuousJump(false), mCounterCapCatch(nullptr) {
     mAirMoveControl = new PlayerActionAirMoveControl(player, pConst, input, collision, false);
-    initNerve(&Jump, 0);
+    initNerve(&Jump);
 }
 
 void PlayerStateJump2D3D::initContinuousJump(PlayerContinuousJump* continuousJump) {
@@ -51,7 +51,6 @@ void PlayerStateJump2D3D::initUseCounterCapCatch(
     mCounterCapCatch = counterCapCatch;
 }
 
-// NON_MATCHING: the continuous-jump prefix now follows target control flow, but Clang inlines calcJumpPowerMax where the target calls it out-of-line; next source-level hypothesis is a caller/helper source shape that changes the natural inlining decision without attributes.
 void PlayerStateJump2D3D::appear() {
     PlayerContinuousJump* continuousJump = mContinuousJump;
     al::LiveActor* actor = mActor;

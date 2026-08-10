@@ -28,7 +28,9 @@ PlayerStatePress::PlayerStatePress(al::LiveActor* player, const IUsePlayerCollis
     initNerve(&NrvPlayerStatePress.Press, 0);
 }
 
-// NON_MATCHING: current 1652 bytes versus target 1648; behavior follows the corpus. Next hypothesis is local pose/collision temporary ordering at the first divergent block.
+// NON_MATCHING: current 1652 versus target 1648 with all 38 semantic calls aligned and corpus
+// behavior recovered. Remaining blocker is local pose/collision temporary ordering at the first
+// divergent block; next test a target-lifetime spelling for the press-arrow/pose temporaries.
 void PlayerStatePress::appear() {
     al::ActorStateBase::appear();
 

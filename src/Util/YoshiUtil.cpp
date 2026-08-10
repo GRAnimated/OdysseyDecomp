@@ -38,7 +38,7 @@ bool tryCalcTonguePullPose(sead::Quatf* pose, const al::LiveActor* actor,
         return false;
     sead::Vector3f up(0.0f, 0.0f, 0.0f);
     al::calcUpDir(&up, actor);
-    if (al::isParallelDirection(up, front, 0.01f)) {
+    if (al::isParallelDirection(up, front)) {
         al::calcFrontDir(&up, actor);
         up.negate();
     }

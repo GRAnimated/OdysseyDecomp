@@ -52,7 +52,7 @@ void PlayerJointControlGrabPose::update(f32 poseRate, const sead::Vector3f& dire
     mDirection = direction;
     mInterpolateRate = interpolateRate;
 
-    if (al::isNearZero(poseRate, 0.001f))
+    if (al::isNearZero(poseRate))
         return;
 
     sead::Vector3f front = {0.0f, 0.0f, 0.0f};

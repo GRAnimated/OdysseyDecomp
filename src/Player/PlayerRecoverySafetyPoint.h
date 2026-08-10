@@ -39,6 +39,8 @@ struct SafetyPoint {
     }
 };
 
+static_assert(sizeof(SafetyPoint) == 0x30);
+
 class PlayerRecoverySafetyPoint {
 public:
     PlayerRecoverySafetyPoint(const al::LiveActor* actor, const HackCap* hackCap,

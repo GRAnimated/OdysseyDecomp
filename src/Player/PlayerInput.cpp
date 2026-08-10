@@ -17,25 +17,8 @@
 #include "Util/PlayerUtil.h"
 #include "Util/StageInputFunction.h"
 
-namespace {
-// NON_MATCHING: target orders the repeated up-direction temporary differently; next source-level
-// hypothesis is the original helper condition and vector lifetime order.
 bool isInvalid2DSnapJumpMoveInput(const sead::Vector3f& input, const al::LiveActor* actor,
-                                  const IUsePlayerCollision* collision) {
-    sead::Vector3f up = sead::Vector3f::zero;
-    al::calcUpDir(&up, actor);
-    al::normalize(&up);
-    if (input.dot(up) < -0.86603f)
-        return true;
-
-    up = sead::Vector3f::zero;
-    al::calcUpDir(&up, actor);
-    al::normalize(&up);
-    f32 dot = input.dot(up);
-    return dot >= (rs::isCollidedGround(collision) ? 0.98481f : 0.86603f);
-}
-}  // namespace
-
+                                  const IUsePlayerCollision* collision);
 void PlayerInput::updateSnapMoveArea() {
     _38 = mPlayerCollision && rs::tryFindSnapMoveAreaDir(&_3c, mLiveActor, mPlayerCollision);
 }
@@ -63,41 +46,26 @@ void PlayerInput::resetAlongWall() {
     _20 = 0.0f;
 }
 
-// NON_MATCHING: behavior is recovered, but branch and temporary scheduling differ; next source-level
-// hypothesis is the original early-return condition grouping.
 bool PlayerInput::isNoInput() const {
     s32 port = PlayerFunction::getPlayerInputPort(mLiveActor);
-    if (al::isPadHoldAny(port))
+    if (al::isPadHoldAny(port) || al::getLeftStick(port).length() >= 0.1f ||
+        al::getRightStick(port).length() >= 0.1f)
         return false;
-    if (al::getLeftStick(port).length() >= 0.1f)
-        return false;
-    return al::getRightStick(port).length() < 0.1f &&
-           !mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
+    return !mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
 }
 
-// NON_MATCHING: behavior is recovered, but controller and stick temporaries differ; next source-level
-// hypothesis is the original separate-play branch order.
 bool PlayerInput::isNoInputSeparateCap() const {
     if (!rs::isSeparatePlay(mLiveActor))
         return true;
     if (isHoldCapSeparateJump() || isHoldCapSeparateHipDrop())
         return false;
 
+    const al::LiveActor* actor = mLiveActor;
     s32 port = al::getPlayerControllerPort(1);
-    if (PlayerInputFunction::isHoldAction(mLiveActor, port))
+    if (PlayerInputFunction::isHoldAction(actor, port))
         return false;
 
-    sead::Vector2f input = sead::Vector2f::zero;
-    if (!_98) {
-        s32 stick = 0;
-        s32 inputPort = PlayerFunction::getPlayerInputPort(mLiveActor);
-        if (rs::isSeparatePlay(mLiveActor)) {
-            inputPort = al::getPlayerControllerPort(1);
-            stick = _90;
-        }
-        input = PlayerInputFunction::getMoveInputStick(mLiveActor, inputPort, stick);
-    }
-    return al::isNearZero(input, 0.001f);
+    return al::isNearZero(getMoveInputRaw(true));
 }
 
 bool PlayerInput::isHoldCapSeparateJump() const {
@@ -125,8 +93,7 @@ bool PlayerInput::isMove() const {
 bool PlayerInput::isMoveDeepDown() const {
     if (_98 || !_18)
         return false;
-    sead::Vector2f input = getStickMoveRaw();
-    return input.squaredLength() > 0.64f;
+    return getStickMoveRaw().squaredLength() > 0.64f;
 }
 
 sead::Vector2f PlayerInput::getStickMoveRaw() const {
@@ -145,8 +112,7 @@ sead::Vector2f PlayerInput::getStickMoveRaw() const {
 bool PlayerInput::isMoveDeepDownNoSnap() const {
     if (_98)
         return false;
-    sead::Vector2f input = getStickMoveRaw();
-    return input.squaredLength() > 0.64f;
+    return getStickMoveRaw().squaredLength() > 0.64f;
 }
 
 bool PlayerInput::isEnableCarry() const {
@@ -169,18 +135,7 @@ bool PlayerInput::isTriggerSwingActionMario() const {
 }
 
 bool PlayerInput::isTriggerCarryReleaseBySwing() const {
-    if (_98)
-        return false;
-    if (!PlayerInputFunction::isTriggerAction(mLiveActor,
-                                              PlayerFunction::getPlayerInputPort(mLiveActor))) {
-        if (_98)
-            return false;
-        if (!mJoyPadAccelPoseAnalyzer1->isSwingAnyHand())
-            return false;
-    }
-    if (_98)
-        return false;
-    return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
+    return isTriggerCarryRelease() && isTriggerSwingActionMario();
 }
 
 bool PlayerInput::isTriggerAction() const {
@@ -263,18 +218,14 @@ bool PlayerInput::isTriggerHackEnd() const {
 }
 
 bool PlayerInput::isTriggerHackSeparateJump() const {
-    if (_98)
-        return false;
-    if (!rs::isSeparatePlay(mLiveActor))
+    if (_98 || !rs::isSeparatePlay(mLiveActor))
         return false;
     s32 inputPort = al::getPlayerControllerPort(1);
     return PlayerInputFunction::isTriggerJump(mLiveActor, inputPort);
 }
 
 bool PlayerInput::isTriggerSeparateCapJangoHelp() const {
-    if (_98)
-        return false;
-    if (!rs::isSeparatePlay(mLiveActor))
+    if (_98 || !rs::isSeparatePlay(mLiveActor))
         return false;
     s32 inputPort = al::getPlayerControllerPort(1);
     return PlayerInputFunction::isTriggerAction(mLiveActor, inputPort) ||
@@ -283,9 +234,7 @@ bool PlayerInput::isTriggerSeparateCapJangoHelp() const {
 }
 
 bool PlayerInput::isHoldHackSeparateJump() const {
-    if (_98)
-        return false;
-    if (!rs::isSeparatePlay(mLiveActor))
+    if (_98 || !rs::isSeparatePlay(mLiveActor))
         return false;
     s32 inputPort = al::getPlayerControllerPort(1);
     return PlayerInputFunction::isHoldJump(mLiveActor, inputPort);
@@ -352,18 +301,14 @@ bool PlayerInput::isTriggerSpinCap() const {
 }
 
 bool PlayerInput::isTriggerToggleStayCap() const {
-    if (_98)
-        return false;
-    if (!rs::isSeparatePlay(mLiveActor))
+    if (_98 || !rs::isSeparatePlay(mLiveActor))
         return false;
     s32 inputPort = al::getPlayerControllerPort(1);
     return PlayerInputFunction::isTriggerAction(mLiveActor, inputPort);
 }
 
 bool PlayerInput::isTriggerSpinAttackSeparate() const {
-    if (_98)
-        return false;
-    if (!rs::isSeparatePlay(mLiveActor))
+    if (_98 || !rs::isSeparatePlay(mLiveActor))
         return false;
     if (!_98 && mJoyPadAccelPoseAnalyzer1->isSwingAnyHand())
         return true;
@@ -414,9 +359,7 @@ bool PlayerInput::isTriggerCapSeparateJump() const {
 }
 
 bool PlayerInput::isTriggerCapSeparateHipDrop() const {
-    if (_98)
-        return false;
-    if (!rs::isSeparatePlay(mLiveActor))
+    if (_98 || !rs::isSeparatePlay(mLiveActor))
         return false;
     s32 inputPort = al::getPlayerControllerPort(1);
     return PlayerInputFunction::isTriggerSubAction(mLiveActor, inputPort);
@@ -430,10 +373,10 @@ bool PlayerInput::isHoldPoleClimbDown() const {
     return isHoldHipDrop();
 }
 
-bool PlayerInput::isTriggerAppendCapAttack(bool isSeparatePlay) const {
+bool PlayerInput::isTriggerAppendCapAttack(bool a1) const {
     if (_98)
         return false;
-    if (!rs::isSeparatePlay(mLiveActor) || isSeparatePlay) {
+    if (!rs::isSeparatePlay(mLiveActor) || a1) {
         if (_98)
             return false;
         return mJoyPadAccelPoseAnalyzer1->isSwingAnyHand();
@@ -443,8 +386,6 @@ bool PlayerInput::isTriggerAppendCapAttack(bool isSeparatePlay) const {
     return mJoyPadAccelPoseAnalyzer2->isSwingAnyHand();
 }
 
-// NON_MATCHING: behavior is recovered, but dimension and vector branches differ; next source-level
-// hypothesis is the original nested-condition order.
 bool PlayerInput::isHoldSquat() const {
     if (_98)
         return false;
@@ -452,14 +393,19 @@ bool PlayerInput::isHoldSquat() const {
     const IUseDimension* dimension = mDimension;
     if (dimension && rs::is2D(dimension) && rs::isIn2DArea(dimension)) {
         if (!_cd) {
-            sead::Vector3f input = sead::Vector3f::zero;
+            sead::Vector3f input(0.0f, 0.0f, 0.0f);
             calcInputDirectionSnap2D(&input);
-            sead::Vector3f up = sead::Vector3f::zero;
-            al::calcUpDir(&up, mLiveActor);
+            const al::LiveActor* actor = mLiveActor;
+            sead::Vector3f up(0.0f, 0.0f, 0.0f);
+            al::calcUpDir(&up, actor);
             al::normalize(&up);
             if (input.dot(up) < -0.86603f)
                 return true;
         }
+
+        const al::LiveActor* actor = mLiveActor;
+        s32 port = PlayerFunction::getPlayerInputPort(actor);
+        return PlayerInputFunction::isHoldSubAction(actor, port);
     }
 
     const al::LiveActor* actor = mLiveActor;
@@ -513,8 +459,6 @@ bool PlayerInput::isHoldHackJump() const {
                                            PlayerFunction::getPlayerInputPort(mLiveActor));
 }
 
-// NON_MATCHING: behavior is recovered, but vector temporary scheduling differs; next source-level
-// hypothesis is the original gravity/input expression form.
 bool PlayerInput::isHoldEnterUpperDokan2D() const {
     if (_98)
         return false;
@@ -522,13 +466,11 @@ bool PlayerInput::isHoldEnterUpperDokan2D() const {
     if (!dimension || !rs::is2D(dimension) || !rs::isIn2DArea(dimension))
         return false;
 
-    sead::Vector3f input = sead::Vector3f::zero;
+    sead::Vector3f input(0.0f, 0.0f, 0.0f);
     calcInputDirectionSnap2D(&input);
     return input.dot(-al::getGravity(mLiveActor)) > 0.86603f;
 }
 
-// NON_MATCHING: behavior is recovered, but gravity/input temporary order differs; next source-level
-// hypothesis is the original vector expression form.
 bool PlayerInput::isHoldEnterSideDokan2D(const sead::Vector3f& dir) const {
     if (_98)
         return false;
@@ -536,19 +478,19 @@ bool PlayerInput::isHoldEnterSideDokan2D(const sead::Vector3f& dir) const {
     if (!dimension || !rs::is2D(dimension) || !rs::isIn2DArea(dimension))
         return false;
 
-    sead::Vector3f gravity = -al::getGravity(mLiveActor);
-    sead::Vector3f input = sead::Vector3f::zero;
-    calcMoveDirection(&input, gravity);
+    sead::Vector3f up = -al::getGravity(mLiveActor);
+    sead::Vector3f input(0.0f, 0.0f, 0.0f);
+    calcMoveDirection(&input, up);
     return dir.dot(input) > 0.86603f;
 }
 
 void PlayerInput::calcMoveDirection(sead::Vector3f* input,
-                                    const sead::Vector3f& gravity) const {
+                                    const sead::Vector3f& up) const {
     if (_98 || !_18) {
         input->set(0.0f, 0.0f, 0.0f);
         return;
     }
-    calcMoveInputImpl(input, gravity, false, false, false);
+    calcMoveInputImpl(input, up, false, false, false);
     al::tryNormalizeOrZero(input);
 }
 
@@ -597,26 +539,25 @@ bool PlayerInput::isSpinCounterClockwise() const {
     return mSpinInputAnalyzer->getSpinDirection() > 0;
 }
 
-void PlayerInput::calcMoveInput(sead::Vector3f* input, const sead::Vector3f& gravity) const {
+void PlayerInput::calcMoveInput(sead::Vector3f* input, const sead::Vector3f& up) const {
     if (_98) {
         input->set(0.0f, 0.0f, 0.0f);
     } else {
-        calcMoveInputImpl(input, gravity, false, false, false);
+        calcMoveInputImpl(input, up, false, false, false);
     }
 }
 
-// NON_MATCHING: behavior is recovered, but helper and vector lifetime order differ; next source-level
-// hypothesis is the original invalid-input branch structure.
 void PlayerInput::calc2DSnapJumpMoveInput(sead::Vector3f* input,
-                                          const sead::Vector3f& gravity) const {
+                                          const sead::Vector3f& up) const {
     if (_98) {
         input->set(0.0f, 0.0f, 0.0f);
         return;
     }
 
     if (!_cd) {
-        sead::Vector3f move = sead::Vector3f::zero;
-        sead::Vector3f side = sead::Vector3f::zero;
+        sead::Vector3f side;
+        sead::Vector3f move(0.0f, 0.0f, 0.0f);
+        side.set(0.0f, 0.0f, 0.0f);
         al::calcSideDir(&side, mLiveActor);
         al::normalize(&side);
         calcMoveInputImpl(&move, side, false, true, false);
@@ -627,23 +568,40 @@ void PlayerInput::calc2DSnapJumpMoveInput(sead::Vector3f* input,
         }
     }
 
-    calcMoveInputImpl(input, gravity, false, false, false);
+    calcMoveInputImpl(input, up, false, false, false);
 }
 
-// NON_MATCHING: dot-product behavior is recovered, but camera-vector construction differs; next
-// source-level hypothesis is the original matrix-axis helper expression.
+// NON_MATCHING: current 264-byte instruction stream manually matches corpus function 0x710044DB24,
+// but its target label is blank in file_list.yml so tools/check cannot verify it; semantic name is provisional.
+bool isInvalid2DSnapJumpMoveInput(const sead::Vector3f& input, const al::LiveActor* actor,
+                                  const IUsePlayerCollision* collision) {
+    sead::Vector3f up(0.0f, 0.0f, 0.0f);
+    al::calcUpDir(&up, actor);
+    al::normalize(&up);
+    if (input.dot(up) < -0.86603f)
+        return true;
+
+    up.set(0.0f, 0.0f, 0.0f);
+    al::calcUpDir(&up, actor);
+    al::normalize(&up);
+    f32 dot = input.dot(up);
+    if (rs::isCollidedGround(collision))
+        return dot >= 0.98481f;
+    return dot >= 0.86603f;
+}
+
 bool PlayerInput::isPoleMoveInputReverseX() const {
     const al::LiveActor* actor = mLiveActor;
     const sead::Matrix34f* view = PlayerFunction::getPlayerViewMtx(actor);
-    sead::Vector3f front = sead::Vector3f::zero;
-    sead::Vector3f side = sead::Vector3f::zero;
+    sead::Vector3f front(0.0f, 0.0f, 0.0f);
     al::calcFrontDir(&front, actor);
+    sead::Vector3f side(0.0f, 0.0f, 0.0f);
     al::calcSideDir(&side, actor);
 
     sead::Vector3f cameraFront(-view->m[2][0], -view->m[2][1], -view->m[2][2]);
     f32 frontDot = front.dot(cameraFront);
     f32 sideDot = side.dot(cameraFront);
-    return frontDot < 0.0f && sead::Mathf::abs(frontDot) > sead::Mathf::abs(sideDot);
+    return (sead::Mathf::abs(frontDot) > sead::Mathf::abs(sideDot)) & (frontDot < 0.0f);
 }
 
 const sead::Matrix34f* PlayerInput::getInputViewMtx() const {
@@ -666,16 +624,16 @@ void PlayerInput::calcPoleMoveInput(sead::Vector2f* input) const {
     input->set(-move.x, move.y);
 }
 
-void PlayerInput::calcCapThrowInput(sead::Vector3f* input, const sead::Vector3f& gravity) const {
-    calcMoveInput(input, gravity);
+void PlayerInput::calcCapThrowInput(sead::Vector3f* input, const sead::Vector3f& up) const {
+    calcMoveInput(input, up);
 }
 
 void PlayerInput::calcCapSeparateMoveInput(sead::Vector3f* input,
-                                           const sead::Vector3f& gravity) const {
+                                           const sead::Vector3f& up) const {
     if (_98) {
         input->set(0.0f, 0.0f, 0.0f);
     } else {
-        calcMoveInputImpl(input, gravity, true, false, true);
+        calcMoveInputImpl(input, up, true, false, true);
     }
 }
 
@@ -696,8 +654,8 @@ bool PlayerInput::isSameStickMove(const sead::Vector2f& dir, f32 angleDegree) co
 
 f32 PlayerInput::getRadiconInputSteeringValue() const {
     const al::LiveActor* actor = mLiveActor;
-    s32 port = PlayerFunction::getPlayerInputPort(actor);
-    return PlayerInputFunction::getRadiconInputSteeringValue(actor, port);
+    return PlayerInputFunction::getRadiconInputSteeringValue(
+        actor, PlayerFunction::getPlayerInputPort(actor));
 }
 
 sead::Vector2f PlayerInput::getStickCameraRaw() const {
@@ -706,8 +664,6 @@ sead::Vector2f PlayerInput::getStickCameraRaw() const {
     return getCameraInputRaw();
 }
 
-// NON_MATCHING: camera selection behavior is recovered, but branch/register scheduling differs; next
-// source-level hypothesis is the original separate-play fallback condition order.
 sead::Vector2f PlayerInput::getCameraInputRaw() const {
     if (_98)
         return sead::Vector2f::zero;
@@ -717,19 +673,19 @@ sead::Vector2f PlayerInput::getCameraInputRaw() const {
         s32 port2P = al::getPlayerControllerPort(1);
         sead::Vector2f input = PlayerInputFunction::getCameraMoveInput(
             mLiveActor, port1P, _8c, !_9a);
-        if (al::isNearZero(input, 0.001f) &&
+        if (al::isNearZero(input) &&
             !rs::isPlayerHackNoSeparateCameraInput(mLiveActor)) {
             input = PlayerInputFunction::getCameraMoveInput(mLiveActor, port2P, _90, true);
         }
         if (input.length() < 0.03f)
-            input.set(sead::Vector2f::zero);
+            input.set(0.0f, 0.0f);
         return input;
     }
 
     sead::Vector2f input = PlayerInputFunction::getCameraMoveInput(
         mLiveActor, PlayerFunction::getPlayerInputPort(mLiveActor), 0, false);
     if (input.length() < 0.03f)
-        input.set(sead::Vector2f::zero);
+        input.set(0.0f, 0.0f);
     return input;
 }
 
@@ -812,8 +768,9 @@ bool PlayerInput::isEnableRecoveryLifeInput() const {
     return isEnableShowTutorialInput();
 }
 
-// NON_MATCHING: returned direction behavior is recovered, but branch scheduling differs; next
-// source-level hypothesis is the original hold/trigger condition grouping.
+// NON_MATCHING: target-sized with exact calls/branches; target keeps the final selected pointer in X19
+// while current CSEL writes X0 directly. Direct-return and actor-inline forms become 4 bytes smaller; next
+// hypothesis is an accumulator/lifetime spelling that preserves X19 without adding redundant source.
 const sead::Vector2f& PlayerInput::getCapThrowDir() const {
     const sead::Vector2f* dir = &sead::Vector2f::zero;
     if (_98)
@@ -825,14 +782,15 @@ const sead::Vector2f& PlayerInput::getCapThrowDir() const {
     if (analyzer->isSwingDoubleHandSameDir())
         return analyzer->getSwingDirDoubleHandSameDir();
     if (analyzer->isSwingLeftHand())
-        return analyzer->getSwingLeftHandDir();
-    if (analyzer->isSwingRightHand())
+        dir = &analyzer->getSwingLeftHandDir();
+    else if (analyzer->isSwingRightHand())
         dir = &analyzer->getSwingRightHandDir();
     return *dir;
 }
 
-// NON_MATCHING: returned direction behavior is recovered, but branch scheduling differs; next
-// source-level hypothesis is the original swing-state condition grouping.
+// NON_MATCHING: target-sized with exact calls/branches; target keeps the final selected pointer in X19
+// while current CSEL writes X0 directly. Direct-return and actor-inline forms become 4 bytes smaller; next
+// hypothesis is an accumulator/lifetime spelling that preserves X19 without adding redundant source.
 const sead::Vector2f& PlayerInput::getSwingThrowDir() const {
     const sead::Vector2f* dir = &sead::Vector2f::zero;
     if (_98)
@@ -842,8 +800,8 @@ const sead::Vector2f& PlayerInput::getSwingThrowDir() const {
     al::JoyPadAccelPoseAnalyzer* analyzer = mJoyPadAccelPoseAnalyzer1;
     PlayerFunction::getPlayerInputPort(actor);
     if (analyzer->isSwingLeftHand())
-        return analyzer->getSwingLeftHandDir();
-    if (analyzer->isSwingRightHand())
+        dir = &analyzer->getSwingLeftHandDir();
+    else if (analyzer->isSwingRightHand())
         dir = &analyzer->getSwingRightHandDir();
     return *dir;
 }
@@ -879,23 +837,20 @@ bool PlayerInput::isSwingDirRight() const {
 }
 
 bool PlayerInput::isThrowTypeLeftRight(const sead::Vector2f& dir) const {
-    return !al::isNearZero(dir, 0.001f);
+    return !al::isNearZero(dir);
 }
 
 bool PlayerInput::isThrowTypeSpiral(const sead::Vector2f& dir) const {
-    if (al::isNearZero(dir, 0.001))
+    if (al::isNearZero(dir))
         return false;
-    f32 absX = (dir.x > 0 ? dir.x : -dir.x);
-    f32 absY = (dir.y > 0 ? dir.y : -dir.y);
-    return absX > absY;
+    return sead::Mathf::abs(dir.x) > sead::Mathf::abs(dir.y);
 }
 
 bool PlayerInput::isThrowTypeRolling(const sead::Vector2f& dir) const {
-    if (al::isNearZero(dir, 0.001))
-        return !al::isNearZero(dir.y, 0.001);
-    f32 absX = (dir.x > 0 ? dir.x : -dir.x);
-    f32 absY = (dir.y > 0 ? dir.y : -dir.y);
-    return !(absX > absY) && !al::isNearZero(dir.y, 0.001);
+    if (al::isNearZero(dir))
+        return !al::isNearZero(dir.y);
+    return !(sead::Mathf::abs(dir.x) > sead::Mathf::abs(dir.y)) &&
+           !al::isNearZero(dir.y);
 }
 
 bool PlayerInput::isEnableConsiderCapThrowDoubleSwing() const {
@@ -974,7 +929,9 @@ void PlayerInput::resetHoldInfo3D() {
     _c0.set(0.0f, 0.0f, 0.0f);
 }
 
-// NON_MATCHING: target emits a framed BL to memset for the 0x70-byte reset; void source through sead::MemUtil tail-calls instead. Next hypothesis: recover the original non-inline zeroing wrapper without changing the proven void ABI.
+// NON_MATCHING: target performs the same byte reset plus one memset but emits a 36-byte framed BL;
+// current sead::MemUtil form tail-calls in 20 bytes. No caller proves the decompiler's inferred pointer
+// return type; next hypothesis is the original zeroing wrapper/return contract rather than manual stores.
 void PlayerInput::resetHoldInfo2D() {
     _cd = false;
     sead::MemUtil::fillZero(&_d0, 0x70);

@@ -20,7 +20,7 @@ NERVES_MAKE_NOSTRUCT(WorldEndBorderKeeper, Outside, Inside, PullBack, WaitBorder
 
 WorldEndBorderKeeper::WorldEndBorderKeeper(const al::LiveActor* actor)
     : al::NerveExecutor("世界の果て"), mActor(actor) {
-    initNerve(&Outside, 0);
+    initNerve(&Outside);
 }
 
 void WorldEndBorderKeeper::reset() {

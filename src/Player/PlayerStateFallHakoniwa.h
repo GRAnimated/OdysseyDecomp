@@ -44,13 +44,13 @@ private:
     PlayerActionAirMoveControl* mAirMoveControl = nullptr;
     s32 _58 = 0;
     s32 _5c = 0;
-    sead::Vector3f _60{};
+    sead::Vector3f mWallCatchReferenceFront = {0.0f, 0.0f, 0.0f};
     bool mIsInvalidInputFall = false;
     bool mIsRunFall = false;
-    u8 _6e[2]{};
+    u8 _6e[2];
     const al::AreaObj* mFallTargetArea = nullptr;
     f32 mFallSpeed = 0.0f;
-    u8 _7c[4]{};
+    u8 _7c[4];
 };
 
 static_assert(sizeof(PlayerStateFallHakoniwa) == 0x80);

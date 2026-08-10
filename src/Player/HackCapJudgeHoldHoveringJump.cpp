@@ -18,11 +18,11 @@ HackCapJudgeHoldHoveringJump::HackCapJudgeHoldHoveringJump(const al::LiveActor* 
     : mPlayer(player), mCollider(collider), mHackCap(hackCap), mInput(input),
       mPlayerConst(playerConst) {}
 
-// NON_MATCHING: exact 240-byte size, but the terminal true/false block layout differs at 0x40AF20; next try a differently scoped boolean temporary while preserving the outer condition chain.
+// NON_MATCHING: target/current are 240 bytes with 6/6 semantic calls; spelling the speed gate as !(speed > 0) now reproduces target B.GT/NaN semantics, while the terminal true/false block layout still differs. Next source-level hypothesis: recover the original result-temporary lifetime without growing the CFG.
 bool HackCapJudgeHoldHoveringJump::judge() const {
     bool result = false;
     if (rs::isSeparatePlay(mHackCap) && rs::isPlayer2D(mHackCap) &&
-        mHackCap->isEnableSpinAttack() && al::calcSpeedV(mPlayer) <= 0.0f &&
+        mHackCap->isEnableSpinAttack() && !(al::calcSpeedV(mPlayer) > 0.0f) &&
         mInput->isHoldCapSeparateJump()) {
         if (mCollider->isEnableStandUp()) {
             result = true;

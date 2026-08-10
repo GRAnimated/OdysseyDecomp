@@ -39,7 +39,7 @@ void PlayerFireBall2D3D::init(const al::ActorInitInfo& info) {
 }
 
 
-// NON_MATCHING: exact 680-byte size, but vector temporary/call scheduling differs. Next hypothesis is preserving the corpus pose/arrow temporaries in their original expression order.
+// NON_MATCHING: target/current are both 680 bytes with the target 0xE0 frame and distinct second front/pose-up stack workspaces recovered; first diff is the position result FP-register assignment at 0x4428D8. Next source-level hypothesis: recover the original position-component lifetime/order that maps x/y/z to S9/S10/S8.
 void PlayerFireBall2D3D::shoot(bool is2D) {
     mIsShoot2D = is2D;
     if (is2D)
@@ -51,26 +51,28 @@ void PlayerFireBall2D3D::shoot(bool is2D) {
     al::calcFrontDir(&front, mPlayer);
     sead::Vector3f position = al::getTrans(mPlayer) + up * 100.0f + front * 50.0f;
 
-    al::calcFrontDir(&front, mPlayer);
+    sead::Vector3f shootFront;
+    al::calcFrontDir(&shootFront, mPlayer);
     sead::Vector3f poseUp = -al::getGravity(mPlayer);
-    if (al::isParallelDirection(front, poseUp, 0.01f))
+    if (al::isParallelDirection(shootFront, poseUp))
         al::calcUpDir(&poseUp, mPlayer);
 
     sead::Vector3f hitPos;
     sead::Vector3f hitNormal;
-    sead::Vector3f arrow = front * 80.0f;
     {
-        sead::Vector3f arrowStart = position - arrow;
+        sead::Vector3f arrowStart;
+        sead::Vector3f arrow = shootFront * 80.0f;
+        arrowStart = position - arrow;
         if (alCollisionUtil::getHitPosAndNormalOnArrow(this, &hitPos, &hitNormal, arrowStart, arrow,
                                                         nullptr, nullptr))
             position = hitPos + hitNormal * al::getSensorRadius(this);
     }
 
     sead::Matrix34f poseMtx;
-    al::makeMtxUpFrontPos(&poseMtx, poseUp, front, position);
+    al::makeMtxUpFrontPos(&poseMtx, poseUp, shootFront, position);
     al::updatePoseMtx(this, &poseMtx);
 
-    al::setVelocity(this, front * 22.5f - poseUp * 15.0f);
+    al::setVelocity(this, shootFront * 22.5f - poseUp * 15.0f);
     al::setGravity(this, al::getGravity(mPlayer));
     if (rs::isIn2DArea(mPlayer, &mAreaUp, &mAreaLockDir))
         al::resetPosition(this, position);
@@ -82,7 +84,6 @@ void PlayerFireBall2D3D::shoot(bool is2D) {
     al::setNerve(this, &NrvPlayerFireBall2D3D.Move);
 }
 
-// NON_MATCHING: current 1204 bytes versus target 1216; behavior is recovered. Next hypothesis is restoring intermediate gravity/velocity vectors to extend their register lifetimes.
 void PlayerFireBall2D3D::exeMove() {
     al::AreaObj* area = rs::tryFind2DAreaObj(this, &mAreaUp, &mAreaLockDir);
     if (area) {
@@ -92,8 +93,10 @@ void PlayerFireBall2D3D::exeMove() {
             mIsIn2D = true;
             if (!mIsBound) {
                 const sead::Vector3f& gravity = al::getGravity(this);
-                gravityPower = sead::Mathf::abs(mAreaUp.dot(gravity)) *
-                               gravity.dot(al::getVelocity(this));
+                const f32 areaGravityDot = mAreaUp.dot(gravity);
+                const sead::Vector3f& velocity = al::getVelocity(this);
+                const f32 gravityVelocityDot = gravity.dot(velocity);
+                gravityPower = sead::Mathf::abs(areaGravityDot) * gravityVelocityDot;
             }
         }
         if (!al::isHideShadowMask(this))
@@ -110,20 +113,20 @@ void PlayerFireBall2D3D::exeMove() {
 
     const sead::Vector3f& gravity = al::getGravity(this);
     const sead::Vector3f& velocity = al::getVelocity(this);
+    const f32 gravitySpeed = gravity.dot(velocity);
     if (rs::isCollided(mCollider2D3D))
         mIsBound = true;
 
     sead::Vector3f horizontalVelocity;
     al::verticalizeVec(&horizontalVelocity, gravity, velocity);
     horizontalVelocity *= 0.997f;
-    if (al::isNearZero(horizontalVelocity, 0.001f)) {
+    if (al::isNearZero(horizontalVelocity)) {
         if (mIsIn2D)
             rs::calc2DAreaFreeDir(&horizontalVelocity, area, al::getTrans(this));
         else
             al::calcFrontDir(&horizontalVelocity, this);
     }
 
-    const f32 gravitySpeed = gravity.dot(velocity);
     if (horizontalVelocity.length() < 14.0f) {
         const f32 horizontalSpeed = horizontalVelocity.length();
         if (horizontalSpeed > 0.0f)
@@ -142,7 +145,8 @@ void PlayerFireBall2D3D::exeMove() {
                                           rs::getCollidedGroundPos(mCollider2D3D));
             skipBoundGravity = true;
         } else {
-            boundWall(groundNormal, rs::getCollidedGroundPos(mCollider2D3D));
+            boundWall(rs::getCollidedGroundNormal(mCollider2D3D),
+                      rs::getCollidedGroundPos(mCollider2D3D));
         }
     } else if (rs::isCollidedWallVelocity(this, mCollider2D3D)) {
         boundWall(rs::getCollidedWallNormal(mCollider2D3D),
@@ -195,7 +199,7 @@ void PlayerFireBall2D3D::turn(const sead::Vector3f& velocity) {
         sead::Quatf currentQuat;
         al::calcQuat(&currentQuat, this);
         sead::Quatf targetQuat;
-        if (al::isParallelDirection(front, up, 0.01f)) {
+        if (al::isParallelDirection(front, up)) {
             sead::Vector3f currentFront;
             al::calcFrontDir(&currentFront, this);
             al::makeQuatRotationRate(&targetQuat, currentFront, front, 1.0f);
@@ -215,7 +219,7 @@ void PlayerFireBall2D3D::turn(const sead::Vector3f& velocity) {
     sead::Quatf currentQuat;
     al::calcQuat(&currentQuat, this);
     sead::Quatf targetQuat;
-    if (al::isParallelDirection(front, up, 0.01f)) {
+    if (al::isParallelDirection(front, up)) {
         sead::Vector3f currentFront;
         al::calcFrontDir(&currentFront, this);
         al::makeQuatRotationRate(&targetQuat, currentFront, front, 0.5f);

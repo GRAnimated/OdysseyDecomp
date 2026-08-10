@@ -36,7 +36,7 @@ YoshiStateHackDown::YoshiStateHackDown(al::LiveActor* actor, IUsePlayerHack** pl
     auto* airMove = reinterpret_cast<PlayerActionAirMoveControlOverlay*>(mAirMoveControl);
     airMove->_40 = true;
     airMove->mPlayerHack = playerHack;
-    initNerve(&Down, 0);
+    initNerve(&Down);
 }
 
 void YoshiStateHackDown::appear() {

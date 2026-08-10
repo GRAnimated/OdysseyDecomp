@@ -43,10 +43,8 @@ PlayerHackKeeper::PlayerHackKeeper(al::LiveActor* player, HackCap* cap,
                                    const IPlayerModelChanger* modelChanger,
                                    const IUsePlayerHeightCheck* heightCheck)
     : mParent(player), mHackCap(cap), mRecoverySafePoint(safetyPoint),
-      mInput(const_cast<PlayerInput*>(input)), field_30(mtx),
-      mDamageKeeper(const_cast<PlayerDamageKeeper*>(damageKeeper)),
-      mModelChanger(const_cast<IPlayerModelChanger*>(modelChanger)),
-      mHeightCheck(const_cast<IUsePlayerHeightCheck*>(heightCheck)) {
+      mInput(input), field_30(mtx), mDamageKeeper(damageKeeper), mModelChanger(modelChanger),
+      mHeightCheck(heightCheck) {
     sead::MemUtil::fillZero(&mHackActor, 0x64);
     mCollisionFilter = new HackHostCollisionPartsFilter(&mHackActor);
     mHackStartTexKeeper = new PlayerHackStartTexKeeper();

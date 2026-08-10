@@ -33,10 +33,7 @@ void PlayerActionTurnControl::reset() {
     _c = {0.0f, 0.0f, 0.0f};
 }
 
-// NON_MATCHING: target is 0xb10 and current is 0xb30 with target-equal 34/34 semantic calls.
-// Corpus comparison recovered the target FCSEL-GT absolute/threshold forms plus B.LE/B.PL turn-axis
-// predicates; remaining differences are stack/register and vector/quaternion block scheduling. Next
-// hypothesis is matching branch-local quaternion/stored-axis lifetimes around the two rotation paths.
+// NON_MATCHING: current 2864 bytes vs target 2832 with exact 34/34 semantic calls. Corpus comparison recovered the target FCSEL-GT absolute/threshold forms plus B.LE/B.PL turn-axis predicates; remaining differences are stack/register and vector/quaternion block scheduling. Next hypothesis is matching branch-local quaternion/stored-axis lifetimes around the two rotation paths.
 void PlayerActionTurnControl::update(const sead::Vector3f& input, const sead::Vector3f& up) {
     sead::Vector3f front = {0.0f, 0.0f, 0.0f};
     al::calcFrontDir(&front, mPlayer);

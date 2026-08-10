@@ -84,7 +84,6 @@ s32 classifyHitNormal(const sead::Vector3f& normal, const sead::Vector3f& gravit
     return 2;
 }
 
-// NON_MATCHING: target is 632 bytes while current is 628 with the exact 7/7 semantic call sequence; next source-level hypothesis is recovering the target conditional/FP lifetime shape around the ground-normal test.
 void collectGroundArrowHit(sead::PtrArray<al::HitInfo>* hitInfos,
                            sead::Buffer<f32>* hitDistances, sead::Buffer<f32>* hitValues,
                            const CollidedShapeResult* result, const sead::Vector3f& gravity,
@@ -98,13 +97,15 @@ void collectGroundArrowHit(sead::PtrArray<al::HitInfo>* hitInfos,
         return;
 
     const f32 dot = normal.dot(gravity);
-    const f32 absDot = dot <= 0.0f ? -dot : dot;
-    if (!(dot < 0.0f && absDot >= sead::Mathf::cos(sead::Mathf::deg2rad(groundAngle))))
+    const f32 absDot = sead::Mathf::abs(dot);
+    const f32 groundCos = sead::Mathf::cos(sead::Mathf::deg2rad(groundAngle));
+    const bool isNegative = dot < 0.0f;
+    if (!isNegative || absDot < groundCos)
         return;
 
     const CollisionShapeInfoArrow* shapeInfo = result->getShapeInfoArrow();
     const s32 index = shapeInfo->getIndex();
-    if ((*hitDistances)[index] >= hitInfo._70)
+    if (!((*hitDistances)[index] < hitInfo._70))
         return;
 
     *(*hitInfos)[index] = hitInfo;
@@ -380,9 +381,9 @@ void PlayerCollider::moveCollide(sead::Vector3f* pos, f32* size, sead::Quatf* qu
         }
 
         const f32 moveDot = moveVec.dot(remainMove);
-        if (!(moveDot >= 0.0f || al::isNearZero(moveDot, 0.001f)))
+        if (!(moveDot >= 0.0f || al::isNearZero(moveDot)))
             break;
-        if (al::isNearZero(remainMove, 0.001f) && !(previousFixDir.dot(fixDir) >= 0.0f))
+        if (al::isNearZero(remainMove) && !(previousFixDir.dot(fixDir) >= 0.0f))
             break;
 
         const sead::Vector3f startPos = *pos - fixVec;
@@ -532,31 +533,31 @@ void PlayerCollider::calcResultVec(sead::Vector3f* fixResult,
 
     if (previousFlags & 0x100) {
         if (fix.x > 0.0f && fix.x > previousFix.x &&
-            (previousFix.x >= 0.0f || al::isNearZero(previousFix.x, 0.001f))) {
+            (previousFix.x >= 0.0f || al::isNearZero(previousFix.x))) {
             fix.x = (_108 & 0x80) ? (fix.x + previousFix.x) * 0.5f : previousFix.x;
         }
     } else if ((previousFlags & 0x80) && fix.x < 0.0f && fix.x < previousFix.x &&
-               (previousFix.x <= 0.0f || al::isNearZero(previousFix.x, 0.001f))) {
+               (previousFix.x <= 0.0f || al::isNearZero(previousFix.x))) {
         fix.x = (_108 & 0x100) ? (fix.x + previousFix.x) * 0.5f : previousFix.x;
     }
 
     if (previousFlags & 0x400) {
         if (fix.y > 0.0f && fix.y > previousFix.y &&
-            (previousFix.y >= 0.0f || al::isNearZero(previousFix.y, 0.001f))) {
+            (previousFix.y >= 0.0f || al::isNearZero(previousFix.y))) {
             fix.y = (_108 & 0x200) ? (fix.y + previousFix.y) * 0.5f : previousFix.y;
         }
     } else if ((previousFlags & 0x200) && fix.y < 0.0f && fix.y < previousFix.y &&
-               (previousFix.y <= 0.0f || al::isNearZero(previousFix.y, 0.001f))) {
+               (previousFix.y <= 0.0f || al::isNearZero(previousFix.y))) {
         fix.y = (_108 & 0x400) ? (fix.y + previousFix.y) * 0.5f : previousFix.y;
     }
 
     if (previousFlags & 0x1000) {
         if (fix.z > 0.0f && fix.z > previousFix.z &&
-            (previousFix.z >= 0.0f || al::isNearZero(previousFix.z, 0.001f))) {
+            (previousFix.z >= 0.0f || al::isNearZero(previousFix.z))) {
             fix.z = (_108 & 0x800) ? (fix.z + previousFix.z) * 0.5f : previousFix.z;
         }
     } else if ((previousFlags & 0x800) && fix.z < 0.0f && fix.z < previousFix.z &&
-               (previousFix.z <= 0.0f || al::isNearZero(previousFix.z, 0.001f))) {
+               (previousFix.z <= 0.0f || al::isNearZero(previousFix.z))) {
         fix.z = (_108 & 0x1000) ? (fix.z + previousFix.z) * 0.5f : previousFix.z;
     }
 
@@ -573,10 +574,10 @@ void PlayerCollider::calcResultVec(sead::Vector3f* fixResult,
     sead::Vector3f vertical(0.0f, 0.0f, 0.0f);
     bool addParallelCollision = false;
     bool addVerticalCollision = false;
-    if (!al::isNearZero(overlap, 0.001f)) {
+    if (!al::isNearZero(overlap)) {
         al::separateVectorParallelVertical(&parallel, &vertical, *mGravityPtr, overlap);
-        addParallelCollision = !al::isNearZero(parallel, 0.001f);
-        const bool isVerticalZero = al::isNearZero(vertical, 0.001f);
+        addParallelCollision = !al::isNearZero(parallel);
+        const bool isVerticalZero = al::isNearZero(vertical);
         addVerticalCollision = !isVerticalZero;
 
         if (!isVerticalZero || addParallelCollision) {
@@ -766,7 +767,7 @@ void PlayerCollider::calcResultVecSphere(sead::BitFlag32* flags, sead::Vector3f*
     bool skipHitInfo = false;
     if (!isGroundNormal(normal, *mGravityPtr, _1b0)) {
         const f32 normalDot = normal.dot(*mGravityPtr);
-        const bool isWall = !al::isNearZero(normal, 0.001f) &&
+        const bool isWall = !al::isNearZero(normal) &&
                             sead::Mathf::abs(normalDot) <
                                 sead::Mathf::cos(sead::Mathf::deg2rad(_1b0));
         if (isWall) {
@@ -895,7 +896,7 @@ void PlayerCollider::calcResultVecDisk(sead::BitFlag32* flags, sead::Vector3f* s
     sead::Vector3f fixNormal(0.0f, 0.0f, 0.0f);
     if (!isGroundNormal(normal, *mGravityPtr, _1b0)) {
         const f32 normalDot = normal.dot(*mGravityPtr);
-        const bool isWall = !al::isNearZero(normal, 0.001f) &&
+        const bool isWall = !al::isNearZero(normal) &&
                             sead::Mathf::abs(normalDot) <
                                 sead::Mathf::cos(sead::Mathf::deg2rad(_1b0));
         if (isWall) {

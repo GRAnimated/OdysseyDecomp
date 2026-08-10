@@ -104,13 +104,13 @@ public:
 
     PlayerRecoverySafetyPoint* getRecoverySafePoint() const { return mRecoverySafePoint; }
 
-    PlayerInput* getInput() const { return mInput; }
+    const PlayerInput* getInput() const { return mInput; }
 
-    PlayerDamageKeeper* getDamageKeeper() const { return mDamageKeeper; }
+    const PlayerDamageKeeper* getDamageKeeper() const { return mDamageKeeper; }
 
-    IPlayerModelChanger* getModelChanger() const { return mModelChanger; }
+    const IPlayerModelChanger* getModelChanger() const { return mModelChanger; }
 
-    IUsePlayerHeightCheck* getHeightCheck() const { return mHeightCheck; }
+    const IUsePlayerHeightCheck* getHeightCheck() const { return mHeightCheck; }
 
     void setPuppetable(bool isPuppetable) { mIsPuppetable = isPuppetable; }
 
@@ -145,11 +145,11 @@ private:
     PlayerRecoverySafetyPoint* mRecoverySafePoint;
     PlayerJudgePreInputJump* mJudgePreInputJump = nullptr;
     PlayerJudgePreInputHackAction* mJudgePreInputHackAction = nullptr;
-    PlayerInput* mInput;
+    const PlayerInput* mInput;
     const sead::Matrix34f* field_30;
-    PlayerDamageKeeper* mDamageKeeper;
-    IPlayerModelChanger* mModelChanger;
-    IUsePlayerHeightCheck* mHeightCheck;
+    const PlayerDamageKeeper* mDamageKeeper;
+    const IPlayerModelChanger* mModelChanger;
+    const IUsePlayerHeightCheck* mHeightCheck;
     al::HitSensor* mParentBodySensor = nullptr;
     bool mIsPuppetable = false;
     bool mIsCancellingHack = false;

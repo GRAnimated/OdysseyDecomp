@@ -12,7 +12,7 @@
 #include "Util/PlayerUtil.h"
 
 namespace {
-// NON_MATCHING: target is 0x134 bytes and current output is 0x138 because the no-wall XY writes are paired only in the target; next source-level hypothesis is the original f32 vector-scaling idiom.
+// NON_MATCHING: target 308 bytes versus current 312 with exact 6/6 semantic calls; only the no-wall XY stores are paired in target while current emits two scalar stores. `multScalar(0.5f)` is codegen-neutral versus `operator*=`; next source-level hypothesis is the original scalar/vector expression shape that enables STP.
 void calcMoveInput(sead::Vector3f* velocity, sead::Vector3f* moveInput,
                    const PlayerColliderHackCap* collider, const sead::Vector3f& input,
                    const sead::Vector3f& up) {
@@ -28,7 +28,7 @@ void calcMoveInput(sead::Vector3f* velocity, sead::Vector3f* moveInput,
     }
 }
 
-// NON_MATCHING: target is 0x1E0 bytes and current output is 0x1DC because the final X/Y writes are separate only in the target; next source-level hypothesis is the original component-update expression order.
+// NON_MATCHING: target 480 bytes versus current 476 with exact 3/3 semantic calls; the residual is final component-update/store scheduling (target keeps separate X/Y writes). Next source-level hypothesis is the original component-update expression order/lifetime.
 void calcTargetPosition(sead::Vector3f* target, const al::LiveActor* player,
                         const sead::Vector3f& up, const sead::Vector3f& localOffset,
                         f32 height, f32 radius) {
@@ -54,7 +54,7 @@ void calcTargetPosition(sead::Vector3f* target, const al::LiveActor* player,
     target->z += offset.z;
 }
 
-// NON_MATCHING: exact size, but first mismatch at 0x710040A6AC is parameter-register move ordering; next source-level hypothesis is local reference/value capture order before the quaternion calls.
+// NON_MATCHING: exact 524-byte size and 16/16 semantic calls; first mismatch at target 0x710040A6AC is parameter-register move ordering only. Next source-level hypothesis is the original local reference/value capture order before the quaternion calls.
 void updatePose(al::LiveActor* actor, const PlayerColliderHackCap* collider,
                 const al::LiveActor* player, const sead::Vector3f& moveInput,
                 const sead::Vector3f& up, const sead::Vector3f& velocity,
@@ -178,8 +178,7 @@ bool updateSeparateWaitJump(al::LiveActor* actor, sead::Vector3f* velocity, f32*
     al::separateVectorHV(&initialVelocityH, &initialVelocityV, up,
                          al::getTrans(actor) - targetPosition);
     const f32 verticalDot = up.dot(initialVelocityV);
-    const f32 verticalSpeed = verticalDot < 0.0f ? 0.0f : verticalDot;
-    velocity->setScaleAdd(verticalSpeed, up, initialVelocityH);
+    velocity->setScaleAdd(verticalDot < 0.0f ? 0.0f : verticalDot, up, initialVelocityH);
 
     sead::Vector3f moveInput(0.0f, 0.0f, 0.0f);
     calcMoveInput(velocity, &moveInput, collider, inputDirection, up);

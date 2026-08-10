@@ -12,11 +12,11 @@ class LiveActor;
 
 class PlayerJointControlPoleClimbPose : public al::JointControllerBase {
 public:
-    PlayerJointControlPoleClimbPose(const al::LiveActor*);
+    PlayerJointControlPoleClimbPose(const al::LiveActor* player);
 
-    void calcJointCallback(s32 jointIndex, sead::Matrix34f*) override;
-    void calcAngle(sead::Matrix34f*, const sead::Vector3f&);
-    void update(const sead::Vector3f&, const sead::Vector3f&, f32);
+    void calcJointCallback(s32 jointIndex, sead::Matrix34f* jointMtx) override;
+    void calcAngle(sead::Matrix34f* jointMtx, const sead::Vector3f& angle);
+    void update(const sead::Vector3f& armAngle, const sead::Vector3f& legAngle, f32 rate);
     const char* getCtrlTypeName() const override;
 
 private:

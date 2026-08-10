@@ -19,8 +19,7 @@ FootPrint* FootPrintServer::findDeadFootPrint() {
         return nullptr;
 
     for (s32 i = 0; i < _8->size(); i++) {
-        FootPrint* footPrint = _8->at(i);
-        if (isDead(reinterpret_cast<const LiveActor*>(footPrint)))
+        if (isDead(reinterpret_cast<const LiveActor*>(_8->at(i))))
             return _8->at(i);
     }
 

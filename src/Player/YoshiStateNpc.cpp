@@ -46,7 +46,7 @@ YoshiStateNpc::YoshiStateNpc(al::LiveActor* actor, const PlayerConst* playerCons
       mEventFlowExecutor(eventFlowExecutor), mAnimator(animator) {
     al::tryGetArg(&mIsUseReturnTimer, info, "IsUseReturnTimer");
     rs::startEventFlow(mEventFlowExecutor, "Init");
-    initNerve(&Wait, 0);
+    initNerve(&Wait);
 }
 
 void YoshiStateNpc::appear() {
@@ -93,7 +93,9 @@ void YoshiStateNpc::exeAppear() {
         al::setNerve(this, &Wait);
 }
 
-// NON_MATCHING: target/current 776/768; local stack coloring matches, but target materializes base pointers for the 0x5c and 0x50 vector copies while current emits direct STUR/STR stores; next source-level hypothesis: recover the original sead vector-copy expression/helper that preserves those field-base addresses.
+// NON_MATCHING: target 776/current 768 with all 18 semantic calls aligned; local stack coloring
+// matches, but target materializes base pointers for the 0x5c and 0x50 vector copies while current
+// emits direct stores. Next test the original sead vector-copy spelling that preserves field bases.
 void YoshiStateNpc::exeWait() {
     al::LiveActor* actor = mActor;
     if (rs::isCollidedGroundRunAngle(actor, mCollision, mPlayerConst)) {

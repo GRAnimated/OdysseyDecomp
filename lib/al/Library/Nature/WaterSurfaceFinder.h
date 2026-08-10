@@ -20,6 +20,11 @@ struct WaterSurfaceProperties {
     void set1c(const sead::Vector3f& vector) { _1c.set(vector); }
 };
 
+struct WaterSurfaceState {
+    u8 isFoundSurface;
+    f32 distance;
+};
+
 class WaterSurfaceFinder {
 public:
     WaterSurfaceFinder(const LiveActor* actor);
@@ -39,6 +44,10 @@ public:
     bool isFoundSurface() const { return mIsFoundSurface; }
 
     f32 getDistance() const { return mSurface.distance; }
+
+    WaterSurfaceState getSurfaceState() const {
+        return {mIsFoundSurface, mSurface.distance};
+    }
 
     const sead::Vector3f& getSurfacePosition() const { return mSurface.position; }
 
