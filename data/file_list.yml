@@ -270953,43 +270953,43 @@ Library/Play/Camera/CameraVerticalAbsorber2DGalaxy.o:
     label:
     - _ZN2al30CameraVerticalAbsorber2DGalaxyC1Ev
     - _ZN2al30CameraVerticalAbsorber2DGalaxyC2Ev
-    status: NotDecompiled
+    status: Matching
   - offset: 0x981444
     size: 112
     label: _ZN2al30CameraVerticalAbsorber2DGalaxy5startEPKNS_11CameraPoserE
-    status: NotDecompiled
+    status: Matching
   - offset: 0x9814b4
     size: 124
     label: _ZN2al30CameraVerticalAbsorber2DGalaxy6updateEPKNS_11CameraPoserE
-    status: NotDecompiled
+    status: Matching
   - offset: 0x981530
     size: 52
     label: _ZNK2al30CameraVerticalAbsorber2DGalaxy10applyLimitEPN4sead7Vector3IfEE
-    status: NotDecompiled
+    status: Matching
   - offset: 0x981564
     size: 128
     label: _ZN2al30CameraVerticalAbsorber2DGalaxy7exeNoneEv
-    status: NotDecompiled
+    status: Matching
   - offset: 0x9815e4
     size: 200
     label: _ZN2al30CameraVerticalAbsorber2DGalaxy9exeGroundEv
-    status: NotDecompiled
+    status: NonMatchingMajor
   - offset: 0x9816ac
     size: 240
     label: _ZN2al30CameraVerticalAbsorber2DGalaxy8exeLimitEv
-    status: NotDecompiled
+    status: NonMatchingMajor
   - offset: 0x98179c
     size: 112
     label: _ZN2al30CameraVerticalAbsorber2DGalaxy12exeLimitOverEv
-    status: NotDecompiled
+    status: Matching
   - offset: 0x98180c
     size: 144
     label: _ZN2al30CameraVerticalAbsorber2DGalaxy13exeLimitAfterEv
-    status: NotDecompiled
+    status: Matching
   - offset: 0x98189c
     size: 36
     label: _ZN2al30CameraVerticalAbsorber2DGalaxyD0Ev
-    status: NotDecompiled
+    status: Matching
     lazy: true
   - offset: 0x9818c0
     size: 128
