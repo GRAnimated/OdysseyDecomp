@@ -121174,27 +121174,27 @@ Player/PlayerCounterIceWater.o:
     label:
     - _ZN21PlayerCounterIceWaterC1EPN2al9LiveActorERKNS0_13ActorInitInfoEPK11PlayerConstPK19IUsePlayerCollisionP6IJudge
     - _ZN21PlayerCounterIceWaterC2EPN2al9LiveActorERKNS0_13ActorInitInfoEPK11PlayerConstPK19IUsePlayerCollisionP6IJudge
-    status: NotDecompiled
+    status: Matching
   - offset: 0x43eb74
     size: 140
     label: _ZN21PlayerCounterIceWater18clearIceWaterCountEv
-    status: NotDecompiled
+    status: Matching
   - offset: 0x43ec00
     size: 812
     label: _ZN21PlayerCounterIceWater11updateCountEbb
-    status: NotDecompiled
+    status: Matching
   - offset: 0x43ef2c
     size: 84
     label: _ZNK21PlayerCounterIceWater15isTriggerDamageEv
-    status: NotDecompiled
+    status: Matching
   - offset: 0x43ef80
     size: 208
     label: _ZN21PlayerCounterIceWater23updateRecoveryCountImplEv
-    status: NotDecompiled
+    status: Matching
   - offset: 0x43f050
     size: 20
     label: _ZN21PlayerCounterIceWater13killIceEffectEv
-    status: NotDecompiled
+    status: Matching
 Player/PlayerCounterQuickTurnJump.o:
   '.text':
   - offset: 0x43f064
